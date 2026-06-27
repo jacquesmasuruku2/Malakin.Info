@@ -9,7 +9,7 @@ import Footer from "@/components/Footer";
 const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'});
 
 export const metadata: Metadata = {
-  title: "Arizona.info - L'info qui traverse les frontières",
+  title: "Malakin.info - L'info qui traverse les frontières",
   description: "Informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel.",
 };
 
