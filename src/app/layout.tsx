@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import Navigation from "@/components/Navigation";
@@ -22,6 +23,14 @@ export default function RootLayout({
       lang="fr"
       className={cn("h-full", "antialiased", jetbrainsMono.variable)}
     >
+      <head>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4621769509750492"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         <Navigation />
         <main className="flex-1">{children}</main>
