@@ -1,36 +1,194 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Arizona.info
 
-## Getting Started
+Site d'actualité généraliste axé sur l'Afrique et le monde.
 
-First, run the development server:
+**Slogan :** "L'info qui traverse les frontières"
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🎯 Mission
+
+Informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel.
+
+## 🛠️ Stack Technique
+
+- **Frontend** : React avec Next.js (App Router)
+- **Styling** : TailwindCSS v4
+- **UI Components** : shadcn/ui
+- **Icons** : Lucide React
+- **Backend / CMS** : Strapi (à configurer)
+- **Base de données** : PostgreSQL (via Supabase ou VPS)
+- **Hébergement** : Oracle Cloud Always Free Tier
+
+## 📂 Architecture du Site
+
+```
+arizona.info/
+├── accueil/
+├── actualites/
+│   ├── politique/
+│   ├── economie/
+│   ├── societe/
+│   ├── sante/
+│   ├── securite/
+│   └── environnement/
+├── medias/
+│   ├── photos/
+│   ├── videos/
+│   ├── podcasts/
+│   └── live/
+├── communiques/
+│   ├── gouvernement/
+│   ├── religieux/
+│   ├── ong/
+│   └── educatif/
+├── infos-pratiques/
+│   ├── guides/
+│   ├── tutoriels/
+│   ├── checklists/
+│   └── ressources-educatives/
+├── religion/
+│   ├── meditations/
+│   ├── homelies/
+│   ├── musiques-sacrees/
+│   ├── agenda-religieux/
+│   └── message-du-temps/
+│       ├── branham/
+│       └── autres-messages/
+├── culture/
+│   ├── musique/
+│   ├── cinema/
+│   ├── arts/
+│   └── tendances/
+├── sport/
+│   ├── football/
+│   ├── basket/
+│   ├── athletisme/
+│   └── evenements/
+├── emploi/
+│   ├── offres/
+│   ├── deposez-offre/
+│   ├── conseils-carriere/
+│   └── bourses-stages/
+├── nous-soutenir/
+│   ├── faire-un-don/
+│   ├── partenariats/
+│   ├── mecenat/
+│   ├── pourquoi-soutenir/
+│   └── temoignages-donateurs/
+├── blog/
+│   ├── tribunes/
+│   ├── chroniques/
+│   ├── enquetes/
+│   └── sondages/
+├── a-propos/
+│   ├── mission/
+│   ├── equipe/
+│   └── charte/
+├── contact/
+└── compte/
+    ├── connexion/
+    ├── inscription/
+    ├── abonnement-premium/
+    └── mon-profil/
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🎨 Identité Visuelle
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Couleurs** :
+  - Rouge : `#E63946`
+  - Bleu profond : `#1D3557`
+  - Or : `#F4A261`
+- **Polices** :
+  - Poppins (titres)
+  - Open Sans (corps)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 Démarrage
 
-## Learn More
+### Prérequis
 
-To learn more about Next.js, take a look at the following resources:
+- Node.js 18+ installé
+- npm ou yarn
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Installation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Cloner le repository
+2. Installer les dépendances :
+```bash
+npm install
+```
 
-## Deploy on Vercel
+3. Lancer le serveur de développement :
+```bash
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. Ouvrir [http://localhost:3000](http://localhost:3000) dans votre navigateur
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📦 Construction pour la production
+
+```bash
+npm run build
+npm start
+```
+
+## 🌐 Déploiement
+
+### Oracle Cloud (VPS)
+
+1. Préparer le VPS Oracle Cloud avec Ubuntu
+2. Installer Node.js et npm
+3. Cloner le projet sur le VPS
+4. Installer les dépendances
+5. Construire le projet : `npm run build`
+6. Utiliser PM2 pour gérer le processus :
+```bash
+npm install -g pm2
+pm2 start npm --name "arizona" -- start
+pm2 save
+pm2 startup
+```
+
+### Alternative : Vercel
+
+1. Connecter le repository GitHub à Vercel
+2. Configurer les variables d'environnement
+3. Déployer automatiquement
+
+## 🔧 Configuration CMS (Strapi)
+
+À venir : Installation et configuration de Strapi pour la gestion du contenu.
+
+## 📝 Pages Implémentées
+
+- ✅ Page d'accueil
+- ✅ Actualités (avec sous-catégories)
+- ✅ Médias (photos, vidéos, podcasts, live)
+- ✅ Communiqués (gouvernement, religieux, ONG, éducatif)
+- ✅ Infos Pratiques (guides, tutoriels, checklists, ressources)
+- ✅ Religion (méditations, homélies, musiques sacrées, agenda)
+- ✅ Culture (musique, cinéma, arts, tendances)
+- ✅ Sport (football, basket, athlétisme, événements)
+- ✅ Emploi (offres, conseils carrière, bourses)
+- ✅ Nous Soutenir (dons, partenariats, mécénat)
+- ✅ Blog (tribunes, chroniques, enquêtes, sondages)
+- ✅ À Propos (mission, équipe, charte)
+- ✅ Contact
+- ✅ Compte (connexion, inscription)
+
+## 👥 Équipe
+
+- Jean Dupont - Rédacteur en chef (ex-RFI)
+- Marie Koffi - Journaliste politique (ex-Jeune Afrique)
+- Ahmed Benali - Correspondant Maghreb
+- Grace Okafor - Rédactrice culture
+- Pierre Mwamba - Responsable Sport
+- Sr. Véronique Nzambi - Coordinatrice Religieux
+
+## 📄 Licence
+
+Propriété de Arizona.info - Tous droits réservés
+
+## 📞 Contact
+
+- Email : contact@arizona.info
+- Téléphone : +243 000 000 000
+- Adresse : Avenue de la Liberté, Quartier Gombe, Kinshasa, RDC
