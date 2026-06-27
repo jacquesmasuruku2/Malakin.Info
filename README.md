@@ -1,4 +1,4 @@
-# Arizona.info
+# Malakin.info
 
 Site d'actualité généraliste axé sur l'Afrique et le monde.
 
@@ -14,14 +14,13 @@ Informer, éduquer et connecter l'Afrique à travers un journalisme indépendant
 - **Styling** : TailwindCSS v4
 - **UI Components** : shadcn/ui
 - **Icons** : Lucide React
-- **Backend / CMS** : Strapi (à configurer)
-- **Base de données** : PostgreSQL (via Supabase ou VPS)
-- **Hébergement** : Oracle Cloud Always Free Tier
+- **CMS** : Sanity.io (headless CMS)
+- **Hébergement** : Vercel
 
 ## 📂 Architecture du Site
 
 ```
-arizona.info/
+malakin.info/
 ├── accueil/
 ├── actualites/
 │   ├── politique/
@@ -132,30 +131,69 @@ npm start
 
 ## 🌐 Déploiement
 
-### Oracle Cloud (VPS)
+### Vercel (Recommandé)
 
-1. Préparer le VPS Oracle Cloud avec Ubuntu
-2. Installer Node.js et npm
-3. Cloner le projet sur le VPS
-4. Installer les dépendances
-5. Construire le projet : `npm run build`
-6. Utiliser PM2 pour gérer le processus :
+1. Créer un compte sur [Vercel](https://vercel.com)
+2. Connecter le repository GitHub : https://github.com/jacquesmasuruku2/Malakin.Info
+3. Configurer les variables d'environnement dans Vercel :
+   - `NEXT_PUBLIC_SANITY_PROJECT_ID` : Votre ID de projet Sanity
+   - `NEXT_PUBLIC_SANITY_DATASET` : `production`
+4. Déployer automatiquement
+
+## 🔧 Configuration Sanity.io
+
+### 1. Créer un projet Sanity
+
+1. Aller sur [Sanity.io](https://sanity.io) et créer un compte
+2. Créer un nouveau projet
+3. Copier le `Project ID` depuis les paramètres du projet
+
+### 2. Configurer les variables d'environnement
+
+**Option A : Vercel (Production)**
+- Dans Vercel Dashboard → Settings → Environment Variables
+- Ajouter :
+  - `NEXT_PUBLIC_SANITY_PROJECT_ID` : votre_project_id
+  - `NEXT_PUBLIC_SANITY_DATASET` : `production`
+
+**Option B : Local (Développement)**
+- Créer un fichier `.env.local` à la racine du projet
+- Ajouter :
+  ```
+  NEXT_PUBLIC_SANITY_PROJECT_ID=votre_project_id
+  NEXT_PUBLIC_SANITY_DATASET=production
+  ```
+
+### 3. Lancer le studio Sanity
+
 ```bash
-npm install -g pm2
-pm2 start npm --name "arizona" -- start
-pm2 save
-pm2 startup
+npm install -g @sanity/cli
+sanity login
+sanity init
 ```
 
-### Alternative : Vercel
+Choisissez :
+- Utiliser le projet existant
+- Sélectionner le schéma : `schemas/`
+- Démarrer le studio : `npx sanity start`
 
-1. Connecter le repository GitHub à Vercel
-2. Configurer les variables d'environnement
-3. Déployer automatiquement
+### 4. Structure des schémas Sanity
 
-## 🔧 Configuration CMS (Strapi)
+Le projet inclut les schémas suivants :
+- **Article** : Articles d'actualité avec contenu riche
+- **Category** : Catégories d'articles
+- **Author** : Auteurs et journalistes
 
-À venir : Installation et configuration de Strapi pour la gestion du contenu.
+### 5. Utiliser les données Sanity dans Next.js
+
+Les fonctions utilitaires sont disponibles dans `src/lib/queries.ts` :
+- `getArticles()` : Récupérer tous les articles
+- `getFeaturedArticles()` : Articles à la une
+- `getLatestArticles()` : Derniers articles
+- `getArticleBySlug(slug)` : Article par slug
+- `getArticlesByCategory(categorySlug)` : Articles par catégorie
+- `getCategories()` : Toutes les catégories
+- `searchArticles(query)` : Recherche d'articles
 
 ## 📝 Pages Implémentées
 
@@ -185,10 +223,10 @@ pm2 startup
 
 ## 📄 Licence
 
-Propriété de Arizona.info - Tous droits réservés
+Propriété de Malakin.info - Tous droits réservés
 
 ## 📞 Contact
 
-- Email : contact@arizona.info
+- Email : contact@malakin.info
 - Téléphone : +243 000 000 000
 - Adresse : Avenue de la Liberté, Quartier Gombe, Kinshasa, RDC
