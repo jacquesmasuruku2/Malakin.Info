@@ -7,7 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Bookman Old Style', serif;
+  --font-sans: 'Arial', sans-serif;
   --font-mono: var(--font-mono);
   --font-heading: 'Times New Roman', serif;
   --color-sidebar-ring: var(--sidebar-ring);
@@ -82,7 +82,7 @@
   --sidebar-border: #e5e7eb;
   --sidebar-ring: #E63946;
   --font-heading: 'Times New Roman', serif;
-  --font-sans: 'Bookman Old Style', serif;
+  --font-sans: 'Arial', sans-serif;
 }
 
 .dark {
