@@ -153,3 +153,19 @@ export async function searchArticles(query: string) {
   }`
   return await client.fetch(searchQuery as any)
 }
+
+export async function getPosts() {
+  return await client.fetch(`
+    *[_type == "post"] | order(publishedAt desc) {
+      _id,
+      title,
+      slug,
+      content,
+      publishedAt,
+      mainImage,
+      author->{
+        name
+      }
+    }
+  `)
+}

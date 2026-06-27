@@ -1,7 +1,23 @@
 import Link from 'next/link';
 import { Calendar, ArrowRight, PenTool, FileText, Search, BarChart3 } from 'lucide-react';
+import { getPosts } from '@/lib/queries';
+import { urlFor } from '@/lib/sanity';
 
-export default function BlogPage() {
+interface Post {
+  id: string;
+  category: string;
+  author: string;
+  title: string;
+  excerpt?: string;
+  image: string;
+  date: string;
+  readTime: string;
+  slug: string;
+}
+
+export default async function BlogPage() {
+  const posts = await getPosts();
+
   const categories = [
     { name: 'Tribunes', href: '/blog/tribunes', icon: PenTool, count: 34 },
     { name: 'Chroniques', href: '/blog/chroniques', icon: FileText, count: 56 },
@@ -9,7 +25,40 @@ export default function BlogPage() {
     { name: 'Sondages', href: '/blog/sondages', icon: BarChart3, count: 18 },
   ];
 
-  const featuredPosts = [
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
+  };
+
+  const featuredPosts = posts.slice(0, 3).map((post: any) => ({
+    id: post._id,
+    category: 'Article',
+    author: post.author?.name || 'Anonyme',
+    title: post.title,
+    excerpt: post.content?.substring(0, 150) + '...' || '',
+    image: post.mainImage ? urlFor(post.mainImage).url() : 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop',
+    date: formatDate(post.publishedAt),
+    readTime: '5 min',
+    slug: post.slug?.current,
+  }));
+
+  const latestPosts = posts.slice(3).map((post: any) => ({
+    id: post._id,
+    category: 'Article',
+    author: post.author?.name || 'Anonyme',
+    title: post.title,
+    date: formatDate(post.publishedAt),
+    readTime: '5 min',
+    slug: post.slug?.current,
+  }));
+
+  // Fallback to mock data if no posts from Sanity
+  const displayFeaturedPosts = featuredPosts.length > 0 ? featuredPosts : [
     {
       id: 1,
       category: 'Tribune',
@@ -19,6 +68,7 @@ export default function BlogPage() {
       image: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop',
       date: '27 Juin 2026',
       readTime: '8 min',
+      slug: '1',
     },
     {
       id: 2,
@@ -29,6 +79,7 @@ export default function BlogPage() {
       image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800&h=400&fit=crop',
       date: '26 Juin 2026',
       readTime: '12 min',
+      slug: '2',
     },
     {
       id: 3,
@@ -39,17 +90,19 @@ export default function BlogPage() {
       image: 'https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=800&h=400&fit=crop',
       date: '25 Juin 2026',
       readTime: '6 min',
+      slug: '3',
     },
   ];
 
-  const latestPosts = [
+  const displayLatestPosts = latestPosts.length > 0 ? latestPosts : [
     {
       id: 4,
       category: 'Sondage',
-      author: 'Équipe Arizona',
+      author: 'Équipe Malakin',
       title: 'Sondage : Les Africains et leur confiance dans les médias',
       date: '27 Juin 2026',
       readTime: '5 min',
+      slug: '4',
     },
     {
       id: 5,
@@ -58,6 +111,7 @@ export default function BlogPage() {
       title: 'La culture africaine comme vecteur d\'unité',
       date: '26 Juin 2026',
       readTime: '7 min',
+      slug: '5',
     },
     {
       id: 6,
@@ -66,6 +120,7 @@ export default function BlogPage() {
       title: 'Le sport comme outil de développement social',
       date: '25 Juin 2026',
       readTime: '4 min',
+      slug: '6',
     },
   ];
 
@@ -113,7 +168,7 @@ export default function BlogPage() {
             <div>
               <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {featuredPosts.map((post) => (
+                {displayFeaturedPosts.map((post: Post) => (
                   <article
                     key={post.id}
                     className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
@@ -144,7 +199,7 @@ export default function BlogPage() {
                         {post.excerpt}
                       </p>
                       <Link
-                        href={`/blog/${post.id}`}
+                        href={`/blog/${post.slug}`}
                         className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                       >
                         Lire
@@ -159,7 +214,7 @@ export default function BlogPage() {
             <div>
               <h2 className="font-heading text-2xl font-bold mb-6">Derniers articles</h2>
               <div className="space-y-4">
-                {latestPosts.map((post) => (
+                {displayLatestPosts.map((post: Post) => (
                   <article
                     key={post.id}
                     className="flex gap-4 p-4 bg-card rounded-lg hover:bg-muted/50 transition-colors"
