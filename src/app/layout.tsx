@@ -11,6 +11,9 @@ const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'})
 export const metadata: Metadata = {
   title: "Malakin.info - L'info qui traverse les frontières",
   description: "Informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel.",
+  verification: {
+    google: "ca-pub-4621769509750492",
+  },
 };
 
 export default function RootLayout({
