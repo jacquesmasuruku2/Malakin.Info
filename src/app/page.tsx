@@ -6,9 +6,6 @@ export default async function Home() {
   const featuredArticles = await prisma.article.findMany({
     where: {
       featured: true,
-      publishedAt: {
-        not: null,
-      },
     },
     include: {
       category: true,
@@ -21,11 +18,6 @@ export default async function Home() {
   });
 
   const latestArticles = await prisma.article.findMany({
-    where: {
-      publishedAt: {
-        not: null,
-      },
-    },
     include: {
       category: true,
       author: true,
