@@ -1,0 +1,42 @@
+{
+  "common": {
+    "home": "Accueil",
+    "about": "À propos",
+    "contact": "Contact",
+    "search": "Rechercher",
+    "readMore": "Lire la suite",
+    "share": "Partager",
+    "back": "Retour"
+  },
+  "nav": {
+    "news": "Actualités",
+    "politics": "Politique",
+    "economy": "Économie",
+    "society": "Société",
+    "health": "Santé",
+    "security": "Sécurité",
+    "environment": "Environnement",
+    "media": "Médias",
+    "religion": "Religion",
+    "culture": "Culture",
+    "sport": "Sport",
+    "jobs": "Emploi",
+    "blog": "Blog",
+    "pressReleases": "Communiqués",
+    "practicalInfo": "Infos Pratiques"
+  },
+  "footer": {
+    "description": "L'info qui traverse les frontières. Informer, éduquer et connecter l'Afrique à travers un journalisme indépendant.",
+    "news": "Actualités",
+    "sections": "Rubriques",
+    "about": "À propos",
+    "legal": "Légal",
+    "copyright": "Tous droits réservés.",
+    "madeWith": "Fait avec ❤️ pour l'Afrique"
+  },
+  "home": {
+    "featuredNews": "À la une",
+    "latestNews": "Dernières actualités",
+    "categories": "Catégories"
+  }
+}
