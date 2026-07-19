@@ -1,12 +1,18 @@
-import createMiddleware from 'next-intl/middleware';
+// Temporarily disabled to fix redirect loop
+// import createMiddleware from 'next-intl/middleware';
 
-export default createMiddleware({
-  // A list of all locales that are supported
-  locales: ['fr', 'en'],
+export default function middleware(request: Request) {
+  // Disabled middleware to prevent redirect loop
+  return;
+}
 
-  // Used when no locale matches
-  defaultLocale: 'fr'
-});
+// export default createMiddleware({
+//   // A list of all locales that are supported
+//   locales: ['fr', 'en'],
+
+//   // Used when no locale matches
+//   defaultLocale: 'fr'
+// });
 
 export const config = {
   // Match only internationalized pathnames
