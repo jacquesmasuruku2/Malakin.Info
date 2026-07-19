@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, Search, User, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Globe } from 'lucide-react';
+import { Menu, X, Search, User, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Globe, Grid3x3 } from 'lucide-react';
 import SearchBar from './SearchBar';
 
 export default function Navigation() {
@@ -14,6 +14,7 @@ export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isAppsMenuOpen, setIsAppsMenuOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const switchLocale = (newLocale: string) => {
@@ -228,6 +229,82 @@ export default function Navigation() {
             >
               <Search className="w-5 h-5" />
             </button>
+            <div className="relative">
+              <button
+                className="p-2 text-foreground hover:text-primary transition-colors"
+                onClick={() => setIsAppsMenuOpen(!isAppsMenuOpen)}
+                title="Applications"
+              >
+                <Grid3x3 className="w-5 h-5" />
+              </button>
+              
+              {isAppsMenuOpen && (
+                <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-border rounded-lg shadow-lg p-4">
+                  <div className="grid grid-cols-3 gap-3">
+                    <Link
+                      href={`/${locale}/admin`}
+                      className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
+                      onClick={() => setIsAppsMenuOpen(false)}
+                    >
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-2">
+                        <Briefcase className="w-5 h-5 text-primary" />
+                      </div>
+                      <span className="text-xs text-center">Admin</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/medias`}
+                      className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
+                      onClick={() => setIsAppsMenuOpen(false)}
+                    >
+                      <div className="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center mb-2">
+                        <Radio className="w-5 h-5 text-secondary" />
+                      </div>
+                      <span className="text-xs text-center">Médias</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/blog`}
+                      className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
+                      onClick={() => setIsAppsMenuOpen(false)}
+                    >
+                      <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center mb-2">
+                        <BookOpen className="w-5 h-5 text-accent" />
+                      </div>
+                      <span className="text-xs text-center">Blog</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/emploi`}
+                      className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
+                      onClick={() => setIsAppsMenuOpen(false)}
+                    >
+                      <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center mb-2">
+                        <Briefcase className="w-5 h-5 text-green-500" />
+                      </div>
+                      <span className="text-xs text-center">Emploi</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/nous-soutenir`}
+                      className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
+                      onClick={() => setIsAppsMenuOpen(false)}
+                    >
+                      <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center mb-2">
+                        <DollarSign className="w-5 h-5 text-red-500" />
+                      </div>
+                      <span className="text-xs text-center">Soutenir</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/contact`}
+                      className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
+                      onClick={() => setIsAppsMenuOpen(false)}
+                    >
+                      <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-2">
+                        <Mail className="w-5 h-5 text-blue-500" />
+                      </div>
+                      <span className="text-xs text-center">Contact</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
             <button
               className="p-2 text-foreground hover:text-primary transition-colors"
               onClick={() => switchLocale(locale === 'fr' ? 'en' : 'fr')}
@@ -312,6 +389,12 @@ export default function Navigation() {
               </button>
               <button
                 className="p-2 text-foreground hover:text-primary"
+                onClick={() => setIsAppsMenuOpen(!isAppsMenuOpen)}
+              >
+                <Grid3x3 className="w-5 h-5" />
+              </button>
+              <button
+                className="p-2 text-foreground hover:text-primary"
                 onClick={() => switchLocale(locale === 'fr' ? 'en' : 'fr')}
               >
                 <Globe className="w-5 h-5" />
@@ -326,6 +409,73 @@ export default function Navigation() {
                 <span className="text-sm font-medium">Connexion</span>
               </Link>
             </div>
+
+            {isAppsMenuOpen && (
+              <div className="mt-4 p-4 bg-muted/30 rounded-lg">
+                <div className="grid grid-cols-3 gap-3">
+                  <Link
+                    href={`/${locale}/admin`}
+                    className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
+                    onClick={() => { setIsAppsMenuOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-2">
+                      <Briefcase className="w-5 h-5 text-primary" />
+                    </div>
+                    <span className="text-xs text-center">Admin</span>
+                  </Link>
+                  <Link
+                    href={`/${locale}/medias`}
+                    className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
+                    onClick={() => { setIsAppsMenuOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center mb-2">
+                      <Radio className="w-5 h-5 text-secondary" />
+                    </div>
+                    <span className="text-xs text-center">Médias</span>
+                  </Link>
+                  <Link
+                    href={`/${locale}/blog`}
+                    className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
+                    onClick={() => { setIsAppsMenuOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center mb-2">
+                      <BookOpen className="w-5 h-5 text-accent" />
+                    </div>
+                    <span className="text-xs text-center">Blog</span>
+                  </Link>
+                  <Link
+                    href={`/${locale}/emploi`}
+                    className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
+                    onClick={() => { setIsAppsMenuOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center mb-2">
+                      <Briefcase className="w-5 h-5 text-green-500" />
+                    </div>
+                    <span className="text-xs text-center">Emploi</span>
+                  </Link>
+                  <Link
+                    href={`/${locale}/nous-soutenir`}
+                    className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
+                    onClick={() => { setIsAppsMenuOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center mb-2">
+                      <DollarSign className="w-5 h-5 text-red-500" />
+                    </div>
+                    <span className="text-xs text-center">Soutenir</span>
+                  </Link>
+                  <Link
+                    href={`/${locale}/contact`}
+                    className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
+                    onClick={() => { setIsAppsMenuOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-2">
+                      <Mail className="w-5 h-5 text-blue-500" />
+                    </div>
+                    <span className="text-xs text-center">Contact</span>
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
