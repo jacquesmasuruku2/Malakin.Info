@@ -2,13 +2,21 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Target, Users, Shield, ArrowRight } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AProposPage() {
-  const authors = await prisma.author.findMany({
-    take: 6,
-    orderBy: {
-      name: 'asc',
-    },
-  });
+  let authors: any[] = [];
+  
+  try {
+    authors = await prisma.author.findMany({
+      take: 6,
+      orderBy: {
+        name: 'asc',
+      },
+    });
+  } catch (error) {
+    console.error('Database connection error:', error);
+  }
 
   const team = authors.map(author => ({
     id: author.id,

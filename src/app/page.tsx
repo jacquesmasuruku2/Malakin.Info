@@ -2,31 +2,40 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { ArrowRight, Calendar, Clock, TrendingUp } from 'lucide-react';
 
-export default async function Home() {
-  const featuredArticles = await prisma.article.findMany({
-    where: {
-      featured: true,
-    },
-    include: {
-      category: true,
-      author: true,
-    },
-    take: 3,
-    orderBy: {
-      publishedAt: 'desc',
-    },
-  });
+export const dynamic = 'force-dynamic';
 
-  const latestArticles = await prisma.article.findMany({
-    include: {
-      category: true,
-      author: true,
-    },
-    take: 6,
-    orderBy: {
-      publishedAt: 'desc',
-    },
-  });
+export default async function Home() {
+  let featuredArticles: any[] = [];
+  let latestArticles: any[] = [];
+
+  try {
+    featuredArticles = await prisma.article.findMany({
+      where: {
+        featured: true,
+      },
+      include: {
+        category: true,
+        author: true,
+      },
+      take: 3,
+      orderBy: {
+        publishedAt: 'desc',
+      },
+    });
+
+    latestArticles = await prisma.article.findMany({
+      include: {
+        category: true,
+        author: true,
+      },
+      take: 6,
+      orderBy: {
+        publishedAt: 'desc',
+      },
+    });
+  } catch (error) {
+    console.error('Database connection error:', error);
+  }
 
   const featuredNews = featuredArticles.map(article => ({
     id: article.id,
