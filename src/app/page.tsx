@@ -1,87 +1,59 @@
 import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
 import { ArrowRight, Calendar, Clock, TrendingUp } from 'lucide-react';
 
-export default function Home() {
-  const featuredNews = [
-    {
-      id: 1,
-      category: 'Politique',
-      title: 'Sommet de l\'Union Africaine : Les dirigeants s\'engagent pour une intégration économique renforcée',
-      excerpt: 'Les chefs d\'État africains ont adopté une déclaration historique visant à faciliter les échanges commerciaux intra-africains.',
-      image: 'https://images.unsplash.com/photo-1541872703-74c5963631df?w=800&h=400&fit=crop',
-      date: '27 Juin 2026',
-      readTime: '5 min',
+export default async function Home() {
+  const featuredArticles = await prisma.article.findMany({
+    where: {
+      featured: true,
+      publishedAt: {
+        not: null,
+      },
     },
-    {
-      id: 2,
-      category: 'Économie',
-      title: 'Le secteur technologique africain attire 2 milliards de dollars d\'investissements',
-      excerpt: 'Les startups africaines continuent de séduire les investisseurs internationaux malgré le contexte économique mondial.',
-      image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=400&fit=crop',
-      date: '26 Juin 2026',
-      readTime: '4 min',
+    include: {
+      category: true,
+      author: true,
     },
-    {
-      id: 3,
-      category: 'Santé',
-      title: 'Nouvelle initiative de vaccination contre le paludisme en Afrique centrale',
-      excerpt: 'L\'OMS lance un programme massif de vaccination dans cinq pays de la région pour réduire la mortalité infantile.',
-      image: 'https://images.unsplash.com/photo-1584515933487-779824d29309?w=800&h=400&fit=crop',
-      date: '25 Juin 2026',
-      readTime: '6 min',
+    take: 3,
+    orderBy: {
+      publishedAt: 'desc',
     },
-  ];
+  });
 
-  const latestNews = [
-    {
-      id: 4,
-      category: 'Société',
-      title: 'Festival de cinéma africain : Les talents locaux à l\'honneur',
-      date: '27 Juin 2026',
-      readTime: '3 min',
-      image: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=300&fit=crop',
+  const latestArticles = await prisma.article.findMany({
+    where: {
+      publishedAt: {
+        not: null,
+      },
     },
-    {
-      id: 5,
-      category: 'Sport',
-      title: 'CAN 2027 : La RDC prête à accueillir la compétition',
-      date: '27 Juin 2026',
-      readTime: '4 min',
-      image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&h=300&fit=crop',
+    include: {
+      category: true,
+      author: true,
     },
-    {
-      id: 6,
-      category: 'Environnement',
-      title: 'Reboisement : Un million d\'arbres plantés au Congo',
-      date: '26 Juin 2026',
-      readTime: '5 min',
-      image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=400&h=300&fit=crop',
+    take: 6,
+    orderBy: {
+      publishedAt: 'desc',
     },
-    {
-      id: 7,
-      category: 'Culture',
-      title: 'Exposition d\'art contemporain à Kinshasa',
-      date: '26 Juin 2026',
-      readTime: '3 min',
-      image: 'https://images.unsplash.com/photo-1531243269054-5ebf6f34081e?w=400&h=300&fit=crop',
-    },
-    {
-      id: 8,
-      category: 'Éducation',
-      title: 'Nouveau programme d\'enseignement numérique',
-      date: '25 Juin 2026',
-      readTime: '4 min',
-      image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=300&fit=crop',
-    },
-    {
-      id: 9,
-      category: 'Sécurité',
-      title: 'Coopération régionale pour la lutte contre le terrorisme',
-      date: '25 Juin 2026',
-      readTime: '6 min',
-      image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=300&fit=crop',
-    },
-  ];
+  });
+
+  const featuredNews = featuredArticles.map(article => ({
+    id: article.id,
+    category: article.category.title,
+    title: article.title,
+    excerpt: article.excerpt,
+    image: article.mainImageUrl || 'https://images.unsplash.com/photo-1541872703-74c5963631df?w=800&h=400&fit=crop',
+    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    readTime: article.readTime ? `${article.readTime} min` : '5 min',
+  }));
+
+  const latestNews = latestArticles.map(article => ({
+    id: article.id,
+    category: article.category.title,
+    title: article.title,
+    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    readTime: article.readTime ? `${article.readTime} min` : '3 min',
+    image: article.mainImageUrl || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=300&fit=crop',
+  }));
 
   const categories = [
     { name: 'Politique', href: '/actualites/politique', color: 'bg-red-500' },

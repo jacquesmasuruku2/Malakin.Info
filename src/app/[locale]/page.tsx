@@ -1,51 +1,22 @@
 import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
 import { Target, Users, Shield, ArrowRight } from 'lucide-react';
 
-export default function AProposPage() {
-  const team = [
-    {
-      id: 1,
-      name: 'Jean Dupont',
-      role: 'Rédacteur en chef',
-      background: 'ex-RFI',
-      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
+export default async function AProposPage() {
+  const authors = await prisma.author.findMany({
+    take: 6,
+    orderBy: {
+      name: 'asc',
     },
-    {
-      id: 2,
-      name: 'Marie Koffi',
-      role: 'Journaliste politique',
-      background: 'ex-Jeune Afrique',
-      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face',
-    },
-    {
-      id: 3,
-      name: 'Ahmed Benali',
-      role: 'Correspondant Maghreb',
-      background: 'Journaliste indépendant',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-    },
-    {
-      id: 4,
-      name: 'Grace Okafor',
-      role: 'Rédactrice culture',
-      background: 'Ex-Le Monde Afrique',
-      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-    },
-    {
-      id: 5,
-      name: 'Pierre Mwamba',
-      role: 'Responsable Sport',
-      background: 'Ex-ESPN Afrique',
-      image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
-    },
-    {
-      id: 6,
-      name: 'Sr. Véronique Nzambi',
-      role: 'Coordinatrice Religieux',
-      background: 'Journaliste spécialisée',
-      image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face',
-    },
-  ];
+  });
+
+  const team = authors.map(author => ({
+    id: author.id,
+    name: author.name,
+    role: author.role || 'Journaliste',
+    background: '',
+    image: author.imageUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
+  }));
 
   const values = [
     {

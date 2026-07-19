@@ -2,6 +2,7 @@
 
 import AdminLayout from '@/components/AdminLayout';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { 
   Plus, 
   Search, 
@@ -74,10 +75,13 @@ export default function AuthorsPage() {
             <h1 className="text-3xl font-bold text-gray-900">Auteurs</h1>
             <p className="text-gray-600 mt-1">Gérer les auteurs et rédacteurs</p>
           </div>
-          <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+          <Link 
+            href="/authors/new"
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
             <Plus className="w-4 h-4" />
             <span>Nouvel auteur</span>
-          </button>
+          </Link>
         </div>
 
         {/* Search */}
@@ -111,9 +115,13 @@ export default function AuthorsPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <button className="p-2 text-gray-400 hover:text-blue-600 transition-colors" title="Modifier">
+                    <Link 
+                      href={`/authors/${author.id}/edit`}
+                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors" 
+                      title="Modifier"
+                    >
                       <Edit className="w-4 h-4" />
-                    </button>
+                    </Link>
                     <button 
                       className="p-2 text-gray-400 hover:text-red-600 transition-colors" 
                       title="Supprimer"
