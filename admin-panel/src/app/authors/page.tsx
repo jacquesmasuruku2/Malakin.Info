@@ -1,7 +1,7 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Plus, 
   Search, 
@@ -13,60 +13,57 @@ import {
   Calendar
 } from 'lucide-react';
 
+interface Author {
+  id: string;
+  name: string;
+  slug: string;
+  bio: string | null;
+  role: string | null;
+  email: string | null;
+  imageUrl: string | null;
+  imageAlt: string | null;
+  _count?: {
+    articles: number;
+  };
+  createdAt: string;
+}
+
 export default function AuthorsPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [authors, setAuthors] = useState<Author[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const authors = [
-    {
-      id: 1,
-      name: 'Marie Curie',
-      slug: 'marie-curie',
-      email: 'marie.curie@example.com',
-      role: 'Rédactrice en chef',
-      bio: 'Journaliste spécialisée en science et technologie',
-      avatar: null,
-      articleCount: 32,
-      createdAt: '2026-01-15',
-    },
-    {
-      id: 2,
-      name: 'Jean Dupont',
-      slug: 'jean-dupont',
-      email: 'jean.dupont@example.com',
-      role: 'Journaliste politique',
-      bio: 'Expert en politique africaine et relations internationales',
-      avatar: null,
-      articleCount: 28,
-      createdAt: '2026-01-16',
-    },
-    {
-      id: 3,
-      name: 'Paul Mbemba',
-      slug: 'paul-mbemba',
-      email: 'paul.mbemba@example.com',
-      role: 'Économiste',
-      bio: 'Analyste économique spécialisé en Afrique centrale',
-      avatar: null,
-      articleCount: 24,
-      createdAt: '2026-01-17',
-    },
-    {
-      id: 4,
-      name: 'Sophie Nkosi',
-      slug: 'sophie-nkosi',
-      email: 'sophie.nkosi@example.com',
-      role: 'Journaliste santé',
-      bio: 'Spécialiste en santé publique et médecine',
-      avatar: null,
-      articleCount: 18,
-      createdAt: '2026-01-18',
-    },
-  ];
+  useEffect(() => {
+    fetchAuthors();
+  }, []);
+
+  const fetchAuthors = async () => {
+    try {
+      const response = await fetch('/api/authors');
+      const data = await response.json();
+      setAuthors(data);
+    } catch (error) {
+      console.error('Failed to fetch authors:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteAuthor = async (id: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cet auteur ?')) return;
+    
+    try {
+      await fetch(`/api/authors/${id}`, { method: 'DELETE' });
+      fetchAuthors();
+    } catch (error) {
+      console.error('Failed to delete author:', error);
+    }
+  };
 
   const filteredAuthors = authors.filter(author =>
     author.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    author.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    author.role.toLowerCase().includes(searchTerm.toLowerCase())
+    (author.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (author.role || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -117,7 +114,11 @@ export default function AuthorsPage() {
                     <button className="p-2 text-gray-400 hover:text-blue-600 transition-colors" title="Modifier">
                       <Edit className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Supprimer">
+                    <button 
+                      className="p-2 text-gray-400 hover:text-red-600 transition-colors" 
+                      title="Supprimer"
+                      onClick={() => deleteAuthor(author.id)}
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -132,11 +133,11 @@ export default function AuthorsPage() {
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <FileText className="w-4 h-4 mr-2" />
-                    <span>{author.articleCount} articles</span>
+                    <span>{author._count?.articles || 0} articles</span>
                   </div>
                   <div className="flex items-center text-sm text-gray-500">
                     <Calendar className="w-4 h-4 mr-2" />
-                    <span>Membre depuis {author.createdAt}</span>
+                    <span>Membre depuis {new Date(author.createdAt).toLocaleDateString('fr-FR')}</span>
                   </div>
                 </div>
               </div>
@@ -144,7 +145,14 @@ export default function AuthorsPage() {
           ))}
         </div>
 
-        {filteredAuthors.length === 0 && (
+        {loading && (
+          <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+            <User className="w-12 h-12 text-gray-300 mx-auto mb-4 animate-spin" />
+            <p className="text-gray-500">Chargement...</p>
+          </div>
+        )}
+
+        {!loading && filteredAuthors.length === 0 && (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <User className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500">Aucun auteur trouvé</p>

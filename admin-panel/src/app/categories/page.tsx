@@ -1,7 +1,7 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Plus, 
   Search, 
@@ -11,69 +11,54 @@ import {
   Hash
 } from 'lucide-react';
 
+interface Category {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  color: string | null;
+  icon: string | null;
+  _count?: {
+    articles: number;
+  };
+  createdAt: string;
+}
+
 export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const categories = [
-    {
-      id: 1,
-      name: 'Politique',
-      slug: 'politique',
-      description: 'Actualités politiques et gouvernementales',
-      color: '#3B82F6',
-      articleCount: 45,
-      createdAt: '2026-01-15',
-    },
-    {
-      id: 2,
-      name: 'Économie',
-      slug: 'economie',
-      description: 'Nouvelles économiques et financières',
-      color: '#10B981',
-      articleCount: 32,
-      createdAt: '2026-01-15',
-    },
-    {
-      id: 3,
-      name: 'Santé',
-      slug: 'sante',
-      description: 'Santé, médecine et bien-être',
-      color: '#EF4444',
-      articleCount: 27,
-      createdAt: '2026-01-16',
-    },
-    {
-      id: 4,
-      name: 'Sport',
-      slug: 'sport',
-      description: 'Actualités sportives et compétitions',
-      color: '#F59E0B',
-      articleCount: 28,
-      createdAt: '2026-01-16',
-    },
-    {
-      id: 5,
-      name: 'Culture',
-      slug: 'culture',
-      description: 'Arts, musique et culture',
-      color: '#8B5CF6',
-      articleCount: 24,
-      createdAt: '2026-01-17',
-    },
-    {
-      id: 6,
-      name: 'Science & Tech',
-      slug: 'science-tech',
-      description: 'Innovations scientifiques et technologiques',
-      color: '#06B6D4',
-      articleCount: 18,
-      createdAt: '2026-01-17',
-    },
-  ];
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories');
+      const data = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
+    
+    try {
+      await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+      fetchCategories();
+    } catch (error) {
+      console.error('Failed to delete category:', error);
+    }
+  };
 
   const filteredCategories = categories.filter(category =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    category.description.toLowerCase().includes(searchTerm.toLowerCase())
+    category.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (category.description || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -110,19 +95,19 @@ export default function CategoriesPage() {
             <div key={category.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div 
                 className="h-2"
-                style={{ backgroundColor: category.color }}
+                style={{ backgroundColor: category.color || '#3B82F6' }}
               />
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <div 
                       className="w-10 h-10 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: `${category.color}20` }}
+                      style={{ backgroundColor: `${category.color || '#3B82F6'}20` }}
                     >
-                      <FolderOpen className="w-5 h-5" style={{ color: category.color }} />
+                      <FolderOpen className="w-5 h-5" style={{ color: category.color || '#3B82F6' }} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{category.name}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">{category.title}</h3>
                       <p className="text-xs text-gray-500">/{category.slug}</p>
                     </div>
                   </div>
@@ -130,7 +115,11 @@ export default function CategoriesPage() {
                     <button className="p-2 text-gray-400 hover:text-blue-600 transition-colors" title="Modifier">
                       <Edit className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Supprimer">
+                    <button 
+                      className="p-2 text-gray-400 hover:text-red-600 transition-colors" 
+                      title="Supprimer"
+                      onClick={() => deleteCategory(category.id)}
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -141,16 +130,23 @@ export default function CategoriesPage() {
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center text-gray-500">
                     <Hash className="w-4 h-4 mr-1" />
-                    <span>{category.articleCount} articles</span>
+                    <span>{category._count?.articles || 0} articles</span>
                   </div>
-                  <span className="text-gray-400">Créé le {category.createdAt}</span>
+                  <span className="text-gray-400">Créé le {new Date(category.createdAt).toLocaleDateString('fr-FR')}</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {filteredCategories.length === 0 && (
+        {loading && (
+          <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+            <FolderOpen className="w-12 h-12 text-gray-300 mx-auto mb-4 animate-spin" />
+            <p className="text-gray-500">Chargement...</p>
+          </div>
+        )}
+
+        {!loading && filteredCategories.length === 0 && (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <FolderOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500">Aucune catégorie trouvée</p>

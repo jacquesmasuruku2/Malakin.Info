@@ -1,7 +1,7 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Plus, 
   Search, 
@@ -14,78 +14,78 @@ import {
   ChevronDown
 } from 'lucide-react';
 
+interface Article {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  publishedAt: string;
+  featured: boolean;
+  views: number;
+  category: {
+    id: string;
+    title: string;
+  };
+  author: {
+    id: string;
+    name: string;
+  } | null;
+  status?: string;
+}
+
 export default function ArticlesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [categories, setCategories] = useState<{id: string, title: string}[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const articles = [
-    {
-      id: 1,
-      title: 'Nouvelles avancées dans le secteur technologique en Afrique',
-      slug: 'nouvelles-avancees-secteur-technologique-afrique',
-      category: 'Science & Tech',
-      author: 'Marie Curie',
-      status: 'Publié',
-      publishedAt: '2026-07-19',
-      views: 1234,
-      featured: true,
-    },
-    {
-      id: 2,
-      title: 'Les élections présidentielles : analyse complète',
-      slug: 'elections-presidentielles-analyse-complete',
-      category: 'Politique',
-      author: 'Jean Dupont',
-      status: 'Publié',
-      publishedAt: '2026-07-18',
-      views: 2345,
-      featured: true,
-    },
-    {
-      id: 3,
-      title: 'Impact économique des nouvelles mesures fiscales',
-      slug: 'impact-economique-mesures-fiscales',
-      category: 'Économie',
-      author: 'Paul Mbemba',
-      status: 'En révision',
-      publishedAt: null,
-      views: 876,
-      featured: false,
-    },
-    {
-      id: 4,
-      title: 'Innovations dans le domaine de la santé',
-      slug: 'innovations-domaine-sante',
-      category: 'Santé',
-      author: 'Sophie Nkosi',
-      status: 'Brouillon',
-      publishedAt: null,
-      views: 0,
-      featured: false,
-    },
-    {
-      id: 5,
-      title: 'Championnat africain de football : résultats',
-      slug: 'championnat-africain-football-resultats',
-      category: 'Sport',
-      author: 'Jean Dupont',
-      status: 'Publié',
-      publishedAt: '2026-07-15',
-      views: 3456,
-      featured: false,
-    },
-  ];
+  useEffect(() => {
+    fetchArticles();
+    fetchCategories();
+  }, []);
 
-  const categories = ['Science & Tech', 'Politique', 'Économie', 'Santé', 'Sport', 'Culture', 'Société'];
+  const fetchArticles = async () => {
+    try {
+      const response = await fetch('/api/articles');
+      const data = await response.json();
+      setArticles(data);
+    } catch (error) {
+      console.error('Failed to fetch articles:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories');
+      const data = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  };
+
+  const deleteArticle = async (id: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) return;
+    
+    try {
+      await fetch(`/api/articles/${id}`, { method: 'DELETE' });
+      fetchArticles();
+    } catch (error) {
+      console.error('Failed to delete article:', error);
+    }
+  };
+
   const statuses = ['all', 'Publié', 'En révision', 'Brouillon'];
 
   const filteredArticles = articles.filter(article => {
     const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         article.author.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || article.status === filterStatus;
-    const matchesCategory = filterCategory === 'all' || article.category === filterCategory;
-    return matchesSearch && matchesStatus && matchesCategory;
+                         (article.author?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = filterCategory === 'all' || article.category.title === filterCategory;
+    return matchesSearch && matchesCategory;
   });
 
   return (
@@ -137,7 +137,7 @@ export default function ArticlesPage() {
                 >
                   <option value="all">Toutes les catégories</option>
                   {categories.map(category => (
-                    <option key={category} value={category}>{category}</option>
+                    <option key={category.id} value={category.title}>{category.title}</option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -160,9 +160,6 @@ export default function ArticlesPage() {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Auteur
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Statut
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
@@ -199,30 +196,19 @@ export default function ArticlesPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-600">{article.category}</span>
+                      <span className="text-sm text-gray-600">{article.category.title}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center text-sm text-gray-600">
                         <User className="w-4 h-4 mr-2" />
-                        {article.author}
+                        {article.author?.name}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        article.status === 'Publié' 
-                          ? 'bg-green-100 text-green-800' 
-                          : article.status === 'En révision'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {article.status}
-                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {article.publishedAt ? (
                         <div className="flex items-center text-sm text-gray-600">
                           <Calendar className="w-4 h-4 mr-2" />
-                          {article.publishedAt}
+                          {new Date(article.publishedAt).toLocaleDateString('fr-FR')}
                         </div>
                       ) : (
                         <span className="text-sm text-gray-400">-</span>
@@ -242,7 +228,11 @@ export default function ArticlesPage() {
                         <button className="p-2 text-gray-400 hover:text-green-600 transition-colors" title="Modifier">
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button className="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Supprimer">
+                        <button 
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors" 
+                          title="Supprimer"
+                          onClick={() => deleteArticle(article.id)}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -253,7 +243,14 @@ export default function ArticlesPage() {
             </table>
           </div>
 
-          {filteredArticles.length === 0 && (
+          {loading && (
+            <div className="text-center py-12">
+              <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4 animate-spin" />
+              <p className="text-gray-500">Chargement...</p>
+            </div>
+          )}
+
+          {!loading && filteredArticles.length === 0 && (
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">Aucun article trouvé</p>
@@ -261,7 +258,7 @@ export default function ArticlesPage() {
           )}
 
           {/* Pagination */}
-          {filteredArticles.length > 0 && (
+          {!loading && filteredArticles.length > 0 && (
             <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
               <p className="text-sm text-gray-600">
                 Affichage de 1 à {filteredArticles.length} sur {articles.length} articles
