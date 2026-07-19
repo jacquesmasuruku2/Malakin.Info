@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { Calendar, ArrowRight, PenTool, FileText, Search, BarChart3 } from 'lucide-react';
-import { getPosts } from '@/lib/queries';
-import { urlFor } from '@/lib/sanity';
+import { prisma } from '@/lib/prisma';
 
 interface Post {
   id: string;
@@ -15,8 +14,24 @@ interface Post {
   slug: string;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function BlogPage() {
-  const posts = await getPosts();
+  let posts: any[] = [];
+  
+  try {
+    posts = await prisma.article.findMany({
+      include: {
+        category: true,
+        author: true,
+      },
+      orderBy: {
+        publishedAt: 'desc',
+      },
+    });
+  } catch (error) {
+    console.error('Database connection error:', error);
+  }
 
   const categories = [
     { name: 'Tribunes', href: '/blog/tribunes', icon: PenTool, count: 34 },
@@ -36,25 +51,26 @@ export default async function BlogPage() {
   };
 
   const featuredPosts = posts.slice(0, 3).map((post: any) => ({
-    id: post._id,
-    category: 'Article',
+    id: post.id,
+    category: post.category?.title || 'Article',
     author: post.author?.name || 'Anonyme',
     title: post.title,
-    excerpt: post.content?.substring(0, 150) + '...' || '',
-    image: post.mainImage ? urlFor(post.mainImage).url() : 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop',
+    excerpt: post.excerpt || post.content?.substring(0, 150) + '...' || '',
+    image: post.mainImageUrl || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop',
     date: formatDate(post.publishedAt),
-    readTime: '5 min',
-    slug: post.slug?.current,
+    readTime: post.readTime ? `${post.readTime} min` : '5 min',
+    slug: post.slug,
   }));
 
   const latestPosts = posts.slice(3).map((post: any) => ({
-    id: post._id,
-    category: 'Article',
+    id: post.id,
+    category: post.category?.title || 'Article',
     author: post.author?.name || 'Anonyme',
     title: post.title,
     date: formatDate(post.publishedAt),
-    readTime: '5 min',
-    slug: post.slug?.current,
+    readTime: post.readTime ? `${post.readTime} min` : '5 min',
+    slug: post.slug,
+    image: post.mainImageUrl || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=300&fit=crop',
   }));
 
   // Fallback to mock data if no posts from Sanity
@@ -103,6 +119,7 @@ export default async function BlogPage() {
       date: '27 Juin 2026',
       readTime: '5 min',
       slug: '4',
+      image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&h=300&fit=crop',
     },
     {
       id: 5,
@@ -112,6 +129,7 @@ export default async function BlogPage() {
       date: '26 Juin 2026',
       readTime: '7 min',
       slug: '5',
+      image: 'https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=400&h=300&fit=crop',
     },
     {
       id: 6,
@@ -121,6 +139,7 @@ export default async function BlogPage() {
       date: '25 Juin 2026',
       readTime: '4 min',
       slug: '6',
+      image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=400&h=300&fit=crop',
     },
   ];
 

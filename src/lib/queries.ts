@@ -1,6 +1,7 @@
 import { client } from './sanity'
 
 export async function getArticles() {
+  if (!client) return []
   return await client.fetch(`
     *[_type == "article"] | order(publishedAt desc) {
       _id,
@@ -27,6 +28,7 @@ export async function getArticles() {
 }
 
 export async function getFeaturedArticles() {
+  if (!client) return []
   return await client.fetch(`
     *[_type == "article" && featured == true] | order(publishedAt desc) {
       _id,
@@ -47,6 +49,7 @@ export async function getFeaturedArticles() {
 }
 
 export async function getLatestArticles() {
+  if (!client) return []
   return await client.fetch(`
     *[_type == "article"] | order(publishedAt desc) {
       _id,
@@ -66,6 +69,7 @@ export async function getLatestArticles() {
 }
 
 export async function getArticleBySlug(slug: string) {
+  if (!client) return null
   return await client.fetch(`
     *[_type == "article" && slug.current == $slug][0] {
       _id,
@@ -92,6 +96,7 @@ export async function getArticleBySlug(slug: string) {
 }
 
 export async function getArticlesByCategory(categorySlug: string) {
+  if (!client) return []
   return await client.fetch(`
     *[_type == "article" && category->slug.current == $categorySlug] | order(publishedAt desc) {
       _id,
@@ -111,6 +116,7 @@ export async function getArticlesByCategory(categorySlug: string) {
 }
 
 export async function getCategories() {
+  if (!client) return []
   return await client.fetch(`
     *[_type == "category"] | order(title asc) {
       _id,
@@ -124,6 +130,7 @@ export async function getCategories() {
 }
 
 export async function getCategoryBySlug(slug: string) {
+  if (!client) return null
   return await client.fetch(`
     *[_type == "category" && slug.current == $slug][0] {
       _id,
@@ -137,6 +144,7 @@ export async function getCategoryBySlug(slug: string) {
 }
 
 export async function searchArticles(query: string) {
+  if (!client) return []
   const searchQuery = `*[_type == "article" && (title match "*${query}*" || excerpt match "*${query}*")] | order(publishedAt desc) {
     _id,
     title,
@@ -155,6 +163,7 @@ export async function searchArticles(query: string) {
 }
 
 export async function getPosts() {
+  if (!client) return []
   return await client.fetch(`
     *[_type == "post"] | order(publishedAt desc) {
       _id,
