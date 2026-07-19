@@ -1,7 +1,5 @@
-'use client';
-
 import Link from 'next/link';
-import { Home, ArrowLeft } from 'lucide-react';
+import { Home } from 'lucide-react';
 
 export default function NotFound() {
   return (
@@ -22,13 +20,6 @@ export default function NotFound() {
             <Home className="mr-2 w-5 h-5" />
             Retour à l'accueil
           </Link>
-          <button
-            onClick={() => window.history.back()}
-            className="inline-flex items-center px-6 py-3 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors font-medium"
-          >
-            <ArrowLeft className="mr-2 w-5 h-5" />
-            Page précédente
-          </button>
         </div>
       </div>
     </div>
