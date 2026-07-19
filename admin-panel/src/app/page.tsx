@@ -1,4 +1,5 @@
 import AdminLayout from '@/components/AdminLayout';
+import Link from 'next/link';
 import { 
   FileText, 
   Users, 
@@ -74,18 +75,18 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions rapides</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+            <Link href="/articles/new" className="flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
               <FileText className="w-4 h-4 mr-2" />
               Nouvel article
-            </button>
-            <button className="flex items-center justify-center px-4 py-3 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors">
+            </Link>
+            <Link href="/authors/new" className="flex items-center justify-center px-4 py-3 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors">
               <Users className="w-4 h-4 mr-2" />
               Ajouter un auteur
-            </button>
-            <button className="flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+            </Link>
+            <Link href="/categories/new" className="flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
               <LayoutDashboard className="w-4 h-4 mr-2" />
               Nouvelle catégorie
-            </button>
+            </Link>
           </div>
         </div>
       </div>
