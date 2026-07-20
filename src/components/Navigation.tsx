@@ -11,7 +11,6 @@ export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isAppsMenuOpen, setIsAppsMenuOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   
   // Extract locale from pathname
@@ -212,6 +211,16 @@ export default function Navigation() {
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <Link
+                      href="/admin"
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-2">
+                        <Briefcase className="w-6 h-6 text-primary" />
+                      </div>
+                      <span className="text-xs text-white text-center">Admin</span>
+                    </Link>
+                    <Link
                       href={`/${locale}/recherche`}
                       className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
                       onClick={() => setIsDropdownOpen(false)}
@@ -301,6 +310,46 @@ export default function Navigation() {
                       </div>
                       <span className="text-xs text-white text-center">Médias</span>
                     </Link>
+                    <Link
+                      href={`/${locale}/blog`}
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <BookOpen className="w-6 h-6 text-teal-400" />
+                      </div>
+                      <span className="text-xs text-white text-center">Blog</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/emploi`}
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-lime-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <Briefcase className="w-6 h-6 text-lime-400" />
+                      </div>
+                      <span className="text-xs text-white text-center">Emploi</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/nous-soutenir`}
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-rose-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <DollarSign className="w-6 h-6 text-rose-400" />
+                      </div>
+                      <span className="text-xs text-white text-center">Soutenir</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/contact`}
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-sky-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <Mail className="w-6 h-6 text-sky-400" />
+                      </div>
+                      <span className="text-xs text-white text-center">Contact</span>
+                    </Link>
                   </div>
                 </div>
               )}
@@ -314,82 +363,6 @@ export default function Navigation() {
             >
               <Search className="w-5 h-5" />
             </button>
-            <div className="relative">
-              <button
-                className="p-2 text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsAppsMenuOpen(!isAppsMenuOpen)}
-                title="Applications"
-              >
-                <Grid3x3 className="w-5 h-5" />
-              </button>
-              
-              {isAppsMenuOpen && (
-                <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-border rounded-lg shadow-lg p-4">
-                  <div className="grid grid-cols-3 gap-3">
-                    <Link
-                      href="/admin"
-                      className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
-                      onClick={() => setIsAppsMenuOpen(false)}
-                    >
-                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-2">
-                        <Briefcase className="w-5 h-5 text-primary" />
-                      </div>
-                      <span className="text-xs text-center">Admin</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/medias`}
-                      className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
-                      onClick={() => setIsAppsMenuOpen(false)}
-                    >
-                      <div className="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center mb-2">
-                        <Radio className="w-5 h-5 text-secondary" />
-                      </div>
-                      <span className="text-xs text-center">Médias</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/blog`}
-                      className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
-                      onClick={() => setIsAppsMenuOpen(false)}
-                    >
-                      <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center mb-2">
-                        <BookOpen className="w-5 h-5 text-accent" />
-                      </div>
-                      <span className="text-xs text-center">Blog</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/emploi`}
-                      className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
-                      onClick={() => setIsAppsMenuOpen(false)}
-                    >
-                      <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center mb-2">
-                        <Briefcase className="w-5 h-5 text-green-500" />
-                      </div>
-                      <span className="text-xs text-center">Emploi</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/nous-soutenir`}
-                      className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
-                      onClick={() => setIsAppsMenuOpen(false)}
-                    >
-                      <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center mb-2">
-                        <DollarSign className="w-5 h-5 text-red-500" />
-                      </div>
-                      <span className="text-xs text-center">Soutenir</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/contact`}
-                      className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
-                      onClick={() => setIsAppsMenuOpen(false)}
-                    >
-                      <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-2">
-                        <Mail className="w-5 h-5 text-blue-500" />
-                      </div>
-                      <span className="text-xs text-center">Contact</span>
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
             <Link
               href="/compte/connexion"
               className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
@@ -493,6 +466,16 @@ export default function Navigation() {
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <Link
+                    href="/admin"
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-2">
+                      <Briefcase className="w-6 h-6 text-primary" />
+                    </div>
+                    <span className="text-xs text-white text-center">Admin</span>
+                  </Link>
+                  <Link
                     href={`/${locale}/recherche`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
                     onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
@@ -581,6 +564,46 @@ export default function Navigation() {
                       <Radio className="w-6 h-6 text-orange-400" />
                     </div>
                     <span className="text-xs text-white text-center">Médias</span>
+                  </Link>
+                  <Link
+                    href={`/${locale}/blog`}
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center mb-2">
+                      <BookOpen className="w-6 h-6 text-teal-400" />
+                    </div>
+                    <span className="text-xs text-white text-center">Blog</span>
+                  </Link>
+                  <Link
+                    href={`/${locale}/emploi`}
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-12 h-12 bg-lime-500/20 rounded-lg flex items-center justify-center mb-2">
+                      <Briefcase className="w-6 h-6 text-lime-400" />
+                    </div>
+                    <span className="text-xs text-white text-center">Emploi</span>
+                  </Link>
+                  <Link
+                    href={`/${locale}/nous-soutenir`}
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-12 h-12 bg-rose-500/20 rounded-lg flex items-center justify-center mb-2">
+                      <DollarSign className="w-6 h-6 text-rose-400" />
+                    </div>
+                    <span className="text-xs text-white text-center">Soutenir</span>
+                  </Link>
+                  <Link
+                    href={`/${locale}/contact`}
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-12 h-12 bg-sky-500/20 rounded-lg flex items-center justify-center mb-2">
+                      <Mail className="w-6 h-6 text-sky-400" />
+                    </div>
+                    <span className="text-xs text-white text-center">Contact</span>
                   </Link>
                 </div>
               </div>
