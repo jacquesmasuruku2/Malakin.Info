@@ -4,8 +4,8 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export default async function EnquetesPage({ params }: { params: { locale: string } }) {
-  const locale = params.locale;
+export default async function EnquetesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   let articles: any[] = [];
 
   try {

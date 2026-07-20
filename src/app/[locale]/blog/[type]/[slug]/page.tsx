@@ -8,9 +8,9 @@ export const dynamic = 'force-dynamic';
 export default async function BlogPostPage({ 
   params 
 }: { 
-  params: { locale: string; type: string; slug: string } 
+  params: Promise<{ locale: string; type: string; slug: string }> 
 }) {
-  const { locale, type, slug } = params;
+  const { locale, type, slug } = await params;
 
   try {
     const blogPost = await prisma.blogPost.findUnique({

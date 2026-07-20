@@ -8,9 +8,9 @@ export const dynamic = 'force-dynamic';
 export default async function ArticlePage({ 
   params 
 }: { 
-  params: { locale: string; category: string; slug: string } 
+  params: Promise<{ locale: string; category: string; slug: string }> 
 }) {
-  const { locale, category, slug } = params;
+  const { locale, category, slug } = await params;
 
   try {
     const article = await prisma.article.findUnique({

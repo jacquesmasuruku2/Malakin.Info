@@ -4,8 +4,8 @@ import { ArrowRight, Calendar, Clock, TrendingUp } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home({ params }: { params: { locale: string } }) {
-  const locale = params.locale;
+export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   let featuredArticles: any[] = [];
   let latestArticles: any[] = [];
 
