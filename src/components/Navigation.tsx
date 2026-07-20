@@ -192,25 +192,116 @@ export default function Navigation() {
             
             <div className="relative">
               <button
-                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-foreground hover:text-primary hover:bg-muted rounded-md transition-colors"
+                className="p-2 text-foreground hover:text-primary transition-colors"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                title="Plus de services"
               >
-                Plus
-                <ChevronDown className="w-4 h-4" />
+                <Grid3x3 className="w-5 h-5" />
               </button>
               
               {isDropdownOpen && (
-                <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-border rounded-lg shadow-lg py-2">
-                  {dropdownItems.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="block px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                <div className="absolute top-full right-0 mt-2 w-96 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-white font-bold text-sm">Services Malakin</h3>
+                    <button
+                      className="text-gray-400 hover:text-white"
                       onClick={() => setIsDropdownOpen(false)}
                     >
-                      {item.name}
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <Link
+                      href={`/${locale}/recherche`}
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <Search className="w-6 h-6 text-blue-400" />
+                      </div>
+                      <span className="text-xs text-white text-center">Recherche</span>
                     </Link>
-                  ))}
+                    <Link
+                      href={`/${locale}/communiques`}
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <Newspaper className="w-6 h-6 text-purple-400" />
+                      </div>
+                      <span className="text-xs text-white text-center">Communiqués</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/archives`}
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <ScrollText className="w-6 h-6 text-amber-400" />
+                      </div>
+                      <span className="text-xs text-white text-center">Archives</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/radio-afrique`}
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <Radio className="w-6 h-6 text-red-400" />
+                      </div>
+                      <span className="text-xs text-white text-center">Radio Afrique</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/science-tech`}
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <FlaskConical className="w-6 h-6 text-cyan-400" />
+                      </div>
+                      <span className="text-xs text-white text-center">Science & Tech</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/forum-afrique`}
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <BookOpen className="w-6 h-6 text-green-400" />
+                      </div>
+                      <span className="text-xs text-white text-center">Forum Afrique</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/partenariats`}
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <Briefcase className="w-6 h-6 text-pink-400" />
+                      </div>
+                      <span className="text-xs text-white text-center">Partenariats</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/infos-pratiques`}
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <Info className="w-6 h-6 text-indigo-400" />
+                      </div>
+                      <span className="text-xs text-white text-center">Infos Pratiques</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/medias`}
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <Radio className="w-6 h-6 text-orange-400" />
+                      </div>
+                      <span className="text-xs text-white text-center">Médias</span>
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>
@@ -375,7 +466,7 @@ export default function Navigation() {
               </button>
               <button
                 className="p-2 text-foreground hover:text-primary"
-                onClick={() => setIsAppsMenuOpen(!isAppsMenuOpen)}
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
                 <Grid3x3 className="w-5 h-5" />
               </button>
@@ -389,68 +480,107 @@ export default function Navigation() {
               </Link>
             </div>
 
-            {isAppsMenuOpen && (
-              <div className="mt-4 p-4 bg-muted/30 rounded-lg">
-                <div className="grid grid-cols-3 gap-3">
-                  <Link
-                    href="/admin"
-                    className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
-                    onClick={() => { setIsAppsMenuOpen(false); setIsMenuOpen(false); }}
+            {isDropdownOpen && (
+              <div className="mt-4 p-4 bg-gray-900 rounded-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-white font-bold text-sm">Services Malakin</h3>
+                  <button
+                    className="text-gray-400 hover:text-white"
+                    onClick={() => setIsDropdownOpen(false)}
                   >
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-2">
-                      <Briefcase className="w-5 h-5 text-primary" />
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <Link
+                    href={`/${locale}/recherche`}
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-2">
+                      <Search className="w-6 h-6 text-blue-400" />
                     </div>
-                    <span className="text-xs text-center">Admin</span>
+                    <span className="text-xs text-white text-center">Recherche</span>
                   </Link>
                   <Link
-                    href="/medias"
-                    className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
-                    onClick={() => { setIsAppsMenuOpen(false); setIsMenuOpen(false); }}
+                    href={`/${locale}/communiques`}
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
                   >
-                    <div className="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center mb-2">
-                      <Radio className="w-5 h-5 text-secondary" />
+                    <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-2">
+                      <Newspaper className="w-6 h-6 text-purple-400" />
                     </div>
-                    <span className="text-xs text-center">Médias</span>
+                    <span className="text-xs text-white text-center">Communiqués</span>
                   </Link>
                   <Link
-                    href="/blog"
-                    className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
-                    onClick={() => { setIsAppsMenuOpen(false); setIsMenuOpen(false); }}
+                    href={`/${locale}/archives`}
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
                   >
-                    <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center mb-2">
-                      <BookOpen className="w-5 h-5 text-accent" />
+                    <div className="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center mb-2">
+                      <ScrollText className="w-6 h-6 text-amber-400" />
                     </div>
-                    <span className="text-xs text-center">Blog</span>
+                    <span className="text-xs text-white text-center">Archives</span>
                   </Link>
                   <Link
-                    href="/emploi"
-                    className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
-                    onClick={() => { setIsAppsMenuOpen(false); setIsMenuOpen(false); }}
+                    href={`/${locale}/radio-afrique`}
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
                   >
-                    <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center mb-2">
-                      <Briefcase className="w-5 h-5 text-green-500" />
+                    <div className="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center mb-2">
+                      <Radio className="w-6 h-6 text-red-400" />
                     </div>
-                    <span className="text-xs text-center">Emploi</span>
+                    <span className="text-xs text-white text-center">Radio Afrique</span>
                   </Link>
                   <Link
-                    href="/nous-soutenir"
-                    className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
-                    onClick={() => { setIsAppsMenuOpen(false); setIsMenuOpen(false); }}
+                    href={`/${locale}/science-tech`}
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
                   >
-                    <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center mb-2">
-                      <DollarSign className="w-5 h-5 text-red-500" />
+                    <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-2">
+                      <FlaskConical className="w-6 h-6 text-cyan-400" />
                     </div>
-                    <span className="text-xs text-center">Soutenir</span>
+                    <span className="text-xs text-white text-center">Science & Tech</span>
                   </Link>
                   <Link
-                    href="/contact"
-                    className="flex flex-col items-center p-3 hover:bg-muted rounded-md transition-colors"
-                    onClick={() => { setIsAppsMenuOpen(false); setIsMenuOpen(false); }}
+                    href={`/${locale}/forum-afrique`}
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
                   >
-                    <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-2">
-                      <Mail className="w-5 h-5 text-blue-500" />
+                    <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-2">
+                      <BookOpen className="w-6 h-6 text-green-400" />
                     </div>
-                    <span className="text-xs text-center">Contact</span>
+                    <span className="text-xs text-white text-center">Forum Afrique</span>
+                  </Link>
+                  <Link
+                    href={`/${locale}/partenariats`}
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center mb-2">
+                      <Briefcase className="w-6 h-6 text-pink-400" />
+                    </div>
+                    <span className="text-xs text-white text-center">Partenariats</span>
+                  </Link>
+                  <Link
+                    href={`/${locale}/infos-pratiques`}
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center mb-2">
+                      <Info className="w-6 h-6 text-indigo-400" />
+                    </div>
+                    <span className="text-xs text-white text-center">Infos Pratiques</span>
+                  </Link>
+                  <Link
+                    href={`/${locale}/medias`}
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center mb-2">
+                      <Radio className="w-6 h-6 text-orange-400" />
+                    </div>
+                    <span className="text-xs text-white text-center">Médias</span>
                   </Link>
                 </div>
               </div>
