@@ -30,6 +30,16 @@ export default function Footer() {
       ],
     },
     {
+      title: 'Plus',
+      links: [
+        { name: 'Communiqués', href: '/communiques' },
+        { name: 'Infos Pratiques', href: '/infos-pratiques' },
+        { name: 'Science & Tech', href: '/science-tech' },
+        { name: 'Partenariats', href: '/partenariats' },
+        { name: 'Recherche', href: '/recherche' },
+      ],
+    },
+    {
       title: 'À propos',
       links: [
         { name: 'Notre Mission', href: '/a-propos/mission' },
