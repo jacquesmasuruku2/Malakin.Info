@@ -40,7 +40,9 @@ export default async function Home({ params }: { params: { locale: string } }) {
 
   const featuredNews = featuredArticles.map(article => ({
     id: article.id,
-    category: article.category.title,
+    slug: article.slug,
+    categorySlug: article.category?.slug || 'actualites',
+    category: article.category?.title || 'Actualités',
     title: article.title,
     excerpt: article.excerpt,
     image: article.mainImageUrl || 'https://images.unsplash.com/photo-1541872703-74c5963631df?w=800&h=400&fit=crop',
@@ -50,7 +52,9 @@ export default async function Home({ params }: { params: { locale: string } }) {
 
   const latestNews = latestArticles.map(article => ({
     id: article.id,
-    category: article.category.title,
+    slug: article.slug,
+    categorySlug: article.category?.slug || 'actualites',
+    category: article.category?.title || 'Actualités',
     title: article.title,
     date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
     readTime: article.readTime ? `${article.readTime} min` : '3 min',
@@ -147,7 +151,7 @@ export default async function Home({ params }: { params: { locale: string } }) {
                     {news.excerpt}
                   </p>
                   <Link
-                    href={`/${locale}/actualites/${news.id}`}
+                    href={`/${locale}/${news.categorySlug}/${news.slug}`}
                     className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                   >
                     Lire la suite
@@ -217,9 +221,14 @@ export default async function Home({ params }: { params: { locale: string } }) {
                   <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded mb-2">
                     {news.category}
                   </span>
-                  <h3 className="font-heading font-semibold text-foreground mb-2 line-clamp-2">
-                    {news.title}
-                  </h3>
+                  <Link
+                    href={`/${locale}/${news.categorySlug}/${news.slug}`}
+                    className="block"
+                  >
+                    <h3 className="font-heading font-semibold text-foreground mb-2 line-clamp-2 hover:text-primary transition-colors">
+                      {news.title}
+                    </h3>
+                  </Link>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
