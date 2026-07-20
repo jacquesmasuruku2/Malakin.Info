@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { Calendar, Clock, User, Share2, Bookmark, ArrowLeft, Facebook, Twitter, Mail } from 'lucide-react';
+import { Calendar, Clock, User, Share2, Bookmark, ArrowLeft, Mail, MessageCircle, Send } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -111,11 +111,6 @@ export default async function ArticlePage({
                 alt={article.title}
                 className="w-full h-auto object-cover"
               />
-              {article.imageCaption && (
-                <p className="text-sm text-muted-foreground mt-2 italic">
-                  {article.imageCaption}
-                </p>
-              )}
             </div>
           )}
 
@@ -123,10 +118,10 @@ export default async function ArticlePage({
           <div className="flex items-center gap-4 mb-8 pb-8 border-b border-border">
             <span className="text-sm font-medium text-foreground">Partager :</span>
             <button className="p-2 text-muted-foreground hover:text-blue-600 transition-colors">
-              <Facebook className="w-5 h-5" />
+              <MessageCircle className="w-5 h-5" />
             </button>
             <button className="p-2 text-muted-foreground hover:text-blue-400 transition-colors">
-              <Twitter className="w-5 h-5" />
+              <Send className="w-5 h-5" />
             </button>
             <button className="p-2 text-muted-foreground hover:text-primary transition-colors">
               <Mail className="w-5 h-5" />
@@ -142,27 +137,10 @@ export default async function ArticlePage({
           {/* Content */}
           <div className="prose prose-lg max-w-none">
             <div 
-              dangerouslySetInnerHTML={{ __html: article.content || '' }}
+              dangerouslySetInnerHTML={{ __html: typeof article.content === 'string' ? article.content : '' }}
               className="text-foreground leading-relaxed"
             />
           </div>
-
-          {/* Tags */}
-          {article.tags && article.tags.length > 0 && (
-            <div className="mt-8 pt-8 border-t border-border">
-              <h3 className="text-sm font-medium text-foreground mb-4">Tags</h3>
-              <div className="flex flex-wrap gap-2">
-                {article.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-muted text-muted-foreground text-sm rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </article>
 
         {/* Author Section */}
@@ -170,9 +148,9 @@ export default async function ArticlePage({
           <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-border">
             <div className="bg-muted/50 rounded-lg p-6">
               <div className="flex items-start gap-4">
-                {article.author.avatar && (
+                {article.author.imageUrl && (
                   <img
-                    src={article.author.avatar}
+                    src={article.author.imageUrl}
                     alt={article.author.name}
                     className="w-16 h-16 rounded-full object-cover"
                   />
