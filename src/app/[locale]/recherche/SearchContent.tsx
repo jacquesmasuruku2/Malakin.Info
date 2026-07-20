@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { Search, Calendar, Clock, ArrowRight } from 'lucide-react';
 
 // Données de démonstration pour la recherche - base de données complète
@@ -261,6 +261,8 @@ const mockResults = [
 
 export default function SearchContent() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const locale = pathname.split('/')[1] || 'fr';
   const query = searchParams.get('q') || '';
   const [results, setResults] = useState(mockResults);
   const [isLoading, setIsLoading] = useState(false);
@@ -272,7 +274,10 @@ export default function SearchContent() {
       setTimeout(() => {
         const searchTerms = query.toLowerCase().split(' ').filter((term: string) => term.length > 0);
         
-        const filtered = mockResults.filter((item) => {
+        const filtered = mockResults.map((item) => ({
+          ...item,
+          href: item.href.startsWith('/') ? `/${locale}${item.href}` : item.href,
+        })).filter((item) => {
           const searchableText = [
             item.title,
             item.excerpt,
@@ -312,7 +317,7 @@ export default function SearchContent() {
     } else {
       setResults([]);
     }
-  }, [query]);
+  }, [query, locale]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
