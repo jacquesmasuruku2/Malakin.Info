@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mail, Phone, MapPin, Facebook, Instagram, Youtube, Twitter, Linkedin } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
 
 export default function Footer() {
   const pathname = usePathname();
@@ -142,38 +142,14 @@ export default function Footer() {
         {/* Social media bar */}
         <div className="border-t border-gray-700 pt-4 mb-4">
           <div className="flex flex-wrap items-center gap-4 text-xs text-gray-300">
-            <div className="flex items-center gap-2">
-              <Facebook className="w-4 h-4" />
-              <span className="hover:text-white cursor-pointer">Facebook</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Twitter className="w-4 h-4" />
-              <span className="hover:text-white cursor-pointer">Bluesky</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Instagram className="w-4 h-4" />
-              <span className="hover:text-white cursor-pointer">Threads</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Instagram className="w-4 h-4" />
-              <span className="hover:text-white cursor-pointer">Instagram</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Youtube className="w-4 h-4" />
-              <span className="hover:text-white cursor-pointer">YouTube</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Twitter className="w-4 h-4" />
-              <span className="hover:text-white cursor-pointer">TikTok</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Twitter className="w-4 h-4" />
-              <span className="hover:text-white cursor-pointer">WhatsApp</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Twitter className="w-4 h-4" />
-              <span className="hover:text-white cursor-pointer">Telegram</span>
-            </div>
+            <span className="hover:text-white cursor-pointer">Facebook</span>
+            <span className="hover:text-white cursor-pointer">Bluesky</span>
+            <span className="hover:text-white cursor-pointer">Threads</span>
+            <span className="hover:text-white cursor-pointer">Instagram</span>
+            <span className="hover:text-white cursor-pointer">YouTube</span>
+            <span className="hover:text-white cursor-pointer">TikTok</span>
+            <span className="hover:text-white cursor-pointer">WhatsApp</span>
+            <span className="hover:text-white cursor-pointer">Telegram</span>
             
             <div className="border-l border-gray-700 pl-4 ml-2 flex items-center gap-2">
               <Mail className="w-4 h-4" />
