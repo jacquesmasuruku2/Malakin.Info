@@ -350,6 +350,16 @@ export default function Navigation() {
                       </div>
                       <span className="text-xs text-white text-center">Contact</span>
                     </Link>
+                    <Link
+                      href={`/${locale}/religion`}
+                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <div className="w-12 h-12 bg-violet-500/20 rounded-lg flex items-center justify-center mb-2">
+                        <ScrollText className="w-6 h-6 text-violet-400" />
+                      </div>
+                      <span className="text-xs text-white text-center">Religion</span>
+                    </Link>
                   </div>
                 </div>
               )}
@@ -604,6 +614,16 @@ export default function Navigation() {
                       <Mail className="w-6 h-6 text-sky-400" />
                     </div>
                     <span className="text-xs text-white text-center">Contact</span>
+                  </Link>
+                  <Link
+                    href={`/${locale}/religion`}
+                    className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
+                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                  >
+                    <div className="w-12 h-12 bg-violet-500/20 rounded-lg flex items-center justify-center mb-2">
+                      <ScrollText className="w-6 h-6 text-violet-400" />
+                    </div>
+                    <span className="text-xs text-white text-center">Religion</span>
                   </Link>
                 </div>
               </div>
