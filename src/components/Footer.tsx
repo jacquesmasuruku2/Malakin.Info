@@ -1,53 +1,51 @@
 'use client';
 
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
 import { Mail, Phone, MapPin, Share2 } from 'lucide-react';
 
 export default function Footer() {
-  const locale = useLocale();
   const currentYear = new Date().getFullYear();
 
   const sections = [
     {
       title: 'Actualités',
       links: [
-        { name: 'Politique', href: `/${locale}/actualites/politique` },
-        { name: 'Économie', href: `/${locale}/actualites/economie` },
-        { name: 'Société', href: `/${locale}/actualites/societe` },
-        { name: 'Santé', href: `/${locale}/actualites/sante` },
-        { name: 'Sécurité', href: `/${locale}/actualites/securite` },
-        { name: 'Environnement', href: `/${locale}/actualites/environnement` },
+        { name: 'Politique', href: '/actualites/politique' },
+        { name: 'Économie', href: '/actualites/economie' },
+        { name: 'Société', href: '/actualites/societe' },
+        { name: 'Santé', href: '/actualites/sante' },
+        { name: 'Sécurité', href: '/actualites/securite' },
+        { name: 'Environnement', href: '/actualites/environnement' },
       ],
     },
     {
       title: 'Rubriques',
       links: [
-        { name: 'Médias', href: `/${locale}/medias` },
-        { name: 'Religion', href: `/${locale}/religion` },
-        { name: 'Culture', href: `/${locale}/culture` },
-        { name: 'Sport', href: `/${locale}/sport` },
-        { name: 'Emploi', href: `/${locale}/emploi` },
-        { name: 'Blog', href: `/${locale}/blog` },
+        { name: 'Médias', href: '/medias' },
+        { name: 'Religion', href: '/religion' },
+        { name: 'Culture', href: '/culture' },
+        { name: 'Sport', href: '/sport' },
+        { name: 'Emploi', href: '/emploi' },
+        { name: 'Blog', href: '/blog' },
       ],
     },
     {
       title: 'À propos',
       links: [
-        { name: 'Notre Mission', href: `/${locale}/a-propos/mission` },
-        { name: 'Notre Équipe', href: `/${locale}/a-propos/equipe` },
-        { name: 'Charte Éthique', href: `/${locale}/a-propos/charte` },
-        { name: 'Contact', href: `/${locale}/contact` },
-        { name: 'Nous Soutenir', href: `/${locale}/nous-soutenir` },
+        { name: 'Notre Mission', href: '/a-propos/mission' },
+        { name: 'Notre Équipe', href: '/a-propos/equipe' },
+        { name: 'Charte Éthique', href: '/a-propos/charte' },
+        { name: 'Contact', href: '/contact' },
+        { name: 'Nous Soutenir', href: '/nous-soutenir' },
       ],
     },
     {
       title: 'Légal',
       links: [
-        { name: 'Mentions Légales', href: `/${locale}/mentions-legales` },
-        { name: 'Politique de Confidentialité', href: `/${locale}/politique-confidentialite` },
-        { name: 'Conditions d\'Utilisation', href: `/${locale}/conditions-utilisation` },
-        { name: 'Cookies', href: `/${locale}/cookies` },
+        { name: 'Mentions Légales', href: '/mentions-legales' },
+        { name: 'Politique de Confidentialité', href: '/politique-confidentialite' },
+        { name: 'Conditions d\'Utilisation', href: '/conditions-utilisation' },
+        { name: 'Cookies', href: '/cookies' },
       ],
     },
   ];
