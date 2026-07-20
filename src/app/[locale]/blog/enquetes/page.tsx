@@ -1,31 +1,35 @@
 import Link from 'next/link';
 import { Calendar, Clock, ArrowRight, Search } from 'lucide-react';
+import { prisma } from '@/lib/prisma';
 
-export default function EnquetesPage() {
-  const articles = [
-    {
-      id: 1,
-      author: 'Marie Koffi',
-      title: 'Enquête exclusive : Les coulisses du marché informel à Kinshasa',
-      excerpt: 'Une plongée dans l\'économie informelle qui fait vivre des millions de Congolais.',
-      date: '26 Juin 2026',
-      readTime: '15 min',
-    },
-    {
-      id: 2,
-      author: 'Équipe Arizona',
-      title: 'Enquête : L\'impact des changements climatiques sur l\'agriculture',
-      excerpt: 'Comment les agriculteurs africains s\'adaptent au défi climatique.',
-      date: '24 Juin 2026',
-      readTime: '12 min',
-    },
-  ];
+export const dynamic = 'force-dynamic';
+
+export default async function EnquetesPage({ params }: { params: { locale: string } }) {
+  const locale = params.locale;
+  let articles: any[] = [];
+
+  try {
+    articles = await prisma.blogPost.findMany({
+      where: {
+        type: 'enquete',
+      },
+      include: {
+        author: true,
+      },
+      take: 10,
+      orderBy: {
+        publishedAt: 'desc',
+      },
+    });
+  } catch (error) {
+    console.error('Database connection error:', error);
+  }
 
   return (
     <div className="flex flex-col">
       <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/blog" className="text-gray-300 hover:text-white mb-4 inline-block">
+          <Link href={`/${locale}/blog`} className="text-gray-300 hover:text-white mb-4 inline-block">
             ← Retour au Blog
           </Link>
           <h1 className="font-heading text-4xl font-bold mb-4">Enquêtes</h1>
@@ -44,7 +48,7 @@ export default function EnquetesPage() {
             >
               <div className="flex items-center gap-2 mb-3">
                 <Search className="w-5 h-5 text-primary" />
-                <span className="text-sm font-medium text-primary">Par {article.author}</span>
+                <span className="text-sm font-medium text-primary">Par {article.author?.name || 'Équipe Malakin'}</span>
               </div>
               <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
                 {article.title}
@@ -55,15 +59,15 @@ export default function EnquetesPage() {
               <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                 <span className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
-                  {article.date}
+                  {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  {article.readTime}
+                  {article.readTime ? `${article.readTime} min` : '5 min'}
                 </span>
               </div>
               <Link
-                href={`/blog/enquetes/${article.id}`}
+                href={`/${locale}/blog/enquetes/${article.slug}`}
                 className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
               >
                 Lire l'enquête
