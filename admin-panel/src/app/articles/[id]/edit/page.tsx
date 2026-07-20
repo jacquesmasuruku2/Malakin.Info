@@ -55,7 +55,7 @@ export default function EditArticlePage() {
         title: data.title,
         slug: data.slug,
         excerpt: data.excerpt,
-        content: JSON.stringify(data.content),
+        content: typeof data.content === 'string' ? data.content : JSON.stringify(data.content),
         categoryId: data.categoryId,
         authorId: data.authorId || '',
         publishedAt: data.publishedAt ? new Date(data.publishedAt).toISOString().split('T')[0] : '',
@@ -73,6 +73,9 @@ export default function EditArticlePage() {
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories');
+      if (!response.ok) {
+        throw new Error('Failed to fetch categories');
+      }
       const data = await response.json();
       setCategories(data);
     } catch (error) {
