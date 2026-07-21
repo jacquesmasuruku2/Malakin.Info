@@ -74,9 +74,17 @@ export default function ProfilePage() {
           <div className="px-6 pb-6">
             <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-16 mb-6 gap-4">
               <div className="relative">
-                <div className="w-32 h-32 bg-primary/20 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                  <User className="w-16 h-16 text-primary" />
-                </div>
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name}
+                    className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
+                  />
+                ) : (
+                  <div className="w-32 h-32 bg-primary/20 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+                    <User className="w-16 h-16 text-primary" />
+                  </div>
+                )}
                 {isEditing && (
                   <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors">
                     <Camera className="w-4 h-4" />
