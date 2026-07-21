@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Heart, MessageCircle, Send, User as UserIcon } from 'lucide-react';
 
 interface Comment {
@@ -8,6 +8,7 @@ interface Comment {
   content: string;
   createdAt: string;
   user: {
+    id: string;
     name: string;
     avatarUrl?: string;
   };
@@ -27,6 +28,8 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const t = {
     comments: locale === 'fr' ? 'Commentaires' : 'Comments',
@@ -42,52 +45,150 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
     replyPlaceholder: locale === 'fr' ? 'Votre réponse...' : 'Your reply...',
   };
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
-  };
-
-  const handleSubmitComment = () => {
-    if (!newComment.trim()) return;
+  // Fetch comments and like status on mount
+  useEffect(() => {
+    fetchComments();
+    fetchLikeStatus();
     
-    const comment: Comment = {
-      id: Date.now().toString(),
-      content: newComment,
-      createdAt: new Date().toISOString(),
-      user: {
-        name: 'Utilisateur',
-      },
-    };
-    
-    setComments([comment, ...comments]);
-    setNewComment('');
-    setShowCommentForm(false);
-  };
+    // Check for user session (simplified - in production use proper auth)
+    const storedUserId = localStorage.getItem('userId');
+    if (storedUserId) {
+      setUserId(storedUserId);
+    } else {
+      // For development: create a test user ID
+      const testUserId = 'test-user-' + Date.now();
+      localStorage.setItem('userId', testUserId);
+      setUserId(testUserId);
+    }
+  }, [articleId]);
 
-  const handleReply = (commentId: string) => {
-    if (!replyText.trim()) return;
-    
-    const reply: Comment = {
-      id: Date.now().toString(),
-      content: replyText,
-      createdAt: new Date().toISOString(),
-      user: {
-        name: 'Utilisateur',
-      },
-    };
-
-    setComments(prev => prev.map(comment => {
-      if (comment.id === commentId) {
-        return {
-          ...comment,
-          replies: [...(comment.replies || []), reply],
-        };
+  const fetchComments = async () => {
+    try {
+      const response = await fetch(`/api/comments?articleId=${articleId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setComments(data);
       }
-      return comment;
-    }));
-    
-    setReplyText('');
-    setReplyingTo(null);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchLikeStatus = async () => {
+    try {
+      const url = userId 
+        ? `/api/likes?articleId=${articleId}&userId=${userId}`
+        : `/api/likes?articleId=${articleId}`;
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        setIsLiked(data.isLiked);
+        setLikeCount(data.likeCount);
+      }
+    } catch (error) {
+      console.error('Error fetching like status:', error);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!userId) {
+      alert(t.loginToComment);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/likes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          articleId,
+          userId,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsLiked(data.liked);
+        setLikeCount(data.likeCount);
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    }
+  };
+
+  const handleSubmitComment = async () => {
+    if (!newComment.trim()) return;
+    if (!userId) {
+      alert(t.loginToComment);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          articleId,
+          userId,
+          content: newComment,
+        }),
+      });
+
+      if (response.ok) {
+        const comment = await response.json();
+        setComments([comment, ...comments]);
+        setNewComment('');
+        setShowCommentForm(false);
+      }
+    } catch (error) {
+      console.error('Error creating comment:', error);
+    }
+  };
+
+  const handleReply = async (commentId: string) => {
+    if (!replyText.trim()) return;
+    if (!userId) {
+      alert(t.loginToComment);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          articleId,
+          userId,
+          content: replyText,
+          parentId: commentId,
+        }),
+      });
+
+      if (response.ok) {
+        const reply = await response.json();
+        setComments(prev => prev.map(comment => {
+          if (comment.id === commentId) {
+            return {
+              ...comment,
+              replies: [...(comment.replies || []), reply],
+            };
+          }
+          return comment;
+        }));
+        setReplyText('');
+        setReplyingTo(null);
+      }
+    } catch (error) {
+      console.error('Error creating reply:', error);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -235,7 +336,11 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
         </div>
       )}
 
-      {comments.length === 0 ? (
+      {isLoading ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <p>Chargement...</p>
+        </div>
+      ) : comments.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p>{t.noComments}</p>
