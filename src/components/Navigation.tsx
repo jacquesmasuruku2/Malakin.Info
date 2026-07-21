@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Menu, X, Search, User, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grid3x3 } from 'lucide-react';
 import SearchBar from './SearchBar';
+import frMessages from '../../messages/fr.json';
+import enMessages from '../../messages/en.json';
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -15,6 +17,7 @@ export default function Navigation() {
   
   // Extract locale from pathname
   const locale = pathname.split('/')[1] || 'fr';
+  const t = locale === 'fr' ? frMessages.nav : enMessages.nav;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -32,134 +35,134 @@ export default function Navigation() {
   }, [isSearchOpen]);
 
   const mainNavItems = [
-    { name: 'Accueil', href: `/${locale}` },
-    { name: 'Actualités', href: `/${locale}/actualites` },
-    { name: 'Économie', href: `/${locale}/actualites/economie` },
-    { name: 'Science & Tech', href: `/${locale}/science-tech` },
-    { name: 'Culture', href: `/${locale}/culture` },
-    { name: 'Sport', href: `/${locale}/sport` },
-    { name: 'Nous Soutenir', href: `/${locale}/nous-soutenir` },
+    { name: t.home, href: `/${locale}` },
+    { name: t.news, href: `/${locale}/actualites` },
+    { name: t.economy, href: `/${locale}/actualites/economie` },
+    { name: t.scienceTech, href: `/${locale}/science-tech` },
+    { name: t.culture, href: `/${locale}/culture` },
+    { name: t.sport, href: `/${locale}/sport` },
+    { name: t.supportUs, href: `/${locale}/nous-soutenir` },
   ];
 
   const dropdownItems = [
-    { name: 'Médias', href: `/${locale}/medias` },
-    { name: 'Communiqués', href: `/${locale}/communiques` },
-    { name: 'Infos Pratiques', href: `/${locale}/infos-pratiques` },
-    { name: 'Religion', href: `/${locale}/religion` },
-    { name: 'Emploi', href: `/${locale}/emploi` },
-    { name: 'Blog', href: `/${locale}/blog` },
-    { name: 'À Propos', href: `/${locale}/a-propos` },
-    { name: 'Contact', href: `/${locale}/contact` },
+    { name: t.media, href: `/${locale}/medias` },
+    { name: t.pressReleases, href: `/${locale}/communiques` },
+    { name: t.practicalInfo, href: `/${locale}/infos-pratiques` },
+    { name: t.religion, href: `/${locale}/religion` },
+    { name: t.employment, href: `/${locale}/emploi` },
+    { name: t.blog, href: `/${locale}/blog` },
+    { name: t.about, href: `/${locale}/a-propos` },
+    { name: t.contact, href: `/${locale}/contact` },
   ];
 
   const mobileMenuCategories = [
     {
-      title: 'Actualités',
+      title: t.news,
       icon: Newspaper,
       items: [
-        { name: 'Toutes les actualités', href: `/${locale}/actualites` },
-        { name: 'Politique', href: `/${locale}/actualites/politique` },
-        { name: 'Économie', href: `/${locale}/actualites/economie` },
-        { name: 'Société', href: `/${locale}/actualites/societe` },
-        { name: 'Santé', href: `/${locale}/actualites/sante` },
-        { name: 'Sécurité', href: `/${locale}/actualites/securite` },
+        { name: t.allNews, href: `/${locale}/actualites` },
+        { name: t.politics, href: `/${locale}/actualites/politique` },
+        { name: t.economy, href: `/${locale}/actualites/economie` },
+        { name: t.society, href: `/${locale}/actualites/societe` },
+        { name: t.health, href: `/${locale}/actualites/sante` },
+        { name: t.security, href: `/${locale}/actualites/securite` },
       ],
     },
     {
-      title: 'Médias',
+      title: t.media,
       icon: Radio,
       items: [
-        { name: 'Photos', href: `/${locale}/medias/photos` },
-        { name: 'Vidéos', href: `/${locale}/medias/videos` },
-        { name: 'Podcasts', href: `/${locale}/medias/podcasts` },
-        { name: 'Live', href: `/${locale}/medias/live` },
+        { name: t.photos, href: `/${locale}/medias/photos` },
+        { name: t.videos, href: `/${locale}/medias/videos` },
+        { name: t.podcasts, href: `/${locale}/medias/podcasts` },
+        { name: t.live, href: `/${locale}/medias/live` },
       ],
     },
     {
-      title: 'Religion',
+      title: t.religion,
       icon: ScrollText,
       items: [
-        { name: 'Méditations', href: `/${locale}/religion/meditations` },
-        { name: 'Homélies', href: `/${locale}/religion/homelies` },
-        { name: 'Musiques sacrées', href: `/${locale}/religion/musiques-sacrees` },
-        { name: 'Agenda religieux', href: `/${locale}/religion/agenda-religieux` },
-        { name: 'Message du temps', href: `/${locale}/religion/message-du-temps` },
+        { name: t.meditations, href: `/${locale}/religion/meditations` },
+        { name: t.homilies, href: `/${locale}/religion/homelies` },
+        { name: t.sacredMusic, href: `/${locale}/religion/musiques-sacrees` },
+        { name: t.religiousAgenda, href: `/${locale}/religion/agenda-religieux` },
+        { name: t.messageOfTime, href: `/${locale}/religion/message-du-temps` },
       ],
     },
     {
-      title: 'Culture',
+      title: t.culture,
       icon: Palette,
       items: [
-        { name: 'Musique', href: `/${locale}/culture/musique` },
-        { name: 'Cinéma', href: `/${locale}/culture/cinema` },
-        { name: 'Arts', href: `/${locale}/culture/arts` },
-        { name: 'Tendances', href: `/${locale}/culture/tendances` },
+        { name: t.music, href: `/${locale}/culture/musique` },
+        { name: t.cinema, href: `/${locale}/culture/cinema` },
+        { name: t.arts, href: `/${locale}/culture/arts` },
+        { name: t.trends, href: `/${locale}/culture/tendances` },
       ],
     },
     {
-      title: 'Sport',
+      title: t.sport,
       icon: Trophy,
       items: [
-        { name: 'Football', href: `/${locale}/sport/football` },
-        { name: 'Basketball', href: `/${locale}/sport/basket` },
-        { name: 'Athlétisme', href: `/${locale}/sport/athletisme` },
-        { name: 'Événements', href: `/${locale}/sport/evenements` },
+        { name: t.football, href: `/${locale}/sport/football` },
+        { name: t.basketball, href: `/${locale}/sport/basket` },
+        { name: t.athletics, href: `/${locale}/sport/athletisme` },
+        { name: t.events, href: `/${locale}/sport/evenements` },
       ],
     },
     {
-      title: 'Science & Tech',
+      title: t.scienceTech,
       icon: FlaskConical,
       items: [
-        { name: 'Base de données', href: `/${locale}/science-tech/base-de-donnees` },
-        { name: 'Analyse de données', href: `/${locale}/science-tech/analyse-de-donnees` },
-        { name: 'Nature & Environnement', href: `/${locale}/science-tech/nature-environnement` },
+        { name: t.database, href: `/${locale}/science-tech/base-de-donnees` },
+        { name: t.dataAnalysis, href: `/${locale}/science-tech/analyse-de-donnees` },
+        { name: t.natureEnvironment, href: `/${locale}/science-tech/nature-environnement` },
       ],
     },
     {
-      title: 'Emploi',
+      title: t.employment,
       icon: Briefcase,
       items: [
-        { name: 'Offres par secteur', href: `/${locale}/emploi/offres/sante` },
-        { name: 'Conseils carrière', href: `/${locale}/emploi/conseils-carriere` },
-        { name: 'Bourses & Stages', href: `/${locale}/emploi/bourses-stages` },
+        { name: t.offersBySector, href: `/${locale}/emploi/offres/sante` },
+        { name: t.careerAdvice, href: `/${locale}/emploi/conseils-carriere` },
+        { name: t.scholarshipsInternships, href: `/${locale}/emploi/bourses-stages` },
       ],
     },
     {
-      title: 'Infos Pratiques',
+      title: t.practicalInfo,
       icon: Info,
       items: [
-        { name: 'Guides', href: `/${locale}/infos-pratiques/guides` },
-        { name: 'Tutoriels', href: `/${locale}/infos-pratiques/tutoriels` },
-        { name: 'Ressources', href: `/${locale}/infos-pratiques/ressources-educatives` },
+        { name: t.guides, href: `/${locale}/infos-pratiques/guides` },
+        { name: t.tutorials, href: `/${locale}/infos-pratiques/tutoriels` },
+        { name: t.resources, href: `/${locale}/infos-pratiques/ressources-educatives` },
       ],
     },
     {
-      title: 'Communiqués',
+      title: t.pressReleases,
       icon: Newspaper,
       items: [
-        { name: 'Gouvernement', href: `/${locale}/communiques/gouvernement` },
-        { name: 'Religieux', href: `/${locale}/communiques/religieux` },
-        { name: 'ONG', href: `/${locale}/communiques/ong` },
-        { name: 'Éducatif', href: `/${locale}/communiques/educatif` },
+        { name: t.government, href: `/${locale}/communiques/gouvernement` },
+        { name: t.religious, href: `/${locale}/communiques/religieux` },
+        { name: t.ngo, href: `/${locale}/communiques/ong` },
+        { name: t.educational, href: `/${locale}/communiques/educatif` },
       ],
     },
     {
-      title: 'Blog',
+      title: t.blog,
       icon: BookOpen,
       items: [
-        { name: 'Tribunes', href: `/${locale}/blog/tribunes` },
-        { name: 'Chroniques', href: `/${locale}/blog/chroniques` },
-        { name: 'Enquêtes', href: `/${locale}/blog/enquetes` },
-        { name: 'Sondages', href: `/${locale}/blog/sondages` },
+        { name: t.tribunes, href: `/${locale}/blog/tribunes` },
+        { name: t.chronicles, href: `/${locale}/blog/chroniques` },
+        { name: t.investigations, href: `/${locale}/blog/enquetes` },
+        { name: t.polls, href: `/${locale}/blog/sondages` },
       ],
     },
     {
-      title: 'À Propos',
+      title: t.about,
       icon: Info,
       items: [
-        { name: 'Mission', href: `/${locale}/a-propos/mission` },
-        { name: 'Équipe', href: `/${locale}/a-propos/equipe` },
-        { name: 'Charte', href: `/${locale}/a-propos/charte` },
+        { name: t.mission, href: `/${locale}/a-propos/mission` },
+        { name: t.team, href: `/${locale}/a-propos/equipe` },
+        { name: t.charter, href: `/${locale}/a-propos/charte` },
       ],
     },
   ];
@@ -193,7 +196,7 @@ export default function Navigation() {
               <button
                 className="p-2 text-foreground hover:text-primary transition-colors"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                title="Plus de services"
+                title={t.moreServices}
               >
                 <Grid3x3 className="w-5 h-5" />
               </button>
@@ -201,7 +204,7 @@ export default function Navigation() {
               {isDropdownOpen && (
                 <div className="absolute top-full right-0 mt-2 w-96 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-white font-bold text-sm">Services Malakin</h3>
+                    <h3 className="text-white font-bold text-sm">{t.servicesMalakin}</h3>
                     <button
                       className="text-gray-400 hover:text-white"
                       onClick={() => setIsDropdownOpen(false)}
@@ -228,7 +231,7 @@ export default function Navigation() {
                       <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-2">
                         <Search className="w-6 h-6 text-blue-400" />
                       </div>
-                      <span className="text-xs text-white text-center">Recherche</span>
+                      <span className="text-xs text-white text-center">{t.search}</span>
                     </Link>
                     <Link
                       href={`/${locale}/communiques`}
@@ -238,7 +241,7 @@ export default function Navigation() {
                       <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-2">
                         <Newspaper className="w-6 h-6 text-purple-400" />
                       </div>
-                      <span className="text-xs text-white text-center">Communiqués</span>
+                      <span className="text-xs text-white text-center">{t.pressReleases}</span>
                     </Link>
                     <Link
                       href={`/${locale}/archives`}
@@ -248,7 +251,7 @@ export default function Navigation() {
                       <div className="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center mb-2">
                         <ScrollText className="w-6 h-6 text-amber-400" />
                       </div>
-                      <span className="text-xs text-white text-center">Archives</span>
+                      <span className="text-xs text-white text-center">{t.archives}</span>
                     </Link>
                     <Link
                       href={`/${locale}/radio-afrique`}
@@ -258,7 +261,7 @@ export default function Navigation() {
                       <div className="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center mb-2">
                         <Radio className="w-6 h-6 text-red-400" />
                       </div>
-                      <span className="text-xs text-white text-center">Radio Afrique</span>
+                      <span className="text-xs text-white text-center">{t.radioAfrica}</span>
                     </Link>
                     <Link
                       href={`/${locale}/science-tech`}
@@ -268,7 +271,7 @@ export default function Navigation() {
                       <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-2">
                         <FlaskConical className="w-6 h-6 text-cyan-400" />
                       </div>
-                      <span className="text-xs text-white text-center">Science & Tech</span>
+                      <span className="text-xs text-white text-center">{t.scienceTech}</span>
                     </Link>
                     <Link
                       href={`/${locale}/forum-afrique`}
@@ -278,7 +281,7 @@ export default function Navigation() {
                       <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-2">
                         <BookOpen className="w-6 h-6 text-green-400" />
                       </div>
-                      <span className="text-xs text-white text-center">Forum Afrique</span>
+                      <span className="text-xs text-white text-center">{t.forumAfrica}</span>
                     </Link>
                     <Link
                       href={`/${locale}/partenariats`}
@@ -288,7 +291,7 @@ export default function Navigation() {
                       <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center mb-2">
                         <Briefcase className="w-6 h-6 text-pink-400" />
                       </div>
-                      <span className="text-xs text-white text-center">Partenariats</span>
+                      <span className="text-xs text-white text-center">{t.partnerships}</span>
                     </Link>
                     <Link
                       href={`/${locale}/infos-pratiques`}
@@ -298,7 +301,7 @@ export default function Navigation() {
                       <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center mb-2">
                         <Info className="w-6 h-6 text-indigo-400" />
                       </div>
-                      <span className="text-xs text-white text-center">Infos Pratiques</span>
+                      <span className="text-xs text-white text-center">{t.practicalInfo}</span>
                     </Link>
                     <Link
                       href={`/${locale}/medias`}
@@ -308,7 +311,7 @@ export default function Navigation() {
                       <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center mb-2">
                         <Radio className="w-6 h-6 text-orange-400" />
                       </div>
-                      <span className="text-xs text-white text-center">Médias</span>
+                      <span className="text-xs text-white text-center">{t.media}</span>
                     </Link>
                     <Link
                       href={`/${locale}/blog`}
@@ -318,7 +321,7 @@ export default function Navigation() {
                       <div className="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center mb-2">
                         <BookOpen className="w-6 h-6 text-teal-400" />
                       </div>
-                      <span className="text-xs text-white text-center">Blog</span>
+                      <span className="text-xs text-white text-center">{t.blog}</span>
                     </Link>
                     <Link
                       href={`/${locale}/emploi`}
@@ -328,7 +331,7 @@ export default function Navigation() {
                       <div className="w-12 h-12 bg-lime-500/20 rounded-lg flex items-center justify-center mb-2">
                         <Briefcase className="w-6 h-6 text-lime-400" />
                       </div>
-                      <span className="text-xs text-white text-center">Emploi</span>
+                      <span className="text-xs text-white text-center">{t.employment}</span>
                     </Link>
                     <Link
                       href={`/${locale}/nous-soutenir`}
@@ -338,7 +341,7 @@ export default function Navigation() {
                       <div className="w-12 h-12 bg-rose-500/20 rounded-lg flex items-center justify-center mb-2">
                         <DollarSign className="w-6 h-6 text-rose-400" />
                       </div>
-                      <span className="text-xs text-white text-center">Soutenir</span>
+                      <span className="text-xs text-white text-center">{t.support}</span>
                     </Link>
                     <Link
                       href={`/${locale}/contact`}
@@ -348,7 +351,7 @@ export default function Navigation() {
                       <div className="w-12 h-12 bg-sky-500/20 rounded-lg flex items-center justify-center mb-2">
                         <Mail className="w-6 h-6 text-sky-400" />
                       </div>
-                      <span className="text-xs text-white text-center">Contact</span>
+                      <span className="text-xs text-white text-center">{t.contact}</span>
                     </Link>
                     <Link
                       href={`/${locale}/religion`}
@@ -358,7 +361,7 @@ export default function Navigation() {
                       <div className="w-12 h-12 bg-violet-500/20 rounded-lg flex items-center justify-center mb-2">
                         <ScrollText className="w-6 h-6 text-violet-400" />
                       </div>
-                      <span className="text-xs text-white text-center">Religion</span>
+                      <span className="text-xs text-white text-center">{t.religion}</span>
                     </Link>
                   </div>
                 </div>
@@ -378,7 +381,7 @@ export default function Navigation() {
               className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
             >
               <User className="w-4 h-4" />
-              <span className="text-sm font-medium">Connexion</span>
+              <span className="text-sm font-medium">{t.login}</span>
             </Link>
           </div>
 
@@ -400,7 +403,7 @@ export default function Navigation() {
               onClick={() => setIsMenuOpen(false)}
             >
               <Newspaper className="w-5 h-5" />
-              Accueil
+              {t.home}
             </Link>
 
             {mobileMenuCategories.map((category) => {
@@ -459,14 +462,14 @@ export default function Navigation() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <User className="w-4 h-4" />
-                <span className="text-sm font-medium">Connexion</span>
+                <span className="text-sm font-medium">{t.login}</span>
               </Link>
             </div>
 
             {isDropdownOpen && (
               <div className="mt-4 p-4 bg-gray-900 rounded-lg">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-white font-bold text-sm">Services Malakin</h3>
+                  <h3 className="text-white font-bold text-sm">{t.servicesMalakin}</h3>
                   <button
                     className="text-gray-400 hover:text-white"
                     onClick={() => setIsDropdownOpen(false)}
@@ -493,7 +496,7 @@ export default function Navigation() {
                     <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Search className="w-6 h-6 text-blue-400" />
                     </div>
-                    <span className="text-xs text-white text-center">Recherche</span>
+                    <span className="text-xs text-white text-center">{t.search}</span>
                   </Link>
                   <Link
                     href={`/${locale}/communiques`}
@@ -503,7 +506,7 @@ export default function Navigation() {
                     <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Newspaper className="w-6 h-6 text-purple-400" />
                     </div>
-                    <span className="text-xs text-white text-center">Communiqués</span>
+                    <span className="text-xs text-white text-center">{t.pressReleases}</span>
                   </Link>
                   <Link
                     href={`/${locale}/archives`}
@@ -513,7 +516,7 @@ export default function Navigation() {
                     <div className="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center mb-2">
                       <ScrollText className="w-6 h-6 text-amber-400" />
                     </div>
-                    <span className="text-xs text-white text-center">Archives</span>
+                    <span className="text-xs text-white text-center">{t.archives}</span>
                   </Link>
                   <Link
                     href={`/${locale}/radio-afrique`}
@@ -523,7 +526,7 @@ export default function Navigation() {
                     <div className="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Radio className="w-6 h-6 text-red-400" />
                     </div>
-                    <span className="text-xs text-white text-center">Radio Afrique</span>
+                    <span className="text-xs text-white text-center">{t.radioAfrica}</span>
                   </Link>
                   <Link
                     href={`/${locale}/science-tech`}
@@ -533,7 +536,7 @@ export default function Navigation() {
                     <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-2">
                       <FlaskConical className="w-6 h-6 text-cyan-400" />
                     </div>
-                    <span className="text-xs text-white text-center">Science & Tech</span>
+                    <span className="text-xs text-white text-center">{t.scienceTech}</span>
                   </Link>
                   <Link
                     href={`/${locale}/forum-afrique`}
@@ -543,7 +546,7 @@ export default function Navigation() {
                     <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-2">
                       <BookOpen className="w-6 h-6 text-green-400" />
                     </div>
-                    <span className="text-xs text-white text-center">Forum Afrique</span>
+                    <span className="text-xs text-white text-center">{t.forumAfrica}</span>
                   </Link>
                   <Link
                     href={`/${locale}/partenariats`}
@@ -553,7 +556,7 @@ export default function Navigation() {
                     <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Briefcase className="w-6 h-6 text-pink-400" />
                     </div>
-                    <span className="text-xs text-white text-center">Partenariats</span>
+                    <span className="text-xs text-white text-center">{t.partnerships}</span>
                   </Link>
                   <Link
                     href={`/${locale}/infos-pratiques`}
@@ -563,7 +566,7 @@ export default function Navigation() {
                     <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Info className="w-6 h-6 text-indigo-400" />
                     </div>
-                    <span className="text-xs text-white text-center">Infos Pratiques</span>
+                    <span className="text-xs text-white text-center">{t.practicalInfo}</span>
                   </Link>
                   <Link
                     href={`/${locale}/medias`}
@@ -573,7 +576,7 @@ export default function Navigation() {
                     <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Radio className="w-6 h-6 text-orange-400" />
                     </div>
-                    <span className="text-xs text-white text-center">Médias</span>
+                    <span className="text-xs text-white text-center">{t.media}</span>
                   </Link>
                   <Link
                     href={`/${locale}/blog`}
@@ -583,7 +586,7 @@ export default function Navigation() {
                     <div className="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center mb-2">
                       <BookOpen className="w-6 h-6 text-teal-400" />
                     </div>
-                    <span className="text-xs text-white text-center">Blog</span>
+                    <span className="text-xs text-white text-center">{t.blog}</span>
                   </Link>
                   <Link
                     href={`/${locale}/emploi`}
@@ -593,7 +596,7 @@ export default function Navigation() {
                     <div className="w-12 h-12 bg-lime-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Briefcase className="w-6 h-6 text-lime-400" />
                     </div>
-                    <span className="text-xs text-white text-center">Emploi</span>
+                    <span className="text-xs text-white text-center">{t.employment}</span>
                   </Link>
                   <Link
                     href={`/${locale}/nous-soutenir`}
@@ -603,7 +606,7 @@ export default function Navigation() {
                     <div className="w-12 h-12 bg-rose-500/20 rounded-lg flex items-center justify-center mb-2">
                       <DollarSign className="w-6 h-6 text-rose-400" />
                     </div>
-                    <span className="text-xs text-white text-center">Soutenir</span>
+                    <span className="text-xs text-white text-center">{t.support}</span>
                   </Link>
                   <Link
                     href={`/${locale}/contact`}
@@ -613,7 +616,7 @@ export default function Navigation() {
                     <div className="w-12 h-12 bg-sky-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Mail className="w-6 h-6 text-sky-400" />
                     </div>
-                    <span className="text-xs text-white text-center">Contact</span>
+                    <span className="text-xs text-white text-center">{t.contact}</span>
                   </Link>
                   <Link
                     href={`/${locale}/religion`}
@@ -623,7 +626,7 @@ export default function Navigation() {
                     <div className="w-12 h-12 bg-violet-500/20 rounded-lg flex items-center justify-center mb-2">
                       <ScrollText className="w-6 h-6 text-violet-400" />
                     </div>
-                    <span className="text-xs text-white text-center">Religion</span>
+                    <span className="text-xs text-white text-center">{t.religion}</span>
                   </Link>
                 </div>
               </div>

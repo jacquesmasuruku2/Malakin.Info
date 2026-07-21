@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Mail, Phone, MapPin } from 'lucide-react';
+import frMessages from '../../messages/fr.json';
+import enMessages from '../../messages/en.json';
 
 export default function Footer() {
   const pathname = usePathname();
@@ -10,6 +12,8 @@ export default function Footer() {
   
   // Extract locale from pathname
   const locale = pathname.split('/')[1] || 'fr';
+  const t = locale === 'fr' ? frMessages.footer : enMessages.footer;
+  const nav = locale === 'fr' ? frMessages.nav : enMessages.nav;
 
   return (
     <footer className="bg-black text-white">
@@ -22,42 +26,42 @@ export default function Footer() {
           {/* Column 1: Dans l'actualité + Rubriques */}
           <div className="space-y-6">
             <div>
-              <h3 className="font-bold text-white mb-4 text-sm tracking-wide">DANS L'ACTUALITÉ</h3>
+              <h3 className="font-bold text-white mb-4 text-sm tracking-wide">{t.inTheNews}</h3>
               <div className="space-y-2">
                 <div className="grid grid-cols-2 gap-2">
                   <Link href={`/${locale}/actualites/politique`} className="border border-white text-white px-3 py-2 text-xs text-center hover:bg-white hover:text-black transition-colors">
-                    Politique
+                    {nav.politics}
                   </Link>
                   <Link href={`/${locale}/actualites/economie`} className="border border-white text-white px-3 py-2 text-xs text-center hover:bg-white hover:text-black transition-colors">
-                    Économie
+                    {nav.economy}
                   </Link>
                 </div>
                 <Link href={`/${locale}/actualites`} className="border border-white text-white px-3 py-2 text-xs text-center block hover:bg-white hover:text-black transition-colors">
-                  Actualités Africaines 2026
+                  {t.africanNews2026}
                 </Link>
                 <div className="grid grid-cols-2 gap-2">
                   <Link href={`/${locale}/actualites/societe`} className="border border-white text-white px-3 py-2 text-xs text-center hover:bg-white hover:text-black transition-colors">
-                    Société
+                    {nav.society}
                   </Link>
                   <Link href={`/${locale}/actualites/sante`} className="border border-white text-white px-3 py-2 text-xs text-center hover:bg-white hover:text-black transition-colors">
-                    Santé
+                    {nav.health}
                   </Link>
                 </div>
               </div>
             </div>
             
             <div>
-              <h3 className="font-bold text-white mb-4 text-sm tracking-wide">RUBRIQUES</h3>
+              <h3 className="font-bold text-white mb-4 text-sm tracking-wide">{t.sections}</h3>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="space-y-1">
-                  <Link href={`/${locale}/actualites/securite`} className="text-gray-300 hover:text-white block">Sécurité</Link>
-                  <Link href={`/${locale}/actualites/environnement`} className="text-gray-300 hover:text-white block">Environnement</Link>
-                  <Link href={`/${locale}/culture`} className="text-gray-300 hover:text-white block">Culture</Link>
+                  <Link href={`/${locale}/actualites/securite`} className="text-gray-300 hover:text-white block">{nav.security}</Link>
+                  <Link href={`/${locale}/actualites/environnement`} className="text-gray-300 hover:text-white block">{nav.environment}</Link>
+                  <Link href={`/${locale}/culture`} className="text-gray-300 hover:text-white block">{nav.culture}</Link>
                 </div>
                 <div className="space-y-1">
-                  <Link href={`/${locale}/sport`} className="text-gray-300 hover:text-white block">Sport</Link>
-                  <Link href={`/${locale}/emploi`} className="text-gray-300 hover:text-white block">Emploi</Link>
-                  <Link href={`/${locale}/blog`} className="text-gray-300 hover:text-white block">Blog</Link>
+                  <Link href={`/${locale}/sport`} className="text-gray-300 hover:text-white block">{nav.sport}</Link>
+                  <Link href={`/${locale}/emploi`} className="text-gray-300 hover:text-white block">{nav.employment}</Link>
+                  <Link href={`/${locale}/blog`} className="text-gray-300 hover:text-white block">{nav.blog}</Link>
                 </div>
               </div>
             </div>
@@ -65,34 +69,34 @@ export default function Footer() {
 
           {/* Column 2: À propos de Malakin */}
           <div>
-            <h3 className="font-bold text-white mb-4 text-sm tracking-wide">À PROPOS DE MALAKIN</h3>
+            <h3 className="font-bold text-white mb-4 text-sm tracking-wide">{t.aboutMalakin}</h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="space-y-1">
-                <Link href={`/${locale}/a-propos`} className="text-gray-300 hover:text-white block">Qui sommes-nous ?</Link>
-                <Link href={`/${locale}/a-propos/mission`} className="text-gray-300 hover:text-white block">Notre Mission</Link>
-                <Link href={`/${locale}/a-propos/equipe`} className="text-gray-300 hover:text-white block">Notre Équipe</Link>
+                <Link href={`/${locale}/a-propos`} className="text-gray-300 hover:text-white block">{t.whoAreWe}</Link>
+                <Link href={`/${locale}/a-propos/mission`} className="text-gray-300 hover:text-white block">{t.ourMission}</Link>
+                <Link href={`/${locale}/a-propos/equipe`} className="text-gray-300 hover:text-white block">{t.ourTeam}</Link>
               </div>
               <div className="space-y-1">
-                <Link href={`/${locale}/contact`} className="text-gray-300 hover:text-white block">Contact</Link>
-                <Link href={`/${locale}/partenariats`} className="text-gray-300 hover:text-white block">Publicité</Link>
-                <Link href={`/${locale}/nous-soutenir`} className="text-gray-300 hover:text-white block">Nous Soutenir</Link>
+                <Link href={`/${locale}/contact`} className="text-gray-300 hover:text-white block">{nav.contact}</Link>
+                <Link href={`/${locale}/partenariats`} className="text-gray-300 hover:text-white block">{t.advertising}</Link>
+                <Link href={`/${locale}/nous-soutenir`} className="text-gray-300 hover:text-white block">{nav.supportUs}</Link>
               </div>
             </div>
           </div>
 
           {/* Column 3: Réseau Malakin Media */}
           <div>
-            <h3 className="font-bold text-white mb-4 text-sm tracking-wide">RÉSEAU MALAKIN MEDIA</h3>
+            <h3 className="font-bold text-white mb-4 text-sm tracking-wide">{t.malakinMediaNetwork}</h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="space-y-1">
-                <Link href="#" className="text-gray-300 hover:text-white block">Malakin Radio Afrique</Link>
-                <Link href="#" className="text-gray-300 hover:text-white block">Focus Éco</Link>
-                <Link href="#" className="text-gray-300 hover:text-white block">Tribune Jeunesse</Link>
+                <Link href="#" className="text-gray-300 hover:text-white block">{t.malakinRadioAfrica}</Link>
+                <Link href="#" className="text-gray-300 hover:text-white block">{t.focusEco}</Link>
+                <Link href="#" className="text-gray-300 hover:text-white block">{t.youthTribune}</Link>
               </div>
               <div className="space-y-1">
-                <Link href="#" className="text-gray-300 hover:text-white block">Malakin Docu</Link>
-                <Link href="#" className="text-gray-300 hover:text-white block">Observatoire Média</Link>
-                <Link href="#" className="text-gray-300 hover:text-white block">Partenariats</Link>
+                <Link href="#" className="text-gray-300 hover:text-white block">{t.malakinDocu}</Link>
+                <Link href="#" className="text-gray-300 hover:text-white block">{t.mediaObservatory}</Link>
+                <Link href="#" className="text-gray-300 hover:text-white block">{t.partnerships}</Link>
               </div>
             </div>
           </div>
@@ -100,16 +104,16 @@ export default function Footer() {
           {/* Column 4: Services + Applications */}
           <div className="space-y-6">
             <div>
-              <h3 className="font-bold text-white mb-4 text-sm tracking-wide">SERVICES</h3>
+              <h3 className="font-bold text-white mb-4 text-sm tracking-wide">{t.services}</h3>
               <div className="space-y-1 text-xs">
-                <Link href="#" className="text-gray-300 hover:text-white block">Newsletters</Link>
-                <Link href="#" className="text-gray-300 hover:text-white block">Flux RSS</Link>
+                <Link href="#" className="text-gray-300 hover:text-white block">{t.newsletters}</Link>
+                <Link href="#" className="text-gray-300 hover:text-white block">{t.rssFeeds}</Link>
               </div>
             </div>
             
             <div>
-              <h3 className="font-bold text-white mb-4 text-sm tracking-wide">APPLICATIONS</h3>
-              <p className="text-xs text-gray-300 mb-3">Télécharger l'app Malakin.info sur mobile et tablette</p>
+              <h3 className="font-bold text-white mb-4 text-sm tracking-wide">{t.applications}</h3>
+              <p className="text-xs text-gray-300 mb-3">{t.downloadApp}</p>
               <div className="flex gap-2">
                 <div className="w-12 h-12 bg-red-600 rounded flex items-center justify-center">
                   <span className="text-white font-bold text-lg">M</span>
@@ -131,11 +135,11 @@ export default function Footer() {
         {/* Legal bar */}
         <div className="border-t border-gray-700 mt-8 pt-4 mb-4">
           <div className="flex flex-wrap gap-4 text-xs text-gray-300">
-            <Link href={`/${locale}/mentions-legales`} className="hover:text-white">Mentions Légales</Link>
-            <Link href={`/${locale}/politique-confidentialite`} className="hover:text-white">Politique de Confidentialité</Link>
-            <Link href={`/${locale}/conditions-utilisation`} className="hover:text-white">Conditions d'Utilisation</Link>
-            <Link href={`/${locale}/cookies`} className="hover:text-white">Cookies</Link>
-            <Link href="#" className="hover:text-white">Notifications</Link>
+            <Link href={`/${locale}/mentions-legales`} className="hover:text-white">{t.legalNotices}</Link>
+            <Link href={`/${locale}/politique-confidentialite`} className="hover:text-white">{t.privacyPolicy}</Link>
+            <Link href={`/${locale}/conditions-utilisation`} className="hover:text-white">{t.termsOfUse}</Link>
+            <Link href={`/${locale}/cookies`} className="hover:text-white">{t.cookies}</Link>
+            <Link href="#" className="hover:text-white">{t.notifications}</Link>
           </div>
         </div>
 
@@ -153,22 +157,22 @@ export default function Footer() {
             
             <div className="border-l border-gray-700 pl-4 ml-2 flex items-center gap-2">
               <Mail className="w-4 h-4" />
-              <span className="hover:text-white cursor-pointer">contact@malakin.info</span>
+              <span className="hover:text-white cursor-pointer">{t.contactEmail}</span>
             </div>
             <div className="flex items-center gap-2">
               <Phone className="w-4 h-4" />
-              <span className="hover:text-white cursor-pointer">+243 000 000 000</span>
+              <span className="hover:text-white cursor-pointer">{t.phoneNumber}</span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4" />
-              <span className="hover:text-white cursor-pointer">Kinshasa, République Démocratique du Congo</span>
+              <span className="hover:text-white cursor-pointer">{t.location}</span>
             </div>
           </div>
         </div>
 
         {/* Copyright */}
         <div className="text-xs text-gray-400 text-right">
-          <p>© {currentYear} Malakin.info. Tous droits réservés. | Fait avec ❤️ pour l'Afrique</p>
+          <p>© {currentYear} Malakin.info. {t.copyright} | {t.madeWith}</p>
         </div>
       </div>
     </footer>
