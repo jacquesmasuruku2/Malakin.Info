@@ -52,7 +52,7 @@ export default function ConnexionPage() {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
-      await signIn('google', { callbackUrl: '/' });
+      await signIn('google', { callbackUrl: '/fr/compte/profil' });
     } catch (error) {
       setError('Erreur lors de la connexion avec Google');
       setGoogleLoading(false);

@@ -11,7 +11,7 @@ export default function InscriptionPage() {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
-      await signIn('google', { callbackUrl: '/' });
+      await signIn('google', { callbackUrl: '/fr/compte/profil' });
     } catch (error) {
       console.error('Erreur lors de la connexion avec Google');
       setGoogleLoading(false);
