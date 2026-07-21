@@ -38,7 +38,7 @@ export default function EditArticlePage() {
     publishedAt: '',
     featured: false,
     readTime: '',
-    mainImage: '',
+    mainImageUrl: '',
   });
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function EditArticlePage() {
         publishedAt: data.publishedAt ? new Date(data.publishedAt).toISOString().split('T')[0] : '',
         featured: data.featured,
         readTime: data.readTime || '',
-        mainImage: data.mainImageUrl || '',
+        mainImageUrl: data.mainImageUrl || '',
       });
     } catch (error) {
       console.error('Failed to fetch article:', error);
@@ -284,15 +284,18 @@ export default function EditArticlePage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              URL de l'image principale
+              URL de l'image principale (Cloudinary, Imgur, ImgBB, etc.)
             </label>
             <input
               type="url"
-              value={formData.mainImage}
-              onChange={(e) => setFormData({ ...formData, mainImage: e.target.value })}
+              value={formData.mainImageUrl}
+              onChange={(e) => setFormData({ ...formData, mainImageUrl: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
-              placeholder="https://example.com/image.jpg"
+              placeholder="https://res.cloudinary.com/your-cloud/image.jpg"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Collez l'URL de votre image hébergée sur Cloudinary, Imgur, ImgBB ou tout autre service d'hébergement d'images.
+            </p>
           </div>
 
           <div className="flex items-center space-x-2">

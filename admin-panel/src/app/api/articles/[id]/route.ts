@@ -42,7 +42,7 @@ export async function PUT(
         publishedAt: body.publishedAt ? new Date(body.publishedAt) : new Date(),
         featured: body.featured,
         readTime: body.readTime ? String(body.readTime) : null,
-        mainImageUrl: body.mainImage || null,
+        mainImageUrl: body.mainImageUrl || null,
       },
       include: {
         category: true,

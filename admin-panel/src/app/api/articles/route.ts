@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
         authorId: body.authorId,
         publishedAt: body.publishedAt ? new Date(body.publishedAt) : new Date(),
         featured: body.featured || false,
-        readTime: body.readingTime,
-        mainImageUrl: body.mainImage,
+        readTime: body.readTime,
+        mainImageUrl: body.mainImageUrl,
       },
       include: {
         category: true,
