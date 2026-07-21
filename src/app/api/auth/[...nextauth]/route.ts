@@ -78,9 +78,14 @@ const handler = NextAuth({
       }
       return session;
     },
-  },
-  pages: {
-    signIn: '/fr/compte/connexion',
+    async redirect({ url, baseUrl }: any) {
+      // If the callbackUrl is relative, resolve it against baseUrl
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`;
+      }
+      // Otherwise return the baseUrl if url is not valid
+      return baseUrl;
+    },
   },
   session: {
     strategy: 'jwt',
