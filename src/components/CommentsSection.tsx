@@ -33,7 +33,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
 
   const t = {
     comments: locale === 'fr' ? 'Commentaires' : 'Comments',
-    writeComment: locale === 'fr' ? 'Écrire un commentaire' : 'Write a comment',
+    writeComment: locale === 'fr' ? 'Commenter' : 'Comment',
     reply: locale === 'fr' ? 'Répondre' : 'Reply',
     like: locale === 'fr' ? 'J\'aime' : 'Like',
     likes: locale === 'fr' ? 'J\'aimes' : 'Likes',
@@ -204,38 +204,38 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   };
 
   const renderComment = (comment: Comment, isReply = false) => (
-    <div key={comment.id} className={`${isReply ? 'ml-12 mt-3' : 'mb-6'}`}>
-      <div className="flex gap-3">
+    <div key={comment.id} className={`${isReply ? 'ml-8 sm:ml-12 mt-3' : 'mb-6'}`}>
+      <div className="flex gap-2 sm:gap-3">
         <div className="flex-shrink-0">
           {comment.user.avatarUrl ? (
             <img
               src={comment.user.avatarUrl}
               alt={comment.user.name}
-              className="w-10 h-10 rounded-full object-cover"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-              <UserIcon className="w-5 h-5 text-primary" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <UserIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
           )}
         </div>
-        <div className="flex-1">
-          <div className="bg-muted/50 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-foreground">{comment.user.name}</span>
-              <span className="text-xs text-muted-foreground">{formatDate(comment.createdAt)}</span>
+        <div className="flex-1 min-w-0">
+          <div className="bg-muted/50 rounded-lg p-3 sm:p-4">
+            <div className="flex items-center justify-between mb-2 gap-2">
+              <span className="font-medium text-foreground text-sm sm:text-base truncate">{comment.user.name}</span>
+              <span className="text-xs text-muted-foreground flex-shrink-0">{formatDate(comment.createdAt)}</span>
             </div>
-            <p className="text-sm text-foreground mb-3">{comment.content}</p>
-            <div className="flex items-center gap-4">
+            <p className="text-xs sm:text-sm text-foreground mb-3 break-words">{comment.content}</p>
+            <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
               <button
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
                 onClick={() => setReplyingTo(comment.id)}
               >
-                <MessageCircle className="w-4 h-4" />
+                <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                 {t.reply}
               </button>
               <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 transition-colors">
-                <Heart className="w-4 h-4" />
+                <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
                 {t.like}
               </button>
             </div>
@@ -247,13 +247,13 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder={t.replyPlaceholder}
-                className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none text-sm"
                 rows={3}
               />
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={() => handleReply(comment.id)}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm"
                 >
                   {t.submit}
                 </button>
@@ -262,7 +262,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
                     setReplyingTo(null);
                     setReplyText('');
                   }}
-                  className="px-4 py-2 bg-muted text-foreground rounded-md hover:bg-muted/80 transition-colors text-sm"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-muted text-foreground rounded-md hover:bg-muted/80 transition-colors text-sm"
                 >
                   {t.cancel}
                 </button>
@@ -281,55 +281,55 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   );
 
   return (
-    <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-border">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="font-heading text-2xl font-bold text-foreground">{t.comments}</h2>
-        <div className="flex items-center gap-4">
+    <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 border-t border-border">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground">{t.comments}</h2>
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <button
             onClick={handleLike}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-md transition-colors text-sm ${
               isLiked
                 ? 'bg-red-500 text-white'
                 : 'bg-muted text-foreground hover:bg-muted/80'
             }`}
           >
-            <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+            <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${isLiked ? 'fill-current' : ''}`} />
             <span>{likeCount}</span>
           </button>
           <button
             onClick={() => setShowCommentForm(!showCommentForm)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm whitespace-nowrap"
           >
-            <MessageCircle className="w-5 h-5" />
+            <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
             {t.writeComment}
           </button>
         </div>
       </div>
 
       {showCommentForm && (
-        <div className="mb-8 bg-muted/50 rounded-lg p-6">
+        <div className="mb-6 sm:mb-8 bg-muted/50 rounded-lg p-4 sm:p-6">
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder={t.placeholder}
-            className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+            className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none text-sm sm:text-base"
             rows={4}
           />
-          <div className="flex justify-end gap-2 mt-4">
+          <div className="flex justify-end gap-2 mt-3 sm:mt-4">
             <button
               onClick={() => {
                 setShowCommentForm(false);
                 setNewComment('');
               }}
-              className="px-4 py-2 bg-muted text-foreground rounded-md hover:bg-muted/80 transition-colors"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-muted text-foreground rounded-md hover:bg-muted/80 transition-colors text-sm"
             >
               {t.cancel}
             </button>
             <button
               onClick={handleSubmitComment}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2 text-sm"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-3 h-3 sm:w-4 sm:h-4" />
               {t.submit}
             </button>
           </div>
