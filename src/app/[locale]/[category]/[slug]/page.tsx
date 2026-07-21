@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { Calendar, Clock, User, Share2, Bookmark, ArrowLeft, Mail, MessageCircle, Send } from 'lucide-react';
+import { Calendar, Clock, User, Bookmark, ArrowLeft } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import CommentsSection from '@/components/CommentsSection';
+import ShareButtons from '@/components/ShareButtons';
 
 export const dynamic = 'force-dynamic';
 
@@ -81,39 +82,39 @@ export default async function ArticlePage({
         </header>
 
         {/* Article */}
-        <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
           {/* Category & Meta */}
           <div className="mb-6">
             <Link
               href={`/${locale}/${article.category?.slug || 'actualites'}`}
-              className="inline-block px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full mb-4 hover:bg-primary/20 transition-colors"
+              className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs sm:text-sm font-medium rounded-full mb-3 sm:mb-4 hover:bg-primary/20 transition-colors"
             >
               {article.category?.title || 'Actualités'}
             </Link>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                 {formattedDate}
               </span>
               <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
+                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                 {readTime}
               </span>
               <span className="flex items-center gap-1">
-                <User className="w-4 h-4" />
+                <User className="w-3 h-3 sm:w-4 sm:h-4" />
                 {article.author?.name || t.teamMalakin}
               </span>
             </div>
           </div>
 
           {/* Title */}
-          <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
+          <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
             {article.title}
           </h1>
 
           {/* Excerpt */}
           {article.excerpt && (
-            <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
               {article.excerpt}
             </p>
           )}
@@ -130,58 +131,45 @@ export default async function ArticlePage({
           )}
 
           {/* Share Buttons */}
-          <div className="flex items-center gap-4 mb-8 pb-8 border-b border-border">
-            <span className="text-sm font-medium text-foreground">{t.share} :</span>
-            <button className="p-2 text-muted-foreground hover:text-blue-600 transition-colors">
-              <MessageCircle className="w-5 h-5" />
-            </button>
-            <button className="p-2 text-muted-foreground hover:text-blue-400 transition-colors">
-              <Send className="w-5 h-5" />
-            </button>
-            <button className="p-2 text-muted-foreground hover:text-primary transition-colors">
-              <Mail className="w-5 h-5" />
-            </button>
-            <button className="p-2 text-muted-foreground hover:text-primary transition-colors">
-              <Share2 className="w-5 h-5" />
-            </button>
-            <button className="p-2 text-muted-foreground hover:text-primary transition-colors">
-              <Bookmark className="w-5 h-5" />
-            </button>
-          </div>
+          <ShareButtons 
+            title={article.title} 
+            url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakin.info'}/${locale}/${category}/${slug}`}
+            locale={locale}
+          />
 
           {/* Content */}
-          <div className="prose prose-lg max-w-none">
+          <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none">
             <div 
               dangerouslySetInnerHTML={{ __html: typeof article.content === 'string' ? article.content : '' }}
-              className="text-foreground leading-relaxed"
+              className="text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground"
             />
           </div>
         </article>
 
         {/* Author Section */}
         {article.author && (
-          <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-border">
-            <div className="bg-muted/50 rounded-lg p-6">
-              <div className="flex items-start gap-4">
+          <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 border-t border-border">
+            <div className="bg-muted/50 rounded-lg p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 {article.author.imageUrl && (
                   <img
                     src={article.author.imageUrl}
                     alt={article.author.name}
-                    className="w-16 h-16 rounded-full object-cover"
+                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
                   />
                 )}
                 <div className="flex-1">
-                  <h3 className="font-heading text-lg font-semibold text-foreground mb-2">
+                  <h3 className="font-heading text-base sm:text-lg font-semibold text-foreground mb-2">
                     {article.author.name}
                   </h3>
                   {article.author.bio && (
-                    <p className="text-muted-foreground text-sm mb-4">
+                    <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-none">
                       {article.author.bio}
                     </p>
                   )}
                   <Link
                     href={`/${locale}/auteurs/${article.author.slug}`}
-                    className="text-sm text-primary hover:text-primary/80 font-medium"
+                    className="text-xs sm:text-sm text-primary hover:text-primary/80 font-medium"
                   >
                     {t.seeAllArticles}
                   </Link>
@@ -193,11 +181,11 @@ export default async function ArticlePage({
 
         {/* Related Articles */}
         {relatedArticles.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-border">
-            <h2 className="font-heading text-2xl font-bold text-foreground mb-8">
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 border-t border-border">
+            <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground mb-6 sm:mb-8">
               {t.relatedArticles}
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {relatedArticles.map((related) => (
                 <Link
                   key={related.id}
@@ -206,7 +194,7 @@ export default async function ArticlePage({
                 >
                   <article className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                     {related.mainImageUrl && (
-                      <div className="h-40 overflow-hidden">
+                      <div className="h-32 sm:h-40 overflow-hidden">
                         <img
                           src={related.mainImageUrl}
                           alt={related.title}
@@ -214,11 +202,11 @@ export default async function ArticlePage({
                         />
                       </div>
                     )}
-                    <div className="p-4">
+                    <div className="p-3 sm:p-4">
                       <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded mb-2">
                         {related.category?.title || 'Actualités'}
                       </span>
-                      <h3 className="font-heading font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                      <h3 className="font-heading font-semibold text-foreground mb-2 text-sm sm:text-base line-clamp-2 group-hover:text-primary transition-colors">
                         {related.title}
                       </h3>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
