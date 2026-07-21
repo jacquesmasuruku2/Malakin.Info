@@ -1,7 +1,60 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
-import { User, Lock, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { User, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 
 export default function ConnexionPage() {
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store user data in localStorage
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('token', data.token);
+        
+        // Redirect to home or dashboard
+        router.push('/');
+        router.refresh();
+      } else {
+        setError(data.error || 'Une erreur est survenue');
+      }
+    } catch (error) {
+      setError('Une erreur est survenue. Veuillez réessayer.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
+  };
+
   return (
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
@@ -13,7 +66,14 @@ export default function ConnexionPage() {
             </p>
           </div>
 
-          <form className="space-y-6">
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
                 Email
@@ -23,8 +83,11 @@ export default function ConnexionPage() {
                 <input
                   type="email"
                   id="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   className="w-full pl-10 pr-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="votre@email.com"
+                  required
                 />
               </div>
             </div>
@@ -38,8 +101,11 @@ export default function ConnexionPage() {
                 <input
                   type="password"
                   id="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   className="w-full pl-10 pr-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="••••••••"
+                  required
                 />
               </div>
             </div>
@@ -59,9 +125,10 @@ export default function ConnexionPage() {
 
             <button
               type="submit"
-              className="w-full py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
+              disabled={loading}
+              className="w-full py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Se connecter
+              {loading ? 'Connexion...' : 'Se connecter'}
             </button>
           </form>
 
