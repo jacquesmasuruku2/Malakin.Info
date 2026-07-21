@@ -136,7 +136,7 @@ export default function EditArticlePage() {
       <AdminLayout>
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-500 mt-4">Chargement...</p>
+          <p className="text-gray-500 mt-4">En cours de chargement...</p>
         </div>
       </AdminLayout>
     );
