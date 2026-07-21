@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Search, User, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grid3x3 } from 'lucide-react';
+import { Menu, X, Search, User, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grid3x3, LogOut, Settings, Heart, MessageSquare, Bookmark } from 'lucide-react';
 import SearchBar from './SearchBar';
 import frMessages from '../../messages/fr.json';
 import enMessages from '../../messages/en.json';
@@ -14,10 +14,38 @@ export default function Navigation() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
   // Extract locale from pathname
   const locale = pathname.split('/')[1] || 'fr';
   const t = locale === 'fr' ? frMessages.nav : enMessages.nav;
+
+  // Check if user is logged in
+  useEffect(() => {
+    const checkAuth = () => {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        setUser(JSON.parse(userData));
+      } else {
+        setUser(null);
+      }
+    };
+
+    checkAuth();
+
+    // Listen for storage changes (for multi-tab support)
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    setUser(null);
+    setIsUserMenuOpen(false);
+    window.location.href = '/';
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -376,13 +404,87 @@ export default function Navigation() {
             >
               <Search className="w-5 h-5" />
             </button>
-            <Link
-              href="/compte/connexion"
-              className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-            >
-              <User className="w-4 h-4" />
-              <span className="text-sm font-medium">{t.login}</span>
-            </Link>
+            
+            {user ? (
+              <div className="relative">
+                <button
+                  className="flex items-center space-x-2 px-3 py-2 bg-muted rounded-md hover:bg-muted/80 transition-colors"
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                >
+                  <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="text-sm font-medium text-foreground">{user.name}</span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </button>
+                
+                {isUserMenuOpen && (
+                  <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-border rounded-lg shadow-lg py-2 z-50">
+                    <div className="px-4 py-2 border-b border-border">
+                      <p className="text-sm font-medium text-foreground">{user.name}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    </div>
+                    <Link
+                      href={`/${locale}/compte/profil`}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      <User className="w-4 h-4" />
+                      <span>Mon profil</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/compte/commentaires`}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      <span>Mes commentaires</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/compte/likes`}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      <Heart className="w-4 h-4" />
+                      <span>Mes likes</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/compte/favoris`}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      <Bookmark className="w-4 h-4" />
+                      <span>Favoris</span>
+                    </Link>
+                    <Link
+                      href={`/${locale}/compte/parametres`}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span>Paramètres</span>
+                    </Link>
+                    <div className="border-t border-border mt-2 pt-2">
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Déconnexion</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href={`/${locale}/compte/connexion`}
+                className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+              >
+                <User className="w-4 h-4" />
+                <span className="text-sm font-medium">{t.login}</span>
+              </Link>
+            )}
           </div>
 
           <button

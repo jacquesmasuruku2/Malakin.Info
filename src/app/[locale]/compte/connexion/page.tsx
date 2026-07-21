@@ -35,9 +35,8 @@ export default function ConnexionPage() {
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('token', data.token);
         
-        // Redirect to home or dashboard
-        router.push('/');
-        router.refresh();
+        // Force page reload to update navigation
+        window.location.href = '/';
       } else {
         setError(data.error || 'Une erreur est survenue');
       }
