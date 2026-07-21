@@ -101,7 +101,7 @@ export default async function ArticlePage({
               </span>
               <span className="flex items-center gap-1">
                 <User className="w-4 h-4" />
-                {article.author?.name || t('teamMalakin')}
+                {article.author?.name || t.teamMalakin}
               </span>
             </div>
           </div>
