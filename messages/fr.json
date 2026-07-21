@@ -38,5 +38,13 @@
     "featuredNews": "À la une",
     "latestNews": "Dernières actualités",
     "categories": "Catégories"
+  },
+  "article": {
+    "backTo": "Retour à",
+    "readTime": "min de lecture",
+    "share": "Partager",
+    "relatedArticles": "Articles similaires",
+    "seeAllArticles": "Voir tous les articles de cet auteur",
+    "teamMalakin": "Équipe Malakin"
   }
 }

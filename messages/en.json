@@ -38,5 +38,13 @@
     "featuredNews": "Featured News",
     "latestNews": "Latest News",
     "categories": "Categories"
+  },
+  "article": {
+    "backTo": "Back to",
+    "readTime": "min read",
+    "share": "Share",
+    "relatedArticles": "Related Articles",
+    "seeAllArticles": "See all articles by this author",
+    "teamMalakin": "Malakin Team"
   }
 }

@@ -12,6 +12,16 @@ export default async function ArticlePage({
 }) {
   const { locale, category, slug } = await params;
 
+  // Translations
+  const t = {
+    backTo: locale === 'fr' ? 'Retour à' : 'Back to',
+    readTime: locale === 'fr' ? 'min de lecture' : 'min read',
+    share: locale === 'fr' ? 'Partager' : 'Share',
+    relatedArticles: locale === 'fr' ? 'Articles similaires' : 'Related Articles',
+    seeAllArticles: locale === 'fr' ? 'Voir tous les articles de cet auteur' : 'See all articles by this author',
+    teamMalakin: locale === 'fr' ? 'Équipe Malakin' : 'Malakin Team',
+  };
+
   try {
     const article = await prisma.article.findUnique({
       where: { slug },
@@ -23,6 +33,10 @@ export default async function ArticlePage({
 
     if (!article) {
       notFound();
+    }
+
+    if (article.category?.slug !== category) {
+      return notFound();
     }
 
     const relatedArticles = await prisma.article.findMany({
@@ -41,14 +55,14 @@ export default async function ArticlePage({
     });
 
     const formattedDate = article.publishedAt 
-      ? new Date(article.publishedAt).toLocaleDateString('fr-FR', { 
+      ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
           day: 'numeric', 
           month: 'long', 
           year: 'numeric' 
         }) 
       : '';
 
-    const readTime = article.readTime ? `${article.readTime} min` : '5 min';
+    const readTime = article.readTime ? `${article.readTime} ${t.readTime}` : `5 ${t.readTime}`;
 
     return (
       <div className="min-h-screen bg-background">
@@ -60,7 +74,7 @@ export default async function ArticlePage({
               className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Retour à {article.category?.title || 'Actualités'}
+              {t.backTo} {article.category?.title || 'Actualités'}
             </Link>
           </div>
         </header>
@@ -82,11 +96,11 @@ export default async function ArticlePage({
               </span>
               <span className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                {readTime} de lecture
+                {readTime}
               </span>
               <span className="flex items-center gap-1">
                 <User className="w-4 h-4" />
-                {article.author?.name || 'Équipe Malakin'}
+                {article.author?.name || t('teamMalakin')}
               </span>
             </div>
           </div>
@@ -116,7 +130,7 @@ export default async function ArticlePage({
 
           {/* Share Buttons */}
           <div className="flex items-center gap-4 mb-8 pb-8 border-b border-border">
-            <span className="text-sm font-medium text-foreground">Partager :</span>
+            <span className="text-sm font-medium text-foreground">{t.share} :</span>
             <button className="p-2 text-muted-foreground hover:text-blue-600 transition-colors">
               <MessageCircle className="w-5 h-5" />
             </button>
@@ -168,7 +182,7 @@ export default async function ArticlePage({
                     href={`/${locale}/auteurs/${article.author.slug}`}
                     className="text-sm text-primary hover:text-primary/80 font-medium"
                   >
-                    Voir tous les articles de cet auteur
+                    {t.seeAllArticles}
                   </Link>
                 </div>
               </div>
@@ -180,7 +194,7 @@ export default async function ArticlePage({
         {relatedArticles.length > 0 && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-border">
             <h2 className="font-heading text-2xl font-bold text-foreground mb-8">
-              Articles similaires
+              {t.relatedArticles}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedArticles.map((related) => (
@@ -209,7 +223,7 @@ export default async function ArticlePage({
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Calendar className="w-3 h-3" />
                         {related.publishedAt 
-                          ? new Date(related.publishedAt).toLocaleDateString('fr-FR', { 
+                          ? new Date(related.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
                               day: 'numeric', 
                               month: 'short' 
                             }) 
