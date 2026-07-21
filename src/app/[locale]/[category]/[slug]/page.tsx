@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, User, Share2, Bookmark, ArrowLeft, Mail, MessageCircle, Send } from 'lucide-react';
 import { notFound } from 'next/navigation';
+import CommentsSection from '@/components/CommentsSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -236,6 +237,9 @@ export default async function ArticlePage({
             </div>
           </section>
         )}
+
+        {/* Comments Section */}
+        <CommentsSection articleId={article.id} locale={locale} />
       </div>
     );
   } catch (error) {
