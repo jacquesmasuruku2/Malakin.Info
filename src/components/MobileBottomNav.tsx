@@ -4,12 +4,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { Briefcase, BookOpen, Palette, Newspaper, Grip } from 'lucide-react';
-import { useHamburgerMenu } from '@/contexts/HamburgerMenuContext';
+import { useServicesModal } from '@/contexts/ServicesModalContext';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'fr';
-  const { openHamburger } = useHamburgerMenu();
+  const { openServices } = useServicesModal();
   const [isVisible, setIsVisible] = useState(true);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -37,7 +37,7 @@ export default function MobileBottomNav() {
     {
       name: locale === 'fr' ? 'Menu' : 'Menu',
       icon: Grip,
-      action: openHamburger,
+      action: openServices,
       isButton: true,
     },
   ];
