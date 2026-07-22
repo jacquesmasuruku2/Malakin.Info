@@ -7,13 +7,14 @@ import { Menu, X, Search, User, ChevronDown, ChevronRight, Newspaper, DollarSign
 import SearchBar from './SearchBar';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
+import { useHamburgerMenu } from '@/contexts/HamburgerMenuContext';
 import frMessages from '../../messages/fr.json';
 import enMessages from '../../messages/en.json';
 
 export default function Navigation() {
   const pathname = usePathname();
   const { isServicesOpen, openServices, closeServices } = useServicesModal();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isHamburgerOpen, openHamburger, closeHamburger } = useHamburgerMenu();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
@@ -502,14 +503,14 @@ export default function Navigation() {
 
           <button
             className="lg:hidden p-2 text-foreground hover:text-primary"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={() => isHamburgerOpen ? closeHamburger() : openHamburger()}
           >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isHamburgerOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
       </div>
 
-      {isMenuOpen && (
+      {isHamburgerOpen && (
         <div className="lg:hidden border-t border-border bg-white">
           <div className="px-4 py-4 space-y-2 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
@@ -520,7 +521,7 @@ export default function Navigation() {
             <Link
               href="/"
               className="flex items-center gap-3 px-3 py-3 text-base font-medium text-foreground hover:text-primary hover:bg-muted rounded-md transition-colors"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => closeHamburger()}
             >
               <Newspaper className="w-5 h-5" />
               {t.home}
@@ -552,7 +553,7 @@ export default function Navigation() {
                           key={item.name}
                           href={item.href}
                           className="block px-3 py-2 text-sm text-foreground hover:text-primary hover:bg-muted rounded-md transition-colors"
-                          onClick={() => setIsMenuOpen(false)}
+                          onClick={() => closeHamburger()}
                         >
                           {item.name}
                         </Link>
@@ -579,7 +580,7 @@ export default function Navigation() {
               <Link
                 href="/compte/connexion"
                 className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={() => closeHamburger()}
               >
                 <User className="w-4 h-4" />
                 <span className="text-sm font-medium">{t.login}</span>
@@ -601,7 +602,7 @@ export default function Navigation() {
                   <Link
                     href="/admin"
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-2">
                       <Briefcase className="w-6 h-6 text-primary" />
@@ -611,7 +612,7 @@ export default function Navigation() {
                   <Link
                     href={`/${locale}/recherche`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Search className="w-6 h-6 text-blue-400" />
@@ -621,7 +622,7 @@ export default function Navigation() {
                   <Link
                     href={`/${locale}/communiques`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Newspaper className="w-6 h-6 text-purple-400" />
@@ -631,7 +632,7 @@ export default function Navigation() {
                   <Link
                     href={`/${locale}/archives`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center mb-2">
                       <ScrollText className="w-6 h-6 text-amber-400" />
@@ -641,7 +642,7 @@ export default function Navigation() {
                   <Link
                     href={`/${locale}/radio-afrique`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Radio className="w-6 h-6 text-red-400" />
@@ -651,7 +652,7 @@ export default function Navigation() {
                   <Link
                     href={`/${locale}/science-tech`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-2">
                       <FlaskConical className="w-6 h-6 text-cyan-400" />
@@ -661,7 +662,7 @@ export default function Navigation() {
                   <Link
                     href={`/${locale}/forum-afrique`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-2">
                       <BookOpen className="w-6 h-6 text-green-400" />
@@ -671,7 +672,7 @@ export default function Navigation() {
                   <Link
                     href={`/${locale}/partenariats`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Briefcase className="w-6 h-6 text-pink-400" />
@@ -681,7 +682,7 @@ export default function Navigation() {
                   <Link
                     href={`/${locale}/infos-pratiques`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Info className="w-6 h-6 text-indigo-400" />
@@ -691,7 +692,7 @@ export default function Navigation() {
                   <Link
                     href={`/${locale}/medias`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Radio className="w-6 h-6 text-orange-400" />
@@ -701,7 +702,7 @@ export default function Navigation() {
                   <Link
                     href={`/${locale}/blog`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center mb-2">
                       <BookOpen className="w-6 h-6 text-teal-400" />
@@ -711,7 +712,7 @@ export default function Navigation() {
                   <Link
                     href={`/${locale}/emploi`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-lime-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Briefcase className="w-6 h-6 text-lime-400" />
@@ -721,7 +722,7 @@ export default function Navigation() {
                   <Link
                     href={`/${locale}/nous-soutenir`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-rose-500/20 rounded-lg flex items-center justify-center mb-2">
                       <DollarSign className="w-6 h-6 text-rose-400" />
@@ -731,7 +732,7 @@ export default function Navigation() {
                   <Link
                     href={`/${locale}/contact`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-sky-500/20 rounded-lg flex items-center justify-center mb-2">
                       <Mail className="w-6 h-6 text-sky-400" />
@@ -741,7 +742,7 @@ export default function Navigation() {
                   <Link
                     href={`/${locale}/religion`}
                     className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                    onClick={() => { setIsDropdownOpen(false); setIsMenuOpen(false); }}
+                    onClick={() => { setIsDropdownOpen(false); closeHamburger(); }}
                   >
                     <div className="w-12 h-12 bg-violet-500/20 rounded-lg flex items-center justify-center mb-2">
                       <ScrollText className="w-6 h-6 text-violet-400" />

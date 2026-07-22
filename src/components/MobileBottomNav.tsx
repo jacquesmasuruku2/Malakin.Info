@@ -2,45 +2,93 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Radio, Music, Trophy, Grip } from 'lucide-react';
-import { useServicesModal } from '@/contexts/ServicesModalContext';
+import { useState, useEffect, useRef } from 'react';
+import { Briefcase, BookOpen, Palette, Newspaper, Grip } from 'lucide-react';
+import { useHamburgerMenu } from '@/contexts/HamburgerMenuContext';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'fr';
-  const { openServices } = useServicesModal();
+  const { openHamburger } = useHamburgerMenu();
+  const [isVisible, setIsVisible] = useState(true);
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const navItems = [
     {
-      name: locale === 'fr' ? 'La une' : 'Featured',
-      icon: Home,
-      href: `/${locale}`,
+      name: locale === 'fr' ? 'Emploi' : 'Jobs',
+      icon: Briefcase,
+      href: `/${locale}/emploi`,
     },
     {
-      name: locale === 'fr' ? 'Podcasts' : 'Podcasts',
-      icon: Radio,
-      href: `/${locale}/medias/podcasts`,
+      name: locale === 'fr' ? 'Blog' : 'Blog',
+      icon: BookOpen,
+      href: `/${locale}/blog`,
     },
     {
-      name: locale === 'fr' ? 'Musique' : 'Music',
-      icon: Music,
-      href: `/${locale}/culture/musique`,
+      name: locale === 'fr' ? 'Culture' : 'Culture',
+      icon: Palette,
+      href: `/${locale}/culture`,
     },
     {
-      name: locale === 'fr' ? 'Sports' : 'Sports',
-      icon: Trophy,
-      href: `/${locale}/sport`,
+      name: locale === 'fr' ? 'Actualité' : 'News',
+      icon: Newspaper,
+      href: `/${locale}/actualites`,
     },
     {
       name: locale === 'fr' ? 'Menu' : 'Menu',
       icon: Grip,
-      action: openServices,
+      action: openHamburger,
       isButton: true,
     },
   ];
 
+  // Auto-hide after 10 seconds
+  useEffect(() => {
+    const startHideTimer = () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+      hideTimeoutRef.current = setTimeout(() => {
+        setIsVisible(false);
+      }, 10000);
+    };
+
+    startHideTimer();
+
+    return () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Show menu on touch
+  const handleTouch = () => {
+    setIsVisible(true);
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+    }
+    hideTimeoutRef.current = setTimeout(() => {
+      setIsVisible(false);
+    }, 10000);
+  };
+
+  useEffect(() => {
+    document.addEventListener('touchstart', handleTouch);
+    document.addEventListener('click', handleTouch);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouch);
+      document.removeEventListener('click', handleTouch);
+    };
+  }, []);
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg md:hidden">
+    <nav
+      className={`fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg md:hidden transition-transform duration-300 ${
+        isVisible ? 'translate-y-0' : 'translate-y-full'
+      }`}
+    >
       <div className="flex items-center justify-around h-16">
         {navItems.map((item) => {
           const Icon = item.icon;
