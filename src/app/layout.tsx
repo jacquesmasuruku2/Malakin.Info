@@ -3,6 +3,7 @@ import { JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import { cn } from "@/lib/utils";
 import Providers from "@/components/Providers";
+import MobileBottomNav from "@/components/MobileBottomNav";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'});
@@ -32,7 +33,10 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col">
         <Providers>
-          {children}
+          <main className="flex-1 pb-16 md:pb-0">
+            {children}
+          </main>
+          <MobileBottomNav />
         </Providers>
       </body>
     </html>
