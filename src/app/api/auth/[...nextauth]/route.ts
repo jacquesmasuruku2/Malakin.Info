@@ -42,60 +42,80 @@ const handler = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account }: any) {
-      if (account?.provider === 'google' && user.email) {
-        // Check if user exists
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
-        });
-
-        if (existingUser) {
-          // Update avatar if user exists
-          if (user.image) {
-            await prisma.user.update({
-              where: { email: user.email },
-              data: { avatarUrl: user.image },
-            });
-          }
-          user.id = existingUser.id;
-        } else {
-          // Create new user
-          const newUser = await prisma.user.create({
-            data: {
-              email: user.email,
-              name: user.name || 'Google User',
-              avatarUrl: user.image,
-              passwordHash: '', // No password for OAuth users
-              role: 'reader',
-              isActive: true,
-              emailVerified: true,
-            },
+      try {
+        if (account?.provider === 'google' && user.email) {
+          // Check if user exists
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email },
           });
-          user.id = newUser.id;
+
+          if (existingUser) {
+            // Update avatar if user exists
+            if (user.image) {
+              await prisma.user.update({
+                where: { email: user.email },
+                data: { avatarUrl: user.image },
+              });
+            }
+            user.id = existingUser.id;
+          } else {
+            // Create new user
+            const newUser = await prisma.user.create({
+              data: {
+                email: user.email,
+                name: user.name || 'Google User',
+                avatarUrl: user.image,
+                passwordHash: '', // No password for OAuth users
+                role: 'reader',
+                isActive: true,
+                emailVerified: true,
+              },
+            });
+            user.id = newUser.id;
+          }
         }
+        return true;
+      } catch (error) {
+        console.error('Error in signIn callback:', error);
+        return false;
       }
-      return true;
     },
     async jwt({ token, user }: any) {
-      if (user) {
-        token.id = user.id;
-        token.avatarUrl = user.avatarUrl;
+      try {
+        if (user) {
+          token.id = user.id;
+          token.avatarUrl = user.avatarUrl;
+        }
+        return token;
+      } catch (error) {
+        console.error('Error in JWT callback:', error);
+        return token;
       }
-      return token;
     },
     async session({ session, token }: any) {
-      if (session.user && token) {
-        session.user.id = token.id;
-        session.user.avatarUrl = token.avatarUrl;
+      try {
+        if (session.user && token) {
+          session.user.id = token.id;
+          session.user.avatarUrl = token.avatarUrl;
+        }
+        return session;
+      } catch (error) {
+        console.error('Error in session callback:', error);
+        return session;
       }
-      return session;
     },
     async redirect({ url, baseUrl }: any) {
-      // If url is provided and not the homepage, use it
-      if (url && url !== baseUrl && url !== `${baseUrl}/fr` && url !== `${baseUrl}/en`) {
-        return url;
+      try {
+        // If url is provided and not the homepage, use it
+        if (url && url !== baseUrl && url !== `${baseUrl}/fr` && url !== `${baseUrl}/en`) {
+          return url;
+        }
+        // Otherwise redirect to profile page
+        return `${baseUrl}/fr/compte/profil`;
+      } catch (error) {
+        console.error('Error in redirect callback:', error);
+        return `${baseUrl}/fr`;
       }
-      // Otherwise redirect to profile page
-      return `${baseUrl}/fr/compte/profil`;
     },
   },
   session: {
