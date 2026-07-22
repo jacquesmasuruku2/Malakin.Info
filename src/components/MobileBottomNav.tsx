@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Radio, Music, Trophy, Grip } from 'lucide-react';
+import { useServicesModal } from '@/contexts/ServicesModalContext';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'fr';
+  const { openServices } = useServicesModal();
 
   const navItems = [
     {
@@ -32,7 +34,8 @@ export default function MobileBottomNav() {
     {
       name: locale === 'fr' ? 'Menu' : 'Menu',
       icon: Grip,
-      href: `/${locale}/recherche`,
+      action: openServices,
+      isButton: true,
     },
   ];
 
@@ -41,12 +44,25 @@ export default function MobileBottomNav() {
       <div className="flex items-center justify-around h-16">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-          
+          const isActive = !item.isButton && (pathname === item.href || pathname.startsWith(item.href + '/'));
+
+          if (item.isButton && item.action) {
+            return (
+              <button
+                key={item.name}
+                onClick={item.action}
+                className="flex flex-col items-center justify-center flex-1 h-full"
+              >
+                <Icon className="w-5 h-5 mb-1 text-gray-500" />
+                <span className="text-xs text-gray-500">{item.name}</span>
+              </button>
+            );
+          }
+
           return (
             <Link
               key={item.name}
-              href={item.href}
+              href={item.href || ''}
               className="flex flex-col items-center justify-center flex-1 h-full"
             >
               <Icon

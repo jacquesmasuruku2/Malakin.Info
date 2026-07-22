@@ -6,11 +6,13 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, Search, User, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grid3x3, LogOut, Settings, Heart, MessageSquare, Bookmark } from 'lucide-react';
 import SearchBar from './SearchBar';
 import LanguageSwitcher from './LanguageSwitcher';
+import { useServicesModal } from '@/contexts/ServicesModalContext';
 import frMessages from '../../messages/fr.json';
 import enMessages from '../../messages/en.json';
 
 export default function Navigation() {
   const pathname = usePathname();
+  const { isServicesOpen, openServices, closeServices } = useServicesModal();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -224,12 +226,12 @@ export default function Navigation() {
             <div className="relative">
               <button
                 className="p-2 text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                onClick={() => isDropdownOpen ? setIsDropdownOpen(false) : openServices()}
                 title={t.moreServices}
               >
                 <Grid3x3 className="w-5 h-5" />
               </button>
-              
+
               {isDropdownOpen && (
                 <div className="absolute top-full right-0 mt-2 w-96 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl p-6">
                   <div className="flex justify-between items-center mb-4">
