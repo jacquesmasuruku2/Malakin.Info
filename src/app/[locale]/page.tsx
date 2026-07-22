@@ -2,11 +2,15 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { ArrowRight, Calendar, Clock, TrendingUp } from 'lucide-react';
 import AdSenseAd from '@/components/AdSenseAd';
+import frMessages from '../../../messages/fr.json';
+import enMessages from '../../../messages/en.json';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const t = locale === 'fr' ? frMessages.home : enMessages.home;
+  const tCommon = locale === 'fr' ? frMessages.common : enMessages.common;
   let featuredArticles: any[] = [];
   let latestArticles: any[] = [];
 
@@ -43,11 +47,11 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     id: article.id,
     slug: article.slug,
     categorySlug: article.category?.slug || 'actualites',
-    category: article.category?.title || 'Actualités',
+    category: article.category?.title || (locale === 'fr' ? 'Actualités' : 'News'),
     title: article.title,
     excerpt: article.excerpt,
     image: article.mainImageUrl || 'https://images.unsplash.com/photo-1541872703-74c5963631df?w=800&h=400&fit=crop',
-    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
     readTime: article.readTime ? `${article.readTime} min` : '5 min',
   }));
 
@@ -55,20 +59,20 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     id: article.id,
     slug: article.slug,
     categorySlug: article.category?.slug || 'actualites',
-    category: article.category?.title || 'Actualités',
+    category: article.category?.title || (locale === 'fr' ? 'Actualités' : 'News'),
     title: article.title,
-    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
     readTime: article.readTime ? `${article.readTime} min` : '3 min',
     image: article.mainImageUrl || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=300&fit=crop',
   }));
 
   const categories = [
-    { name: 'Politique', href: `/${locale}/actualites/politique`, color: 'bg-red-500' },
-    { name: 'Économie', href: `/${locale}/actualites/economie`, color: 'bg-blue-500' },
-    { name: 'Société', href: `/${locale}/actualites/societe`, color: 'bg-green-500' },
-    { name: 'Santé', href: `/${locale}/actualites/sante`, color: 'bg-purple-500' },
-    { name: 'Sport', href: `/${locale}/sport`, color: 'bg-orange-500' },
-    { name: 'Culture', href: `/${locale}/culture`, color: 'bg-pink-500' },
+    { name: locale === 'fr' ? 'Politique' : 'Politics', href: `/${locale}/actualites/politique`, color: 'bg-red-500' },
+    { name: locale === 'fr' ? 'Économie' : 'Economy', href: `/${locale}/actualites/economie`, color: 'bg-blue-500' },
+    { name: locale === 'fr' ? 'Société' : 'Society', href: `/${locale}/actualites/societe`, color: 'bg-green-500' },
+    { name: locale === 'fr' ? 'Santé' : 'Health', href: `/${locale}/actualites/sante`, color: 'bg-purple-500' },
+    { name: locale === 'fr' ? 'Sport' : 'Sport', href: `/${locale}/sport`, color: 'bg-orange-500' },
+    { name: locale === 'fr' ? 'Culture' : 'Culture', href: `/${locale}/culture`, color: 'bg-pink-500' },
   ];
 
   return (
@@ -78,24 +82,24 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <h1 className="font-heading text-4xl md:text-5xl font-bold mb-4">
-              L'info qui traverse les frontières
+              {locale === 'fr' ? "L'info qui traverse les frontières" : "News that crosses borders"}
             </h1>
             <p className="text-xl text-gray-200 mb-8">
-              Informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel.
+              {locale === 'fr' ? "Informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel." : "Informing, educating and connecting Africa through independent, reliable and multicultural journalism."}
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
                 href={`/${locale}/actualites`}
                 className="inline-flex items-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
               >
-                Découvrir l'actualité
+                {locale === 'fr' ? 'Découvrir l\'actualité' : 'Discover the news'}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
               <Link
                 href={`/${locale}/a-propos`}
                 className="inline-flex items-center px-6 py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors font-medium"
               >
-                En savoir plus
+                {locale === 'fr' ? 'En savoir plus' : 'Learn more'}
               </Link>
             </div>
           </div>
@@ -107,13 +111,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="font-heading text-3xl font-bold text-foreground">
-              À la une
+              {t.featuredNews}
             </h2>
             <Link
               href={`/${locale}/actualites`}
               className="flex items-center text-primary hover:text-primary/80 font-medium"
             >
-              Voir tout
+              {locale === 'fr' ? 'Voir tout' : 'See all'}
               <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
           </div>
@@ -160,7 +164,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                     href={`/${locale}/${news.categorySlug}/${news.slug}`}
                     className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                   >
-                    Lire la suite
+                    {locale === 'fr' ? 'Lire la suite' : 'Read more'}
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Link>
                 </div>
@@ -174,7 +178,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <section className="py-12 bg-muted/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-heading text-3xl font-bold text-foreground mb-8">
-            Explorez par catégorie
+            {locale === 'fr' ? 'Explorez par catégorie' : 'Explore by category'}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {categories.map((category) => (
@@ -204,13 +208,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </div>
           <div className="flex items-center justify-between mb-8">
             <h2 className="font-heading text-3xl font-bold text-foreground">
-              Dernières actualités
+              {t.latestNews}
             </h2>
             <Link
               href={`/${locale}/actualites`}
               className="flex items-center text-primary hover:text-primary/80 font-medium"
             >
-              Voir tout
+              {locale === 'fr' ? 'Voir tout' : 'See all'}
               <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
           </div>
