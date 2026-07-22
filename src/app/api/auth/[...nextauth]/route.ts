@@ -86,12 +86,8 @@ const handler = NextAuth({
       return session;
     },
     async redirect({ url, baseUrl }: any) {
-      // If the callbackUrl is relative, resolve it against baseUrl
-      if (url.startsWith('/')) {
-        return `${baseUrl}${url}`;
-      }
-      // Otherwise return the baseUrl if url is not valid
-      return baseUrl;
+      // Always redirect to profile page after Google sign-in
+      return `${baseUrl}/fr/compte/profil`;
     },
   },
   session: {
