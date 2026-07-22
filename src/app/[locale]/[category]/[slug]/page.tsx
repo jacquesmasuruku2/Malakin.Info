@@ -4,6 +4,7 @@ import { Calendar, Clock, User, Bookmark, ArrowLeft } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
+import AdSenseAd from '@/components/AdSenseAd';
 
 export const dynamic = 'force-dynamic';
 
@@ -130,6 +131,11 @@ export default async function ArticlePage({
             </div>
           )}
 
+          {/* AdSense Ad - After Featured Image */}
+          <div className="mb-8">
+            <AdSenseAd adSlot="1234567890" className="my-4" />
+          </div>
+
           {/* Share Buttons */}
           <ShareButtons 
             title={article.title} 
@@ -139,10 +145,15 @@ export default async function ArticlePage({
 
           {/* Content */}
           <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none">
-            <div 
+            <div
               dangerouslySetInnerHTML={{ __html: typeof article.content === 'string' ? article.content : '' }}
               className="text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground"
             />
+          </div>
+
+          {/* AdSense Ad - After Content */}
+          <div className="mt-8">
+            <AdSenseAd adSlot="0987654321" className="my-4" />
           </div>
         </article>
 

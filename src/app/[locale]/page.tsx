@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { ArrowRight, Calendar, Clock, TrendingUp } from 'lucide-react';
+import AdSenseAd from '@/components/AdSenseAd';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,6 +118,11 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             </Link>
           </div>
 
+          {/* AdSense Ad - Top of Featured Section */}
+          <div className="mb-8">
+            <AdSenseAd adSlot="1111111111" className="my-4" />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredNews.map((news) => (
               <article
@@ -191,6 +197,11 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       {/* Latest News */}
       <section className="py-12 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          {/* AdSense Ad - Top of Latest Section */}
+          <div className="mb-8">
+            <AdSenseAd adSlot="2222222222" className="my-4" />
+          </div>
           <div className="flex items-center justify-between mb-8">
             <h2 className="font-heading text-3xl font-bold text-foreground">
               Dernières actualités
