@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Menu, X, Search, User, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grid3x3, LogOut, Settings, Heart, MessageSquare, Bookmark } from 'lucide-react';
 import SearchBar from './SearchBar';
+import LanguageSwitcher from './LanguageSwitcher';
 import frMessages from '../../messages/fr.json';
 import enMessages from '../../messages/en.json';
 
@@ -398,13 +399,15 @@ export default function Navigation() {
           </div>
 
           <div className="hidden lg:flex items-center space-x-4">
-            <button 
+            <button
               className="p-2 text-foreground hover:text-primary transition-colors"
               onClick={() => setIsSearchOpen(true)}
             >
               <Search className="w-5 h-5" />
             </button>
-            
+
+            <LanguageSwitcher />
+
             {user ? (
               <div className="relative">
                 <button
@@ -507,6 +510,11 @@ export default function Navigation() {
       {isMenuOpen && (
         <div className="lg:hidden border-t border-border bg-white">
           <div className="px-4 py-4 space-y-2 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium text-muted-foreground">Langue / Language</span>
+              <LanguageSwitcher />
+            </div>
+
             <Link
               href="/"
               className="flex items-center gap-3 px-3 py-3 text-base font-medium text-foreground hover:text-primary hover:bg-muted rounded-md transition-colors"
