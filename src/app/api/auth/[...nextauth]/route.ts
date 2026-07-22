@@ -56,9 +56,10 @@ const handler = NextAuth({
               data: { avatarUrl: user.image },
             });
           }
+          user.id = existingUser.id;
         } else {
           // Create new user
-          await prisma.user.create({
+          const newUser = await prisma.user.create({
             data: {
               email: user.email,
               name: user.name || 'Google User',
@@ -69,24 +70,31 @@ const handler = NextAuth({
               emailVerified: true,
             },
           });
+          user.id = newUser.id;
         }
       }
       return true;
     },
-    async session({ session, user }: any) {
-      if (session.user && user?.email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: user.email },
-        });
-        if (dbUser) {
-          session.user.id = dbUser.id;
-          session.user.avatarUrl = dbUser.avatarUrl;
-        }
+    async jwt({ token, user }: any) {
+      if (user) {
+        token.id = user.id;
+        token.avatarUrl = user.avatarUrl;
+      }
+      return token;
+    },
+    async session({ session, token }: any) {
+      if (session.user && token) {
+        session.user.id = token.id;
+        session.user.avatarUrl = token.avatarUrl;
       }
       return session;
     },
     async redirect({ url, baseUrl }: any) {
-      // Always redirect to profile page after Google sign-in
+      // If url is provided and not the homepage, use it
+      if (url && url !== baseUrl && url !== `${baseUrl}/fr` && url !== `${baseUrl}/en`) {
+        return url;
+      }
+      // Otherwise redirect to profile page
       return `${baseUrl}/fr/compte/profil`;
     },
   },
