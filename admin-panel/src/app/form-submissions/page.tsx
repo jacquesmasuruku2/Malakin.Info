@@ -35,16 +35,27 @@ export default function FormSubmissionsPage() {
     setLoading(true);
     try {
       if (activeTab === 'contact') {
-        const response = await fetch('http://localhost:3000/api/contact');
+        const response = await fetch('/api/contact');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         setContactMessages(data);
       } else {
-        const response = await fetch('http://localhost:3000/api/partnerships');
+        const response = await fetch('/api/partnerships');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         setPartnerships(data);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+      if (activeTab === 'contact') {
+        setContactMessages([]);
+      } else {
+        setPartnerships([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -53,14 +64,18 @@ export default function FormSubmissionsPage() {
   const handleStatusUpdate = async (id: string, newStatus: string) => {
     try {
       const endpoint = activeTab === 'contact' ? 'contact' : 'partnerships';
-      await fetch(`http://localhost:3000/api/${endpoint}/${id}`, {
+      const response = await fetch(`/api/${endpoint}/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       fetchData();
     } catch (error) {
       console.error('Error updating status:', error);
+      alert('Erreur lors de la mise à jour du statut');
     }
   };
 
@@ -69,13 +84,17 @@ export default function FormSubmissionsPage() {
     
     try {
       const endpoint = activeTab === 'contact' ? 'contact' : 'partnerships';
-      await fetch(`http://localhost:3000/api/${endpoint}/${id}`, {
+      const response = await fetch(`/api/${endpoint}/${id}`, {
         method: 'DELETE',
       });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       fetchData();
       setShowDetailModal(false);
     } catch (error) {
       console.error('Error deleting:', error);
+      alert('Erreur lors de la suppression');
     }
   };
 

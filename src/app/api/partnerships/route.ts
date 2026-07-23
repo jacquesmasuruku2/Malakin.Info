@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching partnership requests:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch partnership requests' },
+      { error: 'Failed to fetch partnership requests', partnerships: [] },
       { status: 500 }
     );
   }
