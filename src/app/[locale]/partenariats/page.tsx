@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Phone, MapPin, Building, Users, Heart, Send, CheckCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Building, Users, Heart, Send, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function PartenariatsPage() {
   const [formData, setFormData] = useState({
@@ -11,16 +11,39 @@ export default function PartenariatsPage() {
     partnershipType: '',
     message: '',
   });
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitted(true);
-    // Simulation d'envoi
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({ name: '', email: '', company: '', partnershipType: '', message: '' });
-    }, 3000);
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('/api/partnerships', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({ name: '', email: '', company: '', partnershipType: '', message: '' });
+      } else {
+        const error = await response.json();
+        setSubmitStatus('error');
+        setErrorMessage(error.error || 'Une erreur est survenue');
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+      setErrorMessage('Une erreur est survenue lors de l\'envoi de la demande');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -109,7 +132,7 @@ export default function PartenariatsPage() {
           <div>
             <h2 className="font-heading text-3xl font-bold mb-8">Contactez-nous</h2>
             
-            {isSubmitted ? (
+            {submitStatus === 'success' ? (
               <div className="bg-card rounded-xl p-8 text-center border-2 border-green-500">
                 <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
                 <h3 className="font-heading text-2xl font-semibold text-foreground mb-2">
@@ -120,7 +143,14 @@ export default function PartenariatsPage() {
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="bg-card rounded-xl p-8 shadow-sm">
+              <>
+                {submitStatus === 'error' && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                    <p className="text-red-800">{errorMessage}</p>
+                  </div>
+                )}
+                <form onSubmit={handleSubmit} className="bg-card rounded-xl p-8 shadow-sm">
                 <div className="space-y-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
@@ -208,13 +238,15 @@ export default function PartenariatsPage() {
 
                   <button
                     type="submit"
-                    className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium text-lg"
+                    disabled={isSubmitting}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Send className="w-5 h-5" />
-                    Envoyer ma demande
+                    {isSubmitting ? 'Envoi en cours...' : 'Envoyer ma demande'}
                   </button>
                 </div>
               </form>
+              </>
             )}
 
             <div className="mt-8 space-y-4">
