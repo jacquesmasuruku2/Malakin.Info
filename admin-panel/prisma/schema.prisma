@@ -1,12 +1,9 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "cockroachdb"
   url      = env("DATABASE_URL")
 }
 
@@ -40,25 +37,25 @@ model Author {
 }
 
 model Article {
-  id          String    @id @default(cuid())
-  title       String
-  slug        String    @unique
-  excerpt     String
-  content     Json
-  categoryId  String
-  category    Category  @relation(fields: [categoryId], references: [id])
-  authorId    String?
-  author      Author?   @relation(fields: [authorId], references: [id])
-  publishedAt DateTime
+  id           String    @id @default(cuid())
+  title        String
+  slug         String    @unique
+  excerpt      String
+  content      Json
+  categoryId   String
+  authorId     String?
+  publishedAt  DateTime
   mainImageUrl String?
   mainImageAlt String?
-  readTime    String?
-  featured    Boolean   @default(false)
-  views       Int       @default(0)
-  comments    Comment[]
-  likes       Like[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  readTime     String?
+  featured     Boolean   @default(false)
+  views        BigInt    @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  author       Author?   @relation(fields: [authorId], references: [id])
+  category     Category  @relation(fields: [categoryId], references: [id])
+  comments     Comment[]
+  likes        Like[]
 
   @@index([categoryId])
   @@index([authorId])
@@ -156,16 +153,16 @@ model Media {
   description  String?
   url          String
   thumbnailUrl String?
-  duration     Int?
+  duration     BigInt?
   categoryId   String?
-  category     Category? @relation(fields: [categoryId], references: [id])
   authorId     String?
-  author       Author?   @relation(fields: [authorId], references: [id])
   publishedAt  DateTime
-  views        Int       @default(0)
+  views        BigInt    @default(0)
   featured     Boolean   @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  author       Author?   @relation(fields: [authorId], references: [id])
+  category     Category? @relation(fields: [categoryId], references: [id])
 
   @@index([type])
   @@index([categoryId])
@@ -268,25 +265,24 @@ model JobApplication {
 }
 
 model BlogPost {
-  id           String    @id @default(cuid())
+  id           String   @id @default(cuid())
   title        String
-  slug         String    @unique
+  slug         String   @unique
   excerpt      String
   content      Json
   type         String
   authorId     String?
-  author       Author?   @relation(fields: [authorId], references: [id])
   publishedAt  DateTime
   mainImageUrl String?
   mainImageAlt String?
   readTime     String?
-  featured     Boolean   @default(false)
-  views        Int       @default(0)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  featured     Boolean  @default(false)
+  views        BigInt   @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  author       Author?  @relation(fields: [authorId], references: [id])
 
   @@index([type])
   @@index([publishedAt(sort: Desc)])
   @@index([featured])
-  @@index([views(sort: Desc)])
 }
