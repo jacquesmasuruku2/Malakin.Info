@@ -51,7 +51,12 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(messages);
+    const response = NextResponse.json(messages);
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    return response;
   } catch (error) {
     console.error('Error fetching contact messages:', error);
     return NextResponse.json(
@@ -59,4 +64,15 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
 }

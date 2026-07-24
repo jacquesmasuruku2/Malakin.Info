@@ -24,7 +24,12 @@ export async function PATCH(
       data: { status },
     });
 
-    return NextResponse.json(contactMessage);
+    const response = NextResponse.json(contactMessage);
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    return response;
   } catch (error) {
     console.error('Error updating contact message:', error);
     return NextResponse.json(
@@ -44,7 +49,12 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({ message: 'Message deleted successfully' });
+    const response = NextResponse.json({ message: 'Message deleted successfully' });
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    return response;
   } catch (error) {
     console.error('Error deleting contact message:', error);
     return NextResponse.json(
@@ -52,4 +62,15 @@ export async function DELETE(
       { status: 500 }
     );
   }
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
 }

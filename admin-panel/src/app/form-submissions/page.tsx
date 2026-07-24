@@ -34,15 +34,18 @@ export default function FormSubmissionsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      // Use the main site API instead of internal admin-panel API
+      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakin.info';
+      
       if (activeTab === 'contact') {
-        const response = await fetch('/api/contact');
+        const response = await fetch(`${mainSiteUrl}/api/contact`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
         setContactMessages(data);
       } else {
-        const response = await fetch('/api/partnerships');
+        const response = await fetch(`${mainSiteUrl}/api/partnerships`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -63,8 +66,9 @@ export default function FormSubmissionsPage() {
 
   const handleStatusUpdate = async (id: string, newStatus: string) => {
     try {
+      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakin.info';
       const endpoint = activeTab === 'contact' ? 'contact' : 'partnerships';
-      const response = await fetch(`/api/${endpoint}/${id}`, {
+      const response = await fetch(`${mainSiteUrl}/api/${endpoint}/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
@@ -83,8 +87,9 @@ export default function FormSubmissionsPage() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) return;
     
     try {
+      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakin.info';
       const endpoint = activeTab === 'contact' ? 'contact' : 'partnerships';
-      const response = await fetch(`/api/${endpoint}/${id}`, {
+      const response = await fetch(`${mainSiteUrl}/api/${endpoint}/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) {
