@@ -172,7 +172,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="text-xs text-gray-400 text-right">
-          <p>© {currentYear} Malakinfo.com. {t.copyright} | {t.madeWith}</p>
+          <p>© {currentYear} MalakInfo.com. {t.copyright} | {t.madeWith}</p>
         </div>
       </div>
     </footer>

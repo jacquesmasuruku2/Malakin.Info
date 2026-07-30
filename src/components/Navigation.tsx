@@ -205,8 +205,8 @@ export default function Navigation() {
               <span className="text-white font-heading font-bold text-xl">M</span>
             </div>
             <div>
-              <span className="font-heading font-bold text-xl text-primary">Malakin</span>
-              <span className="font-heading font-bold text-xl text-secondary">.info</span>
+              <span className="font-heading font-bold text-xl text-primary">MalakInfo</span>
+              <span className="font-heading font-bold text-xl text-secondary">.com</span>
             </div>
           </Link>
 

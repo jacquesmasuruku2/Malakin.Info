@@ -29,7 +29,7 @@ export default function SplashScreen() {
       <div className="flex flex-col items-center gap-6">
         <div className="relative">
           <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold text-primary animate-pulse">
-            Malakinfo.com
+            MalakInfo.com
           </h1>
         </div>
         <div className="flex items-center gap-2">
