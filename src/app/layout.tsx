@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import Providers from "@/components/Providers";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ServicesModal from "@/components/ServicesModal";
+import SplashScreen from "@/components/SplashScreen";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'});
@@ -33,6 +34,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
+        <SplashScreen />
         <Providers>
           <main className="flex-1 pb-16 md:pb-0">
             {children}
