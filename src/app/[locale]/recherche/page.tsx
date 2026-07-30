@@ -9,7 +9,7 @@ export default function RecherchePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="font-heading text-4xl font-bold mb-4">Recherche</h1>
           <p className="text-xl text-gray-200">
-            Rechercher sur Malakin.info
+            Rechercher sur Malakinfo.com
           </p>
         </div>
       </section>

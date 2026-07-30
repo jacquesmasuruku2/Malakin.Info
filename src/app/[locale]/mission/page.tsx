@@ -31,7 +31,7 @@ export default function MissionPage() {
 
           <div className="space-y-6 text-muted-foreground">
             <p className="text-lg">
-              Malakin.info est né de la conviction que l'accès à une information de qualité est un droit fondamental et un moteur essentiel pour le développement du continent africain.
+              Malakinfo.com est né de la conviction que l'accès à une information de qualité est un droit fondamental et un moteur essentiel pour le développement du continent africain.
             </p>
 
             <p>

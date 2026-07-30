@@ -250,7 +250,7 @@ const mockResults = [
   {
     id: 24,
     title: 'Notre Équipe',
-    excerpt: 'Découvrez les professionnels qui font de Malakin.info une référence de l\'information africaine.',
+    excerpt: 'Découvrez les professionnels qui font de Malakinfo.com une référence de l\'information africaine.',
     category: 'À Propos',
     href: '/a-propos/equipe',
     date: 'Permanent',

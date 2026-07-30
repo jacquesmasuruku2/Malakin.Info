@@ -64,7 +64,7 @@ export default function PartenariatsSoutenirPage() {
           </Link>
           <h1 className="font-heading text-5xl font-bold mb-4">Partenariats</h1>
           <p className="text-xl text-gray-200 max-w-2xl mx-auto">
-            Devenez partenaire de Malakin.info et soutenez ensemble un journalisme indépendant en Afrique.
+            Devenez partenaire de Malakinfo.com et soutenez ensemble un journalisme indépendant en Afrique.
           </p>
         </div>
       </section>
@@ -236,7 +236,7 @@ export default function PartenariatsSoutenirPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium text-foreground">partenariats@malakin.info</p>
+                  <p className="font-medium text-foreground">partenariats@malakinfo.com</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">

@@ -5,12 +5,12 @@ export default function EquipePage() {
   const team = [
     {
       id: 1,
-      name: 'Jean Dupont',
+      name: 'Bernard Bwema',
       role: 'Rédacteur en chef',
       background: 'ex-RFI',
       bio: 'Plus de 20 ans d\'expérience dans le journalisme international. Ancien correspondant de Radio France Internationale pour l\'Afrique centrale.',
       image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
-      email: 'jean.dupont@malakin.info',
+      email: 'bernardbwema@malakinfo.com',
     },
     {
       id: 2,
@@ -19,7 +19,7 @@ export default function EquipePage() {
       background: 'ex-Jeune Afrique',
       bio: 'Spécialiste des questions politiques et géopolitiques africaines. Anciennement rédactrice en chef du pôle politique de Jeune Afrique.',
       image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face',
-      email: 'marie.koffi@malakin.info',
+      email: 'marie.koffi@malakinfo.com',
     },
     {
       id: 3,
@@ -28,7 +28,7 @@ export default function EquipePage() {
       background: 'Journaliste indépendant',
       bio: 'Expert de la région du Maghreb avec une couverture approfondie des questions sociopolitiques nord-africaines.',
       image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-      email: 'ahmed.benali@malakin.info',
+      email: 'ahmed.benali@malakinfo.com',
     },
     {
       id: 4,
@@ -37,7 +37,7 @@ export default function EquipePage() {
       background: 'Ex-Le Monde Afrique',
       bio: 'Passionnée par les arts et la culture africaine. Ancienne responsable culturelle du Monde Afrique.',
       image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-      email: 'grace.okafor@malakin.info',
+      email: 'grace.okafor@malakinfo.com',
     },
     {
       id: 5,
@@ -46,7 +46,7 @@ export default function EquipePage() {
       background: 'Ex-ESPN Afrique',
       bio: 'Ancien journaliste sportif chez ESPN Afrique, spécialiste du football africain et international.',
       image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
-      email: 'pierre.mwamba@malakin.info',
+      email: 'pierre.mwamba@malakinfo.com',
     },
     {
       id: 6,
@@ -55,7 +55,7 @@ export default function EquipePage() {
       background: 'Journaliste spécialisée',
       bio: 'Journaliste spécialisée dans les questions religieuses et spirituelles en Afrique.',
       image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face',
-      email: 'veronique.nzambi@malakin.info',
+      email: 'veronique.nzambi@malakinfo.com',
     },
   ];
 
@@ -68,7 +68,7 @@ export default function EquipePage() {
           </Link>
           <h1 className="font-heading text-4xl font-bold mb-4">Notre Équipe</h1>
           <p className="text-xl text-gray-200">
-            Les professionnels qui font de Malakin.info une référence
+            Les professionnels qui font de Malakinfo.com une référence
           </p>
         </div>
       </section>

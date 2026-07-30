@@ -5,8 +5,8 @@ import "./globals.css";
 const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'});
 
 export const metadata: Metadata = {
-  title: "Admin Panel - Malakin.info",
-  description: "Panneau d'administration pour Malakin.info",
+  title: "Admin Panel - Malakinfo.com",
+  description: "Panneau d'administration pour Malakinfo.com",
 };
 
 export default function RootLayout({

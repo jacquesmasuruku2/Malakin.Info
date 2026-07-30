@@ -35,7 +35,7 @@ export default function FormSubmissionsPage() {
     setLoading(true);
     try {
       // Use the main site API instead of internal admin-panel API
-      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakin-info.vercel.app';
+      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakinfo.com';
       
       if (activeTab === 'contact') {
         const response = await fetch(`${mainSiteUrl}/api/contact`);
@@ -66,7 +66,7 @@ export default function FormSubmissionsPage() {
 
   const handleStatusUpdate = async (id: string, newStatus: string) => {
     try {
-      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakin-info.vercel.app';
+      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakinfo.com';
       const endpoint = activeTab === 'contact' ? 'contact' : 'partnerships';
       const response = await fetch(`${mainSiteUrl}/api/${endpoint}/${id}`, {
         method: 'PATCH',
@@ -87,7 +87,7 @@ export default function FormSubmissionsPage() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) return;
     
     try {
-      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakin-info.vercel.app';
+      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakinfo.com';
       const endpoint = activeTab === 'contact' ? 'contact' : 'partnerships';
       const response = await fetch(`${mainSiteUrl}/api/${endpoint}/${id}`, {
         method: 'DELETE',

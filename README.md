@@ -1,4 +1,4 @@
-# Malakin.info
+# Malakinfo.com
 
 Site d'actualité généraliste axé sur l'Afrique et le monde.
 
@@ -20,7 +20,7 @@ Informer, éduquer et connecter l'Afrique à travers un journalisme indépendant
 ## 📂 Architecture du Site
 
 ```
-malakin.info/
+malakinfo.com/
 ├── accueil/
 ├── actualites/
 │   ├── politique/
@@ -223,10 +223,10 @@ Les fonctions utilitaires sont disponibles dans `src/lib/queries.ts` :
 
 ## 📄 Licence
 
-Propriété de Malakin.info - Tous droits réservés
+Propriété de Malakinfo.com - Tous droits réservés
 
 ## 📞 Contact
 
-- Email : contact@malakin.info
+- Email : contact@malakinfo.com
 - Téléphone : +243 000 000 000
 - Adresse : Avenue de la Liberté, Quartier Gombe, Kinshasa, RDC

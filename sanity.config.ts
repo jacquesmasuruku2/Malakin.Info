@@ -4,8 +4,8 @@ import { visionTool } from '@sanity/vision'
 import { schemaTypes } from './schemas'
 
 export default defineConfig({
-  name: 'malakin-info',
-  title: 'Malakin.info',
+  name: 'malakinfo-com',
+  title: 'Malakinfo.com',
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '',
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
 

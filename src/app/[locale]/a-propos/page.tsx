@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'À propos - Malakin.info',
-  description: 'Découvrez Malakin.info - L\'info qui traverse les frontières',
+  title: 'À propos - Malakinfo.com',
+  description: 'Découvrez Malakinfo.com - L\'info qui traverse les frontières',
 };
 
 export default function AboutPage({ 
@@ -14,11 +14,11 @@ export default function AboutPage({
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="font-heading text-4xl font-bold text-foreground mb-8">
-          À propos de Malakin.info
+          À propos de Malakinfo.com
         </h1>
         <div className="prose prose-lg max-w-none">
           <p className="text-muted-foreground text-lg mb-6">
-            Malakin.info est une plateforme d'information indépendante dédiée à informer, éduquer et connecter l'Afrique à travers un journalisme fiable et multiculturel.
+            Malakinfo.com est une plateforme d'information indépendante dédiée à informer, éduquer et connecter l'Afrique à travers un journalisme fiable et multiculturel.
           </p>
           <p className="text-muted-foreground text-lg mb-6">
             Notre mission est de fournir une couverture médiatique de qualité qui traverse les frontières, en mettant en lumière les histoires qui comptent pour le continent africain et sa diaspora.

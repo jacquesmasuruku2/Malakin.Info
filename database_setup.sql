@@ -1,5 +1,5 @@
 -- ============================================
--- SCHÉMA COMPLET DE BASE DE DONNÉES POUR MALAKIN.INFO
+-- SCHÉMA COMPLET DE BASE DE DONNÉES POUR MALAKINFO.COM
 -- Compatible PostgreSQL/CockroachDB
 -- ============================================
 
@@ -406,13 +406,13 @@ ON CONFLICT ("slug") DO NOTHING;
 
 -- Insertion des auteurs
 INSERT INTO "Author" ("id", "name", "slug", "bio", "role", "email") VALUES
-('alh1', 'Jean Dupont', 'jean-dupont', 'Journaliste avec 10 ans d''expérience dans le domaine politique', 'Rédacteur en chef', 'jean@malakin.info'),
-('alh2', 'Marie Curie', 'marie-curie', 'Spécialiste en science et technologie', 'Journaliste scientifique', 'marie@malakin.info'),
-('alh3', 'Paul Mbemba', 'paul-mbemba', 'Expert en économie africaine', 'Économiste', 'paul@malakin.info'),
-('alh4', 'Sophie Nkosi', 'sophie-nkosi', 'Correspondante sportive', 'Journaliste sportive', 'sophie@malakin.info')
+('alh1', 'Jean Dupont', 'jean-dupont', 'Journaliste avec 10 ans d''expérience dans le domaine politique', 'Rédacteur en chef', 'jean@malakinfo.com'),
+('alh2', 'Marie Curie', 'marie-curie', 'Spécialiste en science et technologie', 'Journaliste scientifique', 'marie@malakinfo.com'),
+('alh3', 'Paul Mbemba', 'paul-mbemba', 'Expert en économie africaine', 'Économiste', 'paul@malakinfo.com'),
+('alh4', 'Sophie Nkosi', 'sophie-nkosi', 'Correspondante sportive', 'Journaliste sportive', 'sophie@malakinfo.com')
 ON CONFLICT ("slug") DO NOTHING;
 
 -- Insertion d'un utilisateur admin par défaut
 INSERT INTO "User" ("id", "email", "name", "passwordHash", "role", "emailVerified") VALUES
-('ulh1', 'admin@malakin.info', 'Administrateur', '$2b$10$placeholder_hash_change_me', 'admin', true)
+('ulh1', 'admin@malakinfo.com', 'Administrateur', '$2b$10$placeholder_hash_change_me', 'admin', true)
 ON CONFLICT ("email") DO NOTHING;

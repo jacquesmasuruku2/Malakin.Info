@@ -22,7 +22,7 @@ export default async function ArticlePage({
     share: locale === 'fr' ? 'Partager' : 'Share',
     relatedArticles: locale === 'fr' ? 'Articles similaires' : 'Related Articles',
     seeAllArticles: locale === 'fr' ? 'Voir tous les articles de cet auteur' : 'See all articles by this author',
-    teamMalakin: locale === 'fr' ? 'Équipe Malakin' : 'Malakin Team',
+    teamMalakin: locale === 'fr' ? 'Équipe Malakinfo' : 'Malakinfo Team',
   };
 
   try {
@@ -139,7 +139,7 @@ export default async function ArticlePage({
           {/* Share Buttons */}
           <ShareButtons 
             title={article.title} 
-            url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakin.info'}/${locale}/${category}/${slug}`}
+            url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
             locale={locale}
           />
 
