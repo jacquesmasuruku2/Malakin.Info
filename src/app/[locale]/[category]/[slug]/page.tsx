@@ -136,13 +136,6 @@ export default async function ArticlePage({
             <AdSenseAd adSlot="1234567890" className="my-4" />
           </div>
 
-          {/* Share Buttons */}
-          <ShareButtons 
-            title={article.title} 
-            url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
-            locale={locale}
-          />
-
           {/* Content */}
           <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none">
             <div
@@ -155,6 +148,13 @@ export default async function ArticlePage({
           <div className="mt-8">
             <AdSenseAd adSlot="0987654321" className="my-4" />
           </div>
+
+          {/* Share Buttons */}
+          <ShareButtons 
+            title={article.title} 
+            url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
+            locale={locale}
+          />
         </article>
 
         {/* Author Section */}

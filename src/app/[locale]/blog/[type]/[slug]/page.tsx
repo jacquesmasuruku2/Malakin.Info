@@ -104,8 +104,16 @@ export default async function BlogPostPage({
             </div>
           )}
 
+          {/* Content */}
+          <div className="prose prose-lg max-w-none">
+            <div 
+              dangerouslySetInnerHTML={{ __html: typeof blogPost.content === 'string' ? blogPost.content : '' }}
+              className="text-foreground leading-relaxed"
+            />
+          </div>
+
           {/* Share Buttons */}
-          <div className="flex items-center gap-4 mb-8 pb-8 border-b border-border">
+          <div className="flex items-center gap-4 mt-8 pt-8 border-t border-border">
             <span className="text-sm font-medium text-foreground">Partager :</span>
             <button className="p-2 text-muted-foreground hover:text-blue-600 transition-colors">
               <MessageCircle className="w-5 h-5" />
@@ -122,14 +130,6 @@ export default async function BlogPostPage({
             <button className="p-2 text-muted-foreground hover:text-primary transition-colors">
               <Bookmark className="w-5 h-5" />
             </button>
-          </div>
-
-          {/* Content */}
-          <div className="prose prose-lg max-w-none">
-            <div 
-              dangerouslySetInnerHTML={{ __html: typeof blogPost.content === 'string' ? blogPost.content : '' }}
-              className="text-foreground leading-relaxed"
-            />
           </div>
         </article>
 
