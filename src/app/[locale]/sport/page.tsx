@@ -1,74 +1,62 @@
 import Link from 'next/link';
 import { Calendar, ArrowRight, Trophy, Circle, Activity, Flag } from 'lucide-react';
+import { prisma } from '@/lib/prisma';
 
-export default function SportPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function SportPage({ 
+  params 
+}: { 
+  params: Promise<{ locale: string }> 
+}) {
+  const { locale } = await params;
+
+  // Fetch articles from sport category
+  const articles = await prisma.article.findMany({
+    where: {
+      category: {
+        slug: 'sport',
+      },
+    },
+    include: {
+      category: true,
+      author: true,
+    },
+    orderBy: {
+      publishedAt: 'desc',
+    },
+    take: 12,
+  });
+
+  // Subcategories with their counts (based on article titles)
   const categories = [
-    { name: 'Football', href: '/sport/football', icon: Trophy, count: 89 },
-    { name: 'Basketball', href: '/sport/basket', icon: Circle, count: 34 },
-    { name: 'Athlétisme', href: '/sport/athletisme', icon: Activity, count: 28 },
-    { name: 'Événements', href: '/sport/evenements', icon: Flag, count: 45 },
+    { name: 'Football', href: `/${locale}/sport/football`, icon: Trophy, count: articles.filter(a => a.title.toLowerCase().includes('football') || a.title.toLowerCase().includes('can')).length },
+    { name: 'Basketball', href: `/${locale}/sport/basket`, icon: Circle, count: articles.filter(a => a.title.toLowerCase().includes('basket') || a.title.toLowerCase().includes('nba')).length },
+    { name: 'Athlétisme', href: `/${locale}/sport/athletisme`, icon: Activity, count: articles.filter(a => a.title.toLowerCase().includes('athlétisme') || a.title.toLowerCase().includes('athlète')).length },
+    { name: 'Événements', href: `/${locale}/sport/evenements`, icon: Flag, count: articles.filter(a => a.title.toLowerCase().includes('championnat') || a.title.toLowerCase().includes('compétition')).length },
   ];
 
-  const featuredSport = [
-    {
-      id: 1,
-      category: 'Football',
-      title: 'CAN 2027 : La RDC finalise ses préparatifs pour accueillir la compétition',
-      excerpt: 'Les stades sont prêts, les infrastructures sont en place : la RDC est prête pour la Coupe d\'Afrique des Nations.',
-      image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&h=400&fit=crop',
-      date: '27 Juin 2026',
-      readTime: '7 min',
-    },
-    {
-      id: 2,
-      category: 'Basketball',
-      title: 'BAL : Les équipes africaines brillent en championnat',
-      excerpt: 'La Basketball Africa League continue de révéler des talents et de populariser le sport sur le continent.',
-      image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&h=400&fit=crop',
-      date: '26 Juin 2026',
-      readTime: '5 min',
-    },
-    {
-      id: 3,
-      category: 'Athlétisme',
-      title: 'Championnats d\'Afrique : Les records tombent à Casablanca',
-      excerpt: 'Les athlètes africains établissent de nouveaux records lors des championnats continentaux.',
-      image: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&h=400&fit=crop',
-      date: '25 Juin 2026',
-      readTime: '6 min',
-    },
-  ];
+  const featuredSport = articles.slice(0, 3).map((article) => ({
+    id: article.id,
+    category: article.category?.title || 'Sport',
+    categorySlug: article.category?.slug || 'sport',
+    title: article.title,
+    excerpt: article.excerpt,
+    image: article.mainImageUrl,
+    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    readTime: article.readTime || '5 min',
+    slug: article.slug,
+  }));
 
-  const latestSport = [
-    {
-      id: 4,
-      category: 'Football',
-      title: 'Ligue des Champions : Le club congolais se qualifie pour les quarts',
-      date: '27 Juin 2026',
-      readTime: '4 min',
-    },
-    {
-      id: 5,
-      category: 'Athlétisme',
-      title: 'Jeux Olympiques : L\'Afrique envoie sa plus grande délégation',
-      date: '26 Juin 2026',
-      readTime: '5 min',
-    },
-    {
-      id: 6,
-      category: 'Basketball',
-      title: 'Draft NBA : Un joueur sénégalais sélectionné en premier tour',
-      date: '26 Juin 2026',
-      readTime: '3 min',
-    },
-    {
-      id: 7,
-      category: 'Événements',
-      title: 'Marathon de Kinshasa : Inscriptions ouvertes pour l\'édition 2026',
-      date: '25 Juin 2026',
-      readTime: '4 min',
-    },
-  ];
+  const latestSport = articles.slice(3, 7).map((article) => ({
+    id: article.id,
+    category: article.category?.title || 'Sport',
+    title: article.title,
+    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    readTime: article.readTime || '5 min',
+    slug: article.slug,
+    categorySlug: article.category?.slug || 'sport',
+  }));
 
   return (
     <div className="flex flex-col">
@@ -114,78 +102,88 @@ export default function SportPage() {
           </aside>
 
           <div className="lg:col-span-3 space-y-8">
-            <div>
-              <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {featuredSport.map((item) => (
-                  <article
-                    key={item.id}
-                    className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div className="relative h-48">
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute top-4 left-4 px-3 py-1 bg-primary text-white text-xs font-medium rounded-full">
-                        {item.category}
-                      </span>
-                    </div>
-                    <div className="p-6">
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          {item.date}
-                        </span>
-                        <span>{item.readTime}</span>
-                      </div>
-                      <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
-                        {item.title}
-                      </h3>
-                      <p className="text-muted-foreground line-clamp-2 mb-4">
-                        {item.excerpt}
-                      </p>
-                      <Link
-                        href={`/sport/${item.id}`}
-                        className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
+            {articles.length > 0 ? (
+              <>
+                <div>
+                  <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {featuredSport.map((item) => (
+                      <article
+                        key={item.id}
+                        className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                       >
-                        Lire
-                        <ArrowRight className="ml-2 w-4 h-4" />
-                      </Link>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
+                        {item.image && (
+                          <div className="relative h-48">
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                            />
+                            <span className="absolute top-4 left-4 px-3 py-1 bg-primary text-white text-xs font-medium rounded-full">
+                              {item.category}
+                            </span>
+                          </div>
+                        )}
+                        <div className="p-6">
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              {item.date}
+                            </span>
+                            <span>{item.readTime}</span>
+                          </div>
+                          <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
+                            {item.title}
+                          </h3>
+                          <p className="text-muted-foreground line-clamp-2 mb-4">
+                            {item.excerpt}
+                          </p>
+                          <Link
+                            href={`/${locale}/actualites/${item.categorySlug}/${item.slug}`}
+                            className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
+                          >
+                            Lire
+                            <ArrowRight className="ml-2 w-4 h-4" />
+                          </Link>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
 
-            <div>
-              <h2 className="font-heading text-2xl font-bold mb-6">Dernières actualités</h2>
-              <div className="space-y-4">
-                {latestSport.map((item) => (
-                  <article
-                    key={item.id}
-                    className="flex gap-4 p-4 bg-card rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex-1">
-                      <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded mb-2">
-                        {item.category}
-                      </span>
-                      <h3 className="font-heading font-semibold text-foreground mb-2 line-clamp-2">
-                        {item.title}
-                      </h3>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          {item.date}
-                        </span>
-                        <span>{item.readTime}</span>
-                      </div>
-                    </div>
-                  </article>
-                ))}
+                <div>
+                  <h2 className="font-heading text-2xl font-bold mb-6">Dernières actualités</h2>
+                  <div className="space-y-4">
+                    {latestSport.map((item) => (
+                      <article
+                        key={item.id}
+                        className="flex gap-4 p-4 bg-card rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded mb-2">
+                            {item.category}
+                          </span>
+                          <h3 className="font-heading font-semibold text-foreground mb-2 line-clamp-2">
+                            {item.title}
+                          </h3>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              {item.date}
+                            </span>
+                            <span>{item.readTime}</span>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="bg-card rounded-lg p-12 text-center">
+                <p className="text-muted-foreground text-lg">Aucun article disponible pour le moment.</p>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

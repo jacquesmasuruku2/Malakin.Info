@@ -1,74 +1,62 @@
 import Link from 'next/link';
 import { Calendar, ArrowRight, Music, Film, Palette, TrendingUp } from 'lucide-react';
+import { prisma } from '@/lib/prisma';
 
-export default function CulturePage() {
+export const dynamic = 'force-dynamic';
+
+export default async function CulturePage({ 
+  params 
+}: { 
+  params: Promise<{ locale: string }> 
+}) {
+  const { locale } = await params;
+
+  // Fetch articles from culture category
+  const articles = await prisma.article.findMany({
+    where: {
+      category: {
+        slug: 'culture',
+      },
+    },
+    include: {
+      category: true,
+      author: true,
+    },
+    orderBy: {
+      publishedAt: 'desc',
+    },
+    take: 12,
+  });
+
+  // Subcategories with their counts (based on article titles)
   const categories = [
-    { name: 'Musique', href: '/culture/musique', icon: Music, count: 78 },
-    { name: 'Cinéma', href: '/culture/cinema', icon: Film, count: 45 },
-    { name: 'Arts', href: '/culture/arts', icon: Palette, count: 56 },
-    { name: 'Tendances', href: '/culture/tendances', icon: TrendingUp, count: 34 },
+    { name: 'Musique', href: `/${locale}/culture/musique`, icon: Music, count: articles.filter(a => a.title.toLowerCase().includes('musique') || a.title.toLowerCase().includes('musique')).length },
+    { name: 'Cinéma', href: `/${locale}/culture/cinema`, icon: Film, count: articles.filter(a => a.title.toLowerCase().includes('cinéma') || a.title.toLowerCase().includes('film')).length },
+    { name: 'Arts', href: `/${locale}/culture/arts`, icon: Palette, count: articles.filter(a => a.title.toLowerCase().includes('art') || a.title.toLowerCase().includes('exposition')).length },
+    { name: 'Tendances', href: `/${locale}/culture/tendances`, icon: TrendingUp, count: articles.filter(a => a.title.toLowerCase().includes('tendance') || a.title.toLowerCase().includes('mode')).length },
   ];
 
-  const featuredCulture = [
-    {
-      id: 1,
-      category: 'Musique',
-      title: 'Festival de musique africaine : Les étoiles montantes du continent',
-      excerpt: 'Découverte des nouveaux talents qui réinventent la musique africaine et la propagent sur la scène internationale.',
-      image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=400&fit=crop',
-      date: '27 Juin 2026',
-      readTime: '6 min',
-    },
-    {
-      id: 2,
-      category: 'Cinéma',
-      title: 'Nollywood : L\'industrie cinématographique africaine en pleine expansion',
-      excerpt: 'Analyse de la croissance spectaculaire du cinéma nigérian et son influence sur le continent.',
-      image: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&h=400&fit=crop',
-      date: '26 Juin 2026',
-      readTime: '8 min',
-    },
-    {
-      id: 3,
-      category: 'Arts',
-      title: 'Exposition : Les artistes contemporains de Kinshasa',
-      excerpt: 'Une rétrospective des œuvres des artistes qui redéfinissent l\'art africain moderne.',
-      image: 'https://images.unsplash.com/photo-1531243269054-5ebf6f34081e?w=800&h=400&fit=crop',
-      date: '25 Juin 2026',
-      readTime: '5 min',
-    },
-  ];
+  const featuredCulture = articles.slice(0, 3).map((article) => ({
+    id: article.id,
+    category: article.category?.title || 'Culture',
+    categorySlug: article.category?.slug || 'culture',
+    title: article.title,
+    excerpt: article.excerpt,
+    image: article.mainImageUrl,
+    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    readTime: article.readTime || '5 min',
+    slug: article.slug,
+  }));
 
-  const latestCulture = [
-    {
-      id: 4,
-      category: 'Tendances',
-      title: 'La mode africaine s\'invite aux défilés parisiens',
-      date: '27 Juin 2026',
-      readTime: '4 min',
-    },
-    {
-      id: 5,
-      category: 'Musique',
-      title: 'Album : Le nouveau disque de l\'artiste congolais fait sensation',
-      date: '26 Juin 2026',
-      readTime: '3 min',
-    },
-    {
-      id: 6,
-      category: 'Cinéma',
-      title: 'Sélection officielle : Trois films africains au festival de Cannes',
-      date: '26 Juin 2026',
-      readTime: '5 min',
-    },
-    {
-      id: 7,
-      category: 'Arts',
-      title: 'Street art : Les fresques qui transforment les villes africaines',
-      date: '25 Juin 2026',
-      readTime: '4 min',
-    },
-  ];
+  const latestCulture = articles.slice(3, 7).map((article) => ({
+    id: article.id,
+    category: article.category?.title || 'Culture',
+    title: article.title,
+    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    readTime: article.readTime || '5 min',
+    slug: article.slug,
+    categorySlug: article.category?.slug || 'culture',
+  }));
 
   return (
     <div className="flex flex-col">
@@ -114,78 +102,88 @@ export default function CulturePage() {
           </aside>
 
           <div className="lg:col-span-3 space-y-8">
-            <div>
-              <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {featuredCulture.map((item) => (
-                  <article
-                    key={item.id}
-                    className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div className="relative h-48">
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute top-4 left-4 px-3 py-1 bg-accent text-white text-xs font-medium rounded-full">
-                        {item.category}
-                      </span>
-                    </div>
-                    <div className="p-6">
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          {item.date}
-                        </span>
-                        <span>{item.readTime}</span>
-                      </div>
-                      <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
-                        {item.title}
-                      </h3>
-                      <p className="text-muted-foreground line-clamp-2 mb-4">
-                        {item.excerpt}
-                      </p>
-                      <Link
-                        href={`/culture/${item.id}`}
-                        className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
+            {articles.length > 0 ? (
+              <>
+                <div>
+                  <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {featuredCulture.map((item) => (
+                      <article
+                        key={item.id}
+                        className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                       >
-                        Lire
-                        <ArrowRight className="ml-2 w-4 h-4" />
-                      </Link>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
+                        {item.image && (
+                          <div className="relative h-48">
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                            />
+                            <span className="absolute top-4 left-4 px-3 py-1 bg-accent text-white text-xs font-medium rounded-full">
+                              {item.category}
+                            </span>
+                          </div>
+                        )}
+                        <div className="p-6">
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              {item.date}
+                            </span>
+                            <span>{item.readTime}</span>
+                          </div>
+                          <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
+                            {item.title}
+                          </h3>
+                          <p className="text-muted-foreground line-clamp-2 mb-4">
+                            {item.excerpt}
+                          </p>
+                          <Link
+                            href={`/${locale}/actualites/${item.categorySlug}/${item.slug}`}
+                            className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
+                          >
+                            Lire
+                            <ArrowRight className="ml-2 w-4 h-4" />
+                          </Link>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
 
-            <div>
-              <h2 className="font-heading text-2xl font-bold mb-6">Dernières actualités</h2>
-              <div className="space-y-4">
-                {latestCulture.map((item) => (
-                  <article
-                    key={item.id}
-                    className="flex gap-4 p-4 bg-card rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex-1">
-                      <span className="inline-block px-2 py-1 bg-accent/10 text-accent text-xs font-medium rounded mb-2">
-                        {item.category}
-                      </span>
-                      <h3 className="font-heading font-semibold text-foreground mb-2 line-clamp-2">
-                        {item.title}
-                      </h3>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          {item.date}
-                        </span>
-                        <span>{item.readTime}</span>
-                      </div>
-                    </div>
-                  </article>
-                ))}
+                <div>
+                  <h2 className="font-heading text-2xl font-bold mb-6">Dernières actualités</h2>
+                  <div className="space-y-4">
+                    {latestCulture.map((item) => (
+                      <article
+                        key={item.id}
+                        className="flex gap-4 p-4 bg-card rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <span className="inline-block px-2 py-1 bg-accent/10 text-accent text-xs font-medium rounded mb-2">
+                            {item.category}
+                          </span>
+                          <h3 className="font-heading font-semibold text-foreground mb-2 line-clamp-2">
+                            {item.title}
+                          </h3>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              {item.date}
+                            </span>
+                            <span>{item.readTime}</span>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="bg-card rounded-lg p-12 text-center">
+                <p className="text-muted-foreground text-lg">Aucun article disponible pour le moment.</p>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
