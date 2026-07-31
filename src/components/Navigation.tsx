@@ -276,14 +276,12 @@ export default function Navigation() {
             </div>
 
             {/* Center - Logo */}
-            <Link href={`/${locale}`} className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-white font-heading font-bold text-xl">M</span>
-              </div>
-              <div className="hidden sm:block">
-                <span className="font-heading font-bold text-xl text-primary">MalakInfo</span>
-                <span className="font-heading font-bold text-xl text-secondary">.com</span>
-              </div>
+            <Link href={`/${locale}`} className="flex items-center">
+              <img 
+                src="/logo.png" 
+                alt="MalakInfo" 
+                className="h-10 w-auto"
+              />
             </Link>
 
             {/* Right side - Desktop */}

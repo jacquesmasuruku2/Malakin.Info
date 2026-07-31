@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface AdSenseAdProps {
   adSlot: string;
@@ -18,16 +18,27 @@ export default function AdSenseAd({
   fullWidthResponsive = true,
 }: AdSenseAdProps) {
   const adRef = useRef<HTMLModElement>(null);
+  const [isAdLoaded, setIsAdLoaded] = useState(false);
 
   useEffect(() => {
+    // Skip if ad is already loaded
+    if (isAdLoaded) return;
+
+    // Check if the ad element already has content (already initialized)
+    if (adRef.current && adRef.current.innerHTML.trim() !== '') {
+      setIsAdLoaded(true);
+      return;
+    }
+
     if (typeof window !== 'undefined' && (window as any).adsbygoogle) {
       try {
         (window as any).adsbygoogle.push({});
+        setIsAdLoaded(true);
       } catch (e) {
         console.error('AdSense error:', e);
       }
     }
-  }, []);
+  }, [adSlot, isAdLoaded]);
 
   return (
     <div className={`adsense-ad-container ${className}`}>

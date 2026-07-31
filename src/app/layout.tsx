@@ -26,14 +26,14 @@ export default function RootLayout({
   return (
     <html lang="fr" className={cn("h-full", "antialiased", jetbrainsMono.variable)}>
       <head>
+      </head>
+      <body className="min-h-full flex flex-col">
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4621769509750492"
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
-      </head>
-      <body className="min-h-full flex flex-col">
         <SplashScreen />
         <Providers>
           <main className="flex-1 pb-16 md:pb-0">
