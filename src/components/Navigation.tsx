@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grid3x3, LogOut, Settings, Heart, MessageSquare, Bookmark } from 'lucide-react';
+import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grip, LogOut, Settings, Heart, MessageSquare, Bookmark } from 'lucide-react';
 import SearchBar from './SearchBar';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
@@ -223,11 +223,11 @@ export default function Navigation() {
             
             <div className="relative">
               <button
-                className="p-2 text-foreground hover:text-primary transition-colors"
+                className="rounded-full p-2 text-foreground hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors duration-200"
                 onClick={() => isDropdownOpen ? setIsDropdownOpen(false) : openServices()}
                 title={t.moreServices}
               >
-                <Grid3x3 className="w-5 h-5" />
+                <Grip className="w-5 h-5" />
               </button>
 
               {isDropdownOpen && (
