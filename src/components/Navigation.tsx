@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grip, LogOut, Settings, Heart, MessageSquare, Bookmark, Menu } from 'lucide-react';
@@ -277,10 +278,13 @@ export default function Navigation() {
 
             {/* Center - Logo */}
             <Link href={`/${locale}`} className="flex items-center">
-              <img 
+              <Image 
                 src="/logo.png" 
                 alt="MalakInfo" 
+                width={120}
+                height={40}
                 className="h-10 w-auto"
+                priority
               />
             </Link>
 
