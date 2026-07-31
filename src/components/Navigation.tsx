@@ -235,8 +235,8 @@ export default function Navigation() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Left side */}
-            <div className="flex items-center space-x-3">
+            {/* Left side - Desktop */}
+            <div className="hidden md:flex items-center space-x-3">
               <button
                 className="flex items-center space-x-2 font-semibold text-foreground hover:text-primary transition-colors"
                 onClick={() => isDropdownOpen ? setIsDropdownOpen(false) : openServices()}
@@ -259,19 +259,35 @@ export default function Navigation() {
               </div>
             </div>
 
+            {/* Left side - Mobile */}
+            <div className="md:hidden flex items-center space-x-2">
+              <button
+                className="p-2 text-foreground hover:text-primary transition-colors"
+                onClick={() => isDropdownOpen ? setIsDropdownOpen(false) : openServices()}
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <button
+                className="p-2 text-foreground hover:text-primary transition-colors"
+                onClick={() => setIsSearchOpen(true)}
+              >
+                <Search className="w-5 h-5" />
+              </button>
+            </div>
+
             {/* Center - Logo */}
             <Link href={`/${locale}`} className="flex items-center space-x-2">
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-white font-heading font-bold text-xl">M</span>
               </div>
-              <div>
+              <div className="hidden sm:block">
                 <span className="font-heading font-bold text-xl text-primary">MalakInfo</span>
                 <span className="font-heading font-bold text-xl text-secondary">.com</span>
               </div>
             </Link>
 
-            {/* Right side */}
-            <div className="flex items-center space-x-4">
+            {/* Right side - Desktop */}
+            <div className="hidden md:flex items-center space-x-4">
               <Link href={`/${locale}/blog`} className="flex items-center space-x-1 text-sm font-medium text-foreground hover:text-primary transition-colors">
                 <BookOpen className="w-4 h-4" />
                 <span>Magazine</span>
@@ -372,12 +388,40 @@ export default function Navigation() {
               
               <LanguageSwitcher />
             </div>
+
+            {/* Right side - Mobile */}
+            <div className="md:hidden flex items-center space-x-2">
+              <LanguageSwitcher />
+              {user ? (
+                <button
+                  className="p-2 text-foreground hover:text-primary transition-colors"
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                >
+                  {user.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-5 h-5" />
+                  )}
+                </button>
+              ) : (
+                <Link
+                  href={`/${locale}/compte/connexion`}
+                  className="p-2 text-foreground hover:text-primary transition-colors"
+                >
+                  <User className="w-5 h-5" />
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Bottom Navigation Bar - Barre de Catégories */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white border-b border-gray-200 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center space-x-8 py-3 overflow-x-auto">
             <Link href={`/${locale}/actualites`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
