@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grip, LogOut, Settings, Heart, MessageSquare, Bookmark } from 'lucide-react';
+import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grip, LogOut, Settings, Heart, MessageSquare, Bookmark, Menu } from 'lucide-react';
 import SearchBar from './SearchBar';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
@@ -197,309 +197,216 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="bg-white border-b border-border sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link href={`/${locale}`} className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-heading font-bold text-xl">M</span>
-            </div>
-            <div>
-              <span className="font-heading font-bold text-xl text-primary">MalakInfo</span>
-              <span className="font-heading font-bold text-xl text-secondary">.com</span>
-            </div>
-          </Link>
-
-          <div className="hidden lg:flex items-center space-x-1">
-            {mainNavItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="px-3 py-2 text-sm font-medium text-foreground hover:text-primary hover:bg-muted rounded-md transition-colors"
-              >
-                {item.name}
+    <nav className="sticky top-0 z-50">
+      {/* TopBar - Barre Supérieure Sombre */}
+      <div className="bg-neutral-900 hidden md:flex">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="flex justify-between items-center py-2">
+            {/* Left side - Secondary links */}
+            <div className="flex items-center space-x-6">
+              <Link href={`/${locale}/emploi`} className="text-xs text-gray-300 hover:text-white transition-colors">
+                Offres d'emploi
               </Link>
-            ))}
+              <Link href={`/${locale}/communiques`} className="text-xs text-gray-300 hover:text-white transition-colors">
+                Appels d'offres
+              </Link>
+              <Link href={`/${locale}/boutique`} className="text-xs text-gray-300 hover:text-white transition-colors">
+                Boutique
+              </Link>
+              <Link href={`/${locale}/newsletter`} className="text-xs text-gray-300 hover:text-white transition-colors">
+                Recevoir nos newsletters
+              </Link>
+            </div>
             
-            <div className="relative">
-              <button
-                className="rounded-full p-2 text-foreground hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors duration-200"
-                onClick={() => isDropdownOpen ? setIsDropdownOpen(false) : openServices()}
-                title={t.moreServices}
-              >
-                <Grip className="w-5 h-5" />
-              </button>
-
-              {isDropdownOpen && (
-                <div className="absolute top-full right-0 mt-2 w-96 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-white font-bold text-sm">{t.servicesMalakin}</h3>
-                    <button
-                      className="text-gray-400 hover:text-white"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <Link
-                      href="/admin"
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-2">
-                        <Briefcase className="w-6 h-6 text-primary" />
-                      </div>
-                      <span className="text-xs text-white text-center">Admin</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/recherche`}
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-2">
-                        <Search className="w-6 h-6 text-blue-400" />
-                      </div>
-                      <span className="text-xs text-white text-center">{t.search}</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/communiques`}
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-2">
-                        <Newspaper className="w-6 h-6 text-purple-400" />
-                      </div>
-                      <span className="text-xs text-white text-center">{t.pressReleases}</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/archives`}
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center mb-2">
-                        <ScrollText className="w-6 h-6 text-amber-400" />
-                      </div>
-                      <span className="text-xs text-white text-center">{t.archives}</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/radio-afrique`}
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center mb-2">
-                        <Radio className="w-6 h-6 text-red-400" />
-                      </div>
-                      <span className="text-xs text-white text-center">{t.radioAfrica}</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/science-tech`}
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-2">
-                        <FlaskConical className="w-6 h-6 text-cyan-400" />
-                      </div>
-                      <span className="text-xs text-white text-center">{t.scienceTech}</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/forum-afrique`}
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-2">
-                        <BookOpen className="w-6 h-6 text-green-400" />
-                      </div>
-                      <span className="text-xs text-white text-center">{t.forumAfrica}</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/partenariats`}
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center mb-2">
-                        <Briefcase className="w-6 h-6 text-pink-400" />
-                      </div>
-                      <span className="text-xs text-white text-center">{t.partnerships}</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/infos-pratiques`}
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center mb-2">
-                        <Info className="w-6 h-6 text-indigo-400" />
-                      </div>
-                      <span className="text-xs text-white text-center">{t.practicalInfo}</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/medias`}
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center mb-2">
-                        <Radio className="w-6 h-6 text-orange-400" />
-                      </div>
-                      <span className="text-xs text-white text-center">{t.media}</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/blog`}
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center mb-2">
-                        <BookOpen className="w-6 h-6 text-teal-400" />
-                      </div>
-                      <span className="text-xs text-white text-center">{t.blog}</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/emploi`}
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-lime-500/20 rounded-lg flex items-center justify-center mb-2">
-                        <Briefcase className="w-6 h-6 text-lime-400" />
-                      </div>
-                      <span className="text-xs text-white text-center">{t.employment}</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/nous-soutenir`}
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-rose-500/20 rounded-lg flex items-center justify-center mb-2">
-                        <DollarSign className="w-6 h-6 text-rose-400" />
-                      </div>
-                      <span className="text-xs text-white text-center">{t.support}</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/contact`}
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-sky-500/20 rounded-lg flex items-center justify-center mb-2">
-                        <Mail className="w-6 h-6 text-sky-400" />
-                      </div>
-                      <span className="text-xs text-white text-center">{t.contact}</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/religion`}
-                      className="flex flex-col items-center p-3 hover:bg-gray-800 rounded-md transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <div className="w-12 h-12 bg-violet-500/20 rounded-lg flex items-center justify-center mb-2">
-                        <ScrollText className="w-6 h-6 text-violet-400" />
-                      </div>
-                      <span className="text-xs text-white text-center">{t.religion}</span>
-                    </Link>
-                  </div>
-                </div>
-              )}
+            {/* Right side - Partner sites */}
+            <div className="flex items-center space-x-6">
+              <Link href="https://thedrc.activitie.com" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-300 hover:text-white transition-colors">
+                TheDRC.Activitie
+              </Link>
+              <Link href="https://businessgeneral.com" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-300 hover:text-white transition-colors">
+                Business General
+              </Link>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="hidden lg:flex items-center space-x-4">
-            <button
-              className="p-2 text-foreground hover:text-primary transition-colors"
-              onClick={() => setIsSearchOpen(true)}
-            >
-              <Search className="w-5 h-5" />
-            </button>
-
-            <LanguageSwitcher />
-
-            {user ? (
+      {/* Main Header - En-tête Principal Blanc Centré */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Left side */}
+            <div className="flex items-center space-x-3">
+              <button
+                className="flex items-center space-x-2 font-semibold text-foreground hover:text-primary transition-colors"
+                onClick={() => isDropdownOpen ? setIsDropdownOpen(false) : openServices()}
+              >
+                <Menu className="w-5 h-5" />
+                <span>Menu</span>
+              </button>
+              
+              <div className="border-r border-gray-300 h-6 mx-3"></div>
+              
+              {/* Search field */}
               <div className="relative">
-                <button
-                  className="flex items-center space-x-2 px-3 py-2 bg-muted rounded-md hover:bg-muted/80 transition-colors"
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                >
-                  {user.avatarUrl ? (
-                    <img
-                      src={user.avatarUrl}
-                      alt={user.name}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-                      <User className="w-4 h-4 text-primary" />
+                <input
+                  type="text"
+                  placeholder="Rechercher..."
+                  className="bg-gray-100 rounded-lg px-4 py-1.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary w-48"
+                  onClick={() => setIsSearchOpen(true)}
+                />
+                <Search className="w-4 h-4 text-gray-500 absolute right-3 top-1/2 transform -translate-y-1/2" />
+              </div>
+            </div>
+
+            {/* Center - Logo */}
+            <Link href={`/${locale}`} className="flex items-center space-x-2">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-white font-heading font-bold text-xl">M</span>
+              </div>
+              <div>
+                <span className="font-heading font-bold text-xl text-primary">MalakInfo</span>
+                <span className="font-heading font-bold text-xl text-secondary">.com</span>
+              </div>
+            </Link>
+
+            {/* Right side */}
+            <div className="flex items-center space-x-4">
+              <Link href={`/${locale}/blog`} className="flex items-center space-x-1 text-sm font-medium text-foreground hover:text-primary transition-colors">
+                <BookOpen className="w-4 h-4" />
+                <span>Magazine</span>
+              </Link>
+              
+              {user ? (
+                <div className="relative">
+                  <button
+                    className="flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  >
+                    {user.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt={user.name}
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-4 h-4 text-foreground" />
+                    )}
+                    <span className="text-sm font-medium text-foreground">{user.name}</span>
+                  </button>
+                  
+                  {isUserMenuOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50">
+                      <div className="px-4 py-2 border-b border-gray-200">
+                        <p className="text-sm font-medium text-foreground">{user.name}</p>
+                        <p className="text-xs text-gray-500">{user.email}</p>
+                      </div>
+                      <Link
+                        href={`/${locale}/compte/profil`}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-gray-100 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <User className="w-4 h-4" />
+                        <span>Mon profil</span>
+                      </Link>
+                      <Link
+                        href={`/${locale}/compte/commentaires`}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-gray-100 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Mes commentaires</span>
+                      </Link>
+                      <Link
+                        href={`/${locale}/compte/likes`}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-gray-100 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <Heart className="w-4 h-4" />
+                        <span>Mes likes</span>
+                      </Link>
+                      <Link
+                        href={`/${locale}/compte/favoris`}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-gray-100 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <Bookmark className="w-4 h-4" />
+                        <span>Favoris</span>
+                      </Link>
+                      <Link
+                        href={`/${locale}/compte/parametres`}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-gray-100 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <Settings className="w-4 h-4" />
+                        <span>Paramètres</span>
+                      </Link>
+                      <div className="border-t border-gray-200 mt-2 pt-2">
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Déconnexion</span>
+                        </button>
+                      </div>
                     </div>
                   )}
-                  <span className="text-sm font-medium text-foreground">{user.name}</span>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                </button>
-                
-                {isUserMenuOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-border rounded-lg shadow-lg py-2 z-50">
-                    <div className="px-4 py-2 border-b border-border">
-                      <p className="text-sm font-medium text-foreground">{user.name}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
-                    </div>
-                    <Link
-                      href={`/${locale}/compte/profil`}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <User className="w-4 h-4" />
-                      <span>Mon profil</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/compte/commentaires`}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      <span>Mes commentaires</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/compte/likes`}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <Heart className="w-4 h-4" />
-                      <span>Mes likes</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/compte/favoris`}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <Bookmark className="w-4 h-4" />
-                      <span>Favoris</span>
-                    </Link>
-                    <Link
-                      href={`/${locale}/compte/parametres`}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <Settings className="w-4 h-4" />
-                      <span>Paramètres</span>
-                    </Link>
-                    <div className="border-t border-border mt-2 pt-2">
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Déconnexion</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
+                </div>
+              ) : (
+                <Link
+                  href={`/${locale}/compte/connexion`}
+                  className="flex items-center space-x-1 text-sm font-medium text-foreground hover:text-primary transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Se connecter</span>
+                </Link>
+              )}
+              
               <Link
-                href={`/${locale}/compte/connexion`}
-                className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                href={`/${locale}/nous-soutenir`}
+                className="bg-[#F6E3B4] hover:bg-amber-200 rounded-full px-5 py-2 font-semibold text-black transition-colors"
               >
-                <User className="w-4 h-4" />
-                <span className="text-sm font-medium">{t.login}</span>
+                S'abonner
               </Link>
-            )}
+              
+              <LanguageSwitcher />
+            </div>
           </div>
+        </div>
+      </div>
 
-          <div className="lg:hidden">
-            <LanguageSwitcher />
+      {/* Bottom Navigation Bar - Barre de Catégories */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center space-x-8 py-3 overflow-x-auto">
+            <Link href={`/${locale}/actualites`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+              ACTUALITÉS
+            </Link>
+            <Link href={`/${locale}/actualites/politique`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+              POLITIQUE
+            </Link>
+            <Link href={`/${locale}/actualites/economie`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+              ÉCONOMIE
+            </Link>
+            <Link href={`/${locale}/science-tech`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+              SCIENCE & TECH
+            </Link>
+            <Link href={`/${locale}/culture`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+              CULTURE
+            </Link>
+            <Link href={`/${locale}/sport`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+              SPORT
+            </Link>
+            <Link href={`/${locale}/classement`} className="font-bold text-sm tracking-wide text-red-600 hover:text-red-700 transition-colors whitespace-nowrap">
+              20 PAYS LES PLUS PERFORMANTS
+            </Link>
+            <Link href={`/${locale}/medias`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+              MÉDIAS
+            </Link>
+            <Link href={`/${locale}/religion`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+              RELIGION
+            </Link>
           </div>
         </div>
       </div>
