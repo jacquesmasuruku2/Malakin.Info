@@ -65,7 +65,7 @@ export default function ChartePage() {
           </div>
 
           <p className="text-lg text-muted-foreground mb-8">
-            Arizona.info s'engage à respecter les plus hauts standards du journalisme. Notre charte éthique définit les principes qui guident notre travail quotidien.
+            Malakinfo s'engage à respecter les plus hauts standards du journalisme. Notre charte éthique définit les principes qui guident notre travail quotidien.
           </p>
 
           <div className="space-y-6">
