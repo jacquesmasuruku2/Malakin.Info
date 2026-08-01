@@ -137,7 +137,7 @@ export default async function ArticlePage({
           </div>
 
           {/* Content */}
-          <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none">
+          <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-6 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-2">
             <div
               dangerouslySetInnerHTML={{ __html: typeof article.content === 'string' ? article.content : '' }}
               className="text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground"
