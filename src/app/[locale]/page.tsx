@@ -61,6 +61,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     categorySlug: article.category?.slug || 'actualites',
     category: article.category?.title || (locale === 'fr' ? 'Actualités' : 'News'),
     title: article.title,
+    excerpt: article.excerpt,
     date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
     readTime: article.readTime ? `${article.readTime} min` : '3 min',
     image: article.mainImageUrl || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=300&fit=crop',
