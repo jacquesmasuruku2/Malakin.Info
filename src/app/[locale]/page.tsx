@@ -87,19 +87,23 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             {/* Featured Article - À la une */}
             {featuredNews.length > 0 && (
               <article className="mb-8 border-b-2 border-gray-200 pb-8">
-                <div className="relative h-80 md:h-96 mb-4">
-                  <img
-                    src={featuredNews[0].image}
-                    alt={featuredNews[0].title}
-                    className="w-full h-full object-cover"
-                  />
-                  <span className="absolute top-4 left-4 px-3 py-1 bg-[#D4AF37] text-[#081C3D] text-xs font-bold uppercase tracking-wide">
-                    {locale === 'fr' ? 'DIRECT' : 'LIVE'}
-                  </span>
-                </div>
-                <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-[#081C3D] mb-4 leading-tight">
-                  {featuredNews[0].title}
-                </h1>
+                <Link href={`/${locale}/${featuredNews[0].categorySlug}/${featuredNews[0].slug}`} className="block">
+                  <div className="relative h-80 md:h-96 mb-4">
+                    <img
+                      src={featuredNews[0].image}
+                      alt={featuredNews[0].title}
+                      className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer"
+                    />
+                    <span className="absolute top-4 left-4 px-3 py-1 bg-[#D4AF37] text-[#081C3D] text-xs font-bold uppercase tracking-wide">
+                      {locale === 'fr' ? 'DIRECT' : 'LIVE'}
+                    </span>
+                  </div>
+                </Link>
+                <Link href={`/${locale}/${featuredNews[0].categorySlug}/${featuredNews[0].slug}`} className="block">
+                  <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-[#081C3D] mb-4 leading-tight hover:text-[#D4AF37] transition-colors cursor-pointer">
+                    {featuredNews[0].title}
+                  </h1>
+                </Link>
                 <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
                   <span className="text-[#D4AF37] font-semibold">
                     {new Date().toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
@@ -144,16 +148,18 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                     key={news.id}
                     className="bg-white border border-gray-200 hover:border-[#D4AF37] transition-colors"
                   >
-                    <div className="relative h-40">
-                      <img
-                        src={news.image}
-                        alt={news.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute bottom-2 left-2 px-2 py-1 bg-[#0B3B8B] text-white text-xs font-bold uppercase">
-                        {news.category}
-                      </span>
-                    </div>
+                    <Link href={`/${locale}/${news.categorySlug}/${news.slug}`} className="block">
+                      <div className="relative h-40">
+                        <img
+                          src={news.image}
+                          alt={news.title}
+                          className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer"
+                        />
+                        <span className="absolute bottom-2 left-2 px-2 py-1 bg-[#0B3B8B] text-white text-xs font-bold uppercase">
+                          {news.category}
+                        </span>
+                      </div>
+                    </Link>
                     <div className="p-4">
                       <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
                         <span className="text-[#D4AF37] font-semibold">
@@ -166,7 +172,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                         href={`/${locale}/${news.categorySlug}/${news.slug}`}
                         className="block"
                       >
-                        <h3 className="font-heading font-bold text-[#081C3D] text-lg mb-2 hover:text-[#D4AF37] transition-colors line-clamp-2">
+                        <h3 className="font-heading font-bold text-[#081C3D] text-lg mb-2 hover:text-[#D4AF37] transition-colors line-clamp-2 cursor-pointer">
                           {news.title}
                         </h3>
                       </Link>
