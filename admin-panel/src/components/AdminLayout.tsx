@@ -13,7 +13,8 @@ import {
   Menu,
   X,
   Shield,
-  MessageSquare
+  MessageSquare,
+  Briefcase
 } from 'lucide-react';
 
 export default function AdminLayout({
@@ -30,6 +31,7 @@ export default function AdminLayout({
     { name: 'Catégories', href: '/categories', icon: FolderOpen },
     { name: 'Auteurs', href: '/authors', icon: Users },
     { name: 'Soumissions', href: '/form-submissions', icon: MessageSquare },
+    { name: 'Candidatures', href: '/job-applications', icon: Briefcase },
     { name: 'Paramètres', href: '/settings', icon: Settings },
   ];
 
