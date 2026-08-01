@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, User, ArrowLeft } from 'lucide-react';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
@@ -41,11 +41,8 @@ export default async function CatchAllArticlePage({
       notFound();
     }
 
-    // Redirect to the canonical URL
-    const canonicalUrl = `/${locale}/${article.category?.slug || 'actualites'}/${slug}`;
-    if (path.length > 1 || path[0] !== article.category?.slug) {
-      redirect(canonicalUrl);
-    }
+    // Don't redirect - just render the article regardless of the path
+    // This allows both /fr/culture/slug and /fr/actualites/culture/slug to work
 
     const relatedArticles = await prisma.article.findMany({
       where: {

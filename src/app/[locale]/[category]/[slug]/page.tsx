@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, User, Bookmark, ArrowLeft } from 'lucide-react';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
@@ -38,8 +38,10 @@ export default async function ArticlePage({
       notFound();
     }
 
-    // Allow flexible routing - don't enforce strict category match
-    // This handles both /fr/culture/slug and /fr/actualites/culture/slug patterns
+    // If the category in URL doesn't match the article's actual category, redirect
+    if (article.category?.slug !== category) {
+      redirect(`/${locale}/${article.category?.slug || 'actualites'}/${slug}`);
+    }
 
     const relatedArticles = await prisma.article.findMany({
       where: {
