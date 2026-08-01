@@ -93,15 +93,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                     alt={featuredNews[0].title}
                     className="w-full h-full object-cover"
                   />
-                  <span className="absolute top-4 left-4 px-3 py-1 bg-[#E2001A] text-white text-xs font-bold uppercase tracking-wide">
+                  <span className="absolute top-4 left-4 px-3 py-1 bg-[#D4AF37] text-[#081C3D] text-xs font-bold uppercase tracking-wide">
                     {locale === 'fr' ? 'DIRECT' : 'LIVE'}
                   </span>
                 </div>
-                <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-4 leading-tight">
+                <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-[#081C3D] mb-4 leading-tight">
                   {featuredNews[0].title}
                 </h1>
                 <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                  <span className="text-[#E2001A] font-semibold">
+                  <span className="text-[#D4AF37] font-semibold">
                     {new Date().toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                   </span>
                   <span>•</span>
@@ -116,14 +116,14 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   <div className="flex flex-wrap gap-4 mt-6 pt-4 border-t border-gray-200">
                     <Link
                       href={`/${locale}/${featuredNews[1].categorySlug}/${featuredNews[1].slug}`}
-                      className="text-sm font-semibold text-[#E2001A] hover:underline"
+                      className="text-sm font-semibold text-[#D4AF37] hover:underline"
                     >
                       {locale === 'fr' ? 'Crisis:' : 'Crisis:'} {featuredNews[1].title}
                     </Link>
                     {featuredNews.length > 2 && (
                       <Link
                         href={`/${locale}/${featuredNews[2].categorySlug}/${featuredNews[2].slug}`}
-                        className="text-sm font-semibold text-[#E2001A] hover:underline"
+                        className="text-sm font-semibold text-[#D4AF37] hover:underline"
                       >
                         {locale === 'fr' ? 'À la Une:' : 'Featured:'} {featuredNews[2].title}
                       </Link>
@@ -135,14 +135,14 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
             {/* Article Cards Grid */}
             <div className="mb-8">
-              <h2 className="font-heading text-xl font-bold text-black mb-6 uppercase tracking-wide border-l-4 border-[#E2001A] pl-3">
+              <h2 className="font-heading text-xl font-bold text-[#081C3D] mb-6 uppercase tracking-wide border-l-4 border-[#D4AF37] pl-3">
                 {locale === 'fr' ? 'Dernières actualités' : 'Latest news'}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {latestNews.slice(0, 6).map((news) => (
                   <article
                     key={news.id}
-                    className="bg-white border border-gray-200 hover:border-[#E2001A] transition-colors"
+                    className="bg-white border border-gray-200 hover:border-[#D4AF37] transition-colors"
                   >
                     <div className="relative h-40">
                       <img
@@ -150,13 +150,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                         alt={news.title}
                         className="w-full h-full object-cover"
                       />
-                      <span className="absolute bottom-2 left-2 px-2 py-1 bg-[#E2001A] text-white text-xs font-bold uppercase">
+                      <span className="absolute bottom-2 left-2 px-2 py-1 bg-[#0B3B8B] text-white text-xs font-bold uppercase">
                         {news.category}
                       </span>
                     </div>
                     <div className="p-4">
                       <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
-                        <span className="text-[#E2001A] font-semibold">
+                        <span className="text-[#D4AF37] font-semibold">
                           {new Date().toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                         <span>•</span>
@@ -166,7 +166,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                         href={`/${locale}/${news.categorySlug}/${news.slug}`}
                         className="block"
                       >
-                        <h3 className="font-heading font-bold text-black text-lg mb-2 hover:text-[#E2001A] transition-colors line-clamp-2">
+                        <h3 className="font-heading font-bold text-[#081C3D] text-lg mb-2 hover:text-[#D4AF37] transition-colors line-clamp-2">
                           {news.title}
                         </h3>
                       </Link>
@@ -184,7 +184,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <div className="lg:col-span-3">
             <div className="sticky top-20">
               <div className="bg-white border border-gray-200">
-                <div className="bg-[#E2001A] text-white px-4 py-3">
+                <div className="bg-[#0B3B8B] text-white px-4 py-3">
                   <h3 className="font-heading font-bold text-lg uppercase tracking-wide flex items-center">
                     {locale === 'fr' ? 'En continu' : 'Live feed'}
                     <span className="ml-2 animate-pulse">›</span>
@@ -197,7 +197,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                       className="p-4 hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-start gap-3">
-                        <span className="text-[#E2001A] font-bold text-sm whitespace-nowrap">
+                        <span className="text-[#D4AF37] font-bold text-sm whitespace-nowrap">
                           {new Date().toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                         <div>
@@ -205,7 +205,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                             href={`/${locale}/${news.categorySlug}/${news.slug}`}
                             className="block"
                           >
-                            <h4 className="font-heading font-semibold text-black text-sm hover:text-[#E2001A] transition-colors line-clamp-2">
+                            <h4 className="font-heading font-semibold text-[#081C3D] text-sm hover:text-[#D4AF37] transition-colors line-clamp-2">
                               {news.title}
                             </h4>
                           </Link>
@@ -232,7 +232,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <section className="py-12 bg-gray-100 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mx-auto text-center">
-            <h2 className="font-heading text-2xl font-bold text-black mb-4">
+            <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-4">
               {locale === 'fr' ? 'Restez informé' : 'Stay informed'}
             </h2>
             <p className="text-gray-600 mb-6">
@@ -240,7 +240,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             </p>
             <Link
               href={`/${locale}/newsletter`}
-              className="inline-flex items-center px-6 py-3 bg-[#E2001A] text-white font-semibold rounded hover:bg-[#C00016] transition-colors"
+              className="inline-flex items-center px-6 py-3 bg-[#0B3B8B] text-white font-semibold rounded hover:bg-[#082a63] transition-colors"
             >
               {locale === 'fr' ? 'S\'abonner' : 'Subscribe'}
               <ArrowRight className="ml-2 w-4 h-4" />

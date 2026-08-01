@@ -102,11 +102,11 @@ export default function ServicesModal() {
       {/* Mobile Bottom Sheet */}
       <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
         <div className="bg-white rounded-none max-h-[80vh] overflow-y-auto">
-          <div className="sticky top-0 bg-white p-4 border-b-2 border-red-600 flex justify-between items-center">
-            <h3 className="text-neutral-900 font-bold uppercase tracking-wide">{t.servicesMalakin}</h3>
+          <div className="sticky top-0 bg-white p-4 border-b-2 border-[#D4AF37] flex justify-between items-center">
+            <h3 className="text-[#081C3D] font-bold uppercase tracking-wide">{t.servicesMalakin}</h3>
             <button
               onClick={closeServices}
-              className="flex items-center gap-2 text-neutral-900 hover:text-red-600 transition-colors"
+              className="flex items-center gap-2 text-[#081C3D] hover:text-[#D4AF37] transition-colors"
             >
               <span className="text-sm font-bold uppercase">FERMER</span>
               <X className="w-6 h-6" />
@@ -122,7 +122,7 @@ export default function ServicesModal() {
                     key={category.title}
                     href={category.href}
                     onClick={closeServices}
-                    className="block px-3 py-4 text-base font-bold uppercase tracking-wide text-neutral-900 hover:text-red-600 border-b border-gray-200 transition-colors"
+                    className="block px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] border-b border-gray-200 transition-colors"
                   >
                     {category.title}
                   </a>
@@ -133,7 +133,7 @@ export default function ServicesModal() {
               return (
                 <div key={category.title} className="border-b border-gray-200">
                   <button
-                    className="w-full flex items-center justify-between px-3 py-4 text-base font-bold uppercase tracking-wide text-neutral-900 hover:text-red-600 transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors"
                     onClick={() => setExpandedCategory(isExpanded ? null : category.title)}
                   >
                     <span>{category.title}</span>
@@ -149,7 +149,7 @@ export default function ServicesModal() {
                           key={item.name}
                           href={item.href}
                           onClick={closeServices}
-                          className="block px-3 py-2 text-sm text-neutral-900 hover:text-red-600 transition-colors"
+                          className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
                         >
                           {item.name}
                         </a>
@@ -163,14 +163,14 @@ export default function ServicesModal() {
 
           {/* Services Grid */}
           <div className="border-t border-gray-200 p-4">
-            <h4 className="text-neutral-900 font-bold text-sm uppercase tracking-wide mb-3">Services</h4>
+            <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">Services</h4>
             <div className="space-y-2">
               {servicesItems.map((item) => (
                 <a
                   key={item.name}
                   href={item.href}
                   onClick={closeServices}
-                  className="block px-3 py-2 text-sm text-neutral-900 hover:text-red-600 transition-colors"
+                  className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
                 >
                   {item.name}
                 </a>
@@ -184,10 +184,10 @@ export default function ServicesModal() {
       <div className="hidden md:block">
         <div className="fixed inset-0 bg-black/50 z-50" onClick={closeServices} />
         <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] bg-white border border-gray-200 rounded-none shadow-2xl p-6 z-50 max-h-[80vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4 border-b-2 border-red-600 pb-4">
-            <h3 className="text-neutral-900 font-bold uppercase tracking-wide">{t.servicesMalakin}</h3>
+          <div className="flex justify-between items-center mb-4 border-b-2 border-[#D4AF37] pb-4">
+            <h3 className="text-[#081C3D] font-bold uppercase tracking-wide">{t.servicesMalakin}</h3>
             <button
-              className="flex items-center gap-2 text-neutral-900 hover:text-red-600 transition-colors"
+              className="flex items-center gap-2 text-[#081C3D] hover:text-[#D4AF37] transition-colors"
               onClick={closeServices}
             >
               <span className="text-sm font-bold uppercase">FERMER</span>
@@ -204,7 +204,7 @@ export default function ServicesModal() {
                     key={category.title}
                     href={category.href}
                     onClick={closeServices}
-                    className="block px-3 py-4 text-base font-bold uppercase tracking-wide text-neutral-900 hover:text-red-600 border-b border-gray-200 transition-colors"
+                    className="block px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] border-b border-gray-200 transition-colors"
                   >
                     {category.title}
                   </a>
@@ -215,7 +215,7 @@ export default function ServicesModal() {
               return (
                 <div key={category.title} className="border-b border-gray-200">
                   <button
-                    className="w-full flex items-center justify-between px-3 py-4 text-base font-bold uppercase tracking-wide text-neutral-900 hover:text-red-600 transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors"
                     onClick={() => setExpandedCategory(isExpanded ? null : category.title)}
                   >
                     <span>{category.title}</span>
@@ -231,7 +231,7 @@ export default function ServicesModal() {
                           key={item.name}
                           href={item.href}
                           onClick={closeServices}
-                          className="block px-3 py-2 text-sm text-neutral-900 hover:text-red-600 transition-colors"
+                          className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
                         >
                           {item.name}
                         </a>
@@ -245,14 +245,14 @@ export default function ServicesModal() {
 
           {/* Services Grid */}
           <div className="border-t border-gray-200 pt-4">
-            <h4 className="text-neutral-900 font-bold text-sm uppercase tracking-wide mb-3">Services</h4>
+            <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">Services</h4>
             <div className="space-y-2">
               {servicesItems.map((item) => (
                 <a
                   key={item.name}
                   href={item.href}
                   onClick={closeServices}
-                  className="block px-3 py-2 text-sm text-neutral-900 hover:text-red-600 transition-colors"
+                  className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
                 >
                   {item.name}
                 </a>

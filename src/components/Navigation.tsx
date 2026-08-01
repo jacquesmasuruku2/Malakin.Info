@@ -399,7 +399,7 @@ export default function Navigation() {
               
               <Link
                 href={`/${locale}/nous-soutenir`}
-                className="bg-[#F6E3B4] hover:bg-amber-200 rounded-full px-5 py-2 font-semibold text-black transition-colors"
+                className="bg-[#0B3B8B] hover:bg-[#082a63] rounded-full px-5 py-2 font-semibold text-white transition-colors"
               >
                 S'abonner
               </Link>
@@ -442,31 +442,31 @@ export default function Navigation() {
       <div className="bg-white border-b border-gray-200 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center space-x-8 py-3 overflow-x-auto">
-            <Link href={`/${locale}/actualites`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+            <Link href={`/${locale}/actualites`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
               ACTUALITÉS
             </Link>
-            <Link href={`/${locale}/actualites/politique`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+            <Link href={`/${locale}/actualites/politique`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
               POLITIQUE
             </Link>
-            <Link href={`/${locale}/actualites/economie`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+            <Link href={`/${locale}/actualites/economie`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
               ÉCONOMIE
             </Link>
-            <Link href={`/${locale}/science-tech`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+            <Link href={`/${locale}/science-tech`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
               SCIENCE & TECH
             </Link>
-            <Link href={`/${locale}/culture`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+            <Link href={`/${locale}/culture`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
               CULTURE
             </Link>
-            <Link href={`/${locale}/sport`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+            <Link href={`/${locale}/sport`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
               SPORT
             </Link>
-            <Link href={`/${locale}/classement`} className="font-bold text-sm tracking-wide text-red-600 hover:text-red-700 transition-colors whitespace-nowrap">
+            <Link href={`/${locale}/classement`} className="font-bold text-sm tracking-wide text-[#D4AF37] hover:text-[#0B3B8B] transition-colors whitespace-nowrap">
               20 PAYS LES PLUS PERFORMANTS
             </Link>
-            <Link href={`/${locale}/medias`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+            <Link href={`/${locale}/medias`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
               MÉDIAS
             </Link>
-            <Link href={`/${locale}/religion`} className="font-bold text-sm tracking-wide text-black hover:text-primary transition-colors whitespace-nowrap">
+            <Link href={`/${locale}/religion`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
               RELIGION
             </Link>
           </div>
