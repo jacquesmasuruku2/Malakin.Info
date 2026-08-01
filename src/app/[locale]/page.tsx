@@ -77,213 +77,173 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
   return (
     <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <h1 className="font-heading text-4xl md:text-5xl font-bold mb-4">
-              {locale === 'fr' ? "L'info qui traverse les frontières" : "News that crosses borders"}
-            </h1>
-            <p className="text-xl text-gray-200 mb-8">
-              {locale === 'fr' ? "Informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel." : "Informing, educating and connecting Africa through independent, reliable and multicultural journalism."}
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link
-                href={`/${locale}/actualites`}
-                className="inline-flex items-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
-              >
-                {locale === 'fr' ? 'Découvrir l\'actualité' : 'Discover the news'}
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Link>
-              <Link
-                href={`/${locale}/a-propos`}
-                className="inline-flex items-center px-6 py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors font-medium"
-              >
-                {locale === 'fr' ? 'En savoir plus' : 'Learn more'}
-              </Link>
+      {/* Main Editorial Layout */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
+          
+          {/* Left Column - Main Content (70%) */}
+          <div className="lg:col-span-7">
+            {/* Featured Article - À la une */}
+            {featuredNews.length > 0 && (
+              <article className="mb-8 border-b-2 border-gray-200 pb-8">
+                <div className="relative h-80 md:h-96 mb-4">
+                  <img
+                    src={featuredNews[0].image}
+                    alt={featuredNews[0].title}
+                    className="w-full h-full object-cover"
+                  />
+                  <span className="absolute top-4 left-4 px-3 py-1 bg-[#E2001A] text-white text-xs font-bold uppercase tracking-wide">
+                    {locale === 'fr' ? 'DIRECT' : 'LIVE'}
+                  </span>
+                </div>
+                <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-black mb-4 leading-tight">
+                  {featuredNews[0].title}
+                </h1>
+                <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                  <span className="text-[#E2001A] font-semibold">
+                    {new Date().toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  <span>•</span>
+                  <span className="text-gray-500">{featuredNews[0].category}</span>
+                </div>
+                <p className="text-gray-700 text-lg mb-4 leading-relaxed">
+                  {featuredNews[0].excerpt}
+                </p>
+                
+                {/* Related Sub-links */}
+                {featuredNews.length > 1 && (
+                  <div className="flex flex-wrap gap-4 mt-6 pt-4 border-t border-gray-200">
+                    <Link
+                      href={`/${locale}/${featuredNews[1].categorySlug}/${featuredNews[1].slug}`}
+                      className="text-sm font-semibold text-[#E2001A] hover:underline"
+                    >
+                      {locale === 'fr' ? 'Crisis:' : 'Crisis:'} {featuredNews[1].title}
+                    </Link>
+                    {featuredNews.length > 2 && (
+                      <Link
+                        href={`/${locale}/${featuredNews[2].categorySlug}/${featuredNews[2].slug}`}
+                        className="text-sm font-semibold text-[#E2001A] hover:underline"
+                      >
+                        {locale === 'fr' ? 'À la Une:' : 'Featured:'} {featuredNews[2].title}
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </article>
+            )}
+
+            {/* Article Cards Grid */}
+            <div className="mb-8">
+              <h2 className="font-heading text-xl font-bold text-black mb-6 uppercase tracking-wide border-l-4 border-[#E2001A] pl-3">
+                {locale === 'fr' ? 'Dernières actualités' : 'Latest news'}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {latestNews.slice(0, 6).map((news) => (
+                  <article
+                    key={news.id}
+                    className="bg-white border border-gray-200 hover:border-[#E2001A] transition-colors"
+                  >
+                    <div className="relative h-40">
+                      <img
+                        src={news.image}
+                        alt={news.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute bottom-2 left-2 px-2 py-1 bg-[#E2001A] text-white text-xs font-bold uppercase">
+                        {news.category}
+                      </span>
+                    </div>
+                    <div className="p-4">
+                      <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                        <span className="text-[#E2001A] font-semibold">
+                          {new Date().toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <span>•</span>
+                        <span>{news.date}</span>
+                      </div>
+                      <Link
+                        href={`/${locale}/${news.categorySlug}/${news.slug}`}
+                        className="block"
+                      >
+                        <h3 className="font-heading font-bold text-black text-lg mb-2 hover:text-[#E2001A] transition-colors line-clamp-2">
+                          {news.title}
+                        </h3>
+                      </Link>
+                      <p className="text-gray-600 text-sm line-clamp-2">
+                        {news.excerpt || ''}
+                      </p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Sidebar (30%) */}
+          <div className="lg:col-span-3">
+            <div className="sticky top-20">
+              <div className="bg-white border border-gray-200">
+                <div className="bg-[#E2001A] text-white px-4 py-3">
+                  <h3 className="font-heading font-bold text-lg uppercase tracking-wide flex items-center">
+                    {locale === 'fr' ? 'En continu' : 'Live feed'}
+                    <span className="ml-2 animate-pulse">›</span>
+                  </h3>
+                </div>
+                <div className="divide-y divide-gray-200">
+                  {latestNews.slice(0, 8).map((news, index) => (
+                    <article
+                      key={news.id}
+                      className="p-4 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="text-[#E2001A] font-bold text-sm whitespace-nowrap">
+                          {new Date().toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <div>
+                          <Link
+                            href={`/${locale}/${news.categorySlug}/${news.slug}`}
+                            className="block"
+                          >
+                            <h4 className="font-heading font-semibold text-black text-sm hover:text-[#E2001A] transition-colors line-clamp-2">
+                              {news.title}
+                            </h4>
+                          </Link>
+                          <span className="text-xs text-gray-500 mt-1 block">
+                            {news.category}
+                          </span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+
+              {/* AdSense in Sidebar */}
+              <div className="mt-6">
+                <AdSenseAd adSlot="3333333333" className="my-4" />
+              </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Featured News */}
-      <section className="py-12 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="font-heading text-3xl font-bold text-foreground">
-              {t.featuredNews}
-            </h2>
-            <Link
-              href={`/${locale}/actualites`}
-              className="flex items-center text-primary hover:text-primary/80 font-medium"
-            >
-              {locale === 'fr' ? 'Voir tout' : 'See all'}
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
-          </div>
-
-          {/* AdSense Ad - Top of Featured Section */}
-          <div className="mb-8">
-            <AdSenseAd adSlot="1111111111" className="my-4" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredNews.map((news) => (
-              <article
-                key={news.id}
-                className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="relative h-48">
-                  <img
-                    src={news.image}
-                    alt={news.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <span className="absolute top-4 left-4 px-3 py-1 bg-primary text-white text-xs font-medium rounded-full">
-                    {news.category}
-                  </span>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {news.date}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {news.readTime}
-                    </span>
-                  </div>
-                  <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
-                    {news.title}
-                  </h3>
-                  <p className="text-muted-foreground line-clamp-2 mb-4">
-                    {news.excerpt}
-                  </p>
-                  <Link
-                    href={`/${locale}/${news.categorySlug}/${news.slug}`}
-                    className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-                  >
-                    {locale === 'fr' ? 'Lire la suite' : 'Read more'}
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Categories */}
-      <section className="py-12 bg-muted/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="font-heading text-3xl font-bold text-foreground mb-8">
-            {locale === 'fr' ? 'Explorez par catégorie' : 'Explore by category'}
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((category) => (
-              <Link
-                key={category.name}
-                href={category.href}
-                className="group"
-              >
-                <div className={`${category.color} rounded-lg p-6 text-center text-white hover:opacity-90 transition-opacity`}>
-                  <h3 className="font-heading font-semibold text-lg">
-                    {category.name}
-                  </h3>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Latest News */}
-      <section className="py-12 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-          {/* AdSense Ad - Top of Latest Section */}
-          <div className="mb-8">
-            <AdSenseAd adSlot="2222222222" className="my-4" />
-          </div>
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="font-heading text-3xl font-bold text-foreground">
-              {t.latestNews}
-            </h2>
-            <Link
-              href={`/${locale}/actualites`}
-              className="flex items-center text-primary hover:text-primary/80 font-medium"
-            >
-              {locale === 'fr' ? 'Voir tout' : 'See all'}
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {latestNews.map((news) => (
-              <article
-                key={news.id}
-                className="flex gap-4 p-4 bg-card rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div className="w-32 h-24 flex-shrink-0">
-                  <img
-                    src={news.image}
-                    alt={news.title}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                </div>
-                <div className="flex-1">
-                  <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded mb-2">
-                    {news.category}
-                  </span>
-                  <Link
-                    href={`/${locale}/${news.categorySlug}/${news.slug}`}
-                    className="block"
-                  >
-                    <h3 className="font-heading font-semibold text-foreground mb-2 line-clamp-2 hover:text-primary transition-colors">
-                      {news.title}
-                    </h3>
-                  </Link>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {news.date}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {news.readTime}
-                    </span>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter */}
-      <section className="py-16 bg-secondary text-white">
+      {/* Newsletter Section */}
+      <section className="py-12 bg-gray-100 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mx-auto text-center">
-            <h2 className="font-heading text-3xl font-bold mb-4">
-              Restez informé
+            <h2 className="font-heading text-2xl font-bold text-black mb-4">
+              {locale === 'fr' ? 'Restez informé' : 'Stay informed'}
             </h2>
-            <p className="text-gray-200 mb-8">
-              Abonnez-vous à notre newsletter pour recevoir les dernières actualités directement dans votre boîte mail.
+            <p className="text-gray-600 mb-6">
+              {locale === 'fr' ? 'Abonnez-vous à notre newsletter pour recevoir les dernières actualités.' : 'Subscribe to our newsletter to receive the latest news.'}
             </p>
-            <form className="flex flex-col sm:flex-row gap-4">
-              <input
-                type="email"
-                placeholder="Votre adresse email"
-                className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
-              >
-                S'abonner
-              </button>
-            </form>
+            <Link
+              href={`/${locale}/newsletter`}
+              className="inline-flex items-center px-6 py-3 bg-[#E2001A] text-white font-semibold rounded hover:bg-[#C00016] transition-colors"
+            >
+              {locale === 'fr' ? 'S\'abonner' : 'Subscribe'}
+              <ArrowRight className="ml-2 w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
