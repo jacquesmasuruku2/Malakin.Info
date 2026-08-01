@@ -171,7 +171,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                         </h3>
                       </Link>
                       <p className="text-gray-600 text-sm line-clamp-2">
-                        {news.excerpt || ''}
+                        {(news as any).excerpt || ''}
                       </p>
                     </div>
                   </article>
