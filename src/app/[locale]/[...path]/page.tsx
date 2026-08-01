@@ -1,19 +1,22 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { Calendar, Clock, User, Bookmark, ArrowLeft } from 'lucide-react';
-import { notFound } from 'next/navigation';
+import { Calendar, Clock, User, ArrowLeft } from 'lucide-react';
+import { notFound, redirect } from 'next/navigation';
 import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ArticlePage({ 
+export default async function CatchAllArticlePage({ 
   params 
 }: { 
-  params: Promise<{ locale: string; category: string; slug: string }> 
+  params: Promise<{ locale: string; path: string[] }> 
 }) {
-  const { locale, category, slug } = await params;
+  const { locale, path } = await params;
+
+  // Extract the slug from the path (last segment)
+  const slug = path[path.length - 1];
 
   // Translations
   const t = {
@@ -38,8 +41,11 @@ export default async function ArticlePage({
       notFound();
     }
 
-    // Allow flexible routing - don't enforce strict category match
-    // This handles both /fr/culture/slug and /fr/actualites/culture/slug patterns
+    // Redirect to the canonical URL
+    const canonicalUrl = `/${locale}/${article.category?.slug || 'actualites'}/${slug}`;
+    if (path.length > 1 || path[0] !== article.category?.slug) {
+      redirect(canonicalUrl);
+    }
 
     const relatedArticles = await prisma.article.findMany({
       where: {
@@ -151,7 +157,7 @@ export default async function ArticlePage({
           {/* Share Buttons */}
           <ShareButtons 
             title={article.title} 
-            url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
+            url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${article.category?.slug || 'actualites'}/${slug}`}
             locale={locale}
           />
         </article>
