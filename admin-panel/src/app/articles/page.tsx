@@ -24,6 +24,7 @@ interface Article {
   publishedAt: string;
   featured: boolean;
   views: number;
+  mainImageUrl: string | null;
   category: {
     id: string;
     title: string;
@@ -182,9 +183,22 @@ export default function ArticlesPage() {
                 {filteredArticles.map((article) => (
                   <tr key={article.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0 w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <FileText className="w-6 h-6 text-gray-400" />
+                      <div className="flex items-start space-x-4">
+                        <div className="flex-shrink-0 w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
+                          {article.mainImageUrl ? (
+                            <img 
+                              src={article.mainImageUrl} 
+                              alt={article.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
+                          ) : null}
+                          <div className={`w-full h-full flex items-center justify-center ${article.mainImageUrl ? 'hidden' : ''}`}>
+                            <FileText className="w-8 h-8 text-gray-400" />
+                          </div>
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate max-w-xs">

@@ -12,7 +12,14 @@ export async function GET() {
         createdAt: 'desc',
       },
     });
-    return NextResponse.json(articles);
+    
+    // Convert BigInt to number for JSON serialization
+    const serializedArticles = articles.map(article => ({
+      ...article,
+      views: Number(article.views),
+    }));
+    
+    return NextResponse.json(serializedArticles);
   } catch (error) {
     console.error('Error fetching articles:', error);
     return NextResponse.json({ 
