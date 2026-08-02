@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { X, Newspaper, ScrollText, Radio, BookOpen, ChevronRight, Home } from 'lucide-react';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import frMessages from '../../messages/fr.json';
 import enMessages from '../../messages/en.json';
 
@@ -13,6 +13,16 @@ export default function ServicesModal() {
   const locale = pathname.split('/')[1] || 'fr';
   const t = locale === 'fr' ? frMessages.nav : enMessages.nav;
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // Handle animation when modal opens/closes
+  useEffect(() => {
+    if (isServicesOpen) {
+      setIsAnimating(true);
+    } else {
+      setIsAnimating(false);
+    }
+  }, [isServicesOpen]);
 
   const servicesItems = [
     { name: t.search, href: `/${locale}/recherche` },
@@ -95,12 +105,16 @@ export default function ServicesModal() {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-50 md:hidden"
+        className={`fixed inset-0 bg-black/50 z-50 md:hidden transition-opacity duration-300 ${
+          isAnimating ? 'opacity-100' : 'opacity-0'
+        }`}
         onClick={closeServices}
       />
 
       {/* Mobile Bottom Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+      <div className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ease-out ${
+        isAnimating ? 'translate-y-0' : 'translate-y-full'
+      }`}>
         <div className="bg-white rounded-none max-h-[80vh] overflow-y-auto">
           <div className="sticky top-0 bg-white p-4 border-b-2 border-[#D4AF37] flex justify-between items-center">
             <h3 className="text-[#081C3D] font-bold uppercase tracking-wide">{t.servicesMalakin}</h3>
@@ -138,24 +152,28 @@ export default function ServicesModal() {
                   >
                     <span>{category.title}</span>
                     <ChevronRight
-                      className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                      className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
                     />
                   </button>
 
-                  {isExpanded && category.items && (
-                    <div className="pl-4 pr-3 py-2 space-y-1 bg-gray-50">
-                      {category.items.map((item) => (
-                        <a
-                          key={item.name}
-                          href={item.href}
-                          onClick={closeServices}
-                          className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
-                        >
-                          {item.name}
-                        </a>
-                      ))}
-                    </div>
-                  )}
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                    isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  }`}>
+                    {isExpanded && category.items && (
+                      <div className="pl-4 pr-3 py-2 space-y-1 bg-gray-50">
+                        {category.items.map((item) => (
+                          <a
+                            key={item.name}
+                            href={item.href}
+                            onClick={closeServices}
+                            className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
+                          >
+                            {item.name}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -182,8 +200,12 @@ export default function ServicesModal() {
 
       {/* Desktop Dropdown */}
       <div className="hidden md:block">
-        <div className="fixed inset-0 bg-black/50 z-50" onClick={closeServices} />
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] bg-white border border-gray-200 rounded-none shadow-2xl p-6 z-50 max-h-[80vh] overflow-y-auto">
+        <div className={`fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 ${
+          isAnimating ? 'opacity-100' : 'opacity-0'
+        }`} onClick={closeServices} />
+        <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] bg-white border border-gray-200 rounded-none shadow-2xl p-6 z-50 max-h-[80vh] overflow-y-auto transition-all duration-300 ease-out ${
+          isAnimating ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        }`}>
           <div className="flex justify-between items-center mb-4 border-b-2 border-[#D4AF37] pb-4">
             <h3 className="text-[#081C3D] font-bold uppercase tracking-wide">{t.servicesMalakin}</h3>
             <button
@@ -220,24 +242,28 @@ export default function ServicesModal() {
                   >
                     <span>{category.title}</span>
                     <ChevronRight
-                      className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                      className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
                     />
                   </button>
 
-                  {isExpanded && category.items && (
-                    <div className="pl-4 pr-3 py-2 space-y-1 bg-gray-50">
-                      {category.items.map((item) => (
-                        <a
-                          key={item.name}
-                          href={item.href}
-                          onClick={closeServices}
-                          className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
-                        >
-                          {item.name}
-                        </a>
-                      ))}
-                    </div>
-                  )}
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                    isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  }`}>
+                    {isExpanded && category.items && (
+                      <div className="pl-4 pr-3 py-2 space-y-1 bg-gray-50">
+                        {category.items.map((item) => (
+                          <a
+                            key={item.name}
+                            href={item.href}
+                            onClick={closeServices}
+                            className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
+                          >
+                            {item.name}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
