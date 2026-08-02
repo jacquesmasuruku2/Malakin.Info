@@ -95,7 +95,7 @@ export default async function BlogPostPage({
 
           {/* Featured Image */}
           {blogPost.mainImageUrl && (
-            <div className="mb-8 rounded-lg overflow-hidden">
+            <div className="mb-4 rounded-lg overflow-hidden">
               <img
                 src={blogPost.mainImageUrl}
                 alt={blogPost.title}

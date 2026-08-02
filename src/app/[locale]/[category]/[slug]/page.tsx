@@ -127,7 +127,7 @@ export default async function ArticlePage({
 
           {/* Featured Image */}
           {article.mainImageUrl && (
-            <div className="mb-8 rounded-lg overflow-hidden">
+            <div className="mb-4 rounded-lg overflow-hidden">
               <img
                 src={article.mainImageUrl}
                 alt={article.title}
@@ -137,7 +137,7 @@ export default async function ArticlePage({
           )}
 
           {/* AdSense Ad - After Featured Image */}
-          <div className="mb-8">
+          <div className="mb-4">
             <AdSenseAd adSlot="1234567890" className="my-4" />
           </div>
 
