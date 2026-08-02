@@ -4,7 +4,9 @@ import AdminLayout from '@/components/AdminLayout';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, X } from 'lucide-react';
-import ReactQuill from 'react-quill';
+import dynamic from 'next/dynamic';
+
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 import 'react-quill/dist/quill.snow.css';
 
 export default function NewArticlePage() {
