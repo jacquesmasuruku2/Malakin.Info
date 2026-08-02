@@ -26,11 +26,14 @@ declare module 'next-auth/jwt' {
   }
 }
 
+// Check if Google OAuth is configured
+const isGoogleConfigured = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
+
 const handler = NextAuth({
-  providers: [
+  providers: isGoogleConfigured ? [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
           prompt: 'consent',
@@ -39,7 +42,8 @@ const handler = NextAuth({
         },
       },
     }),
-  ],
+  ] : [],
+  debug: process.env.NODE_ENV === 'development',
   callbacks: {
     async signIn({ user, account }: any) {
       try {
