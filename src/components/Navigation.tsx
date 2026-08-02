@@ -295,7 +295,7 @@ export default function Navigation() {
             {/* Center - Logo */}
             <Link href={`/${locale}`} className="flex items-center">
               <img 
-                src="/logo.png" 
+                src="/images/logo.png" 
                 alt="MalakInfo" 
                 className="h-10 w-auto"
               />

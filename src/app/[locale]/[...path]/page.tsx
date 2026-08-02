@@ -137,7 +137,7 @@ export default async function CatchAllArticlePage({
         name: 'Malakinfo',
         logo: {
           '@type': 'ImageObject',
-          url: `${baseUrl}/logo.png`,
+          url: `${baseUrl}/images/logo.png`,
         },
       },
       mainEntityOfPage: {

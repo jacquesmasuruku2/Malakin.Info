@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     siteName: 'Malakinfo',
     images: [
       {
-        url: '/logo.png',
+        url: '/images/logo.png',
         width: 1200,
         height: 630,
         alt: 'Malakinfo',
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Malakinfo.com - L\'info qui traverse les frontières',
     description: 'Informer, éduquer et connecter l\'Afrique à travers un journalisme indépendant, fiable et multiculturel.',
-    images: ['/logo.png'],
+    images: ['/images/logo.png'],
     creator: '@malakinfo',
   },
   robots: {
