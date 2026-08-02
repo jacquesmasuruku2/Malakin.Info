@@ -85,15 +85,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           },
         },
       },
-      select: {
-        slug: true,
-        updatedAt: true,
-      },
     })
 
     // Add article pages to sitemap
     const articlePages: MetadataRoute.Sitemap = articles.map((article) => ({
-      url: `${baseUrl}/fr/${(article as any).category?.slug || 'actualites'}/${article.slug}`,
+      url: `${baseUrl}/fr/${article.category?.slug || 'actualites'}/${article.slug}`,
       lastModified: article.updatedAt,
       changeFrequency: 'weekly' as const,
       priority: 0.8,
