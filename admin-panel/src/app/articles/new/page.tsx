@@ -2,11 +2,10 @@
 
 import AdminLayout from '@/components/AdminLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import WordEditor from '@/components/WordEditor';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, X } from 'lucide-react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 
 export default function NewArticlePage() {
   const router = useRouter();
@@ -50,14 +49,6 @@ export default function NewArticlePage() {
 
     return () => clearTimeout(timer);
   }, [formData]);
-
-  const editor = useEditor({
-    extensions: [StarterKit],
-    content: formData.content,
-    onUpdate: ({ editor }) => {
-      setFormData({ ...formData, content: editor.getHTML() });
-    },
-  });
 
   useEffect(() => {
     fetchCategories();
@@ -126,9 +117,6 @@ export default function NewArticlePage() {
       readTime: '',
       mainImageUrl: '',
     });
-    if (editor) {
-      editor.commands.setContent('');
-    }
   };
 
   const generateSlug = (title: string) => {
@@ -229,97 +217,10 @@ export default function NewArticlePage() {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Contenu *
                   </label>
-                  <div className="border border-gray-300 rounded-xl overflow-hidden">
-                    {/* Modern Toolbar */}
-                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 p-3">
-                      <div className="flex flex-wrap gap-2 items-center">
-                        {/* Text formatting */}
-                        <div className="flex gap-1 bg-white rounded-lg p-1 shadow-sm border border-gray-200">
-                          <button
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleBold().run()}
-                            className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('bold') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                            title="Gras"
-                          >
-                            <strong className="text-sm font-bold">B</strong>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleItalic().run()}
-                            className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('italic') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                            title="Italique"
-                          >
-                            <em className="text-sm italic">I</em>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleStrike().run()}
-                            className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('strike') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                            title="Barré"
-                          >
-                            <s className="text-sm">S</s>
-                          </button>
-                        </div>
-
-                        {/* Headings */}
-                        <div className="flex gap-1 bg-white rounded-lg p-1 shadow-sm border border-gray-200">
-                          <button
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-                            className={`px-3 py-2 rounded-md hover:bg-blue-50 transition-colors text-sm font-bold ${editor?.isActive('heading', { level: 1 }) ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                            title="Titre 1"
-                          >
-                            H1
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-                            className={`px-3 py-2 rounded-md hover:bg-blue-50 transition-colors text-sm font-bold ${editor?.isActive('heading', { level: 2 }) ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                            title="Titre 2"
-                          >
-                            H2
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
-                            className={`px-3 py-2 rounded-md hover:bg-blue-50 transition-colors text-sm font-bold ${editor?.isActive('heading', { level: 3 }) ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                            title="Titre 3"
-                          >
-                            H3
-                          </button>
-                        </div>
-
-                        {/* Lists */}
-                        <div className="flex gap-1 bg-white rounded-lg p-1 shadow-sm border border-gray-200">
-                          <button
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                            className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                            title="Liste à puces"
-                          >
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z"/>
-                            </svg>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                            className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('orderedList') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                            title="Liste numérotée"
-                          >
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z"/>
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Editor content area */}
-                    <div className="bg-white min-h-[450px]">
-                      <EditorContent editor={editor} className="prose prose-sm sm:prose-base max-w-none p-6 focus:outline-none" />
-                    </div>
-                  </div>
+                  <WordEditor 
+                    content={formData.content} 
+                    onChange={(content) => setFormData({ ...formData, content })} 
+                  />
                 </div>
               </div>
             </div>
