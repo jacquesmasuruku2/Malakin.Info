@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
-import { Lock } from 'lucide-react';
+import { Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,12 +21,12 @@ export default function LoginPage() {
     // Simulate a small delay for better UX
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    const success = login(password);
+    const success = login(email, password);
     
     if (success) {
       router.push('/');
     } else {
-      setError('Mot de passe incorrect');
+      setError('Email ou mot de passe incorrect');
       setPassword('');
     }
     
@@ -60,6 +61,21 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
+                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Entrez votre email"
+                  autoFocus
+                />
+              </div>
+
+              <div>
                 <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
                   Mot de passe
                 </label>
@@ -70,7 +86,6 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Entrez votre mot de passe"
-                  autoFocus
                 />
                 {error && (
                   <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
@@ -84,7 +99,7 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                disabled={loading || !password}
+                disabled={loading || !email || !password}
                 className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
               >
                 {loading ? 'Connexion...' : 'Se connecter'}
