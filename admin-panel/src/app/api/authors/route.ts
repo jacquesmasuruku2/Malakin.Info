@@ -15,7 +15,11 @@ export async function GET() {
     });
     return NextResponse.json(authors);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch authors' }, { status: 500 });
+    console.error('Error fetching authors:', error);
+    return NextResponse.json({ 
+      error: 'Failed to fetch authors',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
 
@@ -35,6 +39,10 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json(author, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create author' }, { status: 500 });
+    console.error('Error creating author:', error);
+    return NextResponse.json({ 
+      error: 'Failed to create author',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

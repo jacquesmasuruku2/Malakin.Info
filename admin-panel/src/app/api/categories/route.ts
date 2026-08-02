@@ -15,7 +15,11 @@ export async function GET() {
     });
     return NextResponse.json(categories);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 });
+    console.error('Error fetching categories:', error);
+    return NextResponse.json({ 
+      error: 'Failed to fetch categories',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
 
@@ -33,6 +37,10 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json(category, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create category' }, { status: 500 });
+    console.error('Error creating category:', error);
+    return NextResponse.json({ 
+      error: 'Failed to create category',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

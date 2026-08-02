@@ -14,7 +14,11 @@ export async function GET() {
     });
     return NextResponse.json(articles);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch articles' }, { status: 500 });
+    console.error('Error fetching articles:', error);
+    return NextResponse.json({ 
+      error: 'Failed to fetch articles',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
 
@@ -41,6 +45,10 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json(article, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create article' }, { status: 500 });
+    console.error('Error creating article:', error);
+    return NextResponse.json({ 
+      error: 'Failed to create article',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
