@@ -15,4 +15,4 @@ Disallow: /compte/
 Disallow: /studio/
 
 # Sitemap
-Sitemap: https://malakin-info.vercel.app/sitemap.xml
+Sitemap: https://malakinfo.com/sitemap.xml
