@@ -242,9 +242,15 @@ export default function ArticlesPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-2">
-                        <button className="p-2 text-gray-400 hover:text-blue-600 transition-colors" title="Voir">
+                        <a 
+                          href={`https://malakinfo.com/${article.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors" 
+                          title="Voir sur le site"
+                        >
                           <Eye className="w-4 h-4" />
-                        </button>
+                        </a>
                         <Link 
                           href={`/articles/${article.id}/edit`}
                           className="p-2 text-gray-400 hover:text-green-600 transition-colors" 
