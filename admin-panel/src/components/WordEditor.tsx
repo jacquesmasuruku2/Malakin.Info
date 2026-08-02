@@ -44,6 +44,8 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
   const [charCount, setCharCount] = useState(0);
   const [zoom, setZoom] = useState(100);
   const [activeTab, setActiveTab] = useState('home');
+  const [fontSize, setFontSize] = useState('11');
+  const [lineHeight, setLineHeight] = useState('1.5');
 
   const editor = useEditor({
     extensions: [StarterKit],
@@ -142,17 +144,19 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
               <select
                 className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-blue-50 w-16"
                 title="Taille"
+                value={fontSize}
+                onChange={(e) => setFontSize(e.target.value)}
               >
-                <option>8</option>
-                <option>9</option>
-                <option>10</option>
-                <option selected>11</option>
-                <option>12</option>
-                <option>14</option>
-                <option>16</option>
-                <option>18</option>
-                <option>20</option>
-                <option>24</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="14">14</option>
+                <option value="16">16</option>
+                <option value="18">18</option>
+                <option value="20">20</option>
+                <option value="24">24</option>
               </select>
               <div className="flex gap-1">
                 <button
@@ -277,11 +281,13 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
               <select
                 className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-blue-50"
                 title="Interligne"
+                value={lineHeight}
+                onChange={(e) => setLineHeight(e.target.value)}
               >
-                <option>1.0</option>
-                <option>1.15</option>
-                <option selected>1.5</option>
-                <option>2.0</option>
+                <option value="1.0">1.0</option>
+                <option value="1.15">1.15</option>
+                <option value="1.5">1.5</option>
+                <option value="2.0">2.0</option>
               </select>
             </div>
 
