@@ -1,6 +1,7 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
@@ -90,21 +91,22 @@ export default function ArticlesPage() {
   });
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Articles</h1>
-            <p className="text-gray-600 mt-1">Gérer tous vos articles</p>
+    <ProtectedRoute>
+      <AdminLayout>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Articles</h1>
+              <p className="text-gray-600 mt-1">Gérer tous vos articles</p>
+            </div>
+            <Link 
+              href="/articles/new"
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Nouvel article</span>
+            </Link>
           </div>
-          <Link 
-            href="/articles/new"
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Nouvel article</span>
-          </Link>
-        </div>
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
@@ -284,5 +286,6 @@ export default function ArticlesPage() {
         </div>
       </div>
     </AdminLayout>
+    </ProtectedRoute>
   );
 }

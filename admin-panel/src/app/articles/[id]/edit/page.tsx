@@ -1,6 +1,7 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Save, X } from 'lucide-react';
@@ -167,301 +168,303 @@ export default function EditArticlePage() {
   }
 
   return (
-    <AdminLayout>
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Modifier l'article</h1>
-              <p className="text-gray-500 mt-1">Modifier et publier l'article existant</p>
+    <ProtectedRoute>
+      <AdminLayout>
+        <div className="max-w-5xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Modifier l'article</h1>
+                <p className="text-gray-500 mt-1">Modifier et publier l'article existant</p>
+              </div>
+              <div className="flex items-center gap-3">
+                {autoSaving && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-lg text-sm">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                    <span>Auto-sauvegarde</span>
+                  </div>
+                )}
+                <button
+                  onClick={() => router.push('/articles')}
+                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+                >
+                  Annuler
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              {autoSaving && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-lg text-sm">
-                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                  <span>Auto-sauvegarde</span>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Main Content Card */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="p-6 space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Titre *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.title}
+                    onChange={handleTitleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg"
+                    placeholder="Titre de l'article"
+                  />
                 </div>
-              )}
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Slug *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.slug}
+                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="url-de-l-article"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Extrait *
+                  </label>
+                  <textarea
+                    required
+                    value={formData.excerpt}
+                    onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                    placeholder="Brève description de l'article"
+                  />
+                </div>
+
+                {/* Rich Text Editor */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Contenu *
+                  </label>
+                  <div className="border border-gray-300 rounded-xl overflow-hidden">
+                    {/* Modern Toolbar */}
+                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 p-3">
+                      <div className="flex flex-wrap gap-2 items-center">
+                        {/* Text formatting */}
+                        <div className="flex gap-1 bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+                          <button
+                            type="button"
+                            onClick={() => editor?.chain().focus().toggleBold().run()}
+                            className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('bold') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
+                            title="Gras"
+                          >
+                            <strong className="text-sm font-bold">B</strong>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => editor?.chain().focus().toggleItalic().run()}
+                            className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('italic') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
+                            title="Italique"
+                          >
+                            <em className="text-sm italic">I</em>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => editor?.chain().focus().toggleStrike().run()}
+                            className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('strike') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
+                            title="Barré"
+                          >
+                            <s className="text-sm">S</s>
+                          </button>
+                        </div>
+
+                        {/* Headings */}
+                        <div className="flex gap-1 bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+                          <button
+                            type="button"
+                            onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                            className={`px-3 py-2 rounded-md hover:bg-blue-50 transition-colors text-sm font-bold ${editor?.isActive('heading', { level: 1 }) ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
+                            title="Titre 1"
+                          >
+                            H1
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                            className={`px-3 py-2 rounded-md hover:bg-blue-50 transition-colors text-sm font-bold ${editor?.isActive('heading', { level: 2 }) ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
+                            title="Titre 2"
+                          >
+                            H2
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+                            className={`px-3 py-2 rounded-md hover:bg-blue-50 transition-colors text-sm font-bold ${editor?.isActive('heading', { level: 3 }) ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
+                            title="Titre 3"
+                          >
+                            H3
+                          </button>
+                        </div>
+
+                        {/* Lists */}
+                        <div className="flex gap-1 bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+                          <button
+                            type="button"
+                            onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                            className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
+                            title="Liste à puces"
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z"/>
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                            className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('orderedList') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
+                            title="Liste numérotée"
+                          >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Editor content area */}
+                    <div className="bg-white min-h-[450px]">
+                      <EditorContent editor={editor} className="prose prose-sm sm:prose-base max-w-none p-6 focus:outline-none" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Settings Card */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <h2 className="text-lg font-semibold text-gray-900">Paramètres de l'article</h2>
+              </div>
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Catégorie *
+                    </label>
+                    <select
+                      required
+                      value={formData.categoryId}
+                      onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    >
+                      <option value="">Sélectionner une catégorie</option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Auteur
+                    </label>
+                    <select
+                      value={formData.authorId}
+                      onChange={(e) => setFormData({ ...formData, authorId: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    >
+                      <option value="">Sélectionner un auteur</option>
+                      {authors.map((author) => (
+                        <option key={author.id} value={author.id}>
+                          {author.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Date de publication
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.publishedAt}
+                      onChange={(e) => setFormData({ ...formData, publishedAt: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Temps de lecture (minutes)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.readTime}
+                      onChange={(e) => setFormData({ ...formData, readTime: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="5"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    URL de l'image principale
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.mainImageUrl}
+                    onChange={(e) => setFormData({ ...formData, mainImageUrl: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="https://res.cloudinary.com/your-cloud/image.jpg"
+                  />
+                  <p className="text-sm text-gray-500 mt-2">
+                    Collez l'URL de votre image hébergée sur Cloudinary, Imgur, ImgBB ou tout autre service d'hébergement d'images.
+                  </p>
+                </div>
+
+                <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
+                  <input
+                    type="checkbox"
+                    id="featured"
+                    checked={formData.featured}
+                    onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="featured" className="text-sm font-medium text-gray-700">
+                    Article à la une
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-4 pt-6">
               <button
+                type="button"
                 onClick={() => router.push('/articles')}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+                className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
               >
                 Annuler
               </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              >
+                <Save className="w-4 h-4" />
+                <span>{saving ? 'Enregistrement...' : 'Mettre à jour'}</span>
+              </button>
             </div>
-          </div>
+          </form>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Main Content Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="p-6 space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Titre *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.title}
-                  onChange={handleTitleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg"
-                  placeholder="Titre de l'article"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Slug *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="url-de-l-article"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Extrait *
-                </label>
-                <textarea
-                  required
-                  value={formData.excerpt}
-                  onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                  placeholder="Brève description de l'article"
-                />
-              </div>
-
-              {/* Rich Text Editor */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Contenu *
-                </label>
-                <div className="border border-gray-300 rounded-xl overflow-hidden">
-                  {/* Modern Toolbar */}
-                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 p-3">
-                    <div className="flex flex-wrap gap-2 items-center">
-                      {/* Text formatting */}
-                      <div className="flex gap-1 bg-white rounded-lg p-1 shadow-sm border border-gray-200">
-                        <button
-                          type="button"
-                          onClick={() => editor?.chain().focus().toggleBold().run()}
-                          className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('bold') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                          title="Gras"
-                        >
-                          <strong className="text-sm font-bold">B</strong>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => editor?.chain().focus().toggleItalic().run()}
-                          className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('italic') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                          title="Italique"
-                        >
-                          <em className="text-sm italic">I</em>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => editor?.chain().focus().toggleStrike().run()}
-                          className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('strike') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                          title="Barré"
-                        >
-                          <s className="text-sm">S</s>
-                        </button>
-                      </div>
-
-                      {/* Headings */}
-                      <div className="flex gap-1 bg-white rounded-lg p-1 shadow-sm border border-gray-200">
-                        <button
-                          type="button"
-                          onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-                          className={`px-3 py-2 rounded-md hover:bg-blue-50 transition-colors text-sm font-bold ${editor?.isActive('heading', { level: 1 }) ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                          title="Titre 1"
-                        >
-                          H1
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-                          className={`px-3 py-2 rounded-md hover:bg-blue-50 transition-colors text-sm font-bold ${editor?.isActive('heading', { level: 2 }) ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                          title="Titre 2"
-                        >
-                          H2
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
-                          className={`px-3 py-2 rounded-md hover:bg-blue-50 transition-colors text-sm font-bold ${editor?.isActive('heading', { level: 3 }) ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                          title="Titre 3"
-                        >
-                          H3
-                        </button>
-                      </div>
-
-                      {/* Lists */}
-                      <div className="flex gap-1 bg-white rounded-lg p-1 shadow-sm border border-gray-200">
-                        <button
-                          type="button"
-                          onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                          className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                          title="Liste à puces"
-                        >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z"/>
-                          </svg>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                          className={`p-2 rounded-md hover:bg-blue-50 transition-colors ${editor?.isActive('orderedList') ? 'bg-blue-100 text-blue-600' : 'text-gray-600'}`}
-                          title="Liste numérotée"
-                        >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z"/>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Editor content area */}
-                  <div className="bg-white min-h-[450px]">
-                    <EditorContent editor={editor} className="prose prose-sm sm:prose-base max-w-none p-6 focus:outline-none" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Settings Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h2 className="text-lg font-semibold text-gray-900">Paramètres de l'article</h2>
-            </div>
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Catégorie *
-                  </label>
-                  <select
-                    required
-                    value={formData.categoryId}
-                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  >
-                    <option value="">Sélectionner une catégorie</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Auteur
-                  </label>
-                  <select
-                    value={formData.authorId}
-                    onChange={(e) => setFormData({ ...formData, authorId: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  >
-                    <option value="">Sélectionner un auteur</option>
-                    {authors.map((author) => (
-                      <option key={author.id} value={author.id}>
-                        {author.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Date de publication
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.publishedAt}
-                    onChange={(e) => setFormData({ ...formData, publishedAt: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Temps de lecture (minutes)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.readTime}
-                    onChange={(e) => setFormData({ ...formData, readTime: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="5"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  URL de l'image principale
-                </label>
-                <input
-                  type="url"
-                  value={formData.mainImageUrl}
-                  onChange={(e) => setFormData({ ...formData, mainImageUrl: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="https://res.cloudinary.com/your-cloud/image.jpg"
-                />
-                <p className="text-sm text-gray-500 mt-2">
-                  Collez l'URL de votre image hébergée sur Cloudinary, Imgur, ImgBB ou tout autre service d'hébergement d'images.
-                </p>
-              </div>
-
-              <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
-                <input
-                  type="checkbox"
-                  id="featured"
-                  checked={formData.featured}
-                  onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="featured" className="text-sm font-medium text-gray-700">
-                  Article à la une
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-4 pt-6">
-            <button
-              type="button"
-              onClick={() => router.push('/articles')}
-              className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-            >
-              <Save className="w-4 h-4" />
-              <span>{saving ? 'Enregistrement...' : 'Mettre à jour'}</span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </AdminLayout>
+      </AdminLayout>
+    </ProtectedRoute>
   );
 }
