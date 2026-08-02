@@ -81,14 +81,13 @@ export default function RootLayout({
     <html lang="fr" className={cn("h-full", "antialiased", jetbrainsMono.variable)}>
       <head>
         <meta name="google-site-verification" content="ca-pub-4621769509750492" />
-      </head>
-      <body className="min-h-full flex flex-col">
-        <Script
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4621769509750492"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+        ></script>
+      </head>
+      <body className="min-h-full flex flex-col">
         <SplashScreen />
         <Providers>
           <main className="flex-1 pb-16 md:pb-0">
