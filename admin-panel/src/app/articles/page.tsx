@@ -15,6 +15,7 @@ import {
   FileText,
   ChevronDown
 } from 'lucide-react';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface Article {
   id: string;
@@ -43,6 +44,15 @@ export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<{id: string, title: string}[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    articleId: string | null;
+    articleTitle: string;
+  }>({
+    isOpen: false,
+    articleId: null,
+    articleTitle: ''
+  });
 
   useEffect(() => {
     fetchArticles();
@@ -72,13 +82,26 @@ export default function ArticlesPage() {
   };
 
   const deleteArticle = async (id: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) return;
-    
     try {
       await fetch(`/api/articles/${id}`, { method: 'DELETE' });
       fetchArticles();
+      setDeleteDialog({ isOpen: false, articleId: null, articleTitle: '' });
     } catch (error) {
       console.error('Failed to delete article:', error);
+    }
+  };
+
+  const handleDeleteClick = (id: string, title: string) => {
+    setDeleteDialog({
+      isOpen: true,
+      articleId: id,
+      articleTitle: title
+    });
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteDialog.articleId) {
+      deleteArticle(deleteDialog.articleId);
     }
   };
 
@@ -261,7 +284,7 @@ export default function ArticlesPage() {
                         <button 
                           className="p-2 text-gray-400 hover:text-red-600 transition-colors" 
                           title="Supprimer"
-                          onClick={() => deleteArticle(article.id)}
+                          onClick={() => handleDeleteClick(article.id, article.title)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -289,23 +312,35 @@ export default function ArticlesPage() {
 
           {/* Pagination */}
           {!loading && filteredArticles.length > 0 && (
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-              <p className="text-sm text-gray-600">
-                Affichage de 1 à {filteredArticles.length} sur {articles.length} articles
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+              <p className="text-sm text-gray-700">
+                Affichage de <span className="font-medium">1</span> à <span className="font-medium">{filteredArticles.length}</span> sur <span className="font-medium">{filteredArticles.length}</span> résultats
               </p>
-              <div className="flex items-center space-x-2">
-                <button className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+              <div className="flex items-center gap-2">
+                <button className="px-3 py-1 text-sm text-gray-500 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50" disabled>
                   Précédent
                 </button>
-                <button className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <button className="px-3 py-1 text-sm text-gray-500 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50" disabled>
                   Suivant
                 </button>
               </div>
             </div>
           )}
         </div>
-      </div>
-    </AdminLayout>
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDialog
+          isOpen={deleteDialog.isOpen}
+          onClose={() => setDeleteDialog({ isOpen: false, articleId: null, articleTitle: '' })}
+          onConfirm={handleDeleteConfirm}
+          title="Supprimer l'article"
+          message={`Êtes-vous sûr de vouloir supprimer l'article "${deleteDialog.articleTitle}" ? Cette action est irréversible.`}
+          confirmText="Supprimer"
+          cancelText="Annuler"
+          type="danger"
+        />
+        </div>
+      </AdminLayout>
     </ProtectedRoute>
   );
 }
