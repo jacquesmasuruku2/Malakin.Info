@@ -30,6 +30,7 @@ export default function EditArticlePage() {
   const [authors, setAuthors] = useState<{id: string, name: string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -42,6 +43,17 @@ export default function EditArticlePage() {
     readTime: '',
     mainImageUrl: '',
   });
+
+  // Auto-save to localStorage
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      localStorage.setItem(`article-draft-${articleId}`, JSON.stringify(formData));
+      setAutoSaving(true);
+      setTimeout(() => setAutoSaving(false), 1000);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [formData, articleId]);
 
   const editor = useEditor({
     extensions: [StarterKit],
@@ -117,6 +129,8 @@ export default function EditArticlePage() {
       });
 
       if (response.ok) {
+        // Clear draft on successful save
+        localStorage.removeItem(`article-draft-${articleId}`);
         router.push('/articles');
       } else {
         alert('Erreur lors de la modification de l\'article');
@@ -159,6 +173,12 @@ export default function EditArticlePage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Modifier l'article</h1>
             <p className="text-gray-600 mt-1">Modifier l'article existant</p>
+            {autoSaving && (
+              <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
+                <span className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                Brouillon enregistré automatiquement
+              </p>
+            )}
           </div>
           <button
             onClick={() => router.push('/articles')}
@@ -216,59 +236,97 @@ export default function EditArticlePage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Contenu *
             </label>
-            <div className="border border-gray-300 rounded-md">
-              <div className="border-b border-gray-300 p-2 flex gap-2 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => editor?.chain().focus().toggleBold().run()}
-                  className={`px-3 py-1 rounded ${editor?.isActive('bold') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
-                >
-                  <strong>B</strong>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => editor?.chain().focus().toggleItalic().run()}
-                  className={`px-3 py-1 rounded ${editor?.isActive('italic') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
-                >
-                  <em>I</em>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => editor?.chain().focus().toggleStrike().run()}
-                  className={`px-3 py-1 rounded ${editor?.isActive('strike') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
-                >
-                  <s>S</s>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-                  className={`px-3 py-1 rounded ${editor?.isActive('heading', { level: 1 }) ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
-                >
-                  H1
-                </button>
-                <button
-                  type="button"
-                  onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-                  className={`px-3 py-1 rounded ${editor?.isActive('heading', { level: 2 }) ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
-                >
-                  H2
-                </button>
-                <button
-                  type="button"
-                  onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                  className={`px-3 py-1 rounded ${editor?.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
-                >
-                  •
-                </button>
-                <button
-                  type="button"
-                  onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                  className={`px-3 py-1 rounded ${editor?.isActive('orderedList') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
-                >
-                  1.
-                </button>
+            <div className="border border-gray-300 rounded-md overflow-hidden">
+              {/* Toolbar - Word 365 style */}
+              <div className="bg-gray-50 border-b border-gray-300 p-2">
+                <div className="flex flex-wrap gap-1 items-center">
+                  {/* Text formatting */}
+                  <div className="flex gap-1 border-r border-gray-300 pr-2">
+                    <button
+                      type="button"
+                      onClick={() => editor?.chain().focus().toggleBold().run()}
+                      className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive('bold') ? 'bg-blue-100 text-blue-600' : ''}`}
+                      title="Gras"
+                    >
+                      <strong className="text-sm">B</strong>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => editor?.chain().focus().toggleItalic().run()}
+                      className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive('italic') ? 'bg-blue-100 text-blue-600' : ''}`}
+                      title="Italique"
+                    >
+                      <em className="text-sm">I</em>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => editor?.chain().focus().toggleStrike().run()}
+                      className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive('strike') ? 'bg-blue-100 text-blue-600' : ''}`}
+                      title="Barré"
+                    >
+                      <s className="text-sm">S</s>
+                    </button>
+                  </div>
+
+                  {/* Headings */}
+                  <div className="flex gap-1 border-r border-gray-300 pr-2">
+                    <button
+                      type="button"
+                      onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                      className={`px-3 py-2 rounded hover:bg-gray-200 text-sm font-bold ${editor?.isActive('heading', { level: 1 }) ? 'bg-blue-100 text-blue-600' : ''}`}
+                      title="Titre 1"
+                    >
+                      H1
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                      className={`px-3 py-2 rounded hover:bg-gray-200 text-sm font-bold ${editor?.isActive('heading', { level: 2 }) ? 'bg-blue-100 text-blue-600' : ''}`}
+                      title="Titre 2"
+                    >
+                      H2
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+                      className={`px-3 py-2 rounded hover:bg-gray-200 text-sm font-bold ${editor?.isActive('heading', { level: 3 }) ? 'bg-blue-100 text-blue-600' : ''}`}
+                      title="Titre 3"
+                    >
+                      H3
+                    </button>
+                  </div>
+
+                  {/* Lists */}
+                  <div className="flex gap-1 border-r border-gray-300 pr-2">
+                    <button
+                      type="button"
+                      onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                      className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : ''}`}
+                      title="Liste à puces"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                      className={`p-2 rounded hover:bg-gray-200 ${editor?.isActive('orderedList') ? 'bg-blue-100 text-blue-600' : ''}`}
+                      title="Liste numérotée"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z"/>
+                      </svg>
+                    </button>
+                  </div>
+
+                </div>
               </div>
-              <EditorContent editor={editor} className="min-h-[300px] p-4 prose max-w-none" />
+              
+              {/* Editor content area */}
+              <div className="bg-white min-h-[400px]">
+                <EditorContent editor={editor} className="prose prose-sm sm:prose-base max-w-none p-6 focus:outline-none" />
+              </div>
             </div>
           </div>
 
