@@ -4,10 +4,8 @@ import AdminLayout from '@/components/AdminLayout';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Save, X } from 'lucide-react';
-import dynamic from 'next/dynamic';
-
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
-import 'react-quill/dist/quill.snow.css';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 
 interface Article {
   id: string;
@@ -27,7 +25,7 @@ export default function EditArticlePage() {
   const router = useRouter();
   const params = useParams();
   const articleId = params.id as string;
-  
+
   const [categories, setCategories] = useState<{id: string, title: string}[]>([]);
   const [authors, setAuthors] = useState<{id: string, name: string}[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +41,14 @@ export default function EditArticlePage() {
     featured: false,
     readTime: '',
     mainImageUrl: '',
+  });
+
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: formData.content,
+    onUpdate: ({ editor }) => {
+      setFormData({ ...formData, content: editor.getHTML() });
+    },
   });
 
   useEffect(() => {
@@ -211,29 +217,58 @@ export default function EditArticlePage() {
               Contenu *
             </label>
             <div className="border border-gray-300 rounded-md">
-              <ReactQuill
-                theme="snow"
-                value={formData.content}
-                onChange={(value) => setFormData({ ...formData, content: value })}
-                modules={{
-                  toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'align': [] }],
-                    ['link', 'image'],
-                    ['clean']
-                  ],
-                }}
-                formats={[
-                  'header', 'bold', 'italic', 'underline', 'strike',
-                  'color', 'background', 'list', 'bullet', 'align',
-                  'link', 'image'
-                ]}
-                placeholder="Contenu de l'article..."
-                style={{ minHeight: '300px' }}
-              />
+              <div className="border-b border-gray-300 p-2 flex gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleBold().run()}
+                  className={`px-3 py-1 rounded ${editor?.isActive('bold') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
+                >
+                  <strong>B</strong>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleItalic().run()}
+                  className={`px-3 py-1 rounded ${editor?.isActive('italic') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
+                >
+                  <em>I</em>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleStrike().run()}
+                  className={`px-3 py-1 rounded ${editor?.isActive('strike') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
+                >
+                  <s>S</s>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                  className={`px-3 py-1 rounded ${editor?.isActive('heading', { level: 1 }) ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
+                >
+                  H1
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                  className={`px-3 py-1 rounded ${editor?.isActive('heading', { level: 2 }) ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
+                >
+                  H2
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                  className={`px-3 py-1 rounded ${editor?.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
+                >
+                  •
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                  className={`px-3 py-1 rounded ${editor?.isActive('orderedList') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100'}`}
+                >
+                  1.
+                </button>
+              </div>
+              <EditorContent editor={editor} className="min-h-[300px] p-4 prose max-w-none" />
             </div>
           </div>
 
