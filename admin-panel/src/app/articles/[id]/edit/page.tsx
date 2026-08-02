@@ -4,6 +4,8 @@ import AdminLayout from '@/components/AdminLayout';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Save, X } from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 interface Article {
   id: string;
@@ -206,14 +208,31 @@ export default function EditArticlePage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Contenu *
             </label>
-            <textarea
-              required
-              value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              rows={10}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
-              placeholder="Contenu de l'article (JSON format)"
-            />
+            <div className="border border-gray-300 rounded-md">
+              <ReactQuill
+                theme="snow"
+                value={formData.content}
+                onChange={(value) => setFormData({ ...formData, content: value })}
+                modules={{
+                  toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'align': [] }],
+                    ['link', 'image'],
+                    ['clean']
+                  ],
+                }}
+                formats={[
+                  'header', 'bold', 'italic', 'underline', 'strike',
+                  'color', 'background', 'list', 'bullet', 'align',
+                  'link', 'image'
+                ]}
+                placeholder="Contenu de l'article..."
+                style={{ minHeight: '300px' }}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
