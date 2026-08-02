@@ -9,7 +9,12 @@ const nextConfig: NextConfig = {
     remotePatterns: [],
     unoptimized: true,
     domains: [],
+    formats: ['image/avif', 'image/webp'],
   },
+  compress: true,
+  poweredByHeader: false,
+  reactStrictMode: true,
+  swcMinify: true,
 };
 
 export default withNextIntl(nextConfig);

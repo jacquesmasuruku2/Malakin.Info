@@ -2,11 +2,80 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, User, ArrowLeft } from 'lucide-react';
 import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
 import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; path: string[] }> }): Promise<Metadata> {
+  const { locale, path } = await params;
+  const slug = path[path.length - 1];
+  
+  try {
+    const article = await prisma.article.findUnique({
+      where: { slug },
+      include: {
+        category: true,
+        author: true,
+      },
+    });
+
+    if (!article) {
+      return {
+        title: 'Article non trouvé | Malakinfo.com',
+      };
+    }
+
+    const baseUrl = 'https://malakinfo.com';
+    const canonicalUrl = `${baseUrl}/${locale}/${article.category?.slug || 'actualites'}/${slug}`;
+    
+    return {
+      title: article.title,
+      description: article.excerpt || article.title,
+      keywords: [article.category?.title || 'actualités', 'Malakinfo', 'Afrique', 'actualités'],
+      authors: article.author ? [{ name: article.author.name }] : [{ name: 'Malakinfo' }],
+      creator: 'Malakinfo',
+      publisher: 'Malakinfo',
+      alternates: {
+        canonical: canonicalUrl,
+      },
+      openGraph: {
+        type: 'article',
+        locale: locale === 'fr' ? 'fr_FR' : 'en_US',
+        url: canonicalUrl,
+        title: article.title,
+        description: article.excerpt || article.title,
+        siteName: 'Malakinfo',
+        publishedTime: article.publishedAt?.toISOString(),
+        modifiedTime: article.updatedAt?.toISOString(),
+        authors: article.author ? [article.author.name] : ['Malakinfo'],
+        section: article.category?.title || 'Actualités',
+        images: article.mainImageUrl ? [
+          {
+            url: article.mainImageUrl,
+            width: 1200,
+            height: 630,
+            alt: article.title,
+          },
+        ] : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: article.title,
+        description: article.excerpt || article.title,
+        images: article.mainImageUrl ? [article.mainImageUrl] : [],
+        creator: '@malakinfo',
+      },
+    };
+  } catch (error) {
+    return {
+      title: 'Erreur | Malakinfo.com',
+    };
+  }
+}
 
 export default async function CatchAllArticlePage({ 
   params 
@@ -44,6 +113,39 @@ export default async function CatchAllArticlePage({
     // Don't redirect - just render the article regardless of the path
     // This allows both /fr/culture/slug and /fr/actualites/culture/slug to work
 
+    const baseUrl = 'https://malakinfo.com';
+    const canonicalUrl = `${baseUrl}/${locale}/${article.category?.slug || 'actualites'}/${slug}`;
+
+    // Structured Data (JSON-LD)
+    const jsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: article.title,
+      description: article.excerpt || article.title,
+      image: article.mainImageUrl ? [article.mainImageUrl] : [],
+      datePublished: article.publishedAt?.toISOString(),
+      dateModified: article.updatedAt?.toISOString(),
+      author: article.author ? {
+        '@type': 'Person',
+        name: article.author.name,
+      } : {
+        '@type': 'Organization',
+        name: 'Malakinfo',
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'Malakinfo',
+        logo: {
+          '@type': 'ImageObject',
+          url: `${baseUrl}/logo.png`,
+        },
+      },
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': canonicalUrl,
+      },
+    };
+
     const relatedArticles = await prisma.article.findMany({
       where: {
         categoryId: article.categoryId,
@@ -70,17 +172,22 @@ export default async function CatchAllArticlePage({
     const readTime = article.readTime ? `${article.readTime} ${t.readTime}` : `5 ${t.readTime}`;
 
     return (
-      <div className="min-h-screen bg-background">
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <div className="min-h-screen bg-background">
         {/* Header */}
         <header className="bg-muted/50 border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <Link
-              href={`/${locale}/${article.category?.slug || 'actualites'}`}
-              className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              {t.backTo} {article.category?.title || 'Actualités'}
-            </Link>
+            <Breadcrumbs
+              locale={locale}
+              items={[
+                { label: article.category?.title || 'Actualités', href: `/${locale}/${article.category?.slug || 'actualites'}` },
+                { label: article.title },
+              ]}
+            />
           </div>
         </header>
 
@@ -242,6 +349,7 @@ export default async function CatchAllArticlePage({
         {/* Comments Section */}
         <CommentsSection articleId={article.id} locale={locale} />
       </div>
+      </>
     );
   } catch (error) {
     console.error('Error fetching article:', error);
