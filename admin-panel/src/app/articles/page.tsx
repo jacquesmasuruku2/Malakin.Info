@@ -13,7 +13,8 @@ import {
   Calendar,
   User,
   FileText,
-  ChevronDown
+  ChevronDown,
+  ExternalLink
 } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
@@ -123,13 +124,22 @@ export default function ArticlesPage() {
               <h1 className="text-3xl font-bold text-gray-900">Articles</h1>
               <p className="text-gray-600 mt-1">Gérer tous vos articles</p>
             </div>
-            <Link 
-              href="/articles/new"
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Nouvel article</span>
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link 
+                href="/articles/external"
+                className="flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>Article externe</span>
+              </Link>
+              <Link 
+                href="/articles/new"
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Nouvel article</span>
+              </Link>
+            </div>
           </div>
 
         {/* Filters */}
