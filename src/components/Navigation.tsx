@@ -245,9 +245,9 @@ export default function Navigation() {
       {/* Main Header - En-tête Principal Blanc Centré */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-14">
             {/* Left side - Desktop */}
-            <div className="hidden md:flex items-center space-x-3">
+            <div className="hidden md:flex items-center space-x-2">
               <button
                 className="flex items-center space-x-2 font-semibold text-foreground hover:text-primary transition-colors"
                 onClick={() => isDropdownOpen ? setIsDropdownOpen(false) : openServices()}
@@ -256,7 +256,7 @@ export default function Navigation() {
                 <span>Menu</span>
               </button>
               
-              <div className="border-r border-gray-300 h-6 mx-3"></div>
+              <div className="border-r border-gray-300 h-5 mx-2"></div>
               
               {/* Search field */}
               <form onSubmit={handleSearch} className="relative">
@@ -287,11 +287,11 @@ export default function Navigation() {
             </div>
 
             {/* Center - Logo */}
-            <Link href={`/${locale}`} className="flex items-center">
+            <Link href={`/${locale}`} className="flex items-center flex-shrink-0">
               <img 
                 src="/images/logo.png" 
                 alt="MalakInfo" 
-                className="h-10 w-auto"
+                className="h-9 w-auto"
               />
             </Link>
 
@@ -432,7 +432,7 @@ export default function Navigation() {
       {/* Bottom Navigation Bar - Barre de Catégories */}
       <div className="bg-white border-b border-gray-200 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center space-x-8 py-3 overflow-x-auto">
+          <div className="flex items-center justify-center space-x-6 py-2 overflow-x-auto">
             <Link href={`/${locale}/actualites`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
               ACTUALITÉS
             </Link>

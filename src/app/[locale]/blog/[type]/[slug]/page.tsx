@@ -88,18 +88,18 @@ export default async function BlogPostPage({
 
           {/* Excerpt */}
           {blogPost.excerpt && (
-            <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+            <p className="text-xl text-muted-foreground mb-4 leading-relaxed">
               {blogPost.excerpt}
             </p>
           )}
 
           {/* Featured Image */}
           {blogPost.mainImageUrl && (
-            <div className="mb-4 rounded-lg overflow-hidden">
+            <div className="mb-6 rounded-lg overflow-hidden">
               <img
                 src={blogPost.mainImageUrl}
                 alt={blogPost.title}
-                className="w-full h-auto object-cover"
+                className="w-full h-auto max-h-[500px] object-cover"
               />
             </div>
           )}

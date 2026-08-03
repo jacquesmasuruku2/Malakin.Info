@@ -33,7 +33,7 @@ export default function JobApplicationsPage() {
   const fetchApplications = async () => {
     setLoading(true);
     try {
-      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakinfo.com';
+      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'http://localhost:3000';
       const response = await fetch(`${mainSiteUrl}/api/job-applications`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -50,7 +50,7 @@ export default function JobApplicationsPage() {
 
   const handleStatusUpdate = async (id: string, newStatus: string) => {
     try {
-      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakinfo.com';
+      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'http://localhost:3000';
       const response = await fetch(`${mainSiteUrl}/api/job-applications/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -71,7 +71,7 @@ export default function JobApplicationsPage() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette candidature ?')) return;
     
     try {
-      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakinfo.com';
+      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'http://localhost:3000';
       const response = await fetch(`${mainSiteUrl}/api/job-applications/${id}`, {
         method: 'DELETE',
       });
