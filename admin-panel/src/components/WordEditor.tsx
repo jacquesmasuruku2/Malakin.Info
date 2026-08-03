@@ -31,8 +31,11 @@ import {
   Heading2,
   Heading3,
   Quote,
-  Table
+  Table,
+  ExternalLink
 } from 'lucide-react';
+import { ReadAlsoExtension } from '@/lib/tiptap/ReadAlsoExtension';
+import ReadAlsoModal from '@/components/ReadAlsoModal';
 
 interface WordEditorProps {
   content: string;
@@ -46,9 +49,10 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
   const [activeTab, setActiveTab] = useState('home');
   const [fontSize, setFontSize] = useState('11');
   const [lineHeight, setLineHeight] = useState('1.5');
+  const [isReadAlsoModalOpen, setIsReadAlsoModalOpen] = useState(false);
 
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [StarterKit, ReadAlsoExtension],
     content: content,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
@@ -71,6 +75,12 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
 
   const handleZoom = (delta: number) => {
     setZoom(prev => Math.min(200, Math.max(50, prev + delta)));
+  };
+
+  const handleInsertReadAlso = (title: string, url: string, accentColor?: string) => {
+    if (editor) {
+      editor.chain().focus().insertReadAlso({ title, url, accentColor }).run();
+    }
   };
 
   if (!editor) {
@@ -335,6 +345,14 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
         {/* Insert Tab */}
         {activeTab === 'insert' && (
           <div className="p-2 flex gap-2 items-center bg-gradient-to-b from-gray-50 to-white">
+            <button 
+              onClick={() => setIsReadAlsoModalOpen(true)}
+              className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2" 
+              title="Insérer un article recommandé"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span className="text-sm">À lire aussi</span>
+            </button>
             <button className="p-2 hover:bg-blue-100 rounded transition-colors" title="Insérer une image">
               <FileText className="w-4 h-4" />
             </button>
@@ -410,6 +428,13 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
           </button>
         </div>
       </div>
+
+      {/* Read Also Modal */}
+      <ReadAlsoModal
+        isOpen={isReadAlsoModalOpen}
+        onClose={() => setIsReadAlsoModalOpen(false)}
+        onInsert={handleInsertReadAlso}
+      />
     </div>
   );
 }
