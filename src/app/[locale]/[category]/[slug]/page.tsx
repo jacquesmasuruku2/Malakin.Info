@@ -127,7 +127,7 @@ export default async function ArticlePage({
 
           {/* Featured Image */}
           {article.mainImageUrl && (
-            <div className="mb-4 rounded-lg overflow-hidden">
+            <div className="mb-0 rounded-lg overflow-hidden">
               <img
                 src={article.mainImageUrl}
                 alt={article.title}
@@ -136,16 +136,11 @@ export default async function ArticlePage({
             </div>
           )}
 
-          {/* AdSense Ad - After Featured Image */}
-          <div className="mb-4">
-            <AdSenseAd adSlot="1234567890" className="my-4" />
-          </div>
-
           {/* Content */}
-          <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-6 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-2">
+          <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-6 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-4 prose-h2:mb-4 prose-h3:mt-4 prose-h3:mb-3 prose-p:my-0 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 [&>div:first-child]:mt-0 [&>div:first-child_p]:mt-0 [&>div:first-child_h1]:mt-0 [&>div:first-child_h2]:mt-0 [&>div:first-child_h3]:mt-0 [&>div:first-child]:!mt-0 [&>div]:first-child:mt-0 [&>div]:first-of-type:mt-0">
             <div
               dangerouslySetInnerHTML={{ __html: typeof article.content === 'string' ? article.content : '' }}
-              className="text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground"
+              className="text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground [&>p:first-child]:mt-0 [&>h1:first-child]:mt-0 [&>h2:first-child]:mt-0 [&>h3:first-child]:mt-0"
             />
           </div>
 

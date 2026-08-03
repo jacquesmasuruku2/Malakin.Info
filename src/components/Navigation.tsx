@@ -284,12 +284,6 @@ export default function Navigation() {
               >
                 <Menu className="w-6 h-6" />
               </button>
-              <button
-                className="p-2 text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsSearchOpen(true)}
-              >
-                <Search className="w-5 h-5" />
-              </button>
             </div>
 
             {/* Center - Logo */}
