@@ -14,7 +14,7 @@ interface ReadAlsoData {
 }
 
 export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
-  const [processedContent, setProcessedContent] = useState<JSX.Element[]>([]);
+  const [processedContent, setProcessedContent] = useState<React.ReactElement[]>([]);
 
   useEffect(() => {
     if (!content) {
@@ -42,7 +42,7 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
     }
 
     // Split content and replace read-also blocks with components
-    const elements: JSX.Element[] = [];
+    const elements: React.ReactElement[] = [];
     let lastIndex = 0;
 
     readAlsoBlocks.forEach((block, index) => {
@@ -99,7 +99,7 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
 
     // More flexible regex to handle different attribute orders
     const regex = /<div[^>]*data-type="read-also"[^>]*data-title="([^"]*)"[^>]*data-url="([^"]*)"[^>]*data-accent-color="([^"]*)"[^>]*>/g;
-    const parts: (string | JSX.Element)[] = [];
+    const parts: (string | React.ReactElement)[] = [];
     let lastIndex = 0;
     let match;
 

@@ -109,7 +109,7 @@ export default async function BlogPostPage({
           <ReadAlsoRenderer content={typeof blogPost.content === 'string' ? blogPost.content : ''} />
 
           {/* Share Buttons */}
-          <div className="flex items-center gap-4 mt-8 pt-8 border-t border-border">
+          <div className="flex items-center gap-4 mt-6 pt-6 border-t border-border">
             <span className="text-sm font-medium text-foreground">Partager :</span>
             <button className="p-2 text-muted-foreground hover:text-blue-600 transition-colors">
               <MessageCircle className="w-5 h-5" />
@@ -127,40 +127,40 @@ export default async function BlogPostPage({
               <Bookmark className="w-5 h-5" />
             </button>
           </div>
-        </article>
 
-        {/* Author Section */}
-        {blogPost.author && (
-          <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-border">
-            <div className="bg-muted/50 rounded-lg p-6">
-              <div className="flex items-start gap-4">
-                {blogPost.author.imageUrl && (
-                  <img
-                    src={blogPost.author.imageUrl}
-                    alt={blogPost.author.name}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                )}
-                <div className="flex-1">
-                  <h3 className="font-heading text-lg font-semibold text-foreground mb-2">
-                    {blogPost.author.name}
-                  </h3>
-                  {blogPost.author.bio && (
-                    <p className="text-muted-foreground text-sm mb-4">
-                      {blogPost.author.bio}
-                    </p>
+          {/* Author Section */}
+          {blogPost.author && (
+            <div className="mt-6 pt-6 border-t border-border">
+              <div className="bg-muted/30 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  {blogPost.author.imageUrl && (
+                    <img
+                      src={blogPost.author.imageUrl}
+                      alt={blogPost.author.name}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
                   )}
-                  <Link
-                    href={`/${locale}/auteurs/${blogPost.author.slug}`}
-                    className="text-sm text-primary hover:text-primary/80 font-medium"
-                  >
-                    Voir tous les articles de cet auteur
-                  </Link>
+                  <div className="flex-1">
+                    <h3 className="font-heading text-base font-semibold text-foreground mb-1">
+                      {blogPost.author.name}
+                    </h3>
+                    {blogPost.author.bio && (
+                      <p className="text-muted-foreground text-sm mb-2">
+                        {blogPost.author.bio}
+                      </p>
+                    )}
+                    <Link
+                      href={`/${locale}/auteurs/${blogPost.author.slug}`}
+                      className="text-xs text-primary hover:text-primary/80 font-medium"
+                    >
+                      Voir tous les articles de cet auteur
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
-          </section>
-        )}
+          )}
+        </article>
       </div>
     );
   } catch (error) {
