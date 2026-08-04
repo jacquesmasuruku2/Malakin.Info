@@ -24,7 +24,14 @@ export default function LoginPage() {
     const success = login(email, password);
     
     if (success) {
-      router.push('/');
+      // Rediriger vers l'URL sauvegardée ou vers le tableau de bord
+      const redirectUrl = localStorage.getItem('redirect-after-login');
+      if (redirectUrl && redirectUrl !== '/login') {
+        localStorage.removeItem('redirect-after-login');
+        router.push(redirectUrl);
+      } else {
+        router.push('/');
+      }
     } else {
       setError('Email ou mot de passe incorrect');
       setPassword('');

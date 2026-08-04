@@ -1,18 +1,21 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!isAuthenticated) {
+      // Sauvegarder l'URL actuelle pour rediriger après connexion
+      localStorage.setItem('redirect-after-login', pathname);
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, pathname]);
 
   if (!isAuthenticated) {
     return (
