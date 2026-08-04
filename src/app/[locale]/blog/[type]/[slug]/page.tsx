@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, User, Share2, Bookmark, ArrowLeft, Mail, MessageCircle, Send } from 'lucide-react';
 import { notFound } from 'next/navigation';
+import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 
 export const dynamic = 'force-dynamic';
 
@@ -105,12 +106,7 @@ export default async function BlogPostPage({
           )}
 
           {/* Content */}
-          <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-6 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium">
-            <div 
-              dangerouslySetInnerHTML={{ __html: typeof blogPost.content === 'string' ? blogPost.content : '' }}
-              className="text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium prose-strong:text-foreground"
-            />
-          </div>
+          <ReadAlsoRenderer content={typeof blogPost.content === 'string' ? blogPost.content : ''} />
 
           {/* Share Buttons */}
           <div className="flex items-center gap-4 mt-8 pt-8 border-t border-border">

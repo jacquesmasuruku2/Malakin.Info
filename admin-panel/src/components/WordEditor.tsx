@@ -2,6 +2,11 @@
 
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
+import Link from '@tiptap/extension-link';
+import Color from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
 import { useState, useEffect } from 'react';
 import { 
   Scissors, 
@@ -9,7 +14,7 @@ import {
   Clipboard, 
   Bold, 
   Italic, 
-  Underline, 
+  Underline as UnderlineIcon, 
   Strikethrough,
   AlignLeft,
   AlignCenter,
@@ -32,7 +37,10 @@ import {
   Heading3,
   Quote,
   Table,
-  ExternalLink
+  ExternalLink,
+  Link as LinkIcon,
+  Unlink,
+  X
 } from 'lucide-react';
 import { ReadAlsoExtension } from '@/lib/tiptap/ReadAlsoExtension';
 import ReadAlsoModal from '@/components/ReadAlsoModal';
@@ -50,9 +58,38 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
   const [fontSize, setFontSize] = useState('11');
   const [lineHeight, setLineHeight] = useState('1.5');
   const [isReadAlsoModalOpen, setIsReadAlsoModalOpen] = useState(false);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const [isTextColorPickerOpen, setIsTextColorPickerOpen] = useState(false);
+  const [isHighlightColorPickerOpen, setIsHighlightColorPickerOpen] = useState(false);
+  const [textColor, setTextColor] = useState('#000000');
+  const [highlightColor, setHighlightColor] = useState('#ffff00');
 
   const editor = useEditor({
-    extensions: [StarterKit, ReadAlsoExtension],
+    extensions: [
+      StarterKit.configure({
+        blockquote: {
+          HTMLAttributes: {
+            class: 'border-l-4 border-gray-300 pl-4 italic',
+          },
+        },
+      }),
+      Underline,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-blue-600 underline hover:text-blue-800',
+        },
+      }),
+      TextStyle,
+      Color.configure({
+        types: ['textStyle'],
+      }),
+      ReadAlsoExtension,
+    ],
     content: content,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
@@ -80,6 +117,42 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
   const handleInsertReadAlso = (title: string, url: string, accentColor?: string) => {
     if (editor) {
       editor.chain().focus().insertReadAlso({ title, url, accentColor }).run();
+    }
+  };
+
+  const handleSetLink = () => {
+    if (editor && linkUrl) {
+      editor.chain().focus().setLink({ href: linkUrl }).run();
+      setLinkUrl('');
+      setIsLinkModalOpen(false);
+    }
+  };
+
+  const handleUnsetLink = () => {
+    if (editor) {
+      editor.chain().focus().unsetLink().run();
+    }
+  };
+
+  const handleTextColorChange = (color: string) => {
+    if (editor) {
+      editor.chain().focus().setColor(color).run();
+      setTextColor(color);
+      setIsTextColorPickerOpen(false);
+    }
+  };
+
+  const handleHighlightColorChange = (color: string) => {
+    if (editor) {
+      // Pour la surbrillance, on utilise setMark avec un style inline
+      editor.chain()
+        .focus()
+        .setMark('textStyle', {
+          style: `background-color: ${color}`
+        })
+        .run();
+      setHighlightColor(color);
+      setIsHighlightColorPickerOpen(false);
     }
   };
 
@@ -118,6 +191,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
             {/* Clipboard Group */}
             <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
               <button
+                type="button"
                 onClick={() => navigator.clipboard.readText().then(text => editor.chain().focus().insertContent(text).run())}
                 className="p-2 hover:bg-blue-100 rounded transition-colors"
                 title="Coller"
@@ -125,6 +199,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
                 <Clipboard className="w-4 h-4" />
               </button>
               <button
+                type="button"
                 onClick={() => document.execCommand('cut')}
                 className="p-2 hover:bg-blue-100 rounded transition-colors"
                 title="Couper"
@@ -132,6 +207,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
                 <Scissors className="w-4 h-4" />
               </button>
               <button
+                type="button"
                 onClick={() => document.execCommand('copy')}
                 className="p-2 hover:bg-blue-100 rounded transition-colors"
                 title="Copier"
@@ -170,6 +246,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
               </select>
               <div className="flex gap-1">
                 <button
+                  type="button"
                   onClick={() => editor.chain().focus().toggleBold().run()}
                   className={`p-2 rounded ${editor.isActive('bold') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                   title="Gras (Ctrl+B)"
@@ -177,6 +254,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
                   <Bold className="w-4 h-4" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => editor.chain().focus().toggleItalic().run()}
                   className={`p-2 rounded ${editor.isActive('italic') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                   title="Italique (Ctrl+I)"
@@ -184,6 +262,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
                   <Italic className="w-4 h-4" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => editor.chain().focus().toggleStrike().run()}
                   className={`p-2 rounded ${editor.isActive('strike') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                   title="Barré"
@@ -191,20 +270,24 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
                   <Strikethrough className="w-4 h-4" />
                 </button>
                 <button
-                  className="p-2 hover:bg-blue-100 rounded transition-colors"
+                  type="button"
+                  onClick={() => editor.chain().focus().toggleUnderline().run()}
+                  className={`p-2 rounded ${editor.isActive('underline') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                   title="Souligné (Ctrl+U)"
                 >
-                  <Underline className="w-4 h-4" />
+                  <UnderlineIcon className="w-4 h-4" />
                 </button>
               </div>
               <div className="flex gap-1">
                 <button
+                  type="button"
                   className="p-1 hover:bg-blue-100 rounded transition-colors text-xs font-bold"
                   title="Indice"
                 >
                   x₂
                 </button>
                 <button
+                  type="button"
                   className="p-1 hover:bg-blue-100 rounded transition-colors text-xs font-bold"
                   title="Exposant"
                 >
@@ -213,42 +296,126 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
               </div>
               <div className="flex gap-1">
                 <button
+                  type="button"
+                  onClick={() => setIsLinkModalOpen(true)}
+                  className={`p-1 rounded ${editor.isActive('link') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
+                  title="Insérer un lien"
+                >
+                  <LinkIcon className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUnsetLink}
                   className="p-1 hover:bg-blue-100 rounded transition-colors"
+                  title="Supprimer le lien"
+                >
+                  <Unlink className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="flex gap-1 relative">
+                <button
+                  type="button"
+                  onClick={() => setIsTextColorPickerOpen(!isTextColorPickerOpen)}
+                  className="p-1 hover:bg-blue-100 rounded transition-colors relative"
                   title="Couleur du texte"
                 >
                   <Type className="w-4 h-4" />
+                  <div 
+                    className="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white"
+                    style={{ backgroundColor: textColor }}
+                  />
                 </button>
+                {isTextColorPickerOpen && (
+                  <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded shadow-lg p-2 z-50">
+                    <div className="grid grid-cols-5 gap-1">
+                      {['#000000', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff8800', '#8800ff', '#008800'].map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => handleTextColorChange(color)}
+                          className="w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform"
+                          style={{ backgroundColor: color }}
+                          title={color}
+                        />
+                      ))}
+                    </div>
+                    <input
+                      type="color"
+                      value={textColor}
+                      onChange={(e) => handleTextColorChange(e.target.value)}
+                      className="w-full mt-2 h-8 cursor-pointer"
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-1 relative">
                 <button
-                  className="p-1 hover:bg-blue-100 rounded transition-colors"
+                  type="button"
+                  onClick={() => setIsHighlightColorPickerOpen(!isHighlightColorPickerOpen)}
+                  className="p-1 hover:bg-blue-100 rounded transition-colors relative"
                   title="Couleur de surbrillance"
                 >
                   <Palette className="w-4 h-4" />
+                  <div 
+                    className="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white"
+                    style={{ backgroundColor: highlightColor }}
+                  />
                 </button>
+                {isHighlightColorPickerOpen && (
+                  <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded shadow-lg p-2 z-50">
+                    <div className="grid grid-cols-5 gap-1">
+                      {['#ffff00', '#00ffff', '#ff00ff', '#ff8800', '#88ff00', '#ffffff', '#cccccc', '#ffcccc', '#ccffcc', '#ccccff'].map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => handleHighlightColorChange(color)}
+                          className="w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform"
+                          style={{ backgroundColor: color }}
+                          title={color}
+                        />
+                      ))}
+                    </div>
+                    <input
+                      type="color"
+                      value={highlightColor}
+                      onChange={(e) => handleHighlightColorChange(e.target.value)}
+                      className="w-full mt-2 h-8 cursor-pointer"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Paragraph Group */}
             <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
               <button
-                className="p-2 hover:bg-blue-100 rounded transition-colors"
+                type="button"
+                onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                className={`p-2 rounded ${editor.isActive({ textAlign: 'left' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                 title="Aligner à gauche"
               >
                 <AlignLeft className="w-4 h-4" />
               </button>
               <button
-                className="p-2 hover:bg-blue-100 rounded transition-colors"
+                type="button"
+                onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                className={`p-2 rounded ${editor.isActive({ textAlign: 'center' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                 title="Centrer"
               >
                 <AlignCenter className="w-4 h-4" />
               </button>
               <button
-                className="p-2 hover:bg-blue-100 rounded transition-colors"
+                type="button"
+                onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                className={`p-2 rounded ${editor.isActive({ textAlign: 'right' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                 title="Aligner à droite"
               >
                 <AlignRight className="w-4 h-4" />
               </button>
               <button
-                className="p-2 hover:bg-blue-100 rounded transition-colors"
+                type="button"
+                onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+                className={`p-2 rounded ${editor.isActive({ textAlign: 'justify' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                 title="Justifier"
               >
                 <AlignJustify className="w-4 h-4" />
@@ -257,6 +424,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
 
             <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
               <button
+                type="button"
                 onClick={() => editor.chain().focus().toggleBulletList().run()}
                 className={`p-2 rounded ${editor.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                 title="Liste à puces"
@@ -264,6 +432,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
                 <List className="w-4 h-4" />
               </button>
               <button
+                type="button"
                 onClick={() => editor.chain().focus().toggleOrderedList().run()}
                 className={`p-2 rounded ${editor.isActive('orderedList') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                 title="Liste numérotée"
@@ -274,12 +443,16 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
 
             <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
               <button
+                type="button"
+                onClick={() => editor.chain().focus().sinkListItem('listItem').run()}
                 className="p-2 hover:bg-blue-100 rounded transition-colors"
                 title="Augmenter le retrait"
               >
                 <Indent className="w-4 h-4" />
               </button>
               <button
+                type="button"
+                onClick={() => editor.chain().focus().liftListItem('listItem').run()}
                 className="p-2 hover:bg-blue-100 rounded transition-colors"
                 title="Diminuer le retrait"
               >
@@ -304,6 +477,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
             {/* Styles Group */}
             <div className="flex items-center gap-1">
               <button
+                type="button"
                 onClick={() => editor.chain().focus().setParagraph().run()}
                 className={`px-3 py-1 text-sm rounded ${editor.isActive('paragraph') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                 title="Normal"
@@ -311,6 +485,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
                 Normal
               </button>
               <button
+                type="button"
                 onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
                 className={`px-3 py-1 text-sm font-bold rounded ${editor.isActive('heading', { level: 1 }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                 title="Titre 1"
@@ -318,6 +493,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
                 <Heading1 className="w-4 h-4 inline" />
               </button>
               <button
+                type="button"
                 onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
                 className={`px-3 py-1 text-sm font-bold rounded ${editor.isActive('heading', { level: 2 }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                 title="Titre 2"
@@ -325,6 +501,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
                 <Heading2 className="w-4 h-4 inline" />
               </button>
               <button
+                type="button"
                 onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
                 className={`px-3 py-1 text-sm font-bold rounded ${editor.isActive('heading', { level: 3 }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                 title="Titre 3"
@@ -332,6 +509,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
                 <Heading3 className="w-4 h-4 inline" />
               </button>
               <button
+                type="button"
                 onClick={() => editor.chain().focus().toggleBlockquote().run()}
                 className={`px-3 py-1 text-sm rounded ${editor.isActive('blockquote') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                 title="Citation"
@@ -435,6 +613,60 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
         onClose={() => setIsReadAlsoModalOpen(false)}
         onInsert={handleInsertReadAlso}
       />
+
+      {/* Link Modal */}
+      {isLinkModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Insérer un lien
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsLinkModalOpen(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                URL du lien
+              </label>
+              <input
+                type="url"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                placeholder="https://..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSetLink();
+                  }
+                }}
+              />
+            </div>
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={() => setIsLinkModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleSetLink}
+                disabled={!linkUrl}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Insérer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -46,7 +46,12 @@ export const ReadAlsoExtension = Node.create<ReadAlsoAttributes>({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'read-also' })];
+    return ['div', mergeAttributes(HTMLAttributes, { 
+      'data-type': 'read-also',
+      'data-title': HTMLAttributes.title || '',
+      'data-url': HTMLAttributes.url || '',
+      'data-accent-color': HTMLAttributes.accentColor || '#2563eb',
+    })];
   },
 
   addCommands() {
