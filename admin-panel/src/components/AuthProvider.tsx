@@ -16,9 +16,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Utilisateurs définis directement pour éviter les problèmes de chargement asynchrone
+const DEFAULT_USERS: User[] = [
+  {
+    email: 'jacquesmasuruku2@gmail.com',
+    password: '678900',
+    name: 'Jacques Masuruku'
+  }
+];
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>(DEFAULT_USERS);
 
   useEffect(() => {
     // Check if user is authenticated on mount
@@ -27,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(true);
     }
 
-    // Load users from config file
+    // Try to load users from config file, but keep defaults as fallback
     loadUsers();
   }, []);
 
@@ -36,27 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await fetch('/admin-users.json');
       if (response.ok) {
         const data = await response.json();
-        setUsers(data.users || []);
-      } else {
-        // Fallback to default user if file doesn't exist
-        setUsers([
-          {
-            email: 'jacquesmasuruku2@gmail.com',
-            password: '678900',
-            name: 'Jacques Masuruku'
-          }
-        ]);
+        if (data.users && data.users.length > 0) {
+          setUsers(data.users);
+        }
       }
     } catch (error) {
-      console.error('Failed to load admin users:', error);
-      // Fallback to default user
-      setUsers([
-        {
-          email: 'jacquesmasuruku2@gmail.com',
-          password: '678900',
-          name: 'Jacques Masuruku'
-        }
-      ]);
+      console.error('Failed to load admin users, using defaults:', error);
+      // Keep default users
     }
   };
 
@@ -74,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem('admin-auth');
     localStorage.removeItem('admin-user');
+    localStorage.removeItem('redirect-after-login');
     setIsAuthenticated(false);
   };
 
