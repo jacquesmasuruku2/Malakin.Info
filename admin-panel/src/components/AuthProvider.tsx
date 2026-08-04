@@ -30,14 +30,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>(DEFAULT_USERS);
 
   useEffect(() => {
-    // Check if user is authenticated on mount
-    const auth = localStorage.getItem('admin-auth');
-    if (auth === 'true') {
-      setIsAuthenticated(true);
-    }
+    // Check if user is authenticated on mount (client-side only)
+    if (typeof window !== 'undefined') {
+      const auth = localStorage.getItem('admin-auth');
+      if (auth === 'true') {
+        setIsAuthenticated(true);
+      }
 
-    // Try to load users from config file, but keep defaults as fallback
-    loadUsers();
+      // Try to load users from config file, but keep defaults as fallback
+      loadUsers();
+    }
   }, []);
 
   const loadUsers = async () => {
@@ -58,18 +60,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (email: string, password: string): boolean => {
     const user = users.find(u => u.email === email && u.password === password);
     if (user) {
-      localStorage.setItem('admin-auth', 'true');
-      localStorage.setItem('admin-user', JSON.stringify(user));
-      setIsAuthenticated(true);
-      return true;
+      try {
+        localStorage.setItem('admin-auth', 'true');
+        localStorage.setItem('admin-user', JSON.stringify(user));
+        setIsAuthenticated(true);
+        return true;
+      } catch (error) {
+        console.error('Failed to save to localStorage:', error);
+        // Fallback: set authentication state directly
+        setIsAuthenticated(true);
+        return true;
+      }
     }
     return false;
   };
 
   const logout = () => {
-    localStorage.removeItem('admin-auth');
-    localStorage.removeItem('admin-user');
-    localStorage.removeItem('redirect-after-login');
+    try {
+      localStorage.removeItem('admin-auth');
+      localStorage.removeItem('admin-user');
+      localStorage.removeItem('redirect-after-login');
+    } catch (error) {
+      console.error('Failed to clear localStorage:', error);
+    }
     setIsAuthenticated(false);
   };
 
