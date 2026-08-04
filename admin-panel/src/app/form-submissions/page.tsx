@@ -211,22 +211,24 @@ export default function FormSubmissionsPage() {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-gray-400" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Tous les statuts</option>
-                <option value="new">Nouveau</option>
-                <option value="pending">En attente</option>
-                <option value="read">Lu</option>
-                <option value="in-progress">En cours</option>
-                <option value="replied">Répondu</option>
-                <option value="approved">Approuvé</option>
-                <option value="rejected">Rejeté</option>
-              </select>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Filter className="w-5 h-5 text-gray-400" />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+                >
+                  <option value="all">Tous les statuts</option>
+                  <option value="new">Nouveau</option>
+                  <option value="pending">En attente</option>
+                  <option value="read">Lu</option>
+                  <option value="in-progress">En cours</option>
+                  <option value="replied">Répondu</option>
+                  <option value="approved">Approuvé</option>
+                  <option value="rejected">Rejeté</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -239,25 +241,25 @@ export default function FormSubmissionsPage() {
         ) : (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[800px]">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {activeTab === 'contact' ? 'Nom' : 'Entreprise'}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                       Email
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                       {activeTab === 'contact' ? 'Sujet' : 'Type'}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Statut
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                       Date
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -265,52 +267,55 @@ export default function FormSubmissionsPage() {
                 <tbody className="divide-y divide-gray-200">
                   {filteredData.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={6} className="px-4 sm:px-6 py-12 text-center text-gray-500">
                         Aucune soumission trouvée
                       </td>
                     </tr>
                   ) : (
                     filteredData.map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
                             {activeTab === 'contact' ? item.name : item.contactName}
                           </div>
                           {activeTab === 'partnerships' && (
                             <div className="text-sm text-gray-500">{item.companyName}</div>
                           )}
+                          <div className="sm:hidden mt-1">
+                            <p className="text-xs text-gray-600">{item.email}</p>
+                          </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap hidden sm:table-cell">
                           <div className="text-sm text-gray-900">{item.email}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap hidden md:table-cell">
                           <div className="text-sm text-gray-900">
                             {activeTab === 'contact' ? item.subject || '-' : item.type}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${getStatusColor(item.status)}`}>
                             {getStatusLabel(item.status)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                           {new Date(item.createdAt).toLocaleDateString('fr-FR')}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex items-center justify-end gap-2">
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex items-center justify-end gap-1 sm:gap-2">
                             <button
                               onClick={() => {
                                 setSelectedItem(item);
                                 setShowDetailModal(true);
                               }}
-                              className="text-blue-600 hover:text-blue-900 p-1"
+                              className="text-blue-600 hover:text-blue-900 p-1.5 sm:p-1"
                               title="Voir détails"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDelete(item.id)}
-                              className="text-red-600 hover:text-red-900 p-1"
+                              className="text-red-600 hover:text-red-900 p-1.5 sm:p-1"
                               title="Supprimer"
                             >
                               <Trash2 className="w-4 h-4" />

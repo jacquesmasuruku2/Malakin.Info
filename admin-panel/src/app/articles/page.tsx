@@ -155,12 +155,12 @@ export default function ArticlesPage() {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
               />
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="relative flex-1 sm:flex-none">
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="appearance-none pl-4 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white"
+                  className="appearance-none pl-4 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white w-full sm:w-auto"
                 >
                   <option value="all">Tous les statuts</option>
                   {statuses.filter(s => s !== 'all').map(status => (
@@ -169,11 +169,11 @@ export default function ArticlesPage() {
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               </div>
-              <div className="relative">
+              <div className="relative flex-1 sm:flex-none">
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
-                  className="appearance-none pl-4 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white"
+                  className="appearance-none pl-4 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white w-full sm:w-auto"
                 >
                   <option value="all">Toutes les catégories</option>
                   {categories.map(category => (
@@ -189,25 +189,25 @@ export default function ArticlesPage() {
         {/* Articles Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[800px]">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Article
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                     Catégorie
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Auteur
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                     Vues
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -215,9 +215,9 @@ export default function ArticlesPage() {
               <tbody className="divide-y divide-gray-200">
                 {filteredArticles.map((article) => (
                   <tr key={article.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-start space-x-4">
-                        <div className="flex-shrink-0 w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
+                    <td className="px-4 sm:px-6 py-4">
+                      <div className="flex items-start space-x-3 sm:space-x-4">
+                        <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-gray-200 rounded-lg overflow-hidden">
                           {article.mainImageUrl ? (
                             <img 
                               src={article.mainImageUrl} 
@@ -230,14 +230,14 @@ export default function ArticlesPage() {
                             />
                           ) : null}
                           <div className={`w-full h-full flex items-center justify-center ${article.mainImageUrl ? 'hidden' : ''}`}>
-                            <FileText className="w-8 h-8 text-gray-400" />
+                            <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                          <p className="text-sm font-medium text-gray-900 truncate max-w-[150px] sm:max-w-xs">
                             {article.title}
                           </p>
-                          <p className="text-xs text-gray-500 truncate max-w-xs">
+                          <p className="text-xs text-gray-500 truncate max-w-[150px] sm:max-w-xs">
                             /{article.slug}
                           </p>
                           {article.featured && (
@@ -245,19 +245,22 @@ export default function ArticlesPage() {
                               À la une
                             </span>
                           )}
+                          <div className="sm:hidden mt-1">
+                            <p className="text-xs text-gray-600">{article.category.title}</p>
+                          </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap hidden sm:table-cell">
                       <span className="text-sm text-gray-600">{article.category.title}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap hidden md:table-cell">
                       <div className="flex items-center text-sm text-gray-600">
                         <User className="w-4 h-4 mr-2" />
                         {article.author?.name}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap hidden sm:table-cell">
                       {article.publishedAt ? (
                         <div className="flex items-center text-sm text-gray-600">
                           <Calendar className="w-4 h-4 mr-2" />
@@ -267,32 +270,32 @@ export default function ArticlesPage() {
                         <span className="text-sm text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap hidden sm:table-cell">
                       <div className="flex items-center text-sm text-gray-600">
                         <Eye className="w-4 h-4 mr-2" />
                         {article.views.toLocaleString()}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-2">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-1 sm:gap-2">
                         <a 
                           href={`https://malakinfo.com/${article.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors" 
+                          className="p-1.5 sm:p-2 text-gray-400 hover:text-blue-600 transition-colors" 
                           title="Voir sur le site"
                         >
                           <Eye className="w-4 h-4" />
                         </a>
                         <Link 
                           href={`/articles/${article.id}/edit`}
-                          className="p-2 text-gray-400 hover:text-green-600 transition-colors" 
+                          className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 transition-colors" 
                           title="Modifier"
                         >
                           <Edit className="w-4 h-4" />
                         </Link>
                         <button 
-                          className="p-2 text-gray-400 hover:text-red-600 transition-colors" 
+                          className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 transition-colors" 
                           title="Supprimer"
                           onClick={() => handleDeleteClick(article.id, article.title)}
                         >
