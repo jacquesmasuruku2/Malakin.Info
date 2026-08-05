@@ -1,20 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// Helper function to add CORS headers
-function cors(response: NextResponse) {
-  response.headers.set('Access-Control-Allow-Origin', '*');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  return response;
-}
-
-// Handle OPTIONS request for CORS preflight
-export async function OPTIONS() {
-  const response = new NextResponse(null, { status: 200 });
-  return cors(response);
-}
-
 export async function GET() {
   try {
     // Get counts from database
@@ -67,12 +53,12 @@ export async function GET() {
       activeLives: activeLivesCount
     };
 
-    return cors(NextResponse.json(stats));
+    return NextResponse.json(stats);
   } catch (error) {
     console.error('Error fetching statistics:', error);
-    return cors(NextResponse.json({ 
+    return NextResponse.json({ 
       error: 'Failed to fetch statistics',
       details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 }));
+    }, { status: 500 });
   }
 }
