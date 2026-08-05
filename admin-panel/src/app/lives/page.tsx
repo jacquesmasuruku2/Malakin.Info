@@ -343,7 +343,7 @@ export default function LivesPage() {
           title="Supprimer ce live"
           message={`Êtes-vous sûr de vouloir supprimer "${deleteDialog.liveTitle}" ? Cette action est irréversible.`}
           onConfirm={handleDeleteConfirm}
-          onCancel={() => setDeleteDialog({ isOpen: false, liveId: null, liveTitle: '' })}
+          onClose={() => setDeleteDialog({ isOpen: false, liveId: null, liveTitle: '' })}
         />
       </AdminLayout>
     </ProtectedRoute>
