@@ -4,6 +4,7 @@ import AdminLayout from '@/components/AdminLayout';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Save, X } from 'lucide-react';
+import { getApiUrl } from '@/lib/api';
 
 interface Category {
   id: string;
@@ -35,7 +36,7 @@ export default function EditCategoryPage() {
 
   const fetchCategory = async () => {
     try {
-      const response = await fetch(`/api/categories/${categoryId}`);
+      const response = await fetch(getApiUrl(`/api/categories/${categoryId}`));
       const data: Category = await response.json();
       setFormData({
         title: data.title,
@@ -56,7 +57,7 @@ export default function EditCategoryPage() {
     setSaving(true);
 
     try {
-      const response = await fetch(`/api/categories/${categoryId}`, {
+      const response = await fetch(getApiUrl(`/api/categories/${categoryId}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

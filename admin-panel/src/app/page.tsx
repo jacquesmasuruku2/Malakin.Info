@@ -9,7 +9,8 @@ import {
   Users, 
   BarChart3,
   LayoutDashboard,
-  FolderTree
+  FolderTree,
+  Radio
 } from 'lucide-react';
 
 interface Stats {
@@ -19,6 +20,8 @@ interface Stats {
   totalViews: number;
   featuredArticles: number;
   publishedThisMonth: number;
+  lives: number;
+  activeLives: number;
 }
 
 export default function AdminDashboard() {
@@ -31,7 +34,8 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/stats');
+      const apiUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/stats`);
       const data = await response.json();
       setStats(data);
     } catch (error) {
@@ -61,10 +65,10 @@ export default function AdminDashboard() {
       color: 'bg-purple-500',
     },
     {
-      name: 'Vues totales',
-      value: stats?.totalViews ? stats.totalViews.toLocaleString() : '0',
-      icon: BarChart3,
-      color: 'bg-orange-500',
+      name: 'Lives',
+      value: stats?.lives || 0,
+      icon: Radio,
+      color: 'bg-red-500',
     },
   ];
 
@@ -110,7 +114,7 @@ export default function AdminDashboard() {
 
           {/* Additional Stats */}
           {!loading && stats && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Articles à la une</h3>
                 <p className="text-3xl font-bold text-yellow-600">{stats.featuredArticles}</p>
@@ -119,13 +123,21 @@ export default function AdminDashboard() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Publiés ce mois</h3>
                 <p className="text-3xl font-bold text-green-600">{stats.publishedThisMonth}</p>
               </div>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Lives actifs</h3>
+                <p className="text-3xl font-bold text-red-600">{stats.activeLives}</p>
+              </div>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Vues totales</h3>
+                <p className="text-3xl font-bold text-orange-600">{stats.totalViews ? stats.totalViews.toLocaleString() : '0'}</p>
+              </div>
             </div>
           )}
 
           {/* Quick Actions */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions rapides</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Link href="/articles/new" className="flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
                 <FileText className="w-4 h-4 mr-2" />
                 Nouvel article
@@ -133,6 +145,10 @@ export default function AdminDashboard() {
               <Link href="/authors/new" className="flex items-center justify-center px-4 py-3 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors">
                 <Users className="w-4 h-4 mr-2" />
                 Ajouter un auteur
+              </Link>
+              <Link href="/lives/new" className="flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                <Radio className="w-4 h-4 mr-2" />
+                Nouveau live
               </Link>
               <Link href="/categories/new" className="flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
                 <LayoutDashboard className="w-4 h-4 mr-2" />

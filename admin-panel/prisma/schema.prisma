@@ -286,3 +286,30 @@ model BlogPost {
   @@index([publishedAt(sort: Desc)])
   @@index([featured])
 }
+
+model LiveEvent {
+  id           String     @id @default(cuid())
+  title        String
+  slug         String     @unique
+  description  String?
+  thumbnail    String?
+  streamUrl    String?
+  youtubeUrl   String?
+  status       LiveStatus @default(SCHEDULED)
+  startTime    DateTime
+  endTime      DateTime?
+  viewerCount  Int        @default(0)
+  isFeatured   Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([status])
+  @@index([startTime])
+  @@index([isFeatured])
+}
+
+enum LiveStatus {
+  SCHEDULED
+  LIVE
+  ENDED
+}

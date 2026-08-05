@@ -4,6 +4,7 @@ import AdminLayout from '@/components/AdminLayout';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Save, X } from 'lucide-react';
+import { getApiUrl } from '@/lib/api';
 
 interface Author {
   id: string;
@@ -39,7 +40,7 @@ export default function EditAuthorPage() {
 
   const fetchAuthor = async () => {
     try {
-      const response = await fetch(`/api/authors/${authorId}`);
+      const response = await fetch(getApiUrl(`/api/authors/${authorId}`));
       const data: Author = await response.json();
       setFormData({
         name: data.name,
@@ -62,7 +63,7 @@ export default function EditAuthorPage() {
     setSaving(true);
 
     try {
-      const response = await fetch(`/api/authors/${authorId}`, {
+      const response = await fetch(getApiUrl(`/api/authors/${authorId}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

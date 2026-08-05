@@ -13,6 +13,7 @@ import {
   FileText,
   Calendar
 } from 'lucide-react';
+import { getApiUrl } from '@/lib/api';
 
 interface Author {
   id: string;
@@ -40,7 +41,7 @@ export default function AuthorsPage() {
 
   const fetchAuthors = async () => {
     try {
-      const response = await fetch('/api/authors');
+      const response = await fetch(getApiUrl('/api/authors'));
       const data = await response.json();
       setAuthors(data);
     } catch (error) {
@@ -54,7 +55,7 @@ export default function AuthorsPage() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cet auteur ?')) return;
     
     try {
-      await fetch(`/api/authors/${id}`, { method: 'DELETE' });
+      await fetch(getApiUrl(`/api/authors/${id}`), { method: 'DELETE' });
       fetchAuthors();
     } catch (error) {
       console.error('Failed to delete author:', error);

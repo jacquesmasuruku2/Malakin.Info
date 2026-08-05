@@ -10,6 +10,7 @@ interface User {
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (email: string, password: string) => boolean;
   logout: () => void;
 }
@@ -27,6 +28,7 @@ const DEFAULT_USERS: User[] = [
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [users, setUsers] = useState<User[]>(DEFAULT_USERS);
 
   useEffect(() => {
@@ -36,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (auth === 'true') {
         setIsAuthenticated(true);
       }
+      setIsLoading(false);
 
       // Try to load users from config file, but keep defaults as fallback
       loadUsers();
@@ -87,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -6,6 +6,7 @@ import WordEditor from '@/components/WordEditor';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Save, X } from 'lucide-react';
+import { getApiUrl } from '@/lib/api';
 
 interface Article {
   id: string;
@@ -63,7 +64,7 @@ export default function EditArticlePage() {
 
   const fetchArticle = async () => {
     try {
-      const response = await fetch(`/api/articles/${articleId}`);
+      const response = await fetch(getApiUrl(`/api/articles/${articleId}`));
       const data: Article = await response.json();
       setFormData({
         title: data.title,
@@ -112,7 +113,7 @@ export default function EditArticlePage() {
     setSaving(true);
 
     try {
-      const response = await fetch(`/api/articles/${articleId}`, {
+      const response = await fetch(getApiUrl(`/api/articles/${articleId}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

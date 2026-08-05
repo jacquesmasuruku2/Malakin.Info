@@ -15,28 +15,25 @@ export async function OPTIONS() {
   return cors(response);
 }
 
-export async function GET() {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const applications = await prisma.jobApplication.findMany({
-      include: {
-        jobOffer: {
-          select: {
-            title: true,
-            location: true,
-            type: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+    const { id } = await params;
+    const event = await prisma.liveEvent.update({
+      where: { id },
+      data: {
+        status: 'LIVE',
+        startTime: new Date()
+      }
     });
 
-    return cors(NextResponse.json(applications));
+    return cors(NextResponse.json(event));
   } catch (error) {
-    console.error('Error fetching job applications:', error);
+    console.error('Error starting live event:', error);
     return cors(NextResponse.json(
-      { error: 'Failed to fetch job applications' },
+      { error: 'Failed to start live event' },
       { status: 500 }
     ));
   }

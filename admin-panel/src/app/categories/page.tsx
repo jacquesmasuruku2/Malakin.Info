@@ -11,6 +11,7 @@ import {
   FolderOpen,
   Hash
 } from 'lucide-react';
+import { getApiUrl } from '@/lib/api';
 
 interface Category {
   id: string;
@@ -36,7 +37,7 @@ export default function CategoriesPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories');
+      const response = await fetch(getApiUrl('/api/categories'));
       const data = await response.json();
       setCategories(data);
     } catch (error) {
@@ -50,7 +51,7 @@ export default function CategoriesPage() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
     
     try {
-      await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+      await fetch(getApiUrl(`/api/categories/${id}`), { method: 'DELETE' });
       fetchCategories();
     } catch (error) {
       console.error('Failed to delete category:', error);
