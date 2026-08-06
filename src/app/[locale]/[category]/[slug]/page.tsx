@@ -6,6 +6,7 @@ import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
 import ViewIncrementer from '@/components/ViewIncrementer';
+import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,6 +45,10 @@ export default async function ArticlePage({
       redirect(`/${locale}/${article.category?.slug || 'actualites'}/${slug}`);
     }
 
+    // Get translated content based on locale
+    const translatedArticle = await getArticleTranslation(article.id, locale);
+    const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
+
     const relatedArticles = await prisma.article.findMany({
       where: {
         categoryId: article.categoryId,
@@ -69,6 +74,12 @@ export default async function ArticlePage({
 
     const readTime = article.readTime ? `${article.readTime} ${t.readTime}` : `5 ${t.readTime}`;
 
+    // Use translated content if available, otherwise fallback to original
+    const displayTitle = translatedArticle.title;
+    const displayExcerpt = translatedArticle.excerpt;
+    const displayContent = typeof translatedArticle.content === 'string' ? translatedArticle.content : JSON.stringify(translatedArticle.content);
+    const displayCategoryTitle = translatedCategory.title;
+
     return (
       <div className="min-h-screen bg-background">
         {/* Increment views */}
@@ -82,7 +93,7 @@ export default async function ArticlePage({
               className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              {t.backTo} {article.category?.title || 'Actualités'}
+              {t.backTo} {displayCategoryTitle || 'Actualités'}
             </Link>
           </div>
         </header>
@@ -95,7 +106,7 @@ export default async function ArticlePage({
               href={`/${locale}/${article.category?.slug || 'actualites'}`}
               className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs sm:text-sm font-medium rounded-full mb-3 sm:mb-4 hover:bg-primary/20 transition-colors"
             >
-              {article.category?.title || 'Actualités'}
+              {displayCategoryTitle || 'Actualités'}
             </Link>
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
@@ -115,13 +126,13 @@ export default async function ArticlePage({
 
           {/* Title */}
           <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
-            {article.title}
+            {displayTitle}
           </h1>
 
           {/* Excerpt */}
-          {article.excerpt && (
+          {displayExcerpt && (
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
-              {article.excerpt}
+              {displayExcerpt}
             </p>
           )}
 
@@ -130,7 +141,7 @@ export default async function ArticlePage({
             <div className="mb-0 rounded-lg overflow-hidden">
               <img
                 src={article.mainImageUrl}
-                alt={article.title}
+                alt={displayTitle}
                 className="w-full h-auto object-cover"
               />
             </div>
@@ -139,7 +150,7 @@ export default async function ArticlePage({
           {/* Content */}
           <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-6 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-4 prose-h2:mb-4 prose-h3:mt-4 prose-h3:mb-3 prose-p:my-0 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium [&>div:first-child]:mt-0 [&>div:first-child_p]:mt-0 [&>div:first-child_h1]:mt-0 [&>div:first-child_h2]:mt-0 [&>div:first-child_h3]:mt-0 [&>div:first-child]:!mt-0 [&>div]:first-child:mt-0 [&>div]:first-of-type:mt-0">
             <div
-              dangerouslySetInnerHTML={{ __html: typeof article.content === 'string' ? article.content : '' }}
+              dangerouslySetInnerHTML={{ __html: displayContent }}
               className="text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium prose-strong:text-foreground [&>p:first-child]:mt-0 [&>h1:first-child]:mt-0 [&>h2:first-child]:mt-0 [&>h3:first-child]:mt-0"
             />
           </div>
@@ -151,7 +162,7 @@ export default async function ArticlePage({
 
           {/* Share Buttons */}
           <ShareButtons 
-            title={article.title} 
+            title={displayTitle} 
             url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
             locale={locale}
           />

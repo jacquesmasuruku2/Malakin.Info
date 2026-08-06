@@ -8,16 +8,33 @@ datasource db {
 }
 
 model Category {
+  id           String               @id @default(cuid())
+  title        String
+  slug         String               @unique
+  description  String?
+  color        String?
+  icon         String?
+  defaultLocale String              @default("fr")
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  articles     Article[]
+  media        Media[]
+  translations CategoryTranslation[]
+}
+
+model CategoryTranslation {
   id          String   @id @default(cuid())
+  categoryId  String
+  locale      String
   title       String
-  slug        String   @unique
   description String?
-  color       String?
-  icon        String?
-  articles    Article[]
-  media       Media[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, locale])
+  @@index([categoryId])
+  @@index([locale])
 }
 
 model Author {
@@ -37,9 +54,9 @@ model Author {
 }
 
 model Article {
-  id           String    @id @default(cuid())
+  id           String            @id @default(cuid())
   title        String
-  slug         String    @unique
+  slug         String            @unique
   excerpt      String
   content      Json
   categoryId   String
@@ -48,20 +65,38 @@ model Article {
   mainImageUrl String?
   mainImageAlt String?
   readTime     String?
-  featured     Boolean   @default(false)
-  views        BigInt    @default(0)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  author       Author?   @relation(fields: [authorId], references: [id])
-  category     Category  @relation(fields: [categoryId], references: [id])
+  featured     Boolean           @default(false)
+  views        BigInt            @default(0)
+  defaultLocale String           @default("fr")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  author       Author?           @relation(fields: [authorId], references: [id])
+  category     Category          @relation(fields: [categoryId], references: [id])
   comments     Comment[]
   likes        Like[]
+  translations ArticleTranslation[]
 
   @@index([categoryId])
   @@index([authorId])
   @@index([publishedAt(sort: Desc)])
   @@index([featured])
   @@index([views(sort: Desc)])
+}
+
+model ArticleTranslation {
+  id        String   @id @default(cuid())
+  articleId String
+  locale    String
+  title     String
+  excerpt   String
+  content   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, locale])
+  @@index([articleId])
+  @@index([locale])
 }
 
 model User {
