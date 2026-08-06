@@ -40,13 +40,15 @@ export default function AdSenseAd({
     }
   }, [adSlot, isAdLoaded]);
 
+  const adClientId = process.env.NEXT_PUBLIC_ADSENSE_ID || 'ca-pub-4621769509750492';
+
   return (
     <div className={`adsense-ad-container ${className}`}>
       <ins
         ref={adRef}
         className="adsbygoogle"
         style={style}
-        data-ad-client="ca-pub-4621769509750492"
+        data-ad-client={adClientId}
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
         data-full-width-responsive={fullWidthResponsive.toString()}

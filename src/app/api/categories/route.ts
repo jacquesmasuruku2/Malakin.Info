@@ -10,35 +10,29 @@ function cors(response: NextResponse) {
   return response;
 }
 
-// Handle OPTIONS request for CORS preflight
 export async function OPTIONS() {
-  const response = new NextResponse(null, { status: 200 });
-  return cors(response);
+  return cors(new NextResponse(null, { status: 200 }));
 }
 
 export async function GET() {
   try {
-    const applications = await prisma.jobApplication.findMany({
+    const categories = await prisma.category.findMany({
       include: {
-        jobOffer: {
-          select: {
-            title: true,
-            location: true,
-            type: true,
-          },
+        _count: {
+          select: { articles: true },
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        title: 'asc',
       },
     });
 
-    return cors(NextResponse.json(applications));
+    return cors(NextResponse.json(categories));
   } catch (error) {
-    console.error('Error fetching job applications:', error);
-    return cors(NextResponse.json(
-      { error: 'Failed to fetch job applications' },
-      { status: 500 }
-    ));
+    console.error('Error fetching categories:', error);
+    return cors(NextResponse.json({ 
+      error: 'Failed to fetch categories',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 }));
   }
 }

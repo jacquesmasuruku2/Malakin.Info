@@ -64,10 +64,20 @@ export default function ArticlesPage() {
   const fetchArticles = async () => {
     try {
       const response = await fetch(getApiUrl('/api/articles'));
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
-      setArticles(data);
+      // Ensure data is an array before setting state
+      if (Array.isArray(data)) {
+        setArticles(data);
+      } else {
+        console.error('API returned non-array data:', data);
+        setArticles([]);
+      }
     } catch (error) {
       console.error('Failed to fetch articles:', error);
+      setArticles([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -76,10 +86,20 @@ export default function ArticlesPage() {
   const fetchCategories = async () => {
     try {
       const response = await fetch(getApiUrl('/api/categories'));
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
-      setCategories(data);
+      // Ensure data is an array before setting state
+      if (Array.isArray(data)) {
+        setCategories(data);
+      } else {
+        console.error('API returned non-array data:', data);
+        setCategories([]);
+      }
     } catch (error) {
       console.error('Failed to fetch categories:', error);
+      setCategories([]); // Set empty array on error
     }
   };
 
@@ -109,7 +129,7 @@ export default function ArticlesPage() {
 
   const statuses = ['all', 'Publié', 'En révision', 'Brouillon'];
 
-  const filteredArticles = articles.filter(article => {
+  const filteredArticles = (articles || []).filter(article => {
     const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (article.author?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'all' || article.category.title === filterCategory;

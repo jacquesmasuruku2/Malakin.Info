@@ -30,6 +30,7 @@ declare module 'next-auth/jwt' {
 const isGoogleConfigured = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
 
 const handler = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET,
   providers: isGoogleConfigured ? [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,

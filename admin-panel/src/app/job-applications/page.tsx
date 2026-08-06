@@ -17,6 +17,7 @@ import {
   Trash2,
   Download
 } from 'lucide-react';
+import { getApiUrl } from '@/lib/api';
 
 export default function JobApplicationsPage() {
   const [applications, setApplications] = useState<any[]>([]);
@@ -33,13 +34,12 @@ export default function JobApplicationsPage() {
   const fetchApplications = async () => {
     setLoading(true);
     try {
-      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'http://localhost:3000';
-      const response = await fetch(`${mainSiteUrl}/api/job-applications`);
+      const response = await fetch(getApiUrl('/api/job-applications'));
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setApplications(data);
+      setApplications(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching job applications:', error);
       setApplications([]);
@@ -50,8 +50,7 @@ export default function JobApplicationsPage() {
 
   const handleStatusUpdate = async (id: string, newStatus: string) => {
     try {
-      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'http://localhost:3000';
-      const response = await fetch(`${mainSiteUrl}/api/job-applications/${id}`, {
+      const response = await fetch(getApiUrl(`/api/job-applications/${id}`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
@@ -71,8 +70,7 @@ export default function JobApplicationsPage() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette candidature ?')) return;
     
     try {
-      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'http://localhost:3000';
-      const response = await fetch(`${mainSiteUrl}/api/job-applications/${id}`, {
+      const response = await fetch(getApiUrl(`/api/job-applications/${id}`), {
         method: 'DELETE',
       });
       if (!response.ok) {
@@ -86,7 +84,7 @@ export default function JobApplicationsPage() {
     }
   };
 
-  const filteredData = applications.filter((item) => {
+  const filteredData = (applications || []).filter((item) => {
     const matchesSearch = 
       (item.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (item.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||

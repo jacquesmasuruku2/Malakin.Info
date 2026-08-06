@@ -3,6 +3,15 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Helper function to add CORS headers
+function cors(response: NextResponse) {
+  response.headers.set('Access-Control-Allow-Origin', 'https://dashboard.malakinfo.com');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  return response;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -37,6 +46,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function OPTIONS() {
+  return cors(new NextResponse(null, { status: 200 }));
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -51,28 +64,12 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const response = NextResponse.json(messages);
-    response.headers.set('Access-Control-Allow-Origin', '*');
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
-    return response;
+    return cors(NextResponse.json(messages));
   } catch (error) {
     console.error('Error fetching contact messages:', error);
-    return NextResponse.json(
+    return cors(NextResponse.json(
       { error: 'Failed to fetch messages', messages: [] },
       { status: 500 }
-    );
+    ));
   }
-}
-
-export async function OPTIONS(request: NextRequest) {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
-  });
 }

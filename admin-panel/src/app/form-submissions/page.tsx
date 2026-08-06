@@ -14,6 +14,7 @@ import {
   Eye,
   Trash2
 } from 'lucide-react';
+import { getApiUrl } from '@/lib/api';
 
 type TabType = 'contact' | 'partnerships';
 
@@ -34,23 +35,20 @@ export default function FormSubmissionsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Use the main site API instead of internal admin-panel API
-      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakinfo.com';
-      
       if (activeTab === 'contact') {
-        const response = await fetch(`${mainSiteUrl}/api/contact`);
+        const response = await fetch(getApiUrl('/api/contact'));
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setContactMessages(data);
+        setContactMessages(Array.isArray(data) ? data : []);
       } else {
-        const response = await fetch(`${mainSiteUrl}/api/partnerships`);
+        const response = await fetch(getApiUrl('/api/partnerships'));
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setPartnerships(data);
+        setPartnerships(Array.isArray(data) ? data : []);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -66,9 +64,8 @@ export default function FormSubmissionsPage() {
 
   const handleStatusUpdate = async (id: string, newStatus: string) => {
     try {
-      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakinfo.com';
       const endpoint = activeTab === 'contact' ? 'contact' : 'partnerships';
-      const response = await fetch(`${mainSiteUrl}/api/${endpoint}/${id}`, {
+      const response = await fetch(getApiUrl(`/api/${endpoint}/${id}`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
@@ -87,9 +84,8 @@ export default function FormSubmissionsPage() {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) return;
     
     try {
-      const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'https://malakinfo.com';
       const endpoint = activeTab === 'contact' ? 'contact' : 'partnerships';
-      const response = await fetch(`${mainSiteUrl}/api/${endpoint}/${id}`, {
+      const response = await fetch(getApiUrl(`/api/${endpoint}/${id}`), {
         method: 'DELETE',
       });
       if (!response.ok) {
@@ -103,7 +99,7 @@ export default function FormSubmissionsPage() {
     }
   };
 
-  const filteredData = (activeTab === 'contact' ? contactMessages : partnerships).filter((item) => {
+  const filteredData = (activeTab === 'contact' ? contactMessages : partnerships || []).filter((item) => {
     const matchesSearch = 
       (item.name || item.contactName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (item.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||

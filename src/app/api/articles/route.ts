@@ -26,7 +26,13 @@ export async function GET() {
       },
     });
 
-    return cors(NextResponse.json(articles));
+    // Convert BigInt to number for JSON serialization
+    const serializedArticles = articles.map(article => ({
+      ...article,
+      views: Number(article.views),
+    }));
+
+    return cors(NextResponse.json(serializedArticles));
   } catch (error) {
     console.error('Error fetching articles:', error);
     return cors(NextResponse.json(

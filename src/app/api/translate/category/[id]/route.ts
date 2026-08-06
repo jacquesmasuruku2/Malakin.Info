@@ -32,12 +32,10 @@ export async function POST(
     }
 
     // Check if translation already exists
-    const existingTranslation = await prisma.categoryTranslation.findUnique({
+    const existingTranslation = await (prisma as any).categoryTranslation.findFirst({
       where: {
-        categoryId_locale: {
-          categoryId: id,
-          locale: targetLocale
-        }
+        categoryId: id,
+        locale: targetLocale
       }
     });
 

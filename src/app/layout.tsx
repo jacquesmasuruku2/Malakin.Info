@@ -8,6 +8,8 @@ import ServicesModal from "@/components/ServicesModal";
 import SplashScreen from "@/components/SplashScreen";
 import "./globals.css";
 
+const ADSENSE_ID = process.env.NEXT_PUBLIC_ADSENSE_ID || 'ca-pub-4621769509750492';
+
 const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'});
 
 export const metadata: Metadata = {
@@ -68,7 +70,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "ca-pub-4621769509750492",
+    google: ADSENSE_ID,
   },
 };
 
@@ -80,12 +82,13 @@ export default function RootLayout({
   return (
     <html lang="fr" className={cn("h-full", "antialiased", jetbrainsMono.variable)}>
       <head>
-        <meta name="google-site-verification" content="ca-pub-4621769509750492" />
-        <script
+        <meta name="google-site-verification" content={ADSENSE_ID} />
+        <Script
           async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4621769509750492"
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_ID}`}
           crossOrigin="anonymous"
-        ></script>
+          strategy="afterInteractive"
+        />
       </head>
       <body className="min-h-full flex flex-col">
         <SplashScreen />
