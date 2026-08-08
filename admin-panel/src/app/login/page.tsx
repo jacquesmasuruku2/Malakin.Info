@@ -26,7 +26,7 @@ export default function LoginPage() {
     if (success) {
       // Rediriger vers l'URL sauvegardée ou vers le tableau de bord
       const redirectUrl = localStorage.getItem('redirect-after-login');
-      if (redirectUrl && redirectUrl !== '/login') {
+      if (redirectUrl && redirectUrl !== '/login' && redirectUrl !== '/') {
         localStorage.removeItem('redirect-after-login');
         router.push(redirectUrl);
       } else {
