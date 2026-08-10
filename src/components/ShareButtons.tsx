@@ -44,7 +44,7 @@ export default function ShareButtons({ title, url, locale }: ShareButtonsProps) 
   };
 
   return (
-    <div className="flex items-center gap-2 sm:gap-4 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-border flex-wrap">
+    <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-border flex-wrap">
       <span className="text-xs sm:text-sm font-medium text-foreground">{t.share} :</span>
       
       {/* Facebook */}

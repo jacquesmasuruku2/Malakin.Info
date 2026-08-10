@@ -203,7 +203,7 @@ export default async function ArticlePage({
           )}
 
           {/* Content */}
-          <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-6 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-4 prose-h2:mb-4 prose-h3:mt-4 prose-h3:mb-3 prose-p:my-0 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium [&>div:first-child]:mt-0 [&>div:first-child_p]:mt-0 [&>div:first-child_h1]:mt-0 [&>div:first-child_h2]:mt-0 [&>div:first-child_h3]:mt-0 [&>div:first-child]:!mt-0 [&>div]:first-child:mt-0 [&>div]:first-of-type:mt-0">
+          <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-4 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-4 prose-h2:mb-4 prose-h3:mt-4 prose-h3:mb-3 prose-p:my-0 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium [&>div:first-child]:mt-0 [&>div:first-child_p]:mt-0 [&>div:first-child_h1]:mt-0 [&>div:first-child_h2]:mt-0 [&>div:first-child_h3]:mt-0 [&>div:first-child]:!mt-0 [&>div]:first-child:mt-0 [&>div]:first-of-type:mt-0">
             <div
               dangerouslySetInnerHTML={{ __html: displayContent }}
               className="text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium prose-strong:text-foreground [&>p:first-child]:mt-0 [&>h1:first-child]:mt-0 [&>h2:first-child]:mt-0 [&>h3:first-child]:mt-0"
@@ -211,7 +211,7 @@ export default async function ArticlePage({
           </div>
 
           {/* AdSense Ad - After Content */}
-          <div className="mt-8">
+          <div className="mt-6">
             <AdSenseAd adSlot="0987654321" className="my-4" />
           </div>
 
