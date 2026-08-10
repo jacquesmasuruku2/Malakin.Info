@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grip, LogOut, Settings, Heart, MessageSquare, Bookmark, Menu } from 'lucide-react';
@@ -218,21 +217,21 @@ export default function Navigation() {
               <Link href={`/${locale}/emploi`} className="text-xs text-gray-300 hover:text-white transition-colors">
                 Offres d'emploi
               </Link>
-              <Link href={`/${locale}/communiques`} className="text-xs text-gray-300 hover:text-white transition-colors">
-                Appels d'offres
+              <Link href={`/${locale}/lives`} className="text-xs text-gray-300 hover:text-white transition-colors">
+                Directs
               </Link>
               <Link href={`/${locale}/boutique`} className="text-xs text-gray-300 hover:text-white transition-colors">
-                Boutique
+                Shopping
               </Link>
               <Link href={`/${locale}/newsletter`} className="text-xs text-gray-300 hover:text-white transition-colors">
-                Recevoir nos newsletters
+                L'info en boîte email
               </Link>
             </div>
             
             {/* Right side - Partner sites */}
             <div className="flex items-center space-x-6">
               <Link href="https://thedrc.activitie.com" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-300 hover:text-white transition-colors">
-                TheDRC.Activitie
+                Activitie
               </Link>
               <Link href="https://businessgeneral.com" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-300 hover:text-white transition-colors">
                 Business General
@@ -245,7 +244,7 @@ export default function Navigation() {
       {/* Main Header - En-tête Principal Blanc Centré */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
+          <div className="relative flex items-center justify-between h-14">
             {/* Left side - Desktop */}
             <div className="hidden md:flex items-center space-x-2">
               <button
@@ -287,28 +286,27 @@ export default function Navigation() {
             </div>
 
             {/* Center - Logo */}
-            <Link href={`/${locale}`} className="flex items-center flex-shrink-0">
-              <Image 
-                src="/images/logo.png" 
-                alt="MalakInfo" 
-                width={120}
-                height={36}
-                className="h-9 w-auto"
-                priority
-                onError={(e) => {
-                  // Fallback to text if image fails to load
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const textFallback = target.parentElement?.querySelector('.logo-fallback');
-                  if (textFallback) {
-                    (textFallback as HTMLElement).style.display = 'block';
-                  }
-                }}
-              />
-              <span className="logo-fallback hidden font-heading font-bold text-xl text-primary">
-                MalakInfo
-              </span>
-            </Link>
+            <div className="absolute inset-x-0 flex justify-center">
+              <Link href={`/${locale}`} className="flex items-center flex-shrink-0">
+                <img
+                  src="/images/logo.png"
+                  alt="MalakInfo"
+                  className="h-10 sm:h-12 md:h-14 lg:h-16 xl:h-20 w-auto"
+                  loading="eager"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const textFallback = target.parentElement?.querySelector('.logo-fallback');
+                    if (textFallback) {
+                      (textFallback as HTMLElement).style.display = 'block';
+                    }
+                  }}
+                />
+                <span className="logo-fallback hidden font-heading font-bold text-xl text-primary">
+                  MalakInfo
+                </span>
+              </Link>
+            </div>
 
             {/* Right side - Desktop */}
             <div className="hidden md:flex items-center space-x-4">

@@ -1,10 +1,50 @@
-import { Mail, CheckCircle, ArrowRight } from 'lucide-react';
+'use client';
+
+import { useState } from 'react';
+import { Mail, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function NewsletterPage({ 
   params 
 }: { 
   params: Promise<{ locale: string }> 
 }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setMessage(null);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const name = formData.get('name') as string;
+    const interests = formData.getAll('interests') as string[];
+
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, name, interests }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: data.message });
+        e.currentTarget.reset();
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Erreur lors de l\'abonnement' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Erreur de connexion. Veuillez réessayer.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -27,7 +67,17 @@ export default function NewsletterPage({
             Inscrivez-vous maintenant
           </h2>
           
-          <form className="space-y-6">
+          {message && (
+            <div className={`mb-6 p-4 rounded-lg ${
+              message.type === 'success' 
+                ? 'bg-green-50 text-green-800 border border-green-200' 
+                : 'bg-red-50 text-red-800 border border-red-200'
+            }`}>
+              {message.text}
+            </div>
+          )}
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Adresse email
@@ -38,7 +88,8 @@ export default function NewsletterPage({
                 name="email"
                 placeholder="votre@email.com"
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                disabled={isSubmitting}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors disabled:opacity-50"
               />
             </div>
 
@@ -51,7 +102,8 @@ export default function NewsletterPage({
                 id="name"
                 name="name"
                 placeholder="Votre nom"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                disabled={isSubmitting}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors disabled:opacity-50"
               />
             </div>
 
@@ -61,23 +113,23 @@ export default function NewsletterPage({
               </label>
               <div className="space-y-2">
                 <label className="flex items-center space-x-3 cursor-pointer">
-                  <input type="checkbox" name="interests" value="actualites" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" defaultChecked />
+                  <input type="checkbox" name="interests" value="actualites" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" defaultChecked disabled={isSubmitting} />
                   <span className="text-sm text-gray-700">Actualités</span>
                 </label>
                 <label className="flex items-center space-x-3 cursor-pointer">
-                  <input type="checkbox" name="interests" value="economie" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" />
+                  <input type="checkbox" name="interests" value="economie" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" disabled={isSubmitting} />
                   <span className="text-sm text-gray-700">Économie</span>
                 </label>
                 <label className="flex items-center space-x-3 cursor-pointer">
-                  <input type="checkbox" name="interests" value="culture" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" />
+                  <input type="checkbox" name="interests" value="culture" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" disabled={isSubmitting} />
                   <span className="text-sm text-gray-700">Culture</span>
                 </label>
                 <label className="flex items-center space-x-3 cursor-pointer">
-                  <input type="checkbox" name="interests" value="sport" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" />
+                  <input type="checkbox" name="interests" value="sport" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" disabled={isSubmitting} />
                   <span className="text-sm text-gray-700">Sport</span>
                 </label>
                 <label className="flex items-center space-x-3 cursor-pointer">
-                  <input type="checkbox" name="interests" value="tech" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" />
+                  <input type="checkbox" name="interests" value="tech" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" disabled={isSubmitting} />
                   <span className="text-sm text-gray-700">Science & Tech</span>
                 </label>
               </div>
@@ -89,7 +141,8 @@ export default function NewsletterPage({
                 id="consent"
                 name="consent"
                 required
-                className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary mt-1"
+                disabled={isSubmitting}
+                className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary mt-1 disabled:opacity-50"
               />
               <label htmlFor="consent" className="text-sm text-gray-600">
                 J'accepte de recevoir des emails de MalakInfo.com et je comprends que je peux me désabonner à tout moment.
@@ -98,10 +151,20 @@ export default function NewsletterPage({
 
             <button
               type="submit"
-              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              disabled={isSubmitting}
+              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>S'abonner</span>
-              <ArrowRight className="w-5 h-5" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Envoi en cours...</span>
+                </>
+              ) : (
+                <>
+                  <span>S'abonner</span>
+                  <ArrowRight className="w-5 h-5" />
+                </>
+              )}
             </button>
           </form>
         </div>
