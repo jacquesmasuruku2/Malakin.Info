@@ -24,6 +24,11 @@ export default function ServicesModal() {
     }
   }, [isServicesOpen]);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('ServicesModal isServicesOpen:', isServicesOpen);
+  }, [isServicesOpen]);
+
   const servicesItems = [
     { name: t.search, href: `/${locale}/recherche` },
     { name: t.pressReleases, href: `/${locale}/communiques` },
@@ -99,21 +104,19 @@ export default function ServicesModal() {
     },
   ];
 
-  if (!isServicesOpen) return null;
-
   return (
     <>
       {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-black/50 z-50 md:hidden transition-opacity duration-300 ${
-          isAnimating ? 'opacity-100' : 'opacity-0'
+          isServicesOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={closeServices}
       />
 
       {/* Mobile Bottom Sheet */}
       <div className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ease-out ${
-        isAnimating ? 'translate-y-0' : 'translate-y-full'
+        isServicesOpen ? 'translate-y-0' : 'translate-y-full'
       }`}>
         <div className="bg-white rounded-none max-h-[80vh] overflow-y-auto">
           <div className="sticky top-0 bg-white p-4 border-b-2 border-[#D4AF37] flex justify-between items-center">
@@ -201,10 +204,10 @@ export default function ServicesModal() {
       {/* Desktop Dropdown */}
       <div className="hidden md:block">
         <div className={`fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 ${
-          isAnimating ? 'opacity-100' : 'opacity-0'
+          isServicesOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`} onClick={closeServices} />
         <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] bg-white border border-gray-200 rounded-none shadow-2xl p-6 z-50 max-h-[80vh] overflow-y-auto transition-all duration-300 ease-out ${
-          isAnimating ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+          isServicesOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
         }`}>
           <div className="flex justify-between items-center mb-4 border-b-2 border-[#D4AF37] pb-4">
             <h3 className="text-[#081C3D] font-bold uppercase tracking-wide">{t.servicesMalakin}</h3>
