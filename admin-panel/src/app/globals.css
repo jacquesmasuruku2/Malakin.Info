@@ -6,20 +6,24 @@
   --font-mono: var(--font-jetbrains-mono);
 }
 
-/* Thème par défaut (bleu) */
+/* Thème bleu (défaut) */
 [data-theme="blue"] {
   --primary: #2563eb;
   --primary-dark: #1d4ed8;
   --primary-light: #3b82f6;
-  --primary-bg: #eff6ff;
+  --primary-bg: #dbeafe;
   --sidebar-bg: #ffffff;
   --sidebar-border: #e5e7eb;
   --bg-color: #f9fafb;
   --card-bg: #ffffff;
   --card-border: #e5e7eb;
   --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-muted: #6b7280;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --icon-blue: #2563eb;
+  --icon-green: #16a34a;
+  --icon-purple: #9333ea;
+  --icon-red: #dc2626;
 }
 
 /* Thème gris */
@@ -36,6 +40,10 @@
   --text-primary: #111827;
   --text-secondary: #4b5563;
   --text-muted: #6b7280;
+  --icon-blue: #4b5563;
+  --icon-green: #4b5563;
+  --icon-purple: #4b5563;
+  --icon-red: #4b5563;
 }
 
 /* Thème sombre */
@@ -52,6 +60,10 @@
   --text-primary: #f9fafb;
   --text-secondary: #d1d5db;
   --text-muted: #9ca3af;
+  --icon-blue: #60a5fa;
+  --icon-green: #34d399;
+  --icon-purple: #a78bfa;
+  --icon-red: #f87171;
 }
 
 /* Thème vert */
@@ -66,8 +78,12 @@
   --card-bg: #ffffff;
   --card-border: #e5e7eb;
   --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-muted: #6b7280;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --icon-blue: #16a34a;
+  --icon-green: #16a34a;
+  --icon-purple: #16a34a;
+  --icon-red: #16a34a;
 }
 
 /* Thème violet */
@@ -84,6 +100,10 @@
   --text-primary: #111827;
   --text-secondary: #4b5563;
   --text-muted: #6b7280;
+  --icon-blue: #9333ea;
+  --icon-green: #9333ea;
+  --icon-purple: #9333ea;
+  --icon-red: #9333ea;
 }
 
 /* Thème orange */
@@ -98,8 +118,12 @@
   --card-bg: #ffffff;
   --card-border: #e5e7eb;
   --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-muted: #6b7280;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --icon-blue: #ea580c;
+  --icon-green: #ea580c;
+  --icon-purple: #ea580c;
+  --icon-red: #ea580c;
 }
 
 body {

@@ -107,7 +107,7 @@ export default function AdminDashboard() {
                         <p className="text-2xl font-bold text-primary mt-1">{stat.value}</p>
                       </div>
                       <div className={`p-3 rounded-lg ${stat.color} bg-opacity-10`}>
-                        <Icon className={`w-6 h-6 ${stat.color.replace('bg-', 'text-')}`} />
+                        <Icon className="w-6 h-6" style={{ color: `var(--icon-${stat.color.replace('bg-', '')})` }} />
                       </div>
                     </div>
                   </div>
