@@ -35,7 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check if user is authenticated on mount (client-side only)
     if (typeof window !== 'undefined') {
       const auth = localStorage.getItem('admin-auth');
-      if (auth === 'true') {
+      const user = localStorage.getItem('admin-user');
+      if (auth === 'true' && user) {
         setIsAuthenticated(true);
       }
       setIsLoading(false);

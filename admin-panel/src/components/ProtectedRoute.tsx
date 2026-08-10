@@ -12,7 +12,11 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       // Sauvegarder l'URL actuelle pour rediriger après connexion
-      localStorage.setItem('redirect-after-login', pathname);
+      // Ne pas écraser si une URL de redirection existe déjà
+      const existingRedirect = localStorage.getItem('redirect-after-login');
+      if (!existingRedirect || existingRedirect === '/login' || existingRedirect === '/') {
+        localStorage.setItem('redirect-after-login', pathname);
+      }
       router.push('/login');
     }
   }, [isAuthenticated, isLoading, router, pathname]);
