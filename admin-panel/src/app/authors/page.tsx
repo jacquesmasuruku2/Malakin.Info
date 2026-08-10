@@ -73,8 +73,8 @@ export default function AuthorsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Auteurs</h1>
-            <p className="text-gray-600 mt-1">Gérer les auteurs et rédacteurs</p>
+            <h1 className="text-3xl font-bold text-primary">Auteurs</h1>
+            <p className="text-secondary mt-1">Gérer les auteurs et rédacteurs</p>
           </div>
           <Link 
             href="/authors/new"

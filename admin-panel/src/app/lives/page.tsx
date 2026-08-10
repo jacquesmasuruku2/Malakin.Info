@@ -152,8 +152,8 @@ export default function LivesPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Lives</h1>
-              <p className="text-gray-600 mt-1">Gérer vos diffusions en direct</p>
+              <h1 className="text-3xl font-bold text-primary">Lives</h1>
+              <p className="text-secondary mt-1">Gérer les diffusions en direct</p>
             </div>
             <Link 
               href="/lives/new"

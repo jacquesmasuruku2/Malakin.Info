@@ -156,8 +156,8 @@ export default function FormSubmissionsPage() {
     <AdminLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Soumissions de formulaires</h1>
-          <p className="text-gray-600 mt-1">Gérez les messages de contact et demandes de partenariat</p>
+          <h1 className="text-3xl font-bold text-primary">Soumissions de formulaires</h1>
+          <p className="text-secondary mt-1">Gérez les messages de contact et demandes de partenariat</p>
         </div>
 
         {/* Tabs */}
@@ -195,7 +195,7 @@ export default function FormSubmissionsPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div className="card rounded-lg shadow-sm border p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -235,7 +235,7 @@ export default function FormSubmissionsPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="card rounded-lg shadow-sm border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[800px]">
                 <thead className="bg-gray-50 border-b border-gray-200">
@@ -331,7 +331,7 @@ export default function FormSubmissionsPage() {
       {/* Detail Modal */}
       {showDetailModal && selectedItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="card rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
               <h3 className="text-lg font-semibold text-gray-900">
                 {activeTab === 'contact' ? 'Détails du message' : 'Détails de la demande'}

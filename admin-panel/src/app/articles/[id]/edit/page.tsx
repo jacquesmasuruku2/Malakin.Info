@@ -167,8 +167,8 @@ export default function EditArticlePage() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Modifier l'article</h1>
-                <p className="text-gray-500 mt-1">Modifier et publier l'article existant</p>
+                <h1 className="text-3xl font-bold text-primary tracking-tight">Modifier l'article</h1>
+                <p className="text-secondary mt-1">Modifier et publier l'article existant</p>
               </div>
               <div className="flex items-center gap-3">
                 {autoSaving && (

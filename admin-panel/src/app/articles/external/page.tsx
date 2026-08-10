@@ -149,8 +149,8 @@ export default function ExternalArticlePage() {
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Article Externe</h1>
-                <p className="text-gray-600 mt-1">Afficher le contenu d'un article depuis une URL externe</p>
+                <h1 className="text-3xl font-bold text-primary">Article Externe</h1>
+                <p className="text-secondary mt-1">Afficher le contenu d'un article depuis une URL externe</p>
               </div>
             </div>
           </div>

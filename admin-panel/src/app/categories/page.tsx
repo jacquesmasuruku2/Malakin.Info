@@ -68,8 +68,8 @@ export default function CategoriesPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Catégories</h1>
-            <p className="text-gray-600 mt-1">Gérer les catégories d'articles</p>
+            <h1 className="text-3xl font-bold text-primary">Catégories</h1>
+            <p className="text-secondary mt-1">Gérer les catégories d'articles</p>
           </div>
           <Link 
             href="/categories/new"

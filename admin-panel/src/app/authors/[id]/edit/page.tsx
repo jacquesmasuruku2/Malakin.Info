@@ -112,8 +112,8 @@ export default function EditAuthorPage() {
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Modifier l'auteur</h1>
-            <p className="text-gray-600 mt-1">Modifier l'auteur existant</p>
+            <h1 className="text-3xl font-bold text-primary">Modifier l'auteur</h1>
+            <p className="text-secondary mt-1">Modifier l'auteur existant</p>
           </div>
           <button
             onClick={() => router.push('/authors')}

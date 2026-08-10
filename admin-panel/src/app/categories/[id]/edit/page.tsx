@@ -110,8 +110,8 @@ export default function EditCategoryPage() {
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Modifier la catégorie</h1>
-            <p className="text-gray-600 mt-1">Modifier la catégorie existante</p>
+            <h1 className="text-3xl font-bold text-primary">Modifier la catégorie</h1>
+            <p className="text-secondary mt-1">Modifier la catégorie existante</p>
           </div>
           <button
             onClick={() => router.push('/categories')}

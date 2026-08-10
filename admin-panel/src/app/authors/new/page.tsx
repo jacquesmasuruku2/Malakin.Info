@@ -61,8 +61,8 @@ export default function NewAuthorPage() {
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Nouvel auteur</h1>
-            <p className="text-gray-600 mt-1">Créer un nouvel auteur</p>
+            <h1 className="text-3xl font-bold text-primary">Nouvel auteur</h1>
+            <p className="text-secondary mt-1">Créer un nouvel auteur</p>
           </div>
           <button
             onClick={() => router.push('/authors')}
