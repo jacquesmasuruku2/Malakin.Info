@@ -288,11 +288,26 @@ export default function Navigation() {
 
             {/* Center - Logo */}
             <Link href={`/${locale}`} className="flex items-center flex-shrink-0">
-              <img 
+              <Image 
                 src="/images/logo.png" 
                 alt="MalakInfo" 
+                width={120}
+                height={36}
                 className="h-9 w-auto"
+                priority
+                onError={(e) => {
+                  // Fallback to text if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const textFallback = target.parentElement?.querySelector('.logo-fallback');
+                  if (textFallback) {
+                    (textFallback as HTMLElement).style.display = 'block';
+                  }
+                }}
               />
+              <span className="logo-fallback hidden font-heading font-bold text-xl text-primary">
+                MalakInfo
+              </span>
             </Link>
 
             {/* Right side - Desktop */}

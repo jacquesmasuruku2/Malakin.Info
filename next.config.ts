@@ -7,8 +7,8 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ['127.0.0.1'],
   images: {
     remotePatterns: [],
-    unoptimized: true,
-    domains: [],
+    unoptimized: false,
+    domains: ['localhost'],
     formats: ['image/avif', 'image/webp'],
   },
   compress: true,
