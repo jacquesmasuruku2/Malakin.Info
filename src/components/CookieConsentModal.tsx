@@ -13,7 +13,7 @@ export default function CookieConsentModal() {
 
   useEffect(() => {
     const consent = window.localStorage.getItem(STORAGE_KEY);
-    if (!consent) {
+    if (consent !== 'true') {
       setIsVisible(true);
     }
   }, []);

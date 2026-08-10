@@ -14,7 +14,6 @@ export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const { isServicesOpen, openServices, closeServices } = useServicesModal();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [user, setUser] = useState<any>(null);
@@ -249,7 +248,7 @@ export default function Navigation() {
             <div className="hidden md:flex items-center space-x-2">
               <button
                 className="flex items-center space-x-2 font-semibold text-foreground hover:text-primary transition-colors"
-                onClick={() => isDropdownOpen ? setIsDropdownOpen(false) : openServices()}
+                onClick={() => isServicesOpen ? closeServices() : openServices()}
               >
                 <Menu className="w-5 h-5" />
                 <span>Menu</span>
@@ -279,7 +278,7 @@ export default function Navigation() {
             <div className="md:hidden flex items-center space-x-2">
               <button
                 className="p-2 text-foreground hover:text-primary transition-colors"
-                onClick={() => isDropdownOpen ? setIsDropdownOpen(false) : openServices()}
+                onClick={() => isServicesOpen ? closeServices() : openServices()}
               >
                 <Menu className="w-6 h-6" />
               </button>
