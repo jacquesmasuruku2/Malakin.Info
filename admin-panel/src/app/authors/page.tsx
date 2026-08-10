@@ -110,7 +110,7 @@ export default function AuthorsPage() {
                       <User className="w-8 h-8 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{author.name}</h3>
+                      <h3 className="text-lg font-semibold text-primary">{author.name}</h3>
                       <p className="text-xs text-gray-500">/{author.slug}</p>
                       <p className="text-sm text-blue-600 mt-1">{author.role}</p>
                     </div>

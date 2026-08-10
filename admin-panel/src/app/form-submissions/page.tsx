@@ -333,7 +333,7 @@ export default function FormSubmissionsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="card rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-primary">
                 {activeTab === 'contact' ? 'Détails du message' : 'Détails de la demande'}
               </h3>
               <button
@@ -348,51 +348,51 @@ export default function FormSubmissionsPage() {
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Nom</label>
-                    <p className="mt-1 text-sm text-gray-900">{selectedItem.name}</p>
+                    <p className="mt-1 text-sm text-primary">{selectedItem.name}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Email</label>
-                    <p className="mt-1 text-sm text-gray-900">{selectedItem.email}</p>
+                    <p className="mt-1 text-sm text-primary">{selectedItem.email}</p>
                   </div>
                   {selectedItem.subject && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Sujet</label>
-                      <p className="mt-1 text-sm text-gray-900">{selectedItem.subject}</p>
+                      <p className="mt-1 text-sm text-primary">{selectedItem.subject}</p>
                     </div>
                   )}
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Message</label>
-                    <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{selectedItem.message}</p>
+                    <p className="mt-1 text-sm text-primary whitespace-pre-wrap">{selectedItem.message}</p>
                   </div>
                 </>
               ) : (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Nom du contact</label>
-                    <p className="mt-1 text-sm text-gray-900">{selectedItem.contactName}</p>
+                    <p className="mt-1 text-sm text-primary">{selectedItem.contactName}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Entreprise</label>
-                    <p className="mt-1 text-sm text-gray-900">{selectedItem.companyName}</p>
+                    <p className="mt-1 text-sm text-primary">{selectedItem.companyName}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Email</label>
-                    <p className="mt-1 text-sm text-gray-900">{selectedItem.email}</p>
+                    <p className="mt-1 text-sm text-primary">{selectedItem.email}</p>
                   </div>
                   {selectedItem.phone && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Téléphone</label>
-                      <p className="mt-1 text-sm text-gray-900">{selectedItem.phone}</p>
+                      <p className="mt-1 text-sm text-primary">{selectedItem.phone}</p>
                     </div>
                   )}
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Type de partenariat</label>
-                    <p className="mt-1 text-sm text-gray-900">{selectedItem.type}</p>
+                    <p className="mt-1 text-sm text-primary">{selectedItem.type}</p>
                   </div>
                   {selectedItem.description && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Description</label>
-                      <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{selectedItem.description}</p>
+                      <p className="mt-1 text-sm text-primary whitespace-pre-wrap">{selectedItem.description}</p>
                     </div>
                   )}
                 </>

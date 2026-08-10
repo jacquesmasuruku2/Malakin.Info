@@ -255,7 +255,7 @@ export default function ArticlesPage() {
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate max-w-[150px] sm:max-w-xs">
+                          <p className="text-sm font-medium text-primary truncate max-w-[150px] sm:max-w-xs">
                             {article.title}
                           </p>
                           <p className="text-xs text-gray-500 truncate max-w-[150px] sm:max-w-xs">

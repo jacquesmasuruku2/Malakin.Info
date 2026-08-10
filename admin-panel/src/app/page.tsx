@@ -103,8 +103,8 @@ export default function AdminDashboard() {
                   <div key={stat.name} className="card rounded-lg shadow-sm border p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                        <p className="text-sm font-medium text-secondary">{stat.name}</p>
+                        <p className="text-2xl font-bold text-primary mt-1">{stat.value}</p>
                       </div>
                       <div className={`p-3 rounded-lg ${stat.color} bg-opacity-10`}>
                         <Icon className={`w-6 h-6 ${stat.color.replace('bg-', 'text-')}`} />
@@ -120,19 +120,19 @@ export default function AdminDashboard() {
           {!loading && stats && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="card rounded-lg shadow-sm border p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Articles à la une</h3>
+                <h3 className="text-lg font-semibold text-primary mb-4">Articles à la une</h3>
                 <p className="text-3xl font-bold text-yellow-600">{stats.featuredArticles}</p>
               </div>
               <div className="card rounded-lg shadow-sm border p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Publiés ce mois</h3>
+                <h3 className="text-lg font-semibold text-primary mb-4">Publiés ce mois</h3>
                 <p className="text-3xl font-bold text-green-600">{stats.publishedThisMonth}</p>
               </div>
               <div className="card rounded-lg shadow-sm border p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Lives actifs</h3>
+                <h3 className="text-lg font-semibold text-primary mb-4">Lives actifs</h3>
                 <p className="text-3xl font-bold text-red-600">{stats.activeLives}</p>
               </div>
               <div className="card rounded-lg shadow-sm border p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Vues totales</h3>
+                <h3 className="text-lg font-semibold text-primary mb-4">Vues totales</h3>
                 <p className="text-3xl font-bold text-orange-600">{stats.totalViews ? stats.totalViews.toLocaleString() : '0'}</p>
               </div>
             </div>
@@ -140,7 +140,7 @@ export default function AdminDashboard() {
 
           {/* Quick Actions */}
           <div className="card rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions rapides</h3>
+            <h3 className="text-lg font-semibold text-primary mb-4">Actions rapides</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Link href="/articles/new" className="flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
                 <FileText className="w-4 h-4 mr-2" />

@@ -279,7 +279,7 @@ export default function JobApplicationsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="card rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-900">Détails de la candidature</h3>
+              <h3 className="text-lg font-semibold text-primary">Détails de la candidature</h3>
               <button
                 onClick={() => setShowDetailModal(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -290,27 +290,27 @@ export default function JobApplicationsPage() {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Nom du candidat</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedItem.name}</p>
+                <p className="mt-1 text-sm text-primary">{selectedItem.name}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Email</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedItem.email}</p>
+                <p className="mt-1 text-sm text-primary">{selectedItem.email}</p>
               </div>
               {selectedItem.phone && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Téléphone</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedItem.phone}</p>
+                  <p className="mt-1 text-sm text-primary">{selectedItem.phone}</p>
                 </div>
               )}
               <div>
                 <label className="block text-sm font-medium text-gray-700">Poste postulé</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedItem.jobOffer?.title || '-'}</p>
+                <p className="mt-1 text-sm text-primary">{selectedItem.jobOffer?.title || '-'}</p>
                 <p className="text-sm text-gray-500">{selectedItem.jobOffer?.location || '-'}</p>
               </div>
               {selectedItem.coverLetter && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Lettre de motivation</label>
-                  <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{selectedItem.coverLetter}</p>
+                  <p className="mt-1 text-sm text-primary whitespace-pre-wrap">{selectedItem.coverLetter}</p>
                 </div>
               )}
               {selectedItem.resumeUrl && (

@@ -208,7 +208,7 @@ export default function ExternalArticlePage() {
               {/* Save Form */}
               {showSaveForm && (
                 <div className="card rounded-lg shadow-sm border p-6 mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Enregistrer comme article</h3>
+                  <h3 className="text-lg font-semibold text-primary mb-4">Enregistrer comme article</h3>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -112,7 +112,7 @@ export default function CategoriesPage() {
                       <FolderOpen className="w-5 h-5" style={{ color: category.color || '#3B82F6' }} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{category.title}</h3>
+                      <h3 className="text-lg font-semibold text-primary">{category.title}</h3>
                       <p className="text-xs text-gray-500">/{category.slug}</p>
                     </div>
                   </div>
