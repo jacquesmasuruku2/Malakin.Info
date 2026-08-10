@@ -2,6 +2,7 @@
 
 import AdminLayout from '@/components/AdminLayout';
 import { useTheme } from '@/components/ThemeProvider';
+import { useState, useEffect } from 'react';
 import { 
   User, 
   Database, 
@@ -14,6 +15,24 @@ import {
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <AdminLayout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-primary">Paramètres</h1>
+            <p className="text-secondary mt-1">Gérer les paramètres du panneau d'administration</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   const themes = [
     { name: 'Bleu', value: 'blue', color: 'bg-blue-600' },

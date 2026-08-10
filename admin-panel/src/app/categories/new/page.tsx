@@ -77,7 +77,7 @@ export default function NewCategoryPage() {
 
         <form onSubmit={handleSubmit} className="card rounded-lg shadow-sm border p-6 space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-secondary mb-2">
               Titre *
             </label>
             <input
@@ -85,13 +85,14 @@ export default function NewCategoryPage() {
               required
               value={formData.title}
               onChange={handleTitleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}
               placeholder="Titre de la catégorie"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-secondary mb-2">
               Slug *
             </label>
             <input
@@ -99,26 +100,28 @@ export default function NewCategoryPage() {
               required
               value={formData.slug}
               onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}
               placeholder="url-de-la-categorie"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-secondary mb-2">
               Description
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}
               placeholder="Description de la catégorie"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-secondary mb-2">
               Couleur
             </label>
             <div className="flex flex-wrap gap-2">
@@ -138,28 +141,31 @@ export default function NewCategoryPage() {
               type="color"
               value={formData.color}
               onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-              className="mt-2 w-full h-10 border border-gray-300 rounded-md cursor-pointer"
+              className="mt-2 w-full h-10 border rounded-md cursor-pointer"
+              style={{ borderColor: 'var(--card-border)' }}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-secondary mb-2">
               Icône (emoji ou nom d'icône)
             </label>
             <input
               type="text"
               value={formData.icon}
               onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}
               placeholder="📰 ou FolderOpen"
             />
           </div>
 
-          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+          <div className="flex items-center justify-end space-x-4 pt-6 border-t" style={{ borderColor: 'var(--card-border)' }}>
             <button
               type="button"
               onClick={() => router.push('/categories')}
-              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border rounded-md hover:bg-gray-50 transition-colors"
+              style={{ borderColor: 'var(--card-border)', color: 'var(--text-secondary)' }}
             >
               Annuler
             </button>

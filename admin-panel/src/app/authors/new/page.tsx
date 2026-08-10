@@ -75,7 +75,7 @@ export default function NewAuthorPage() {
 
         <form onSubmit={handleSubmit} className="card rounded-lg shadow-sm border p-6 space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-secondary mb-2">
               Nom *
             </label>
             <input
@@ -83,13 +83,14 @@ export default function NewAuthorPage() {
               required
               value={formData.name}
               onChange={handleNameChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}
               placeholder="Nom de l'auteur"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-secondary mb-2">
               Slug *
             </label>
             <input
@@ -97,81 +98,88 @@ export default function NewAuthorPage() {
               required
               value={formData.slug}
               onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}
               placeholder="url-de-l-auteur"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-secondary mb-2">
               Biographie
             </label>
             <textarea
               value={formData.bio}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}
               placeholder="Biographie de l'auteur"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-secondary mb-2">
               Rôle
             </label>
             <input
               type="text"
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}
               placeholder="Rédacteur, Journaliste, etc."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-secondary mb-2">
               Email
             </label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}
               placeholder="email@example.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-secondary mb-2">
               URL de l'image
             </label>
             <input
               type="url"
               value={formData.imageUrl}
               onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}
               placeholder="https://example.com/avatar.jpg"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-secondary mb-2">
               Texte alternatif de l'image
             </label>
             <input
               type="text"
               value={formData.imageAlt}
               onChange={(e) => setFormData({ ...formData, imageAlt: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}
               placeholder="Description de l'image pour l'accessibilité"
             />
           </div>
 
-          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+          <div className="flex items-center justify-end space-x-4 pt-6 border-t" style={{ borderColor: 'var(--card-border)' }}>
             <button
               type="button"
               onClick={() => router.push('/authors')}
-              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border rounded-md hover:bg-gray-50 transition-colors"
+              style={{ borderColor: 'var(--card-border)', color: 'var(--text-secondary)' }}
             >
               Annuler
             </button>

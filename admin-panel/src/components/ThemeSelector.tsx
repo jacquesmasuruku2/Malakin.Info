@@ -2,9 +2,19 @@
 
 import { useTheme } from './ThemeProvider';
 import { Palette } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export default function ThemeSelector() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   const themes = [
     { name: 'Bleu', value: 'blue', color: 'bg-blue-600' },
