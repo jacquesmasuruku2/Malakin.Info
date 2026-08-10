@@ -202,7 +202,7 @@ export default function Footer() {
             <div className="mt-6 p-4 bg-gradient-to-r from-red-600/20 to-red-600/5 border border-red-500/20 rounded-lg">
               <div className="flex items-center gap-2 text-sm">
                 <Heart className="w-4 h-4 text-red-500 animate-pulse" />
-                <span className="text-xs text-gray-300">{t.supportUsMessage || "Soutenez l'information indépendante"}</span>
+                <span className="text-xs text-gray-300">Soutenez l'information indépendante</span>
               </div>
             </div>
           </div>
