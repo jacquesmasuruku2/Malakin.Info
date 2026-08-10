@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, User, Bookmark, ArrowLeft } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
+import type { Metadata } from 'next';
 import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
@@ -9,6 +10,60 @@ import ViewIncrementer from '@/components/ViewIncrementer';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; category: string; slug: string }> }): Promise<Metadata> {
+  const { locale, category, slug } = await params;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com';
+
+  const article = await prisma.article.findUnique({
+    where: { slug },
+    include: {
+      category: true,
+      author: true,
+    },
+  });
+
+  if (!article) {
+    return {
+      title: 'Article non trouvé | Malakinfo.com',
+    };
+  }
+
+  const canonicalUrl = `${baseUrl}/${locale}/${article.category?.slug || 'actualites'}/${slug}`;
+  const absoluteImageUrl = article.mainImageUrl
+    ? (article.mainImageUrl.startsWith('http') ? article.mainImageUrl : `${baseUrl}${article.mainImageUrl}`)
+    : null;
+
+  return {
+    title: article.title,
+    description: article.excerpt || article.title,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      type: 'article',
+      locale: locale === 'fr' ? 'fr_FR' : 'en_US',
+      url: canonicalUrl,
+      title: article.title,
+      description: article.excerpt || article.title,
+      siteName: 'Malakinfo',
+      images: absoluteImageUrl ? [
+        {
+          url: absoluteImageUrl,
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        },
+      ] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.excerpt || article.title,
+      images: absoluteImageUrl ? [absoluteImageUrl] : [],
+    },
+  };
+}
 
 export default async function ArticlePage({ 
   params 
