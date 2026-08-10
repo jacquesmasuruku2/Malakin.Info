@@ -15,6 +15,11 @@
   --sidebar-bg: #ffffff;
   --sidebar-border: #e5e7eb;
   --bg-color: #f9fafb;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
 }
 
 /* Thème gris */
@@ -26,17 +31,27 @@
   --sidebar-bg: #ffffff;
   --sidebar-border: #e5e7eb;
   --bg-color: #f9fafb;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
 }
 
 /* Thème sombre */
 [data-theme="dark"] {
-  --primary: #1f2937;
-  --primary-dark: #111827;
-  --primary-light: #374151;
-  --primary-bg: #1f2937;
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --primary-light: #60a5fa;
+  --primary-bg: #1e3a8a;
   --sidebar-bg: #1f2937;
   --sidebar-border: #374151;
   --bg-color: #111827;
+  --card-bg: #1f2937;
+  --card-border: #374151;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
 }
 
 /* Thème vert */
@@ -48,6 +63,11 @@
   --sidebar-bg: #ffffff;
   --sidebar-border: #e5e7eb;
   --bg-color: #f9fafb;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
 }
 
 /* Thème violet */
@@ -59,6 +79,11 @@
   --sidebar-bg: #ffffff;
   --sidebar-border: #e5e7eb;
   --bg-color: #f9fafb;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
 }
 
 /* Thème orange */
@@ -70,8 +95,31 @@
   --sidebar-bg: #ffffff;
   --sidebar-border: #e5e7eb;
   --bg-color: #f9fafb;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
 }
 
 body {
   font-family: var(--font-mono), monospace;
+}
+
+/* Classe utilitaire pour les cartes */
+.card {
+  background-color: var(--card-bg);
+  border-color: var(--card-border);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
 }

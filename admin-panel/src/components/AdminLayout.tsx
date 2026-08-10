@@ -70,7 +70,7 @@ export default function AdminLayout({
               </div>
               <div>
                 <span className="font-heading font-bold text-xl" style={{ color: 'var(--primary)' }}>Malakin</span>
-                <span className="font-heading font-bold text-xl text-gray-800">.info</span>
+                <span className="font-heading font-bold text-xl" style={{ color: 'var(--text-primary)' }}>.info</span>
               </div>
             </div>
 
@@ -87,7 +87,7 @@ export default function AdminLayout({
                         className="flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-md transition-colors"
                         style={{
                           backgroundColor: isActive ? 'var(--primary-bg)' : 'transparent',
-                          color: isActive ? 'var(--primary)' : '#374151'
+                          color: isActive ? 'var(--primary)' : 'var(--text-secondary)'
                         }}
                         onClick={() => setIsSidebarOpen(false)}
                       >
@@ -107,7 +107,8 @@ export default function AdminLayout({
                 href="https://malakin-info.vercel.app"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-red-600 rounded-md transition-colors"
+                className="flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-md transition-colors hover:bg-gray-100 hover:text-red-600"
+                style={{ color: 'var(--text-secondary)' }}
               >
                 <LogOut className="w-5 h-5" />
                 <span>Retour au site</span>

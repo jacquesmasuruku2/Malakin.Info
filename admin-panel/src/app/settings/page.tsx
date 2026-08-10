@@ -28,16 +28,16 @@ export default function SettingsPage() {
     <AdminLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Paramètres</h1>
-          <p className="text-gray-600 mt-1">Gérer les paramètres du panneau d'administration</p>
+          <h1 className="text-3xl font-bold text-primary">Paramètres</h1>
+          <p className="text-secondary mt-1">Gérer les paramètres du panneau d'administration</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Appearance Settings */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="card rounded-lg shadow-sm border p-6">
             <div className="flex items-center space-x-3 mb-4">
               <Palette className="w-5 h-5 text-pink-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Apparence</h3>
+              <h3 className="text-lg font-semibold text-primary">Apparence</h3>
             </div>
             <div className="space-y-4">
               <div>
@@ -68,14 +68,14 @@ export default function SettingsPage() {
           </div>
 
           {/* General Settings */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="card rounded-lg shadow-sm border p-6">
             <div className="flex items-center space-x-3 mb-4">
               <Globe className="w-5 h-5 text-blue-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Général</h3>
+              <h3 className="text-lg font-semibold text-primary">Général</h3>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-secondary mb-1">
                   Nom du site
                 </label>
                 <input
@@ -85,7 +85,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-secondary mb-1">
                   Email de contact
                 </label>
                 <input
@@ -101,14 +101,14 @@ export default function SettingsPage() {
           </div>
 
           {/* Database Settings */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="card rounded-lg shadow-sm border p-6">
             <div className="flex items-center space-x-3 mb-4">
               <Database className="w-5 h-5 text-green-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Base de données</h3>
+              <h3 className="text-lg font-semibold text-primary">Base de données</h3>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-secondary mb-1">
                   URL de connexion
                 </label>
                 <input
@@ -119,7 +119,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Statut de connexion</span>
+                <span className="text-sm text-secondary">Statut de connexion</span>
                 <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
                   Connecté
                 </span>
@@ -131,14 +131,14 @@ export default function SettingsPage() {
           </div>
 
           {/* User Settings */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="card rounded-lg shadow-sm border p-6">
             <div className="flex items-center space-x-3 mb-4">
               <User className="w-5 h-5 text-purple-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Utilisateur</h3>
+              <h3 className="text-lg font-semibold text-primary">Utilisateur</h3>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-secondary mb-1">
                   Nom d'utilisateur
                 </label>
                 <input
@@ -148,7 +148,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-secondary mb-1">
                   Email
                 </label>
                 <input
@@ -164,14 +164,14 @@ export default function SettingsPage() {
           </div>
 
           {/* Security Settings */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="card rounded-lg shadow-sm border p-6">
             <div className="flex items-center space-x-3 mb-4">
               <Shield className="w-5 h-5 text-red-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Sécurité</h3>
+              <h3 className="text-lg font-semibold text-primary">Sécurité</h3>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-secondary mb-1">
                   Mot de passe actuel
                 </label>
                 <input
@@ -180,7 +180,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-secondary mb-1">
                   Nouveau mot de passe
                 </label>
                 <input
@@ -195,14 +195,14 @@ export default function SettingsPage() {
           </div>
 
           {/* Notification Settings */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="card rounded-lg shadow-sm border p-6">
             <div className="flex items-center space-x-3 mb-4">
               <Bell className="w-5 h-5 text-yellow-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+              <h3 className="text-lg font-semibold text-primary">Notifications</h3>
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">Notifications par email</span>
+                <span className="text-sm text-secondary">Notifications par email</span>
                 <input
                   type="checkbox"
                   defaultChecked
@@ -210,7 +210,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">Alertes de sécurité</span>
+                <span className="text-sm text-secondary">Alertes de sécurité</span>
                 <input
                   type="checkbox"
                   defaultChecked
@@ -218,7 +218,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">Rapports hebdomadaires</span>
+                <span className="text-sm text-secondary">Rapports hebdomadaires</span>
                 <input
                   type="checkbox"
                   className="w-4 h-4 text-blue-600 rounded"
@@ -231,14 +231,14 @@ export default function SettingsPage() {
           </div>
 
           {/* API Keys */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="card rounded-lg shadow-sm border p-6">
             <div className="flex items-center space-x-3 mb-4">
               <Key className="w-5 h-5 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Clés API</h3>
+              <h3 className="text-lg font-semibold text-primary">Clés API</h3>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-secondary mb-1">
                   Clé API publique
                 </label>
                 <div className="flex space-x-2">
