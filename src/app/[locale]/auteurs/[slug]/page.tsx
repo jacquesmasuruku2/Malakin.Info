@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 
 async function getAuthorBySlug(slug: string) {
   try {
+    console.log('Fetching author with slug:', slug);
     const author = await prisma.author.findUnique({
       where: { slug },
       include: {
@@ -19,9 +20,11 @@ async function getAuthorBySlug(slug: string) {
       },
     });
 
+    console.log('Author found:', author ? author.name : 'null');
     return author;
   } catch (error) {
     console.error('Error fetching author:', error);
+    console.error('DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
     return null;
   }
 }
