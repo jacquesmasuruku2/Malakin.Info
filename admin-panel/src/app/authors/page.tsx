@@ -86,7 +86,7 @@ export default function AuthorsPage() {
         </div>
 
         {/* Search */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div className="card rounded-lg shadow-sm border p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -102,7 +102,7 @@ export default function AuthorsPage() {
         {/* Authors Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAuthors.map((author) => (
-            <div key={author.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div key={author.id} className="card rounded-lg shadow-sm border overflow-hidden">
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-4">
@@ -155,14 +155,14 @@ export default function AuthorsPage() {
         </div>
 
         {loading && (
-          <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="text-center py-12 card rounded-lg shadow-sm border">
             <User className="w-12 h-12 text-gray-300 mx-auto mb-4 animate-spin" />
             <p className="text-gray-500">Chargement...</p>
           </div>
         )}
 
         {!loading && filteredAuthors.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="text-center py-12 card rounded-lg shadow-sm border">
             <User className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500">Aucun auteur trouvé</p>
           </div>

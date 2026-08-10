@@ -189,7 +189,7 @@ export default function EditArticlePage() {
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Main Content Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="card rounded-xl shadow-sm border overflow-hidden">
               <div className="p-6 space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -247,7 +247,7 @@ export default function EditArticlePage() {
             </div>
 
             {/* Settings Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="card rounded-xl shadow-sm border overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
                 <h2 className="text-lg font-semibold text-gray-900">Paramètres de l'article</h2>
               </div>
@@ -354,7 +354,7 @@ export default function EditArticlePage() {
               <button
                 type="button"
                 onClick={() => router.push('/articles')}
-                className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                className="px-6 py-3 text-sm font-medium text-gray-700 card border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
               >
                 Annuler
               </button>

@@ -156,7 +156,7 @@ export default function ExternalArticlePage() {
           </div>
 
           {/* URL Input */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="card rounded-lg shadow-sm border p-6">
             <form onSubmit={handleSubmit} className="flex gap-4">
               <input
                 type="url"
@@ -207,7 +207,7 @@ export default function ExternalArticlePage() {
 
               {/* Save Form */}
               {showSaveForm && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-4">
+                <div className="card rounded-lg shadow-sm border p-6 mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Enregistrer comme article</h3>
                   <div className="space-y-4">
                     <div>
@@ -305,7 +305,7 @@ export default function ExternalArticlePage() {
                 </div>
               )}
 
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="card rounded-lg shadow-sm border p-6">
                 <div 
                   className="prose prose-sm sm:prose-base max-w-none"
                   dangerouslySetInnerHTML={{ __html: content }}
@@ -316,7 +316,7 @@ export default function ExternalArticlePage() {
 
           {/* Loading State */}
           {loading && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+            <div className="card rounded-lg shadow-sm border p-12 text-center">
               <RefreshCw className="w-12 h-12 text-gray-300 mx-auto mb-4 animate-spin" />
               <p className="text-gray-500">Chargement de l'article...</p>
             </div>

@@ -81,7 +81,7 @@ export default function CategoriesPage() {
         </div>
 
         {/* Search */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div className="card rounded-lg shadow-sm border p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -97,7 +97,7 @@ export default function CategoriesPage() {
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCategories.map((category) => (
-            <div key={category.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div key={category.id} className="card rounded-lg shadow-sm border overflow-hidden">
               <div 
                 className="h-2"
                 style={{ backgroundColor: category.color || '#3B82F6' }}
@@ -149,14 +149,14 @@ export default function CategoriesPage() {
         </div>
 
         {loading && (
-          <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="text-center py-12 card rounded-lg shadow-sm border">
             <FolderOpen className="w-12 h-12 text-gray-300 mx-auto mb-4 animate-spin" />
             <p className="text-gray-500">Chargement...</p>
           </div>
         )}
 
         {!loading && filteredCategories.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="text-center py-12 card rounded-lg shadow-sm border">
             <FolderOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500">Aucune catégorie trouvée</p>
           </div>
