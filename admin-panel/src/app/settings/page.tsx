@@ -1,14 +1,29 @@
+'use client';
+
 import AdminLayout from '@/components/AdminLayout';
+import { useTheme } from '@/components/ThemeProvider';
 import { 
   User, 
   Database, 
   Globe, 
   Bell,
   Shield,
-  Key
+  Key,
+  Palette
 } from 'lucide-react';
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme();
+
+  const themes = [
+    { name: 'Bleu', value: 'blue', color: 'bg-blue-600' },
+    { name: 'Gris', value: 'gray', color: 'bg-gray-600' },
+    { name: 'Sombre', value: 'dark', color: 'bg-gray-900' },
+    { name: 'Vert', value: 'green', color: 'bg-green-600' },
+    { name: 'Violet', value: 'purple', color: 'bg-purple-600' },
+    { name: 'Orange', value: 'orange', color: 'bg-orange-600' },
+  ];
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -18,6 +33,40 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Appearance Settings */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <Palette className="w-5 h-5 text-pink-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Apparence</h3>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Thème de couleur
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {themes.map((t) => (
+                    <button
+                      key={t.value}
+                      onClick={() => setTheme(t.value as any)}
+                      className={`flex flex-col items-center p-3 rounded-lg border-2 transition-all ${
+                        theme === t.value 
+                          ? 'border-blue-600 bg-blue-50' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className={`w-8 h-8 rounded-full ${t.color} mb-2`} />
+                      <span className="text-xs text-gray-700">{t.name}</span>
+                      {theme === t.value && (
+                        <span className="text-xs text-blue-600 mt-1">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* General Settings */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center space-x-3 mb-4">
