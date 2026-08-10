@@ -32,6 +32,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const baseUrl = 'https://malakinfo.com';
     const canonicalUrl = `${baseUrl}/${locale}/${article.category?.slug || 'actualites'}/${slug}`;
     
+    // Convert image URL to absolute if it's relative
+    const absoluteImageUrl = article.mainImageUrl 
+      ? (article.mainImageUrl.startsWith('http') ? article.mainImageUrl : `${baseUrl}${article.mainImageUrl}`)
+      : null;
+    
     return {
       title: article.title,
       description: article.excerpt || article.title,
@@ -53,9 +58,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         modifiedTime: article.updatedAt?.toISOString(),
         authors: article.author ? [article.author.name] : ['Malakinfo'],
         section: article.category?.title || 'Actualités',
-        images: article.mainImageUrl ? [
+        images: absoluteImageUrl ? [
           {
-            url: article.mainImageUrl,
+            url: absoluteImageUrl,
             width: 1200,
             height: 630,
             alt: article.title,
@@ -66,7 +71,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         card: 'summary_large_image',
         title: article.title,
         description: article.excerpt || article.title,
-        images: article.mainImageUrl ? [article.mainImageUrl] : [],
+        images: absoluteImageUrl ? [absoluteImageUrl] : [],
         creator: '@malakinfo',
       },
     };
@@ -116,13 +121,18 @@ export default async function CatchAllArticlePage({
     const baseUrl = 'https://malakinfo.com';
     const canonicalUrl = `${baseUrl}/${locale}/${article.category?.slug || 'actualites'}/${slug}`;
 
+    // Convert image URL to absolute if it's relative
+    const absoluteImageUrl = article.mainImageUrl 
+      ? (article.mainImageUrl.startsWith('http') ? article.mainImageUrl : `${baseUrl}${article.mainImageUrl}`)
+      : null;
+
     // Structured Data (JSON-LD)
     const jsonLd = {
       '@context': 'https://schema.org',
       '@type': 'Article',
       headline: article.title,
       description: article.excerpt || article.title,
-      image: article.mainImageUrl ? [article.mainImageUrl] : [],
+      image: absoluteImageUrl ? [absoluteImageUrl] : [],
       datePublished: article.publishedAt?.toISOString(),
       dateModified: article.updatedAt?.toISOString(),
       author: article.author ? {
