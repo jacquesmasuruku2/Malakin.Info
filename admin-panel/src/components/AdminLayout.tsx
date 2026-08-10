@@ -17,7 +17,6 @@ import {
   Briefcase,
   Radio
 } from 'lucide-react';
-import ThemeSelector from './ThemeSelector';
 
 export default function AdminLayout({
   children,
@@ -101,8 +100,7 @@ export default function AdminLayout({
             </nav>
 
             {/* Footer */}
-            <div className="p-4 border-t space-y-2" style={{ borderColor: 'var(--sidebar-border)' }}>
-              <ThemeSelector />
+            <div className="p-4 border-t" style={{ borderColor: 'var(--sidebar-border)' }}>
               <a
                 href="https://malakin-info.vercel.app"
                 target="_blank"

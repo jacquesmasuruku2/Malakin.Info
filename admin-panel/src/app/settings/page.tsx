@@ -45,7 +45,7 @@ export default function SettingsPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-6">
         <div>
           <h1 className="text-3xl font-bold text-primary">Paramètres</h1>
           <p className="text-secondary mt-1">Gérer les paramètres du panneau d'administration</p>
