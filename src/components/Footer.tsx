@@ -69,7 +69,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           
           {/* Column 1: Dans l'actualité + Rubriques */}
-          <div className="space-y-8">
+          <div className="space-y-8 border-r border-gray-700/50 pr-0 md:pr-8 last:border-r-0 last:pr-0">
             <div>
               <h3 className="font-bold text-white mb-4 text-sm tracking-wider uppercase flex items-center gap-2">
                 <Newspaper className="w-4 h-4 text-red-500" />
@@ -166,7 +166,7 @@ export default function Footer() {
           </div>
 
           {/* Column 2: À propos de Malakin */}
-          <div>
+          <div className="border-r border-gray-700/50 pr-0 md:pr-8 last:border-r-0 last:pr-0">
             <h3 className="font-bold text-white mb-4 text-sm tracking-wider uppercase flex items-center gap-2">
               <Users className="w-4 h-4 text-purple-400" />
               {t.aboutMalakin}
@@ -208,7 +208,7 @@ export default function Footer() {
           </div>
 
           {/* Column 3: Réseau Malakin Media */}
-          <div>
+          <div className="border-r border-gray-700/50 pr-0 md:pr-8 last:border-r-0 last:pr-0">
             <h3 className="font-bold text-white mb-4 text-sm tracking-wider uppercase flex items-center gap-2">
               <Radio className="w-4 h-4 text-green-400 animate-pulse" />
               {t.malakinMediaNetwork}
@@ -245,76 +245,25 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 4: Services + Applications */}
-          <div className="space-y-8">
-            <div>
-              <h3 className="font-bold text-white mb-4 text-sm tracking-wider uppercase flex items-center gap-2">
-                <Award className="w-4 h-4 text-yellow-400" />
-                {t.services}
-              </h3>
-              <div className="space-y-2 text-xs">
-                {[t.newsletters, t.rssFeeds].map((item, index) => (
-                  <Link 
-                    key={index}
-                    href="#" 
-                    className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:scale-105 p-2 rounded hover:bg-gradient-to-r hover:from-red-600/20 hover:to-transparent"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-3 h-3 text-red-400" />
-                      {item}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="font-bold text-white mb-4 text-sm tracking-wider uppercase flex items-center gap-2">
-                <Smartphone className="w-4 h-4 text-red-400" />
-                {t.applications}
-              </h3>
-              <p className="text-xs text-gray-300 mb-4 flex items-center gap-2">
-                <Download className="w-3 h-3 text-red-400" />
-                {t.downloadApp}
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="group relative p-3 bg-gradient-to-br from-red-600 to-red-700 rounded-lg cursor-pointer hover:shadow-xl hover:shadow-red-500/30 transition-all duration-300 transform hover:scale-105">
+          {/* Column 4: Services */}
+          <div>
+            <h3 className="font-bold text-white mb-4 text-sm tracking-wider uppercase flex items-center gap-2">
+              <Award className="w-4 h-4 text-yellow-400" />
+              {t.services}
+            </h3>
+            <div className="space-y-2 text-xs">
+              {[t.newsletters, t.rssFeeds].map((item, index) => (
+                <Link 
+                  key={index}
+                  href="#" 
+                  className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:scale-105 p-2 rounded hover:bg-gradient-to-r hover:from-red-600/20 hover:to-transparent"
+                >
                   <div className="flex items-center gap-2">
-                    <span className="text-white font-bold text-xl">M</span>
-                    <div className="text-xs text-white/80">
-                      <div className="font-bold">MalakInfo</div>
-                      <div className="text-[10px] opacity-75">News App</div>
-                    </div>
+                    <Mail className="w-3 h-3 text-red-400" />
+                    {item}
                   </div>
-                </div>
-                <div className="group relative p-3 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg cursor-pointer hover:shadow-xl hover:shadow-gray-500/30 transition-all duration-300 transform hover:scale-105">
-                  <div className="flex items-center gap-2">
-                    <span className="text-white font-bold text-sm">F24</span>
-                    <div className="text-xs text-white/80">
-                      <div className="font-bold">Focus 24</div>
-                      <div className="text-[10px] opacity-75">Business</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="group relative p-3 bg-gradient-to-br from-blue-700 to-blue-800 rounded-lg cursor-pointer hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 transform hover:scale-105">
-                  <div className="flex items-center gap-2">
-                    <span className="text-white font-bold text-sm">MCD</span>
-                    <div className="text-xs text-white/80">
-                      <div className="font-bold">MCDocu</div>
-                      <div className="text-[10px] opacity-75">Documentary</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="group relative p-3 bg-gradient-to-br from-purple-700 to-purple-800 rounded-lg cursor-pointer hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300 transform hover:scale-105">
-                  <div className="flex items-center gap-2">
-                    <span className="text-white font-bold text-sm">FMM</span>
-                    <div className="text-xs text-white/80">
-                      <div className="font-bold">Femme Mag</div>
-                      <div className="text-[10px] opacity-75">Lifestyle</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                </Link>
+              ))}
             </div>
           </div>
         </div>
