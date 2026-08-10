@@ -6,6 +6,72 @@
   --font-mono: var(--font-jetbrains-mono);
 }
 
+/* Thème par défaut (bleu) */
+[data-theme="blue"] {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-light: #3b82f6;
+  --primary-bg: #eff6ff;
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e5e7eb;
+  --bg-color: #f9fafb;
+}
+
+/* Thème gris */
+[data-theme="gray"] {
+  --primary: #4b5563;
+  --primary-dark: #374151;
+  --primary-light: #6b7280;
+  --primary-bg: #f3f4f6;
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e5e7eb;
+  --bg-color: #f9fafb;
+}
+
+/* Thème sombre */
+[data-theme="dark"] {
+  --primary: #1f2937;
+  --primary-dark: #111827;
+  --primary-light: #374151;
+  --primary-bg: #1f2937;
+  --sidebar-bg: #1f2937;
+  --sidebar-border: #374151;
+  --bg-color: #111827;
+}
+
+/* Thème vert */
+[data-theme="green"] {
+  --primary: #16a34a;
+  --primary-dark: #15803d;
+  --primary-light: #22c55e;
+  --primary-bg: #dcfce7;
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e5e7eb;
+  --bg-color: #f9fafb;
+}
+
+/* Thème violet */
+[data-theme="purple"] {
+  --primary: #9333ea;
+  --primary-dark: #7e22ce;
+  --primary-light: #a855f7;
+  --primary-bg: #f3e8ff;
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e5e7eb;
+  --bg-color: #f9fafb;
+}
+
+/* Thème orange */
+[data-theme="orange"] {
+  --primary: #ea580c;
+  --primary-dark: #c2410c;
+  --primary-light: #f97316;
+  --primary-bg: #ffedd5;
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e5e7eb;
+  --bg-color: #f9fafb;
+}
+
 body {
   font-family: var(--font-mono), monospace;
 }

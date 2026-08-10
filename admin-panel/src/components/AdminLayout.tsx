@@ -17,6 +17,7 @@ import {
   Briefcase,
   Radio
 } from 'lucide-react';
+import ThemeSelector from './ThemeSelector';
 
 export default function AdminLayout({
   children,
@@ -38,7 +39,7 @@ export default function AdminLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-color)' }}>
       {/* Mobile header */}
       <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between">
@@ -56,18 +57,19 @@ export default function AdminLayout({
       <div className="flex">
         {/* Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+          className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
+          style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}
         >
           <div className="flex flex-col h-full">
             {/* Logo */}
-            <div className="flex items-center space-x-2 p-6 border-b border-gray-200">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="flex items-center space-x-2 p-6 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--primary)' }}>
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <div>
-                <span className="font-heading font-bold text-xl text-blue-600">Malakin</span>
+                <span className="font-heading font-bold text-xl" style={{ color: 'var(--primary)' }}>Malakin</span>
                 <span className="font-heading font-bold text-xl text-gray-800">.info</span>
               </div>
             </div>
@@ -82,11 +84,11 @@ export default function AdminLayout({
                     <li key={item.name}>
                       <Link
                         href={item.href}
-                        className={`flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-md transition-colors ${
-                          isActive 
-                            ? 'bg-blue-50 text-blue-600' 
-                            : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
-                        }`}
+                        className="flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-md transition-colors"
+                        style={{
+                          backgroundColor: isActive ? 'var(--primary-bg)' : 'transparent',
+                          color: isActive ? 'var(--primary)' : '#374151'
+                        }}
                         onClick={() => setIsSidebarOpen(false)}
                       >
                         <Icon className="w-5 h-5" />
@@ -99,7 +101,8 @@ export default function AdminLayout({
             </nav>
 
             {/* Footer */}
-            <div className="p-4 border-t border-gray-200">
+            <div className="p-4 border-t space-y-2" style={{ borderColor: 'var(--sidebar-border)' }}>
+              <ThemeSelector />
               <a
                 href="https://malakin-info.vercel.app"
                 target="_blank"
