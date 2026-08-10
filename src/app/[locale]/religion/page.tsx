@@ -11,6 +11,7 @@ export default function ReligionPage() {
 
   const messageDuTemps = [
     { name: 'William Branham', href: '/religion/message-du-temps/branham', count: 145 },
+    { name: 'Les 7 Âges de l\'Église', href: '/religion/message-du-temps/les-7-ages-de-l-eglise', count: 7 },
     { name: 'Autres Messages', href: '/religion/message-du-temps/autres-messages', count: 67 },
   ];
 
