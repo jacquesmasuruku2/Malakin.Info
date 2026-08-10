@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mail, Phone, MapPin, ChevronRight, ArrowUp, Globe, Sparkles, Award, Users, Radio, TrendingUp, BookOpen, Newspaper, Music, Film, Briefcase, Heart, Share2, Smartphone, Download, Camera, Mic, Coffee } from 'lucide-react';
+import { Mail, Phone, MapPin, ChevronRight, ArrowUp, Globe, Sparkles, Award, Users, Radio, TrendingUp, BookOpen, Newspaper, Music, Film, Briefcase, Heart, Share2, Smartphone, Download, Camera, Mic, Coffee, MessageCircle, Send, Video, MessageSquare } from 'lucide-react';
+import { FaFacebook, FaInstagram, FaYoutube, FaTwitter, FaLinkedin, FaTiktok, FaWhatsapp, FaTelegram } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import frMessages from '../../messages/fr.json';
 import enMessages from '../../messages/en.json';
@@ -31,16 +32,16 @@ export default function Footer() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Social media icons mapping
+  // Social media icons mapping with official icons
   const socialIcons = {
-    Facebook: '📘',
-    Bluesky: '🦋',
-    Threads: '🧵',
-    Instagram: '📸',
-    YouTube: '▶️',
-    TikTok: '🎵',
-    WhatsApp: '💬',
-    Telegram: '✈️'
+    Facebook: { icon: FaFacebook, color: '#1877F2' },
+    Bluesky: { icon: MessageCircle, color: '#0085ff' },
+    Threads: { icon: MessageSquare, color: '#000000' },
+    Instagram: { icon: FaInstagram, color: '#E4405F' },
+    YouTube: { icon: FaYoutube, color: '#FF0000' },
+    TikTok: { icon: Video, color: '#000000' },
+    WhatsApp: { icon: FaWhatsapp, color: '#25D366' },
+    Telegram: { icon: FaTelegram, color: '#0088cc' }
   };
 
   return (
@@ -293,14 +294,16 @@ export default function Footer() {
         {/* Social media bar with interactive icons */}
         <div className="border-t border-gray-800/50 pt-6 mb-4">
           <div className="flex flex-wrap items-center gap-4 text-xs text-gray-300">
-            {Object.entries(socialIcons).map(([name, emoji]) => (
+            {Object.entries(socialIcons).map(([name, { icon: Icon, color }]) => (
               <span 
                 key={name}
-                className="hover:text-white cursor-pointer transition-all duration-300 transform hover:scale-125 hover:shadow-lg hover:shadow-red-500/20 px-2 py-1 rounded hover:bg-red-600/10 group"
+                className="hover:text-white cursor-pointer transition-all duration-300 transform hover:scale-125 hover:shadow-lg hover:shadow-red-500/20 px-2 py-1 rounded hover:bg-red-600/10 group flex items-center gap-2"
                 onMouseEnter={() => setHoveredItem(name)}
                 onMouseLeave={() => setHoveredItem(null)}
               >
-                <span className="mr-1">{emoji}</span>
+                <span style={{ color }}>
+                  <Icon className="w-4 h-4" />
+                </span>
                 {name}
                 <span className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[8px] text-red-400 block">●</span>
               </span>
