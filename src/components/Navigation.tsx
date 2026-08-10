@@ -287,11 +287,11 @@ export default function Navigation() {
 
             {/* Center - Logo */}
             <div className="absolute inset-x-0 flex justify-center">
-              <Link href={`/${locale}`} className="flex items-center flex-shrink-0">
+              <Link href={`/${locale}`} className="flex items-center justify-center flex-shrink-0">
                 <img
                   src="/images/logo.png"
                   alt="MalakInfo"
-                  className="h-10 sm:h-12 md:h-14 lg:h-16 xl:h-20 w-auto"
+                  className="h-10 w-auto max-w-[140px] sm:h-12 sm:max-w-[160px] md:h-14 md:max-w-[220px] lg:h-16 lg:max-w-[260px] xl:h-20 xl:max-w-[300px] object-contain"
                   loading="eager"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
@@ -302,7 +302,7 @@ export default function Navigation() {
                     }
                   }}
                 />
-                <span className="logo-fallback hidden font-heading font-bold text-xl text-primary">
+                <span className="logo-fallback hidden font-heading font-bold text-base sm:text-lg md:text-xl text-primary">
                   MalakInfo
                 </span>
               </Link>
