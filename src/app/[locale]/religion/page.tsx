@@ -1,11 +1,44 @@
 import Link from 'next/link';
 import { Calendar, ArrowRight, BookOpen, Music, Calendar as CalendarIcon, Heart } from 'lucide-react';
+import { prisma } from '@/lib/prisma';
 
-export default function ReligionPage() {
+async function getReligionArticles() {
+  try {
+    // Récupérer les articles de la catégorie religion ou avec des mots-clés religieux
+    const religionArticles = await prisma.article.findMany({
+      where: {
+        OR: [
+          { category: { slug: 'religion' } },
+          { category: { slug: 'message-du-temps' } },
+          { category: { slug: 'homelies' } },
+          { category: { slug: 'meditations' } },
+          { category: { slug: 'musiques-sacrees' } },
+        ],
+      },
+      include: {
+        category: true,
+        author: true,
+      },
+      orderBy: {
+        publishedAt: 'desc',
+      },
+      take: 20,
+    });
+
+    return religionArticles;
+  } catch (error) {
+    console.error('Error fetching religion articles:', error);
+    return [];
+  }
+}
+
+export default async function ReligionPage() {
+  const articles = await getReligionArticles();
+
   const categories = [
-    { name: 'Méditations', href: '/religion/meditations', icon: BookOpen, count: 56 },
-    { name: 'Homélies', href: '/religion/homelies', icon: Heart, count: 89 },
-    { name: 'Musiques Sacrées', href: '/religion/musiques-sacrees', icon: Music, count: 34 },
+    { name: 'Méditations', href: '/religion/meditations', icon: BookOpen, count: articles.filter(a => a.category.slug === 'meditations').length || 56 },
+    { name: 'Homélies', href: '/religion/homelies', icon: Heart, count: articles.filter(a => a.category.slug === 'homelies').length || 89 },
+    { name: 'Musiques Sacrées', href: '/religion/musiques-sacrees', icon: Music, count: articles.filter(a => a.category.slug === 'musiques-sacrees').length || 34 },
     { name: 'Agenda Religieux', href: '/religion/agenda-religieux', icon: CalendarIcon, count: 23 },
   ];
 
@@ -15,35 +48,16 @@ export default function ReligionPage() {
     { name: 'Autres Messages', href: '/religion/message-du-temps/autres-messages', count: 67 },
   ];
 
-  const featuredContent = [
-    {
-      id: 1,
-      category: 'Homélie',
-      title: 'L\'importance de la prière dans la vie quotidienne',
-      excerpt: 'Réflexion sur le rôle central de la prière pour nourrir notre foi et notre relation avec Dieu.',
-      image: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=800&h=400&fit=crop',
-      date: '27 Juin 2026',
-      readTime: '8 min',
-    },
-    {
-      id: 2,
-      category: 'Méditation',
-      title: 'Méditation du jour : La paix intérieure',
-      excerpt: 'Un moment de calme et de réflexion pour trouver la paix au milieu des tumultes de la vie.',
-      image: 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=800&h=400&fit=crop',
-      date: '27 Juin 2026',
-      readTime: '5 min',
-    },
-    {
-      id: 3,
-      category: 'Musique Sacrée',
-      title: 'Chorale gospel : Nouvel album enregistré à Kinshasa',
-      excerpt: 'La chorale de la cathédrale présente son nouvel album de chants sacrés traditionnels.',
-      image: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&h=400&fit=crop',
-      date: '26 Juin 2026',
-      readTime: '4 min',
-    },
-  ];
+  const featuredContent = articles.slice(0, 6).map(article => ({
+    id: article.id,
+    category: article.category.title,
+    title: article.title,
+    excerpt: article.excerpt,
+    image: article.mainImageUrl || 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=800&h=400&fit=crop',
+    date: new Date(article.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+    readTime: article.readTime || '5 min',
+    slug: article.slug,
+  }));
 
   const upcomingEvents = [
     {
@@ -162,7 +176,7 @@ export default function ReligionPage() {
                         {content.excerpt}
                       </p>
                       <Link
-                        href={`/religion/${content.id}`}
+                        href={`/${content.slug}`}
                         className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                       >
                         Lire
