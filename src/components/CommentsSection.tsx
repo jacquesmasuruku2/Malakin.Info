@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
+import { useSession, signIn } from 'next-auth/react';
 import { Heart, MessageCircle, Send, User as UserIcon } from 'lucide-react';
 
 interface Comment {
@@ -21,6 +23,10 @@ interface CommentsSectionProps {
 }
 
 export default function CommentsSection({ articleId, locale }: CommentsSectionProps) {
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === 'authenticated';
+  const userId = session?.user?.id ?? null;
+
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
@@ -29,40 +35,41 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const t = {
     comments: locale === 'fr' ? 'Commentaires' : 'Comments',
-    writeComment: locale === 'fr' ? 'Commenter' : 'Comment',
+    writeComment: locale === 'fr' ? 'Écrire un commentaire' : 'Write a comment',
     reply: locale === 'fr' ? 'Répondre' : 'Reply',
     like: locale === 'fr' ? 'J\'aime' : 'Like',
-    likes: locale === 'fr' ? 'J\'aimes' : 'Likes',
     submit: locale === 'fr' ? 'Envoyer' : 'Submit',
     cancel: locale === 'fr' ? 'Annuler' : 'Cancel',
     noComments: locale === 'fr' ? 'Soyez le premier à commenter' : 'Be the first to comment',
     loginToComment: locale === 'fr' ? 'Connectez-vous pour commenter' : 'Login to comment',
+    loginPrompt: locale === 'fr' ? 'Connectez-vous pour partager votre avis sur cet article.' : 'Login to share your thoughts on this article.',
+    login: locale === 'fr' ? 'Connexion' : 'Login',
+    loginWithGoogle: locale === 'fr' ? 'Google' : 'Google',
     placeholder: locale === 'fr' ? 'Votre commentaire...' : 'Your comment...',
     replyPlaceholder: locale === 'fr' ? 'Votre réponse...' : 'Your reply...',
+    enterComment: locale === 'fr' ? 'Veuillez écrire un commentaire.' : 'Please enter a comment.',
+    enterReply: locale === 'fr' ? 'Veuillez entrer une réponse.' : 'Please enter a reply.',
   };
 
-  // Fetch comments and like status on mount
+  const commentTotal = useMemo(
+    () => comments.reduce((acc, comment) => acc + 1 + (comment.replies?.length ?? 0), 0),
+    [comments]
+  );
+
   useEffect(() => {
     fetchComments();
-    fetchLikeStatus();
-    
-    // Check for user session (simplified - in production use proper auth)
-    const storedUserId = localStorage.getItem('userId');
-    if (storedUserId) {
-      setUserId(storedUserId);
-    } else {
-      // For development: create a test user ID
-      const testUserId = 'test-user-' + Date.now();
-      localStorage.setItem('userId', testUserId);
-      setUserId(testUserId);
-    }
   }, [articleId]);
 
+  useEffect(() => {
+    fetchLikeStatus();
+  }, [articleId, userId]);
+
   const fetchComments = async () => {
+    setIsLoading(true);
     try {
       const response = await fetch(`/api/comments?articleId=${articleId}`);
       if (response.ok) {
@@ -78,9 +85,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
 
   const fetchLikeStatus = async () => {
     try {
-      const url = userId 
-        ? `/api/likes?articleId=${articleId}&userId=${userId}`
-        : `/api/likes?articleId=${articleId}`;
+      const url = `/api/likes?articleId=${articleId}${userId ? `&userId=${userId}` : ''}`;
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
@@ -93,8 +98,8 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   };
 
   const handleLike = async () => {
-    if (!userId) {
-      alert(t.loginToComment);
+    if (!isAuthenticated || !userId) {
+      setError(t.loginToComment);
       return;
     }
 
@@ -104,10 +109,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          articleId,
-          userId,
-        }),
+        body: JSON.stringify({ articleId, userId }),
       });
 
       if (response.ok) {
@@ -121,9 +123,15 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   };
 
   const handleSubmitComment = async () => {
-    if (!newComment.trim()) return;
-    if (!userId) {
-      alert(t.loginToComment);
+    setError(null);
+
+    if (!newComment.trim()) {
+      setError(t.enterComment);
+      return;
+    }
+
+    if (!isAuthenticated || !userId) {
+      setError(t.loginToComment);
       return;
     }
 
@@ -133,11 +141,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          articleId,
-          userId,
-          content: newComment,
-        }),
+        body: JSON.stringify({ articleId, userId, content: newComment }),
       });
 
       if (response.ok) {
@@ -145,16 +149,26 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
         setComments([comment, ...comments]);
         setNewComment('');
         setShowCommentForm(false);
+      } else {
+        const data = await response.json();
+        setError(data?.error || 'Failed to submit comment.');
       }
     } catch (error) {
       console.error('Error creating comment:', error);
+      setError('Failed to submit comment.');
     }
   };
 
   const handleReply = async (commentId: string) => {
-    if (!replyText.trim()) return;
-    if (!userId) {
-      alert(t.loginToComment);
+    setError(null);
+
+    if (!replyText.trim()) {
+      setError(t.enterReply);
+      return;
+    }
+
+    if (!isAuthenticated || !userId) {
+      setError(t.loginToComment);
       return;
     }
 
@@ -164,30 +178,27 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          articleId,
-          userId,
-          content: replyText,
-          parentId: commentId,
-        }),
+        body: JSON.stringify({ articleId, userId, content: replyText, parentId: commentId }),
       });
 
       if (response.ok) {
         const reply = await response.json();
-        setComments(prev => prev.map(comment => {
-          if (comment.id === commentId) {
-            return {
-              ...comment,
-              replies: [...(comment.replies || []), reply],
-            };
-          }
-          return comment;
-        }));
+        setComments((prev) =>
+          prev.map((comment) =>
+            comment.id === commentId
+              ? { ...comment, replies: [...(comment.replies || []), reply] }
+              : comment
+          )
+        );
         setReplyText('');
         setReplyingTo(null);
+      } else {
+        const data = await response.json();
+        setError(data?.error || 'Failed to submit reply.');
       }
     } catch (error) {
       console.error('Error creating reply:', error);
+      setError('Failed to submit reply.');
     }
   };
 
@@ -204,77 +215,78 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   };
 
   const renderComment = (comment: Comment, isReply = false) => (
-    <div key={comment.id} className={`${isReply ? 'ml-8 sm:ml-12 mt-3' : 'mb-6'}`}>
-      <div className="flex gap-2 sm:gap-3">
+    <div
+      key={comment.id}
+      className={`${isReply ? 'ml-6 sm:ml-10 mt-4' : 'mb-6'}`}
+    >
+      <div className="flex gap-3">
         <div className="flex-shrink-0">
           {comment.user.avatarUrl ? (
             <img
               src={comment.user.avatarUrl}
               alt={comment.user.name}
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
+              className="w-11 h-11 rounded-full object-cover"
             />
           ) : (
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center">
-              <UserIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            <div className="w-11 h-11 rounded-full bg-primary/15 flex items-center justify-center">
+              <UserIcon className="w-5 h-5 text-primary" />
             </div>
           )}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="bg-muted/50 rounded-lg p-3 sm:p-4">
-            <div className="flex items-center justify-between mb-2 gap-2">
-              <span className="font-medium text-foreground text-sm sm:text-base truncate">{comment.user.name}</span>
-              <span className="text-xs text-muted-foreground flex-shrink-0">{formatDate(comment.createdAt)}</span>
-            </div>
-            <p className="text-xs sm:text-sm text-foreground mb-3 break-words">{comment.content}</p>
-            <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+        <div className="flex-1">
+          <div className="bg-muted/70 border border-border rounded-3xl p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <div>
+                <p className="text-sm font-semibold text-foreground truncate">{comment.user.name}</p>
+                <p className="text-xs text-muted-foreground">{formatDate(comment.createdAt)}</p>
+              </div>
               <button
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-                onClick={() => setReplyingTo(comment.id)}
+                type="button"
+                onClick={() => setReplyingTo((current) => (current === comment.id ? null : comment.id))}
+                className="text-xs text-primary hover:text-primary/90 font-medium"
               >
-                <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                 {t.reply}
               </button>
-              <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 transition-colors">
-                <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
-                {t.like}
-              </button>
             </div>
+            <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{comment.content}</p>
           </div>
-          
+
           {replyingTo === comment.id && (
-            <div className="mt-3">
+            <div className="mt-3 rounded-3xl border border-border bg-background p-4">
               <textarea
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder={t.replyPlaceholder}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none text-sm"
                 rows={3}
+                className="w-full rounded-2xl border border-border bg-muted/10 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
               />
-              <div className="flex gap-2 mt-2">
+              <div className="mt-3 flex flex-wrap gap-3 justify-end">
                 <button
-                  onClick={() => handleReply(comment.id)}
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm"
-                >
-                  {t.submit}
-                </button>
-                <button
+                  type="button"
                   onClick={() => {
                     setReplyingTo(null);
                     setReplyText('');
                   }}
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-muted text-foreground rounded-md hover:bg-muted/80 transition-colors text-sm"
+                  className="px-4 py-2 rounded-2xl bg-muted text-foreground hover:bg-muted/80 text-sm"
                 >
                   {t.cancel}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleReply(comment.id)}
+                  className="px-4 py-2 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm"
+                >
+                  {t.submit}
                 </button>
               </div>
             </div>
           )}
         </div>
       </div>
-      
+
       {comment.replies && comment.replies.length > 0 && (
-        <div className="mt-4">
-          {comment.replies.map(reply => renderComment(reply, true))}
+        <div className="mt-4 space-y-4">
+          {comment.replies.map((reply) => renderComment(reply, true))}
         </div>
       )}
     </div>
@@ -283,54 +295,92 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   return (
     <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 border-t border-border">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground">{t.comments}</h2>
-        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+        <div>
+          <p className="text-sm text-muted-foreground">{commentTotal} {t.comments}</p>
+          <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">{t.comments}</h2>
+        </div>
+        <div className="flex flex-wrap gap-2">
           <button
+            type="button"
             onClick={handleLike}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-md transition-colors text-sm ${
-              isLiked
-                ? 'bg-red-500 text-white'
-                : 'bg-muted text-foreground hover:bg-muted/80'
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium transition ${
+              isLiked ? 'bg-red-500 text-white' : 'bg-muted text-foreground hover:bg-muted/80'
             }`}
           >
-            <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${isLiked ? 'fill-current' : ''}`} />
-            <span>{likeCount}</span>
+            <Heart className="w-4 h-4" />
+            {likeCount}
           </button>
           <button
-            onClick={() => setShowCommentForm(!showCommentForm)}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm whitespace-nowrap"
+            type="button"
+            onClick={() => {
+              if (!isAuthenticated) {
+                setError(t.loginToComment);
+              } else {
+                setShowCommentForm((prev) => !prev);
+              }
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition"
           >
-            <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+            <MessageCircle className="w-4 h-4" />
             {t.writeComment}
           </button>
         </div>
       </div>
 
-      {showCommentForm && (
-        <div className="mb-6 sm:mb-8 bg-muted/50 rounded-lg p-4 sm:p-6">
+      {error && (
+        <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {!isAuthenticated && (
+        <div className="mb-6 rounded-3xl border border-border bg-muted/50 p-5 text-sm text-foreground">
+          <p className="mb-4 text-sm text-muted-foreground">{t.loginPrompt}</p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href={`/${locale}/compte/connexion`}
+              className="inline-flex items-center justify-center rounded-2xl border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/80 transition"
+            >
+              {t.login}
+            </Link>
+            <button
+              type="button"
+              onClick={() => signIn('google', { callbackUrl: window.location.href })}
+              className="inline-flex items-center justify-center rounded-2xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition"
+            >
+              {t.loginWithGoogle}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showCommentForm && isAuthenticated && (
+        <div className="mb-6 rounded-3xl border border-border bg-muted/70 p-6">
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder={t.placeholder}
-            className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none text-sm sm:text-base"
             rows={4}
+            className="w-full rounded-3xl border border-border bg-background px-4 py-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
           />
-          <div className="flex justify-end gap-2 mt-3 sm:mt-4">
+          <div className="mt-4 flex flex-wrap justify-end gap-3">
             <button
+              type="button"
               onClick={() => {
                 setShowCommentForm(false);
                 setNewComment('');
               }}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-muted text-foreground rounded-md hover:bg-muted/80 transition-colors text-sm"
+              className="rounded-2xl border border-border bg-muted px-4 py-2 text-sm text-foreground hover:bg-muted/80 transition"
             >
               {t.cancel}
             </button>
             <button
+              type="button"
               onClick={handleSubmitComment}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2 text-sm"
+              className="rounded-2xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition"
             >
-              <Send className="w-3 h-3 sm:w-4 sm:h-4" />
-              {t.submit}
+              <Send className="w-4 h-4 inline-block" />
+              <span>{t.submit}</span>
             </button>
           </div>
         </div>
@@ -346,8 +396,8 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
           <p>{t.noComments}</p>
         </div>
       ) : (
-        <div>
-          {comments.map(comment => renderComment(comment))}
+        <div className="space-y-4">
+          {comments.map((comment) => renderComment(comment))}
         </div>
       )}
     </section>
