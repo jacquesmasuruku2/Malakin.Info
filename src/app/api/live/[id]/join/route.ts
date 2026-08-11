@@ -50,41 +50,19 @@ export async function POST(
       ));
     }
 
-    // Create or update viewer session
-    const session = await prisma.liveViewerSession.upsert({
-      where: {
-        liveEventId_sessionId: {
-          liveEventId: id,
-          sessionId
-        }
-      },
-      create: {
-        liveEventId: id,
-        sessionId
-      },
-      update: {
-        lastSeenAt: new Date()
-      }
-    });
-
-    // Update viewer count
-    const activeViewers = await prisma.liveViewerSession.count({
-      where: {
-        liveEventId: id,
-        lastSeenAt: {
-          gte: new Date(Date.now() - 5 * 60 * 1000) // Active within last 5 minutes
-        }
-      }
-    });
-
-    await prisma.liveEvent.update({
+    // Increment viewer count (simple approach)
+    const updatedEvent = await prisma.liveEvent.update({
       where: { id },
-      data: { viewerCount: activeViewers }
+      data: {
+        viewerCount: {
+          increment: 1
+        }
+      }
     });
 
     return cors(NextResponse.json({
       success: true,
-      viewerCount: activeViewers
+      viewerCount: updatedEvent.viewerCount
     }));
   } catch (error) {
     console.error('Error joining live event:', error);

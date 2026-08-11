@@ -31,37 +31,21 @@ export async function POST(
       ));
     }
 
-    // Update session last seen time
-    const session = await prisma.liveViewerSession.update({
-      where: {
-        liveEventId_sessionId: {
-          liveEventId: id,
-          sessionId
-        }
-      },
-      data: {
-        lastSeenAt: new Date()
-      }
+    // Just return current viewer count (simple approach)
+    const event = await prisma.liveEvent.findUnique({
+      where: { id }
     });
 
-    // Update viewer count
-    const activeViewers = await prisma.liveViewerSession.count({
-      where: {
-        liveEventId: id,
-        lastSeenAt: {
-          gte: new Date(Date.now() - 5 * 60 * 1000) // Active within last 5 minutes
-        }
-      }
-    });
-
-    await prisma.liveEvent.update({
-      where: { id },
-      data: { viewerCount: activeViewers }
-    });
+    if (!event) {
+      return cors(NextResponse.json(
+        { error: 'Live event not found' },
+        { status: 404 }
+      ));
+    }
 
     return cors(NextResponse.json({
       success: true,
-      viewerCount: activeViewers
+      viewerCount: event.viewerCount
     }));
   } catch (error) {
     console.error('Error updating heartbeat:', error);

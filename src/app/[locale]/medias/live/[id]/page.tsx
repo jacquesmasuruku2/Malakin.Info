@@ -35,22 +35,31 @@ export default function LiveEventPage({ params }: { params: Promise<{ id: string
       try {
         const resolvedParams = await params;
         setId(resolvedParams.id);
+        console.log('Fetching live event:', resolvedParams.id);
         const response = await fetch(`/api/live/${resolvedParams.id}`);
         if (!response.ok) throw new Error('Failed to fetch live event');
         const data = await response.json();
+        console.log('Live event data:', data);
         setEvent(data);
 
         // Join the live event if it's live
         if (data.status === 'LIVE') {
-          await fetch(`/api/live/${resolvedParams.id}/join`, {
+          console.log('Joining live event with session:', sessionId);
+          const joinResponse = await fetch(`/api/live/${resolvedParams.id}/join`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessionId })
           });
+          console.log('Join response:', joinResponse);
+          if (joinResponse.ok) {
+            const joinData = await joinResponse.json();
+            console.log('Join data:', joinData);
+            setEvent(prev => prev ? { ...prev, viewerCount: joinData.viewerCount } : null);
+          }
         }
       } catch (err) {
         setError('Erreur lors du chargement de l\'événement');
-        console.error(err);
+        console.error('Error fetching event:', err);
       } finally {
         setLoading(false);
       }
