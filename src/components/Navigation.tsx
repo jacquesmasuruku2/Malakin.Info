@@ -317,6 +317,10 @@ export default function Navigation() {
 
             {/* Right side - Desktop */}
             <div className="hidden md:flex items-center space-x-4">
+              <Link href={`/${locale}/medias/live`} className="flex items-center space-x-1 text-sm font-medium text-foreground hover:text-primary transition-colors">
+                <Radio className="w-4 h-4" />
+                <span>{t.radioAfrica || 'Live'}</span>
+              </Link>
               <Link href={`/${locale}/blog`} className="flex items-center space-x-1 text-sm font-medium text-foreground hover:text-primary transition-colors">
                 <BookOpen className="w-4 h-4" />
                 <span>{t.magazine}</span>

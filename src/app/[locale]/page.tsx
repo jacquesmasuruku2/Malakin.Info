@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { ArrowRight, Calendar, Clock, TrendingUp } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, TrendingUp, Radio } from 'lucide-react';
 import AdSenseAd from '@/components/AdSenseAd';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 
@@ -14,6 +14,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const tCommon = messages.common;
   let featuredArticles: any[] = [];
   let latestArticles: any[] = [];
+  let currentLive: any = null;
 
   try {
     featuredArticles = await prisma.article.findMany({
@@ -39,6 +40,21 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       orderBy: {
         publishedAt: 'desc',
       },
+    });
+
+    // Get current live event
+    const now = new Date();
+    currentLive = await prisma.liveEvent.findFirst({
+      where: {
+        startTime: { lte: now },
+        OR: [
+          { endTime: null },
+          { endTime: { gte: now } }
+        ]
+      },
+      orderBy: {
+        startTime: 'desc'
+      }
     });
   } catch (error) {
     console.error('Database connection error:', error);
@@ -79,6 +95,27 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
   return (
     <div className="flex flex-col">
+      {/* Live Banner - Si un live est en cours */}
+      {currentLive && (
+        <div className="bg-gradient-to-r from-red-600 to-red-700 text-white py-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Link href={`/${locale}/medias/live/${currentLive.id}`} className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-white text-red-600 text-sm font-bold rounded-full animate-pulse">
+                  🔴 EN DIRECT
+                </span>
+                <span className="font-semibold">{currentLive.title}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Radio className="w-4 h-4" />
+                <span>{locale === 'fr' ? 'Regarder maintenant' : 'Watch now'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Main Editorial Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
