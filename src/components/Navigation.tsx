@@ -222,7 +222,7 @@ export default function Navigation() {
               <Link href={`/${locale}/emploi`} className="text-xs text-gray-300 hover:text-white transition-colors">
                 {t.jobOffers}
               </Link>
-              <Link href={`/${locale}/lives`} className="text-xs text-gray-300 hover:text-white transition-colors">
+              <Link href={`/${locale}/medias/live`} className="text-xs text-gray-300 hover:text-white transition-colors">
                 {t.directs}
               </Link>
               <Link href={`/${locale}/boutique`} className="text-xs text-gray-300 hover:text-white transition-colors">
