@@ -183,13 +183,15 @@
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     border: 1px solid rgba(255,255,255,0.06);
-    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+    transition: transform .18s cubic-bezier(.2,.9,.2,1), box-shadow .18s cubic-bezier(.2,.9,.2,1), background .12s ease, opacity .18s ease;
   }
   .topbar-btn:active {
     transform: translateY(1px) scale(.998);
     box-shadow: 0 3px 10px rgba(11,59,139,0.14);
   }
   .topbar-icon { color: rgba(255,255,255,0.95); }
+  .topbar-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 10px 24px rgba(11,59,139,0.14); }
+  .topbar-btn span { font-size: 13px; }
   @media (max-width: 767px) {
     .topbar-btn { padding-left: 12px; padding-right: 12px; }
     .topbar-btn span { display: inline-block; font-weight: 600; }

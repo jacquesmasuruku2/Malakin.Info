@@ -264,8 +264,8 @@ export default function Navigation() {
 
   return (
     <nav className="sticky top-0 z-50">
-      {/* TopBar - Barre Supérieure Sombre */}
-      <div className={`${isTopbarVisible ? 'flex' : 'hidden'} md:flex bg-neutral-900`}>
+      {/* TopBar - Barre Supérieure Sombre (animated on mobile) */}
+      <div className={`flex md:flex bg-neutral-900 transition-all duration-300 ease-in-out ${isTopbarVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-6 pointer-events-none'} md:opacity-100 md:translate-y-0 md:pointer-events-auto`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="flex justify-between items-center py-2">
             {/* Left side - Secondary links */}
