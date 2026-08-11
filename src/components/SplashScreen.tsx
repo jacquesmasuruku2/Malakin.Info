@@ -27,10 +27,13 @@ export default function SplashScreen() {
       style={{ visibility: isVisible ? 'visible' : 'hidden' }}
     >
       <div className="flex flex-col items-center gap-6">
-        <div className="relative">
-          <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold text-primary animate-pulse">
-            MalakInfo.com
-          </h1>
+        <div className="relative flex items-center justify-center">
+          <img
+            src="/images/logo.png"
+            alt="MalakInfo"
+            className="h-20 w-auto max-w-[240px] object-contain drop-shadow-lg md:h-28"
+            loading="eager"
+          />
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -38,7 +41,7 @@ export default function SplashScreen() {
           <div className="w-3 h-3 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
         <p className="text-muted-foreground text-sm md:text-base animate-pulse">
-          L'info qui traverse les frontières
+          Chargement du contenu...
         </p>
       </div>
     </div>
