@@ -344,8 +344,8 @@ export default function Navigation() {
             </div>
 
             {/* Center - Logo */}
-            <div className="absolute inset-x-0 flex justify-center">
-              <Link href={`/${locale}`} className="flex items-center justify-center flex-shrink-0">
+            <div className="absolute inset-x-0 flex justify-center pointer-events-none">
+              <Link href={`/${locale}`} className="flex items-center justify-center flex-shrink-0 pointer-events-auto">
                 <img
                   src="/images/logo.png"
                   alt="MalakInfo"
