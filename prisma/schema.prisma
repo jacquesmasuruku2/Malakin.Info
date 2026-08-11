@@ -326,24 +326,38 @@ model BlogPost {
 }
 
 model LiveEvent {
-  id           String     @id @default(cuid())
+  id           String              @id @default(cuid())
   title        String
-  slug         String     @unique
+  slug         String              @unique
   description  String?
   thumbnail    String?
   streamUrl    String?
   youtubeUrl   String?
-  status       LiveStatus @default(SCHEDULED)
+  status       LiveStatus          @default(SCHEDULED)
   startTime    DateTime
   endTime      DateTime?
-  viewerCount  Int        @default(0)
-  isFeatured   Boolean    @default(false)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  viewerCount  Int                 @default(0)
+  isFeatured   Boolean            @default(false)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  viewerSessions LiveViewerSession[]
 
   @@index([status])
   @@index([startTime])
   @@index([isFeatured])
+}
+
+model LiveViewerSession {
+  id          String    @id @default(cuid())
+  liveEventId String
+  sessionId   String
+  lastSeenAt  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  liveEvent   LiveEvent @relation(fields: [liveEventId], references: [id], onDelete: Cascade)
+
+  @@unique([liveEventId, sessionId])
+  @@index([liveEventId])
+  @@index([lastSeenAt])
 }
 
 enum LiveStatus {

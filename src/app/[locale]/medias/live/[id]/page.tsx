@@ -25,6 +25,10 @@ export default function LiveEventPage({ params }: { params: Promise<{ id: string
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [id, setId] = useState<string | null>(null);
+  const [sessionId] = useState(() => {
+    // Generate a unique session ID for this viewer
+    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  });
 
   useEffect(() => {
     async function fetchEvent() {
@@ -35,6 +39,15 @@ export default function LiveEventPage({ params }: { params: Promise<{ id: string
         if (!response.ok) throw new Error('Failed to fetch live event');
         const data = await response.json();
         setEvent(data);
+
+        // Join the live event if it's live
+        if (data.status === 'LIVE') {
+          await fetch(`/api/live/${resolvedParams.id}/join`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId })
+          });
+        }
       } catch (err) {
         setError('Erreur lors du chargement de l\'événement');
         console.error(err);
@@ -44,7 +57,30 @@ export default function LiveEventPage({ params }: { params: Promise<{ id: string
     }
 
     fetchEvent();
-  }, [params]);
+  }, [params, sessionId]);
+
+  // Heartbeat to keep viewer count accurate
+  useEffect(() => {
+    if (!id || !event || event.status !== 'LIVE') return;
+
+    const heartbeatInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/live/${id}/heartbeat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId })
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setEvent(prev => prev ? { ...prev, viewerCount: data.viewerCount } : null);
+        }
+      } catch (err) {
+        console.error('Heartbeat error:', err);
+      }
+    }, 30000); // Send heartbeat every 30 seconds
+
+    return () => clearInterval(heartbeatInterval);
+  }, [id, event, sessionId]);
 
   function formatStatus(status: string): string {
     switch (status) {
