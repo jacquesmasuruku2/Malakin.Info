@@ -270,17 +270,21 @@ export default function Navigation() {
           <div className="flex justify-between items-center py-2">
             {/* Left side - Secondary links */}
             <div className="flex items-center space-x-6">
-              <Link href={`/${locale}/emploi`} className="inline-flex items-center text-sm text-gray-100 px-3 py-2 rounded-md hover:bg-white/10 active:bg-white/20 transition-colors touch-manipulation">
-                {t.jobOffers}
+              <Link href={`/${locale}/emploi`} className="inline-flex items-center gap-2 text-sm text-white px-3 py-2 rounded-md topbar-btn hover:opacity-95 transition-colors touch-manipulation">
+                <Briefcase className="w-4 h-4 topbar-icon" />
+                <span>{t.jobOffers}</span>
               </Link>
-              <Link href={`/${locale}/medias/live`} className="inline-flex items-center text-sm text-gray-100 px-3 py-2 rounded-md hover:bg-white/10 active:bg-white/20 transition-colors touch-manipulation">
-                {t.directs}
+              <Link href={`/${locale}/medias/live`} className="inline-flex items-center gap-2 text-sm text-white px-3 py-2 rounded-md topbar-btn hover:opacity-95 transition-colors touch-manipulation">
+                <Radio className="w-4 h-4 topbar-icon" />
+                <span>{t.directs}</span>
               </Link>
-              <Link href={`/${locale}/boutique`} className="inline-flex items-center text-sm text-gray-100 px-3 py-2 rounded-md hover:bg-white/10 active:bg-white/20 transition-colors touch-manipulation">
-                {t.shopping}
+              <Link href={`/${locale}/boutique`} className="inline-flex items-center gap-2 text-sm text-white px-3 py-2 rounded-md topbar-btn hover:opacity-95 transition-colors touch-manipulation">
+                <DollarSign className="w-4 h-4 topbar-icon" />
+                <span>{t.shopping}</span>
               </Link>
-              <Link href={`/${locale}/newsletter`} className="inline-flex items-center text-sm text-gray-100 px-3 py-2 rounded-md hover:bg-white/10 active:bg-white/20 transition-colors touch-manipulation">
-                {t.newsletter}
+              <Link href={`/${locale}/newsletter`} className="inline-flex items-center gap-2 text-sm text-white px-3 py-2 rounded-md topbar-btn hover:opacity-95 transition-colors touch-manipulation">
+                <Mail className="w-4 h-4 topbar-icon" />
+                <span>{t.newsletter}</span>
               </Link>
             </div>
             
