@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grip, LogOut, Settings, Heart, MessageSquare, Bookmark, Menu } from 'lucide-react';
 import SearchBar from './SearchBar';
@@ -17,6 +17,9 @@ export default function Navigation() {
   const [searchQuery, setSearchQuery] = useState('');
   const [user, setUser] = useState<any>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isTopbarVisible, setIsTopbarVisible] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const topbarTimer = useRef<number | null>(null);
   
   const locale = getLocaleFromPathname(pathname);
   const t = getMessages(locale).nav;
@@ -38,6 +41,54 @@ export default function Navigation() {
     window.addEventListener('storage', checkAuth);
     return () => window.removeEventListener('storage', checkAuth);
   }, []);
+
+  // detect mobile viewport
+  useEffect(() => {
+    const updateIsMobile = () => {
+      if (typeof window === 'undefined') return;
+      setIsMobile(window.matchMedia('(max-width: 767px)').matches);
+    };
+    updateIsMobile();
+    window.addEventListener('resize', updateIsMobile);
+    return () => window.removeEventListener('resize', updateIsMobile);
+  }, []);
+
+  // Auto-hide topbar on mobile after inactivity, show on touch/mousemove
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const HIDE_DELAY = 3500;
+
+    const showThenHide = () => {
+      setIsTopbarVisible(true);
+      if (topbarTimer.current) window.clearTimeout(topbarTimer.current);
+      topbarTimer.current = window.setTimeout(() => setIsTopbarVisible(false), HIDE_DELAY);
+    };
+
+    // On desktop keep visible
+    if (!isMobile) {
+      setIsTopbarVisible(true);
+      if (topbarTimer.current) {
+        window.clearTimeout(topbarTimer.current);
+        topbarTimer.current = null;
+      }
+      return;
+    }
+
+    // Start hidden after delay unless user interacts
+    showThenHide();
+
+    window.addEventListener('touchstart', showThenHide, { passive: true });
+    window.addEventListener('mousemove', showThenHide);
+    window.addEventListener('scroll', showThenHide, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', showThenHide);
+      window.removeEventListener('mousemove', showThenHide);
+      window.removeEventListener('scroll', showThenHide);
+      if (topbarTimer.current) window.clearTimeout(topbarTimer.current);
+    };
+  }, [isMobile]);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -214,7 +265,7 @@ export default function Navigation() {
   return (
     <nav className="sticky top-0 z-50">
       {/* TopBar - Barre Supérieure Sombre */}
-      <div className="bg-neutral-900 hidden md:flex">
+      <div className={`${isTopbarVisible ? 'flex' : 'hidden'} md:flex bg-neutral-900`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="flex justify-between items-center py-2">
             {/* Left side - Secondary links */}
