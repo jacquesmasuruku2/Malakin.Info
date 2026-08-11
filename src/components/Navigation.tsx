@@ -7,21 +7,19 @@ import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, Flas
 import SearchBar from './SearchBar';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
-import frMessages from '../../messages/fr.json';
-import enMessages from '../../messages/en.json';
+import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 
 export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
-  const { isServicesOpen, openServices, closeServices } = useServicesModal();
+  const { isServicesOpen, openServices, closeServices, toggleServices } = useServicesModal();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [user, setUser] = useState<any>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
-  // Extract locale from pathname
-  const locale = pathname.split('/')[1] || 'fr';
-  const t = locale === 'fr' ? frMessages.nav : enMessages.nav;
+  const locale = getLocaleFromPathname(pathname);
+  const t = getMessages(locale).nav;
 
   // Check if user is logged in
   useEffect(() => {
@@ -55,6 +53,14 @@ export default function Navigation() {
       router.push(`/${locale}/recherche?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
     }
+  };
+
+  const handleMenuToggle = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setIsSearchOpen(false);
+    setIsUserMenuOpen(false);
+    toggleServices();
   };
 
   useEffect(() => {
@@ -214,16 +220,16 @@ export default function Navigation() {
             {/* Left side - Secondary links */}
             <div className="flex items-center space-x-6">
               <Link href={`/${locale}/emploi`} className="text-xs text-gray-300 hover:text-white transition-colors">
-                Offres d'emploi
+                {t.jobOffers}
               </Link>
               <Link href={`/${locale}/lives`} className="text-xs text-gray-300 hover:text-white transition-colors">
-                Directs
+                {t.directs}
               </Link>
               <Link href={`/${locale}/boutique`} className="text-xs text-gray-300 hover:text-white transition-colors">
-                Shopping
+                {t.shopping}
               </Link>
               <Link href={`/${locale}/newsletter`} className="text-xs text-gray-300 hover:text-white transition-colors">
-                L'info en boîte email
+                {t.newsletter}
               </Link>
             </div>
             
@@ -247,11 +253,12 @@ export default function Navigation() {
             {/* Left side - Desktop */}
             <div className="hidden md:flex items-center space-x-2">
               <button
+                type="button"
                 className="flex items-center space-x-2 font-semibold text-foreground hover:text-primary transition-colors"
-                onClick={openServices}
+                onClick={handleMenuToggle}
               >
                 <Menu className="w-5 h-5" />
-                <span>Menu</span>
+                <span>{t.menu}</span>
               </button>
               
               <div className="border-r border-gray-300 h-5 mx-2"></div>
@@ -262,7 +269,7 @@ export default function Navigation() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Rechercher..."
+                  placeholder={t.searchPlaceholder}
                   className="bg-gray-100 rounded-lg px-4 py-1.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary w-48"
                 />
                 <button
@@ -277,8 +284,9 @@ export default function Navigation() {
             {/* Left side - Mobile */}
             <div className="md:hidden flex items-center space-x-2">
               <button
+                type="button"
                 className="p-2 text-foreground hover:text-primary transition-colors"
-                onClick={openServices}
+                onClick={handleMenuToggle}
               >
                 <Menu className="w-6 h-6" />
               </button>
@@ -311,7 +319,7 @@ export default function Navigation() {
             <div className="hidden md:flex items-center space-x-4">
               <Link href={`/${locale}/blog`} className="flex items-center space-x-1 text-sm font-medium text-foreground hover:text-primary transition-colors">
                 <BookOpen className="w-4 h-4" />
-                <span>Magazine</span>
+                <span>{t.magazine}</span>
               </Link>
               
               {user ? (
@@ -344,7 +352,7 @@ export default function Navigation() {
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <User className="w-4 h-4" />
-                        <span>Mon profil</span>
+                        <span>{t.myProfile}</span>
                       </Link>
                       <Link
                         href={`/${locale}/compte/commentaires`}
@@ -352,7 +360,7 @@ export default function Navigation() {
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <MessageSquare className="w-4 h-4" />
-                        <span>Mes commentaires</span>
+                        <span>{t.myComments}</span>
                       </Link>
                       <Link
                         href={`/${locale}/compte/likes`}
@@ -360,7 +368,7 @@ export default function Navigation() {
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <Heart className="w-4 h-4" />
-                        <span>Mes likes</span>
+                        <span>{t.myLikes}</span>
                       </Link>
                       <Link
                         href={`/${locale}/compte/favoris`}
@@ -368,7 +376,7 @@ export default function Navigation() {
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <Bookmark className="w-4 h-4" />
-                        <span>Favoris</span>
+                        <span>{t.favorites}</span>
                       </Link>
                       <Link
                         href={`/${locale}/compte/parametres`}
@@ -376,7 +384,7 @@ export default function Navigation() {
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <Settings className="w-4 h-4" />
-                        <span>Paramètres</span>
+                        <span>{t.settings}</span>
                       </Link>
                       <div className="border-t border-gray-200 mt-2 pt-2">
                         <button
@@ -384,7 +392,7 @@ export default function Navigation() {
                           className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
                         >
                           <LogOut className="w-4 h-4" />
-                          <span>Déconnexion</span>
+                          <span>{t.logout}</span>
                         </button>
                       </div>
                     </div>
@@ -396,7 +404,7 @@ export default function Navigation() {
                   className="flex items-center space-x-1 text-sm font-medium text-foreground hover:text-primary transition-colors"
                 >
                   <User className="w-4 h-4" />
-                  <span>Se connecter</span>
+                  <span>{t.login}</span>
                 </Link>
               )}
               
@@ -404,7 +412,7 @@ export default function Navigation() {
                 href={`/${locale}/nous-soutenir`}
                 className="bg-[#0B3B8B] hover:bg-[#082a63] rounded-full px-5 py-2 font-semibold text-white transition-colors"
               >
-                S'abonner
+                {t.subscribe}
               </Link>
               
               <LanguageSwitcher />
@@ -446,31 +454,31 @@ export default function Navigation() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center space-x-6 py-2 overflow-x-auto">
             <Link href={`/${locale}/actualites`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              ACTUALITÉS
+              {t.news.toUpperCase()}
             </Link>
             <Link href={`/${locale}/actualites/politique`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              POLITIQUE
+              {t.politics.toUpperCase()}
             </Link>
             <Link href={`/${locale}/actualites/economie`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              ÉCONOMIE
+              {t.economy.toUpperCase()}
             </Link>
             <Link href={`/${locale}/science-tech`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              SCIENCE & TECH
+              {t.scienceTech.toUpperCase()}
             </Link>
             <Link href={`/${locale}/culture`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              CULTURE
+              {t.culture.toUpperCase()}
             </Link>
             <Link href={`/${locale}/sport`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              SPORT
+              {t.sport.toUpperCase()}
             </Link>
             <Link href={`/${locale}/classement`} className="font-bold text-sm tracking-wide text-[#D4AF37] hover:text-[#0B3B8B] transition-colors whitespace-nowrap">
-              20 PAYS LES PLUS PERFORMANTS
+              {t.rankings}
             </Link>
             <Link href={`/${locale}/medias`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              MÉDIAS
+              {t.media.toUpperCase()}
             </Link>
             <Link href={`/${locale}/religion`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              RELIGION
+              {t.religion.toUpperCase()}
             </Link>
           </div>
         </div>

@@ -125,6 +125,26 @@
     "forumAfrica": "Forum Africa",
     "partnerships": "Partnerships",
     "support": "Support",
-    "login": "Login"
+    "login": "Login",
+    "jobOffers": "Job offers",
+    "directs": "Live",
+    "shopping": "Shopping",
+    "newsletter": "News in your inbox",
+    "menu": "Menu",
+    "searchPlaceholder": "Search...",
+    "magazine": "Magazine",
+    "myProfile": "My profile",
+    "myComments": "My comments",
+    "myLikes": "My likes",
+    "favorites": "Favorites",
+    "settings": "Settings",
+    "logout": "Logout",
+    "close": "Close",
+    "services": "Services",
+    "subscribe": "Subscribe",
+    "searchBarPlaceholder": "Search articles, videos and news...",
+    "pressEscToClose": "to close",
+    "pressEnterToSearch": "to search",
+    "rankings": "20 COUNTRIES WITH THE BEST PERFORMANCE"
   }
 }

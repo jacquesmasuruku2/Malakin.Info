@@ -125,6 +125,26 @@
     "forumAfrica": "Forum Afrique",
     "partnerships": "Partenariats",
     "support": "Soutenir",
-    "login": "Connexion"
+    "login": "Connexion",
+    "jobOffers": "Offres d'emploi",
+    "directs": "Directs",
+    "shopping": "Shopping",
+    "newsletter": "L'info en boîte email",
+    "menu": "Menu",
+    "searchPlaceholder": "Rechercher...",
+    "magazine": "Magazine",
+    "myProfile": "Mon profil",
+    "myComments": "Mes commentaires",
+    "myLikes": "Mes likes",
+    "favorites": "Favoris",
+    "settings": "Paramètres",
+    "logout": "Déconnexion",
+    "close": "Fermer",
+    "services": "Services",
+    "subscribe": "S'abonner",
+    "searchBarPlaceholder": "Rechercher des articles, des vidéos, des actualités...",
+    "pressEscToClose": "pour fermer",
+    "pressEnterToSearch": "pour rechercher",
+    "rankings": "20 PAYS LES PLUS PERFORMANTS"
   }
 }

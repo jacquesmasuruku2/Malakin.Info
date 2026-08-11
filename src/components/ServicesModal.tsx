@@ -4,14 +4,13 @@ import { usePathname } from 'next/navigation';
 import { X, Newspaper, ScrollText, Radio, BookOpen, ChevronRight, Home } from 'lucide-react';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { useState, useEffect } from 'react';
-import frMessages from '../../messages/fr.json';
-import enMessages from '../../messages/en.json';
+import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
 
 export default function ServicesModal() {
   const pathname = usePathname();
   const { isServicesOpen, closeServices } = useServicesModal();
-  const locale = pathname.split('/')[1] || 'fr';
-  const t = locale === 'fr' ? frMessages.nav : enMessages.nav;
+  const locale = getLocaleFromPathname(pathname);
+  const t = getMessages(locale).nav;
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -24,10 +23,21 @@ export default function ServicesModal() {
     }
   }, [isServicesOpen]);
 
-  // Debug logging
   useEffect(() => {
-    console.log('ServicesModal isServicesOpen:', isServicesOpen);
-  }, [isServicesOpen]);
+    if (!isServicesOpen) {
+      setExpandedCategory(null);
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeServices();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isServicesOpen, closeServices]);
 
   const servicesItems = [
     { name: t.search, href: `/${locale}/recherche` },
@@ -108,14 +118,14 @@ export default function ServicesModal() {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/50 z-50 md:hidden transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/50 z-[60] md:hidden transition-opacity duration-300 ${
           isServicesOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={closeServices}
       />
 
       {/* Mobile Bottom Sheet */}
-      <div className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ease-out ${
+      <div className={`fixed bottom-0 left-0 right-0 z-[70] md:hidden transition-transform duration-300 ease-out ${
         isServicesOpen ? 'translate-y-0' : 'translate-y-full'
       }`}>
         <div className="bg-white rounded-none max-h-[80vh] overflow-y-auto">
@@ -125,7 +135,7 @@ export default function ServicesModal() {
               onClick={closeServices}
               className="flex items-center gap-2 text-[#081C3D] hover:text-[#D4AF37] transition-colors"
             >
-              <span className="text-sm font-bold uppercase">FERMER</span>
+              <span className="text-sm font-bold uppercase">{t.close.toUpperCase()}</span>
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -184,7 +194,7 @@ export default function ServicesModal() {
 
           {/* Services Grid */}
           <div className="border-t border-gray-200 p-4">
-            <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">Services</h4>
+            <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">{t.services}</h4>
             <div className="space-y-2">
               {servicesItems.map((item) => (
                 <a
@@ -203,10 +213,10 @@ export default function ServicesModal() {
 
       {/* Desktop Dropdown */}
       <div className="hidden md:block">
-        <div className={`fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 ${
+        <div className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 ${
           isServicesOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`} onClick={closeServices} />
-        <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] bg-white border border-gray-200 rounded-none shadow-2xl p-6 z-50 max-h-[80vh] overflow-y-auto transition-all duration-300 ease-out ${
+        <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] bg-white border border-gray-200 rounded-none shadow-2xl p-6 z-[70] max-h-[80vh] overflow-y-auto transition-all duration-300 ease-out ${
           isServicesOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
         }`}>
           <div className="flex justify-between items-center mb-4 border-b-2 border-[#D4AF37] pb-4">
@@ -215,7 +225,7 @@ export default function ServicesModal() {
               className="flex items-center gap-2 text-[#081C3D] hover:text-[#D4AF37] transition-colors"
               onClick={closeServices}
             >
-              <span className="text-sm font-bold uppercase">FERMER</span>
+              <span className="text-sm font-bold uppercase">{t.close.toUpperCase()}</span>
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -274,7 +284,7 @@ export default function ServicesModal() {
 
           {/* Services Grid */}
           <div className="border-t border-gray-200 pt-4">
-            <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">Services</h4>
+            <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">{t.services}</h4>
             <div className="space-y-2">
               {servicesItems.map((item) => (
                 <a

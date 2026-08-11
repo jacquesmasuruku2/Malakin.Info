@@ -2,15 +2,16 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { ArrowRight, Calendar, Clock, TrendingUp } from 'lucide-react';
 import AdSenseAd from '@/components/AdSenseAd';
-import frMessages from '../../../messages/fr.json';
-import enMessages from '../../../messages/en.json';
+import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  const t = locale === 'fr' ? frMessages.home : enMessages.home;
-  const tCommon = locale === 'fr' ? frMessages.common : enMessages.common;
+  const normalizedLocale = getLocaleFromPathname(`/${locale}`);
+  const messages = getMessages(normalizedLocale);
+  const t = messages.home;
+  const tCommon = messages.common;
   let featuredArticles: any[] = [];
   let latestArticles: any[] = [];
 

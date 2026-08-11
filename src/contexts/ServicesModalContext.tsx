@@ -6,6 +6,7 @@ interface ServicesModalContextType {
   isServicesOpen: boolean;
   openServices: () => void;
   closeServices: () => void;
+  toggleServices: () => void;
 }
 
 const ServicesModalContext = createContext<ServicesModalContextType | undefined>(undefined);
@@ -15,9 +16,10 @@ export function ServicesModalProvider({ children }: { children: ReactNode }) {
 
   const openServices = () => setIsServicesOpen(true);
   const closeServices = () => setIsServicesOpen(false);
+  const toggleServices = () => setIsServicesOpen((prev) => !prev);
 
   return (
-    <ServicesModalContext.Provider value={{ isServicesOpen, openServices, closeServices }}>
+    <ServicesModalContext.Provider value={{ isServicesOpen, openServices, closeServices, toggleServices }}>
       {children}
     </ServicesModalContext.Provider>
   );

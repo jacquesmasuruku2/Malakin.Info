@@ -3,39 +3,27 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { Briefcase, BookOpen, Palette, Newspaper, Grip } from 'lucide-react';
+import { Grip } from 'lucide-react';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
+import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
-  const locale = pathname.split('/')[1] || 'fr';
+  const locale = getLocaleFromPathname(pathname);
+  const t = getMessages(locale).nav;
   const { openServices } = useServicesModal();
   const [isVisible, setIsVisible] = useState(true);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const navItems = [
+  const navItems: Array<{
+    name: string;
+    icon: typeof Grip;
+    action?: () => void;
+    isButton?: boolean;
+    href?: string;
+  }> = [
     {
-      name: locale === 'fr' ? 'Emploi' : 'Jobs',
-      icon: Briefcase,
-      href: `/${locale}/emploi`,
-    },
-    {
-      name: locale === 'fr' ? 'Blog' : 'Blog',
-      icon: BookOpen,
-      href: `/${locale}/blog`,
-    },
-    {
-      name: locale === 'fr' ? 'Culture' : 'Culture',
-      icon: Palette,
-      href: `/${locale}/culture`,
-    },
-    {
-      name: locale === 'fr' ? 'Actualité' : 'News',
-      icon: Newspaper,
-      href: `/${locale}/actualites`,
-    },
-    {
-      name: locale === 'fr' ? 'Menu' : 'Menu',
+      name: t.menu,
       icon: Grip,
       action: openServices,
       isButton: true,
@@ -89,17 +77,17 @@ export default function MobileBottomNav() {
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
     >
-      <div className="flex items-center justify-around h-16">
+      <div className="flex items-center justify-center h-16">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = !item.isButton && (pathname === item.href || pathname.startsWith(item.href + '/'));
+          const isActive = !item.isButton && item.href ? (pathname === item.href || pathname.startsWith(item.href + '/')) : false;
 
           if (item.isButton && item.action) {
             return (
               <button
                 key={item.name}
                 onClick={item.action}
-                className="flex flex-col items-center justify-center flex-1 h-full"
+                className="flex flex-col items-center justify-center w-full h-full"
               >
                 <Icon className="w-5 h-5 mb-1 text-gray-500" />
                 <span className="text-xs text-gray-500">{item.name}</span>

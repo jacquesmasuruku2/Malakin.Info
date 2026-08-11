@@ -5,8 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Mail, Phone, MapPin, ChevronRight, ArrowUp, Globe, Sparkles, Award, Users, Radio, TrendingUp, BookOpen, Newspaper, Music, Film, Briefcase, Heart, Share2, Smartphone, Download, Camera, Mic, Coffee, MessageCircle, Send, Video, MessageSquare } from 'lucide-react';
 import { FaFacebook, FaInstagram, FaYoutube, FaTwitter, FaLinkedin, FaTiktok, FaWhatsapp, FaTelegram } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
-import frMessages from '../../messages/fr.json';
-import enMessages from '../../messages/en.json';
+import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
 
 export default function Footer() {
   const pathname = usePathname();
@@ -14,10 +13,10 @@ export default function Footer() {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   
-  // Extract locale from pathname
-  const locale = pathname.split('/')[1] || 'fr';
-  const t = locale === 'fr' ? frMessages.footer : enMessages.footer;
-  const nav = locale === 'fr' ? frMessages.nav : enMessages.nav;
+  const locale = getLocaleFromPathname(pathname);
+  const messages = getMessages(locale);
+  const t = messages.footer;
+  const nav = messages.nav;
 
   // Scroll to top functionality
   useEffect(() => {
