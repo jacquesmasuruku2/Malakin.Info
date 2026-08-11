@@ -58,7 +58,7 @@ function CookiePreferencesModal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-4xl rounded-[28px] bg-white p-6 shadow-2xl shadow-black/15 sm:p-8">
+      <div className="w-full max-w-4xl max-h-[calc(100vh-4rem)] overflow-y-auto rounded-[28px] bg-white p-6 shadow-2xl shadow-black/15 sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div className="max-w-[calc(100%-3rem)]">
             <p className="text-xs uppercase tracking-[0.3em] text-gray-500">MalakInfo</p>
@@ -68,12 +68,14 @@ function CookiePreferencesModal({
             <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
               Nos partenaires et nous déposons des cookies et utilisons des informations non sensibles de votre appareil pour améliorer nos services, analyser notre audience et afficher du contenu adapté. Vous pouvez personnaliser vos choix ci-dessous.
             </p>
-            <Link
-              href={`/${locale}/politique-confidentialite`}
+            <a
+              href="https://malakinfo.com/fr/politique-confidentialite"
+              target="_blank"
+              rel="noreferrer"
               className="mt-4 inline-flex text-sm font-medium text-slate-950 underline underline-offset-4 transition hover:text-slate-700"
             >
               Voir la politique de confidentialité
-            </Link>
+            </a>
           </div>
           <button
             type="button"
@@ -155,7 +157,7 @@ function CookiePreferencesModal({
             className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
             onClick={onSave}
           >
-            Enregistrer
+            Enregistrer mes préférences
           </button>
         </div>
       </div>
@@ -176,7 +178,7 @@ export default function CookieConsentModal() {
 
     setPreferences(savedPreferences);
 
-    if (consent !== 'true') {
+    if (!consent) {
       setIsVisible(true);
     }
   }, []);
@@ -194,7 +196,7 @@ export default function CookieConsentModal() {
   }, [isVisible, isPreferencesOpen]);
 
   const savePreferences = (nextPreferences: Record<string, boolean>) => {
-    window.localStorage.setItem(STORAGE_KEY, 'true');
+    window.localStorage.setItem(STORAGE_KEY, 'configured');
     window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(nextPreferences));
     setPreferences(nextPreferences);
     setIsVisible(false);
@@ -202,16 +204,12 @@ export default function CookieConsentModal() {
   };
 
   const handleConsent = (value: 'true' | 'false') => {
-    if (value === 'true') {
-      savePreferences(PREFERENCE_CATEGORIES.reduce<Record<string, boolean>>((acc, item) => {
-        acc[item.key] = true;
-        return acc;
-      }, {}));
-    } else {
-      window.localStorage.setItem(STORAGE_KEY, 'false');
-      setIsVisible(false);
-      setIsPreferencesOpen(false);
-    }
+    const nextPreferences = PREFERENCE_CATEGORIES.reduce<Record<string, boolean>>((acc, item) => {
+      acc[item.key] = value === 'true' ? true : item.required ? true : false;
+      return acc;
+    }, {});
+
+    savePreferences(nextPreferences);
   };
 
   const handleAcceptAll = () => {
