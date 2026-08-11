@@ -257,6 +257,9 @@ export default async function ArticlePage({
         )}
 
         {/* Related Articles */}
+        {/* Comments Section */}
+        <CommentsSection articleId={article.id} locale={locale} />
+
         {relatedArticles.length > 0 && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 border-t border-border">
             <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground mb-6 sm:mb-8">
@@ -302,9 +305,6 @@ export default async function ArticlePage({
             </div>
           </section>
         )}
-
-        {/* Comments Section */}
-        <CommentsSection articleId={article.id} locale={locale} />
       </div>
     );
   } catch (error) {
