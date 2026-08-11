@@ -270,21 +270,17 @@ export default function Navigation() {
           <div className="flex justify-between items-center py-2">
             {/* Left side - Secondary links */}
             <div className="flex items-center space-x-6">
-              <Link href={`/${locale}/emploi`} className="inline-flex items-center gap-2 text-sm text-white px-3 py-2 rounded-md topbar-btn hover:opacity-95 transition-colors touch-manipulation">
-                <Briefcase className="w-4 h-4 topbar-icon" />
-                <span>{t.jobOffers}</span>
+              <Link href={`/${locale}/emploi`} className="text-xs text-gray-300 hover:text-white transition-colors whitespace-nowrap">
+                {t.jobOffers}
               </Link>
-              <Link href={`/${locale}/medias/live`} className="inline-flex items-center gap-2 text-sm text-white px-3 py-2 rounded-md topbar-btn hover:opacity-95 transition-colors touch-manipulation">
-                <Radio className="w-4 h-4 topbar-icon" />
-                <span>{t.directs}</span>
+              <Link href={`/${locale}/medias/live`} className="text-xs text-gray-300 hover:text-white transition-colors whitespace-nowrap">
+                {t.directs}
               </Link>
-              <Link href={`/${locale}/boutique`} className="inline-flex items-center gap-2 text-sm text-white px-3 py-2 rounded-md topbar-btn hover:opacity-95 transition-colors touch-manipulation">
-                <DollarSign className="w-4 h-4 topbar-icon" />
-                <span>{t.shopping}</span>
+              <Link href={`/${locale}/boutique`} className="text-xs text-gray-300 hover:text-white transition-colors whitespace-nowrap">
+                {t.shopping}
               </Link>
-              <Link href={`/${locale}/newsletter`} className="inline-flex items-center gap-2 text-sm text-white px-3 py-2 rounded-md topbar-btn hover:opacity-95 transition-colors touch-manipulation">
-                <Mail className="w-4 h-4 topbar-icon" />
-                <span>{t.newsletter}</span>
+              <Link href={`/${locale}/newsletter`} className="text-xs text-gray-300 hover:text-white transition-colors whitespace-nowrap">
+                {t.newsletter}
               </Link>
             </div>
             
