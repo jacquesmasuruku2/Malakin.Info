@@ -140,7 +140,26 @@ export default function ServicesModal() {
             </button>
           </div>
           
-          {/* Menu Categories */}
+          {/* Services section accessible from mobile menu */}
+          <div className="p-4">
+            <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">{t.services}</h4>
+            <div className="grid gap-2">
+              {servicesItems.map((item) => (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  onClick={closeServices}
+                  className="block px-3 py-3 bg-gray-50 rounded-lg text-sm text-[#081C3D] hover:bg-[#D4AF37] hover:text-white transition-all duration-200"
+                >
+                  {item.name}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t border-gray-200" />
+
+          {/* Services Malakin navigation categories */}
           <div className="p-4 space-y-0">
             {menuCategories.map((category) => {
               if (category.href) {
@@ -190,23 +209,6 @@ export default function ServicesModal() {
                 </div>
               );
             })}
-          </div>
-
-          {/* Services Grid */}
-          <div className="border-t border-gray-200 p-4">
-            <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">{t.services}</h4>
-            <div className="space-y-2">
-              {servicesItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  onClick={closeServices}
-                  className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
-                >
-                  {item.name}
-                </a>
-              ))}
-            </div>
           </div>
         </div>
       </div>
