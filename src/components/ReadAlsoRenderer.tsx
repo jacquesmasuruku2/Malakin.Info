@@ -13,6 +13,8 @@ interface ReadAlsoData {
   accentColor?: string;
 }
 
+const proseClasses = "prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-2 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-6 prose-h2:mb-3 prose-h3:mt-5 prose-h3:mb-2 prose-p:my-2 prose-ul:my-3 prose-ol:my-3 prose-li:my-1 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground";
+
 export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
   const [processedContent, setProcessedContent] = useState<React.ReactElement[]>([]);
 
@@ -35,7 +37,7 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
         <div 
           key="content" 
           dangerouslySetInnerHTML={{ __html: content }} 
-          className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-6 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium prose-strong:text-foreground"
+          className={proseClasses}
         />
       ]);
       return;
@@ -54,7 +56,7 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
           <div 
             key={`before-${index}`}
             dangerouslySetInnerHTML={{ __html: beforeContent }}
-            className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-6 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium prose-strong:text-foreground"
+            className={proseClasses}
           />
         );
       }
@@ -85,7 +87,7 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
         <div 
           key="after"
           dangerouslySetInnerHTML={{ __html: afterContent }}
-          className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-6 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium prose-strong:text-foreground"
+          className={proseClasses}
         />
       );
     }
@@ -111,7 +113,7 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
           <div 
             key={`before-${match.index}`}
             dangerouslySetInnerHTML={{ __html: before }}
-            className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-6 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium prose-strong:text-foreground"
+            className={proseClasses}
           />
         );
       }
@@ -142,7 +144,7 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
         <div 
           key="after"
           dangerouslySetInnerHTML={{ __html: after }}
-          className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-6 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium prose-strong:text-foreground"
+          className={proseClasses}
         />
       );
     }
@@ -150,7 +152,7 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
     return parts.length > 0 ? parts : (
       <div 
         dangerouslySetInnerHTML={{ __html: content }}
-        className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-6 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium prose-strong:text-foreground"
+        className={proseClasses}
       />
     );
   };
