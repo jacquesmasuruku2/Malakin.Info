@@ -270,22 +270,22 @@ export default function Navigation() {
           <div className="flex justify-between items-center py-2">
             {/* Left side - Secondary links */}
             <div className="flex items-center space-x-6">
-              <Link href={`/${locale}/emploi`} className="text-xs text-gray-300 hover:text-white transition-colors">
+              <Link href={`/${locale}/emploi`} className="inline-flex items-center text-sm text-gray-100 px-3 py-2 rounded-md hover:bg-white/10 active:bg-white/20 transition-colors touch-manipulation">
                 {t.jobOffers}
               </Link>
-              <Link href={`/${locale}/medias/live`} className="text-xs text-gray-300 hover:text-white transition-colors">
+              <Link href={`/${locale}/medias/live`} className="inline-flex items-center text-sm text-gray-100 px-3 py-2 rounded-md hover:bg-white/10 active:bg-white/20 transition-colors touch-manipulation">
                 {t.directs}
               </Link>
-              <Link href={`/${locale}/boutique`} className="text-xs text-gray-300 hover:text-white transition-colors">
+              <Link href={`/${locale}/boutique`} className="inline-flex items-center text-sm text-gray-100 px-3 py-2 rounded-md hover:bg-white/10 active:bg-white/20 transition-colors touch-manipulation">
                 {t.shopping}
               </Link>
-              <Link href={`/${locale}/newsletter`} className="text-xs text-gray-300 hover:text-white transition-colors">
+              <Link href={`/${locale}/newsletter`} className="inline-flex items-center text-sm text-gray-100 px-3 py-2 rounded-md hover:bg-white/10 active:bg-white/20 transition-colors touch-manipulation">
                 {t.newsletter}
               </Link>
             </div>
             
             {/* Right side - Partner sites */}
-            <div className="flex items-center space-x-6">
+            <div className="hidden md:flex items-center space-x-6">
               <Link href="https://thedrc.activitie.com" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-300 hover:text-white transition-colors">
                 Activitie
               </Link>
