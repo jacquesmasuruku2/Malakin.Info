@@ -78,7 +78,7 @@ export default function Footer() {
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <Link 
-                    href={`/${locale}/actualites/politique`} 
+                    href={`/${locale}/politique`}
                     className="group relative border border-white/20 text-white px-3 py-2.5 text-xs text-center hover:bg-white hover:text-black transition-all duration-300 hover:shadow-lg hover:shadow-red-500/20 overflow-hidden"
                     onMouseEnter={() => setHoveredItem('politics')}
                     onMouseLeave={() => setHoveredItem(null)}
@@ -87,7 +87,7 @@ export default function Footer() {
                     <span className="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
                   </Link>
                   <Link 
-                    href={`/${locale}/actualites/economie`} 
+                    href={`/${locale}/economie`}
                     className="group relative border border-white/20 text-white px-3 py-2.5 text-xs text-center hover:bg-white hover:text-black transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 overflow-hidden"
                     onMouseEnter={() => setHoveredItem('economy')}
                     onMouseLeave={() => setHoveredItem(null)}
@@ -110,7 +110,7 @@ export default function Footer() {
                 </Link>
                 <div className="grid grid-cols-2 gap-3">
                   <Link 
-                    href={`/${locale}/actualites/societe`} 
+                    href={`/${locale}/societe`}
                     className="group relative border border-white/20 text-white px-3 py-2.5 text-xs text-center hover:bg-white hover:text-black transition-all duration-300 hover:shadow-lg hover:shadow-green-500/20 overflow-hidden"
                     onMouseEnter={() => setHoveredItem('society')}
                     onMouseLeave={() => setHoveredItem(null)}
@@ -119,7 +119,7 @@ export default function Footer() {
                     <span className="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
                   </Link>
                   <Link 
-                    href={`/${locale}/actualites/sante`} 
+                    href={`/${locale}/sante`}
                     className="group relative border border-white/20 text-white px-3 py-2.5 text-xs text-center hover:bg-white hover:text-black transition-all duration-300 hover:shadow-lg hover:shadow-red-500/20 overflow-hidden"
                     onMouseEnter={() => setHoveredItem('health')}
                     onMouseLeave={() => setHoveredItem(null)}
@@ -141,7 +141,7 @@ export default function Footer() {
                   {[nav.security, nav.environment, nav.culture].map((item, index) => (
                     <Link 
                       key={index}
-                      href={`/${locale}/actualites/${['securite', 'environnement', 'culture'][index]}`} 
+                      href={`/${locale}/${['securite', 'environnement', 'culture'][index]}`}
                       className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:translate-x-2 hover:scale-105 flex items-center gap-1 group"
                     >
                       <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-red-500" />

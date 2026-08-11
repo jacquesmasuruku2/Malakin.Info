@@ -37,7 +37,7 @@ export default async function ActualitesPage({
   // Format categories for display
   const categoryList = categories.map((cat) => ({
     name: cat.title,
-    href: `/${locale}/actualites/${cat.slug}`,
+    href: `/${locale}/${cat.slug}`,
     count: cat._count.articles,
   }));
 
@@ -133,7 +133,7 @@ export default async function ActualitesPage({
                           {item.excerpt}
                         </p>
                         <Link
-                          href={`/${locale}/actualites/${item.categorySlug}/${item.slug}`}
+                          href={`/${locale}/${item.categorySlug}/${item.slug}`}
                           className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                         >
                           Lire la suite

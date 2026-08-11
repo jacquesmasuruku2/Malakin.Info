@@ -69,10 +69,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   }));
 
   const categories = [
-    { name: locale === 'fr' ? 'Politique' : 'Politics', href: `/${locale}/actualites/politique`, color: 'bg-red-500' },
-    { name: locale === 'fr' ? 'Économie' : 'Economy', href: `/${locale}/actualites/economie`, color: 'bg-blue-500' },
-    { name: locale === 'fr' ? 'Société' : 'Society', href: `/${locale}/actualites/societe`, color: 'bg-green-500' },
-    { name: locale === 'fr' ? 'Santé' : 'Health', href: `/${locale}/actualites/sante`, color: 'bg-purple-500' },
+    { name: locale === 'fr' ? 'Politique' : 'Politics', href: `/${locale}/politique`, color: 'bg-red-500' },
+    { name: locale === 'fr' ? 'Économie' : 'Economy', href: `/${locale}/economie`, color: 'bg-blue-500' },
+    { name: locale === 'fr' ? 'Société' : 'Society', href: `/${locale}/societe`, color: 'bg-green-500' },
+    { name: locale === 'fr' ? 'Santé' : 'Health', href: `/${locale}/sante`, color: 'bg-purple-500' },
     { name: locale === 'fr' ? 'Sport' : 'Sport', href: `/${locale}/sport`, color: 'bg-orange-500' },
     { name: locale === 'fr' ? 'Culture' : 'Culture', href: `/${locale}/culture`, color: 'bg-pink-500' },
   ];

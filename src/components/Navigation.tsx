@@ -81,7 +81,7 @@ export default function Navigation() {
   const mainNavItems = [
     { name: t.home, href: `/${locale}` },
     { name: t.news, href: `/${locale}/actualites` },
-    { name: t.economy, href: `/${locale}/actualites/economie` },
+    { name: t.economy, href: `/${locale}/economie` },
     { name: t.scienceTech, href: `/${locale}/science-tech` },
     { name: t.culture, href: `/${locale}/culture` },
     { name: t.sport, href: `/${locale}/sport` },
@@ -105,11 +105,11 @@ export default function Navigation() {
       icon: Newspaper,
       items: [
         { name: t.allNews, href: `/${locale}/actualites` },
-        { name: t.politics, href: `/${locale}/actualites/politique` },
-        { name: t.economy, href: `/${locale}/actualites/economie` },
-        { name: t.society, href: `/${locale}/actualites/societe` },
-        { name: t.health, href: `/${locale}/actualites/sante` },
-        { name: t.security, href: `/${locale}/actualites/securite` },
+        { name: t.politics, href: `/${locale}/politique` },
+        { name: t.economy, href: `/${locale}/economie` },
+        { name: t.society, href: `/${locale}/societe` },
+        { name: t.health, href: `/${locale}/sante` },
+        { name: t.security, href: `/${locale}/securite` },
       ],
     },
     {

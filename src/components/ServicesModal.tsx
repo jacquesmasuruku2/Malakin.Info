@@ -68,11 +68,11 @@ export default function ServicesModal() {
       title: t.news,
       items: [
         { name: t.allNews, href: `/${locale}/actualites` },
-        { name: t.politics, href: `/${locale}/actualites/politique` },
-        { name: t.economy, href: `/${locale}/actualites/economie` },
-        { name: t.society, href: `/${locale}/actualites/societe` },
-        { name: t.health, href: `/${locale}/actualites/sante` },
-        { name: t.security, href: `/${locale}/actualites/securite` },
+        { name: t.politics, href: `/${locale}/politique` },
+        { name: t.economy, href: `/${locale}/economie` },
+        { name: t.society, href: `/${locale}/societe` },
+        { name: t.health, href: `/${locale}/sante` },
+        { name: t.security, href: `/${locale}/securite` },
       ],
     },
     {
