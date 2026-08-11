@@ -97,9 +97,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     <div className="flex flex-col">
       {/* Live Banner - Si un live est en cours */}
       {currentLive && (
-        <div className="bg-gradient-to-r from-red-600 to-red-700 text-white py-4">
+        <div className="bg-gradient-to-r from-red-600 to-red-700 text-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Link href={`/${locale}/medias/live/${currentLive.id}`} className="flex items-center justify-between">
+            {/* Desktop / tablet: keep existing two-column banner */}
+            <Link href={`/${locale}/medias/live/${currentLive.id}`} className="hidden md:flex items-center justify-between py-4">
               <div className="flex items-center gap-3">
                 <span className="px-3 py-1 bg-white text-red-600 text-sm font-bold rounded-full animate-pulse">
                   🔴 EN DIRECT
@@ -110,6 +111,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 <Radio className="w-4 h-4" />
                 <span>{locale === 'fr' ? 'Regarder maintenant' : 'Watch now'}</span>
                 <ArrowRight className="w-4 h-4" />
+              </div>
+            </Link>
+
+            {/* Mobile: marquee / billboard single-line scrolling text */}
+            <Link href={`/${locale}/medias/live/${currentLive.id}`} className="md:hidden block">
+              <div className="py-3 marquee-track">
+                <span className="marquee-content text-sm font-semibold">
+                  {`🔴 EN DIRECT — ${currentLive.title} — ${locale === 'fr' ? 'Regarder maintenant' : 'Watch now'}`}
+                </span>
               </div>
             </Link>
           </div>
