@@ -175,25 +175,33 @@
   }
 }
 
-/* Topbar button styles for an elegant mobile look */
+/* Topbar button styles for an elegant mobile look (scoped to .topbar) */
 @layer utilities {
-  .topbar-btn {
+  .topbar .topbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
     background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.04));
     box-shadow: 0 6px 18px rgba(11,59,139,0.12);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     border: 1px solid rgba(255,255,255,0.06);
     transition: transform .18s cubic-bezier(.2,.9,.2,1), box-shadow .18s cubic-bezier(.2,.9,.2,1), background .12s ease, opacity .18s ease;
+    font-family: 'Times New Roman', Times, serif;
   }
-  .topbar-btn:active {
+  .topbar .topbar-btn:active {
     transform: translateY(1px) scale(.998);
     box-shadow: 0 3px 10px rgba(11,59,139,0.14);
   }
-  .topbar-icon { color: rgba(255,255,255,0.95); }
-  .topbar-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 10px 24px rgba(11,59,139,0.14); }
-  .topbar-btn span { font-size: 13px; }
+  .topbar .topbar-icon { color: rgba(255,255,255,0.95); }
+  .topbar .topbar-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 10px 24px rgba(11,59,139,0.14); }
+  /* Much smaller text per user request */
+  .topbar .topbar-btn span { font-size: 0.6rem; line-height: 1; font-family: 'Times New Roman', Times, serif; }
   @media (max-width: 767px) {
-    .topbar-btn { padding-left: 12px; padding-right: 12px; }
-    .topbar-btn span { display: inline-block; font-weight: 600; }
+    .topbar .topbar-btn { padding-left: 8px; padding-right: 8px; }
+    .topbar .topbar-btn span { display: inline-block; font-weight: 500; font-size: 0.55rem; }
   }
+
+  /* Prevent topbar buttons from showing inside card components */
+  .card .topbar-btn, .post-card .topbar-btn, .article-card .topbar-btn { display: none !important; }
 }
