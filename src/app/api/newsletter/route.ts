@@ -4,19 +4,32 @@ import { prisma } from '@/lib/prisma';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email, name, interests } = body;
+    const { email, name, interests, consent } = body;
 
     // Validation
-    if (!email || !email.includes('@')) {
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
       return NextResponse.json(
         { error: 'Email invalide' },
         { status: 400 }
       );
     }
 
+    if (consent !== true) {
+      return NextResponse.json(
+        { error: 'Le consentement est requis pour s\'abonner' },
+        { status: 400 }
+      );
+    }
+
+    const validatedInterests = Array.isArray(interests)
+      ? interests.filter((item) => typeof item === 'string')
+      : [];
+
+    const normalizedEmail = email.toLowerCase();
+
     // Check if email already exists
     const existingSubscription = await prisma.newsletterSubscription.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email: normalizedEmail },
     });
 
     if (existingSubscription) {

@@ -3,11 +3,7 @@
 import { useState } from 'react';
 import { Mail, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
 
-export default function NewsletterPage({ 
-  params 
-}: { 
-  params: Promise<{ locale: string }> 
-}) {
+export default function NewsletterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -17,9 +13,10 @@ export default function NewsletterPage({
     setMessage(null);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const name = formData.get('name') as string;
-    const interests = formData.getAll('interests') as string[];
+    const email = formData.get('email') as string | null;
+    const name = formData.get('name') as string | null;
+    const interests = formData.getAll('interests').map((value) => String(value));
+    const consent = formData.get('consent') === 'on';
 
     try {
       const response = await fetch('/api/newsletter', {
@@ -27,7 +24,7 @@ export default function NewsletterPage({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, name, interests }),
+        body: JSON.stringify({ email, name, interests, consent }),
       });
 
       const data = await response.json();
@@ -113,7 +110,7 @@ export default function NewsletterPage({
               </label>
               <div className="space-y-2">
                 <label className="flex items-center space-x-3 cursor-pointer">
-                  <input type="checkbox" name="interests" value="actualites" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" defaultChecked disabled={isSubmitting} />
+                  <input type="checkbox" name="interests" value="actualites" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" defaultChecked={!isSubmitting} disabled={isSubmitting} />
                   <span className="text-sm text-gray-700">Actualités</span>
                 </label>
                 <label className="flex items-center space-x-3 cursor-pointer">
