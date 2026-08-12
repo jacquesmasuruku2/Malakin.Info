@@ -45,14 +45,17 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    console.log('[live API] GET request for ID:', id);
     const event = await prisma.liveEvent.findUnique({
       where: { id },
       include: {
         category: true,
       },
     });
+    console.log('[live API] Event found:', !!event);
 
     if (!event) {
+      console.log('[live API] Event not found');
       return NextResponse.json(
         { error: 'Live event not found' },
         { status: 404 }
@@ -62,6 +65,7 @@ export async function GET(
     // Update status if needed
     const calculatedStatus = calculateStatus(event.startTime, event.endTime);
     if (calculatedStatus !== event.status) {
+      console.log('[live API] Updating status:', event.status, '->', calculatedStatus);
       const updatedEvent = await prisma.liveEvent.update({
         where: { id },
         data: { status: calculatedStatus },
@@ -70,9 +74,11 @@ export async function GET(
       return cors(NextResponse.json(serializeLiveEvent(updatedEvent)));
     }
 
+    console.log('[live API] Returning event:', event.id);
     return cors(NextResponse.json(serializeLiveEvent(event)));
   } catch (error) {
-    console.error('Error fetching live event:', error);
+    console.error('[live API] Error fetching live event:', error);
+    console.error('[live API] Error details:', error instanceof Error ? error.message : String(error));
     return cors(NextResponse.json(
       { error: 'Failed to fetch live event' },
       { status: 500 }
