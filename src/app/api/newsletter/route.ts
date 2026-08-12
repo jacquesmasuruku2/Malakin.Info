@@ -6,7 +6,7 @@ import { sendWelcomeEmail } from '@/lib/email';
 
 // Helper function to add CORS headers
 function cors(response: NextResponse) {
-  response.headers.set('Access-Control-Allow-Origin', 'https://dashboard.malakinfo.com');
+  response.headers.set('Access-Control-Allow-Origin', '*');
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   response.headers.set('Access-Control-Allow-Credentials', 'true');
@@ -20,12 +20,15 @@ export async function OPTIONS() {
 }
 
 export async function POST(request: Request) {
+  console.log('[newsletter] POST request received');
   try {
     const body = await request.json();
+    console.log('[newsletter] Request body:', { email: body.email, hasConsent: !!body.consent });
     const { email, name, interests, consent } = body;
 
     // Validation
     if (!email || typeof email !== 'string' || !email.includes('@')) {
+      console.warn('[newsletter] Invalid email:', email);
       return cors(NextResponse.json(
         { error: 'Email invalide' },
         { status: 400 }
@@ -33,6 +36,7 @@ export async function POST(request: Request) {
     }
 
     if (consent !== true) {
+      console.warn('[newsletter] Missing consent');
       return cors(NextResponse.json(
         { error: 'Le consentement est requis pour s\'abonner' },
         { status: 400 }
@@ -44,6 +48,7 @@ export async function POST(request: Request) {
       : [];
 
     const normalizedEmail = email.toLowerCase();
+    console.log('[newsletter] Attempting to create subscription for:', normalizedEmail);
 
     // Try to create subscription directly, handle P2002 (unique constraint) for duplicates
     try {
@@ -56,6 +61,7 @@ export async function POST(request: Request) {
           subscribedAt: new Date(),
         },
       });
+      console.log('[newsletter] Subscription created successfully:', subscription.id);
 
       // Send Telegram notification (non-blocking)
       sendTelegramMessage(`Nouvel abonnement à la newsletter : ${subscription.email}`)
@@ -82,6 +88,7 @@ export async function POST(request: Request) {
 
         if (existing) {
           if (existing.isActive) {
+            console.log('[newsletter] Email already active');
             return cors(NextResponse.json(
               { message: 'Cet email est déjà abonné à la newsletter' },
               { status: 200 }
@@ -97,6 +104,7 @@ export async function POST(request: Request) {
                 interests: validatedInterests.length > 0 ? validatedInterests as any : existing.interests,
               }
             });
+            console.log('[newsletter] Subscription reactivated:', reactivated.id);
 
             sendWelcomeEmail({ to: reactivated.email, name: reactivated.name })
               .catch(err => console.error('Welcome email failed:', err));
@@ -110,6 +118,8 @@ export async function POST(request: Request) {
       }
 
       console.error('[newsletter] Error creating subscription:', error);
+      console.error('[newsletter] Error details:', error instanceof Error ? error.message : String(error));
+      console.error('[newsletter] Error stack:', error instanceof Error ? error.stack : 'No stack');
       return cors(NextResponse.json(
         { error: 'Erreur lors de l\'abonnement' },
         { status: 500 }
@@ -117,6 +127,7 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error('[newsletter] Request error:', error);
+    console.error('[newsletter] Request error details:', error instanceof Error ? error.message : String(error));
     return cors(NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }
