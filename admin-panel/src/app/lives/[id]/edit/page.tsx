@@ -78,10 +78,13 @@ export default function EditLivePage() {
   };
 
   const fetchLive = async () => {
+    console.log('[EditLivePage] Fetching live with ID:', params.id);
     try {
       const response = await fetch(getApiUrl(`/api/live/${params.id}`));
+      console.log('[EditLivePage] Response status:', response.status);
       if (!response.ok) throw new Error('Live not found');
       const data = await response.json();
+      console.log('[EditLivePage] Live data received:', data);
       setLive(data);
       setFormData({
         title: data.title,
@@ -96,6 +99,7 @@ export default function EditLivePage() {
         isFeatured: data.isFeatured
       });
     } catch (err) {
+      console.error('[EditLivePage] Error fetching live:', err);
       setError('Erreur lors du chargement du live');
     } finally {
       setLoading(false);
