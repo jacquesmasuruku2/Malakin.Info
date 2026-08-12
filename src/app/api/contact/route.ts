@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { sendTelegramMessage } from '@/lib/telegram';
 
 const prisma = new PrismaClient();
 
@@ -32,6 +33,11 @@ export async function POST(request: NextRequest) {
         message,
       },
     });
+
+    const telegramResult = await sendTelegramMessage(
+      `Nouveau message de contact reçu :\nNom : ${name}\nEmail : ${email}\nSujet : ${subject || '—'}\nMessage : ${message}`
+    );
+    console.log('Telegram notification result (contact):', telegramResult);
 
     return NextResponse.json(
       { message: 'Message sent successfully', id: contactMessage.id },

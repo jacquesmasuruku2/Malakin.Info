@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendTelegramMessage } from '@/lib/telegram';
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,6 +48,11 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    const telegramResult = await sendTelegramMessage(
+      `Nouveau commentaire sur l'article ${articleId} de ${comment.user?.name || userId} :\n${content}`
+    );
+    console.log('Telegram notification result (comment):', telegramResult);
 
     return NextResponse.json(comment, { status: 201 });
   } catch (error) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { sendTelegramMessage } from '@/lib/telegram';
 
 const prisma = new PrismaClient();
 
@@ -33,6 +34,11 @@ export async function POST(request: NextRequest) {
         description: message || null,
       },
     });
+
+    const telegramResult = await sendTelegramMessage(
+      `Nouvelle demande de partenariat :\nSociété : ${company}\nContact : ${name}\nEmail : ${email}\nType : ${partnershipType}`
+    );
+    console.log('Telegram notification result (partnership):', telegramResult);
 
     return NextResponse.json(
       { message: 'Partnership request submitted successfully', id: partnership.id },

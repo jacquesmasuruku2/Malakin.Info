@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendTelegramMessage } from '@/lib/telegram';
 
 export async function POST(request: Request) {
   try {
@@ -59,6 +60,11 @@ export async function POST(request: Request) {
         subscribedAt: new Date(),
       },
     });
+
+    const telegramResult = await sendTelegramMessage(
+      `Nouvel abonnement à la newsletter : ${subscription.email}`
+    );
+    console.log('Telegram notification result (newsletter):', telegramResult);
 
     return NextResponse.json(
       { message: 'Abonnement réussi', subscription },
