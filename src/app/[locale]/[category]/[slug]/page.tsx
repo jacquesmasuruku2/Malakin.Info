@@ -37,6 +37,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: article.title,
     description: article.excerpt || article.title,
+    icons: {
+      icon: absoluteImageUrl ?? '/images/logo.png',
+      shortcut: absoluteImageUrl ?? '/images/logo.png',
+      apple: absoluteImageUrl ?? '/images/logo.png',
+    },
     alternates: {
       canonical: canonicalUrl,
     },

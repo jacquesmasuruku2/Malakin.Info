@@ -44,6 +44,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       authors: article.author ? [{ name: article.author.name }] : [{ name: 'Malakinfo' }],
       creator: 'Malakinfo',
       publisher: 'Malakinfo',
+      icons: {
+        icon: absoluteImageUrl ?? '/images/logo.png',
+        shortcut: absoluteImageUrl ?? '/images/logo.png',
+        apple: absoluteImageUrl ?? '/images/logo.png',
+      },
       alternates: {
         canonical: canonicalUrl,
       },
