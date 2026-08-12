@@ -39,12 +39,15 @@ function calculateStatus(startTime: Date, endTime: Date | null): 'SCHEDULED' | '
 
 export async function GET(request: Request) {
   try {
+    console.log('[live API] GET request received');
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
+    console.log('[live API] Type:', type);
 
     // Get current live event
     if (type === 'current') {
       try {
+        console.log('[live API] Fetching current live event');
         const now = new Date();
         const currentLive = await prisma.liveEvent.findFirst({
           where: {
@@ -58,11 +61,13 @@ export async function GET(request: Request) {
             startTime: 'desc'
           },
         });
+        console.log('[live API] Current live fetched:', currentLive?.id || 'none');
 
         if (currentLive) {
           // Update status to LIVE if needed
           const calculatedStatus = calculateStatus(currentLive.startTime, currentLive.endTime);
           if (calculatedStatus !== currentLive.status) {
+            console.log('[live API] Updating status:', currentLive.status, '->', calculatedStatus);
             await prisma.liveEvent.update({
               where: { id: currentLive.id },
               data: { status: calculatedStatus }
@@ -74,6 +79,8 @@ export async function GET(request: Request) {
         return cors(NextResponse.json(currentLive ? serializeLiveEvent(currentLive) : null));
       } catch (error) {
         console.error('[live API] Error fetching current live:', error);
+        console.error('[live API] Error details:', error instanceof Error ? error.message : String(error));
+        console.error('[live API] Error stack:', error instanceof Error ? error.stack : 'No stack');
         return cors(NextResponse.json(null));
       }
     }
@@ -81,6 +88,7 @@ export async function GET(request: Request) {
     // Get upcoming events
     if (type === 'upcoming') {
       try {
+        console.log('[live API] Fetching upcoming events');
         const now = new Date();
         const upcomingEvents = await prisma.liveEvent.findMany({
           where: {
@@ -92,21 +100,25 @@ export async function GET(request: Request) {
           },
           take: 5,
         });
+        console.log('[live API] Upcoming events fetched:', upcomingEvents.length);
 
         return cors(NextResponse.json(upcomingEvents.map(serializeLiveEvent)));
       } catch (error) {
         console.error('[live API] Error fetching upcoming events:', error);
+        console.error('[live API] Error details:', error instanceof Error ? error.message : String(error));
         return cors(NextResponse.json([]));
       }
     }
 
     // Get all events
     try {
+      console.log('[live API] Fetching all events');
       const events = await prisma.liveEvent.findMany({
         orderBy: {
           startTime: 'desc'
         },
       });
+      console.log('[live API] All events fetched:', events.length);
 
       // Update statuses for all events (non-blocking)
       const statusUpdates = events.map(async (event) => {
@@ -129,10 +141,13 @@ export async function GET(request: Request) {
       return cors(NextResponse.json(events.map(serializeLiveEvent)));
     } catch (error) {
       console.error('[live API] Error fetching all events:', error);
+      console.error('[live API] Error details:', error instanceof Error ? error.message : String(error));
+      console.error('[live API] Error stack:', error instanceof Error ? error.stack : 'No stack');
       return cors(NextResponse.json([]));
     }
   } catch (error) {
     console.error('[live API] Unexpected error:', error);
+    console.error('[live API] Error details:', error instanceof Error ? error.message : String(error));
     return cors(NextResponse.json([]));
   }
 }
