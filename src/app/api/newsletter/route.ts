@@ -94,7 +94,7 @@ export async function POST(request: Request) {
                 isActive: true,
                 subscribedAt: new Date(),
                 name: typeof name === 'string' && name.trim() ? name.trim() : existing.name,
-                interests: validatedInterests.length > 0 ? validatedInterests : existing.interests,
+                interests: validatedInterests.length > 0 ? validatedInterests as any : existing.interests,
               }
             });
 
