@@ -45,81 +45,8 @@ export async function POST(request: Request) {
 
     const normalizedEmail = email.toLowerCase();
 
-    let existingSubscription;
-
+    // Try to create subscription directly, handle P2002 (unique constraint) for duplicates
     try {
-      // Check if email already exists
-      existingSubscription = await prisma.newsletterSubscription.findUnique({
-        where: { email: normalizedEmail },
-      });
-    } catch (error) {
-      console.error('[newsletter signup] Prisma findUnique failed:', {
-        code: error instanceof Prisma.PrismaClientKnownRequestError ? error.code : 'UNKNOWN',
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      return cors(NextResponse.json(
-        { error: 'Erreur de base de données lors de la vérification de l\'abonnement.' },
-        { status: 500 }
-      ));
-    }
-
-    if (existingSubscription) {
-      try {
-        if (existingSubscription.isActive) {
-          const updatedSubscription = await prisma.newsletterSubscription.update({
-            where: { email: normalizedEmail },
-            data: {
-              name: typeof name === 'string' && name.trim() ? name.trim() : existingSubscription.name,
-              interests: validatedInterests.length > 0 ? validatedInterests : undefined,
-            },
-          });
-
-          return cors(NextResponse.json(
-            { message: 'Cet email est déjà abonné à la newsletter', subscription: updatedSubscription },
-            { status: 200 }
-          ));
-        }
-
-        // Reactivate if previously unsubscribed and update optional profile fields
-        const interestsValue = validatedInterests.length > 0 ? validatedInterests : undefined;
-
-        const updatedSubscription = await prisma.newsletterSubscription.update({
-          where: { email: normalizedEmail },
-          data: {
-            isActive: true,
-            subscribedAt: new Date(),
-            name: typeof name === 'string' && name.trim() ? name.trim() : existingSubscription.name,
-            interests: interestsValue,
-          },
-        });
-
-        try {
-          await sendWelcomeEmail({ to: updatedSubscription.email, name: updatedSubscription.name });
-        } catch (welcomeError) {
-          console.error('[newsletter signup] Welcome email error:',
-            welcomeError instanceof Error ? welcomeError.stack ?? welcomeError.message : String(welcomeError));
-        }
-
-        return cors(NextResponse.json(
-          { message: 'Abonnement réactivé avec succès', subscription: updatedSubscription },
-          { status: 200 }
-        ));
-      } catch (error) {
-        console.error('[newsletter signup] Prisma update failed:', {
-          code: error instanceof Prisma.PrismaClientKnownRequestError ? error.code : 'UNKNOWN',
-          message: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-        });
-        return cors(NextResponse.json(
-          { error: 'Erreur de mise à jour de l\'abonnement.' },
-          { status: 500 }
-        ));
-      }
-    }
-
-    try {
-      // Create new subscription
       const subscription = await prisma.newsletterSubscription.create({
         data: {
           email: normalizedEmail,
@@ -130,55 +57,68 @@ export async function POST(request: Request) {
         },
       });
 
-      const telegramResult = await sendTelegramMessage(
-        `Nouvel abonnement à la newsletter : ${subscription.email}`
-      );
-      console.info('Telegram notification result for newsletter signup', { email: subscription.email, telegramResult });
+      // Send Telegram notification (non-blocking)
+      sendTelegramMessage(`Nouvel abonnement à la newsletter : ${subscription.email}`)
+        .then(result => console.info('Telegram notification result', { email: subscription.email, result }))
+        .catch(err => console.error('Telegram notification failed:', err));
 
-      try {
-        await sendWelcomeEmail({ to: subscription.email, name: subscription.name });
-      } catch (welcomeError) {
-        console.error('[newsletter signup] Welcome email error:',
-          welcomeError instanceof Error ? welcomeError.stack ?? welcomeError.message : String(welcomeError));
-      }
+      // Send welcome email (non-blocking)
+      sendWelcomeEmail({ to: subscription.email, name: subscription.name })
+        .catch(err => console.error('Welcome email failed:', err));
 
       return cors(NextResponse.json(
         { message: 'Abonnement réussi', subscription },
         { status: 201 }
       ));
     } catch (error) {
+      // Handle duplicate email error
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        console.warn('[newsletter signup] Duplicate subscription detected after pre-check:', {
-          code: error.code,
-          target: error.meta?.target,
-          message: error.message,
+        console.warn('[newsletter] Duplicate email detected:', normalizedEmail);
+        
+        // Try to find existing subscription
+        const existing = await prisma.newsletterSubscription.findUnique({
+          where: { email: normalizedEmail }
         });
 
-        return cors(NextResponse.json(
-          { message: 'Cet email est déjà inscrit à la newsletter.' },
-          { status: 200 }
-        ));
+        if (existing) {
+          if (existing.isActive) {
+            return cors(NextResponse.json(
+              { message: 'Cet email est déjà abonné à la newsletter' },
+              { status: 200 }
+            ));
+          } else {
+            // Reactivate
+            const reactivated = await prisma.newsletterSubscription.update({
+              where: { email: normalizedEmail },
+              data: {
+                isActive: true,
+                subscribedAt: new Date(),
+                name: typeof name === 'string' && name.trim() ? name.trim() : existing.name,
+                interests: validatedInterests.length > 0 ? validatedInterests : existing.interests,
+              }
+            });
+
+            sendWelcomeEmail({ to: reactivated.email, name: reactivated.name })
+              .catch(err => console.error('Welcome email failed:', err));
+
+            return cors(NextResponse.json(
+              { message: 'Abonnement réactivé avec succès', subscription: reactivated },
+              { status: 200 }
+            ));
+          }
+        }
       }
 
-      console.error('[newsletter signup] Prisma create failed:', {
-        code: error instanceof Prisma.PrismaClientKnownRequestError ? error.code : 'UNKNOWN',
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-
+      console.error('[newsletter] Error creating subscription:', error);
       return cors(NextResponse.json(
-        { error: 'Erreur lors de l\'abonnement.' },
+        { error: 'Erreur lors de l\'abonnement' },
         { status: 500 }
       ));
     }
   } catch (error) {
-    console.error('[newsletter signup] Unexpected request error:', {
-      code: error instanceof Prisma.PrismaClientKnownRequestError ? error.code : 'UNKNOWN',
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    });
+    console.error('[newsletter] Request error:', error);
     return cors(NextResponse.json(
-      { error: "Erreur lors de l'abonnement" },
+      { error: 'Erreur serveur' },
       { status: 500 }
     ));
   }
