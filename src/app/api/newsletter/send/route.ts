@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { sendNewsletterEmail } from '@/lib/email';
 
@@ -26,16 +27,39 @@ export async function POST(request: Request) {
       where.isActive = true;
     }
 
-    const subscribers = await prisma.newsletterSubscription.findMany({ where });
+    let subscribers: Array<{ email: string; name: string | null; interests: unknown }> = [];
+
+    try {
+      subscribers = await prisma.newsletterSubscription.findMany({
+        where,
+        select: {
+          email: true,
+          name: true,
+          interests: true,
+        },
+      });
+    } catch (error) {
+      console.error('[newsletter send] Prisma findMany failed:', {
+        code: error instanceof Prisma.PrismaClientKnownRequestError ? error.code : 'UNKNOWN',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      return NextResponse.json(
+        { error: 'Erreur de lecture des abonnés pour l’envoi de la newsletter.', details: error instanceof Error ? error.message : String(error) },
+        { status: 500 }
+      );
+    }
+
+    const safeSubscribers = Array.isArray(subscribers) ? subscribers : [];
     const filteredSubscribers = filter?.interests?.length
-      ? subscribers.filter((subscriber) => {
+      ? safeSubscribers.filter((subscriber) => {
           const interests = Array.isArray(subscriber.interests) ? subscriber.interests : [];
           return filter.interests?.every((interest) => interests.includes(interest));
         })
-      : subscribers;
+      : safeSubscribers;
 
     if (filteredSubscribers.length === 0) {
-      return NextResponse.json({ message: 'Aucun abonné trouvé pour l’envoi' });
+      return NextResponse.json({ message: 'Aucun abonné trouvé pour l’envoi', count: 0 });
     }
 
     const results = [] as Array<{ email: string; success: boolean; error?: string }>;
@@ -66,10 +90,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ count: filteredSubscribers.length, results });
   } catch (error) {
-    console.error('Newsletter send error:');
-    console.error(error instanceof Error ? error.stack ?? error.message : String(error));
+    console.error('[newsletter send] Unexpected error:', {
+      code: error instanceof Prisma.PrismaClientKnownRequestError ? error.code : 'UNKNOWN',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return NextResponse.json(
-      { error: 'Échec de l’envoi de la newsletter', details: 'Une erreur côté serveur est survenue.' },
+      { error: 'Échec de l’envoi de la newsletter', details: error instanceof Error ? error.message : 'Une erreur côté serveur est survenue.' },
       { status: 500 }
     );
   }
