@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Helper function to add CORS headers
+function cors(response: NextResponse) {
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return response;
+}
+
+// Handle OPTIONS request for CORS preflight
+export async function OPTIONS() {
+  const response = new NextResponse(null, { status: 200 });
+  return cors(response);
+}
+
 export async function GET() {
   try {
     const authors = await prisma.author.findMany({
@@ -13,13 +27,13 @@ export async function GET() {
         name: 'asc',
       },
     });
-    return NextResponse.json(authors);
+    return cors(NextResponse.json(authors));
   } catch (error) {
     console.error('Error fetching authors:', error);
-    return NextResponse.json({ 
+    return cors(NextResponse.json({ 
       error: 'Failed to fetch authors',
       details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    }, { status: 500 }));
   }
 }
 
@@ -37,12 +51,12 @@ export async function POST(request: NextRequest) {
         imageAlt: body.imageAlt,
       },
     });
-    return NextResponse.json(author, { status: 201 });
+    return cors(NextResponse.json(author, { status: 201 }));
   } catch (error) {
     console.error('Error creating author:', error);
-    return NextResponse.json({ 
+    return cors(NextResponse.json({ 
       error: 'Failed to create author',
       details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    }, { status: 500 }));
   }
 }
