@@ -19,8 +19,6 @@ export async function OPTIONS() {
 function serializeLiveEvent(event: any) {
   return {
     ...event,
-    category: event.category?.title ?? null,
-    categoryId: event.categoryId ?? null,
   };
 }
 
@@ -58,9 +56,6 @@ export async function GET(request: Request) {
         orderBy: {
           startTime: 'desc'
         },
-        include: {
-          category: true,
-        },
       });
 
       if (currentLive) {
@@ -90,9 +85,6 @@ export async function GET(request: Request) {
           startTime: 'asc'
         },
         take: 5,
-        include: {
-          category: true,
-        },
       });
 
       return cors(NextResponse.json(upcomingEvents.map(serializeLiveEvent)));
@@ -102,9 +94,6 @@ export async function GET(request: Request) {
     const events = await prisma.liveEvent.findMany({
       orderBy: {
         startTime: 'desc'
-      },
-      include: {
-        category: true,
       },
     });
 
@@ -161,7 +150,6 @@ export async function POST(request: Request) {
         startTime,
         endTime,
         isFeatured: body.isFeatured || false,
-        categoryId: body.categoryId || undefined,
       }
     });
 
