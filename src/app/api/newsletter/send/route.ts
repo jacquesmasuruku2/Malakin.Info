@@ -66,7 +66,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ count: filteredSubscribers.length, results });
   } catch (error) {
-    console.error('Newsletter send error:', error);
-    return NextResponse.json({ error: 'Échec de l’envoi de la newsletter', details: String(error) }, { status: 500 });
+    console.error('Newsletter send error:');
+    console.error(error instanceof Error ? error.stack ?? error.message : String(error));
+    return NextResponse.json(
+      { error: 'Échec de l’envoi de la newsletter', details: 'Une erreur côté serveur est survenue.' },
+      { status: 500 }
+    );
   }
 }

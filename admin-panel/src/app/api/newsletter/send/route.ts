@@ -23,11 +23,20 @@ export async function POST(request: NextRequest) {
       ? JSON.parse(responseText)
       : { message: responseText };
 
+    if (!response.ok) {
+      console.error('Admin newsletter proxy error: upstream response failed', {
+        status: response.status,
+        statusText: response.statusText,
+        body: data,
+      });
+    }
+
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error('Admin newsletter proxy error:', error);
+    console.error('Admin newsletter proxy error:');
+    console.error(error instanceof Error ? error.stack ?? error.message : String(error));
     return NextResponse.json(
-      { error: 'Erreur lors de l’envoi à l’API principale', details: String(error) },
+      { error: 'Erreur lors de l’envoi à l’API principale' },
       { status: 500 }
     );
   }

@@ -91,12 +91,12 @@ export async function POST(request: Request) {
     const telegramResult = await sendTelegramMessage(
       `Nouvel abonnement à la newsletter : ${subscription.email}`
     );
-    console.log('Telegram notification result (newsletter):', telegramResult);
+    console.info('Telegram notification result for newsletter signup', { email: subscription.email, status: telegramResult.ok });
 
     try {
       await sendWelcomeEmail({ to: subscription.email, name: subscription.name });
     } catch (welcomeError) {
-      console.error('Welcome email error:', welcomeError);
+      console.error('Welcome email error for newsletter signup:', welcomeError instanceof Error ? welcomeError.stack ?? welcomeError.message : String(welcomeError));
     }
 
     return NextResponse.json(
@@ -104,8 +104,8 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Newsletter subscription error:', error);
-    return NextResponse.json(
+    console.error('Newsletter subscription error:');
+    console.error(error instanceof Error ? error.stack ?? error.message : String(error));
       { error: 'Erreur lors de l\'abonnement' },
       { status: 500 }
     );
