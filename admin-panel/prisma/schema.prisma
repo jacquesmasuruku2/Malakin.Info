@@ -176,6 +176,8 @@ model ContactMessage {
 model NewsletterSubscription {
   id             String    @id @default(cuid())
   email          String    @unique
+  name           String?
+  interests      Json?
   isActive       Boolean   @default(true)
   subscribedAt   DateTime  @default(now())
   unsubscribedAt DateTime?

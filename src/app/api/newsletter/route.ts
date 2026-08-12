@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendTelegramMessage } from '@/lib/telegram';
+import { sendWelcomeEmail } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {
@@ -35,18 +36,42 @@ export async function POST(request: Request) {
 
     if (existingSubscription) {
       if (existingSubscription.isActive) {
+        const updatedSubscription = await prisma.newsletterSubscription.update({
+          where: { email: email.toLowerCase() },
+          data: {
+            name: typeof name === 'string' && name.trim() ? name.trim() : existingSubscription.name,
+            interests: validatedInterests.length > 0 ? validatedInterests : undefined,
+          },
+        });
+
         return NextResponse.json(
-          { error: 'Cet email est déjà abonné à la newsletter' },
-          { status: 400 }
+          { message: 'Cet email est déjà abonné à la newsletter', subscription: updatedSubscription },
+          { status: 200 }
         );
       } else {
-        // Reactivate if previously unsubscribed
-        await prisma.newsletterSubscription.update({
+        // Reactivate if previously unsubscribed and update optional profile fields
+        const interestsValue = validatedInterests.length > 0
+          ? validatedInterests
+          : undefined;
+
+        const updatedSubscription = await prisma.newsletterSubscription.update({
           where: { email: email.toLowerCase() },
-          data: { isActive: true, subscribedAt: new Date() },
+          data: {
+            isActive: true,
+            subscribedAt: new Date(),
+            name: typeof name === 'string' && name.trim() ? name.trim() : existingSubscription.name,
+            interests: interestsValue,
+          },
         });
+
+        try {
+          await sendWelcomeEmail({ to: updatedSubscription.email, name: updatedSubscription.name });
+        } catch (welcomeError) {
+          console.error('Welcome email error:', welcomeError);
+        }
+
         return NextResponse.json(
-          { message: 'Abonnement réactivé avec succès' },
+          { message: 'Abonnement réactivé avec succès', subscription: updatedSubscription },
           { status: 200 }
         );
       }
@@ -56,6 +81,8 @@ export async function POST(request: Request) {
     const subscription = await prisma.newsletterSubscription.create({
       data: {
         email: email.toLowerCase(),
+        name: typeof name === 'string' && name.trim() ? name.trim() : null,
+        interests: validatedInterests.length > 0 ? validatedInterests : undefined,
         isActive: true,
         subscribedAt: new Date(),
       },
@@ -65,6 +92,12 @@ export async function POST(request: Request) {
       `Nouvel abonnement à la newsletter : ${subscription.email}`
     );
     console.log('Telegram notification result (newsletter):', telegramResult);
+
+    try {
+      await sendWelcomeEmail({ to: subscription.email, name: subscription.name });
+    } catch (welcomeError) {
+      console.error('Welcome email error:', welcomeError);
+    }
 
     return NextResponse.json(
       { message: 'Abonnement réussi', subscription },
