@@ -34,6 +34,27 @@ export default async function ActualitesPage({
     },
   });
 
+  // Fetch live events for this category
+  const actualitesCategory = await prisma.category.findUnique({
+    where: { slug: 'actualites' }
+  });
+
+  const liveEvents = actualitesCategory ? await prisma.liveEvent.findMany({
+    where: {
+      categoryId: actualitesCategory.id,
+      OR: [
+        { status: 'LIVE' },
+        { status: 'SCHEDULED' }
+      ]
+    },
+    orderBy: {
+      startTime: 'desc'
+    },
+    include: {
+      category: true
+    }
+  }) : [];
+
   // Format categories for display
   const categoryList = categories.map((cat) => ({
     name: cat.title,
@@ -67,6 +88,67 @@ export default async function ActualitesPage({
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Live Events Section */}
+        {liveEvents.length > 0 && (
+          <section className="mb-12">
+            <div className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg p-6 mb-6">
+              <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                <span className="w-3 h-3 bg-white rounded-full animate-pulse"></span>
+                Événements en direct
+              </h2>
+              <p className="text-red-100">Suivez nos diffusions en direct</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {liveEvents.map((live) => (
+                <Link
+                  key={live.id}
+                  href={`/${locale}/medias/live/${live.id}`}
+                  className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                >
+                  {live.thumbnail && (
+                    <div className="relative h-48">
+                      <img
+                        src={live.thumbnail}
+                        alt={live.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <span className={`absolute top-4 left-4 px-3 py-1 text-white text-xs font-medium rounded-full ${
+                        live.status === 'LIVE' ? 'bg-red-600 animate-pulse' : 'bg-blue-600'
+                      }`}>
+                        {live.status === 'LIVE' ? 'EN DIRECT' : 'PROGRAMMÉ'}
+                      </span>
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <h3 className="font-heading text-lg font-semibold text-foreground mb-2 line-clamp-2">
+                      {live.title}
+                    </h3>
+                    {live.description && (
+                      <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
+                        {live.description}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>{new Date(live.startTime).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}</span>
+                      {live.viewerCount > 0 && (
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                          {live.viewerCount} spectateurs
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
           <aside className="lg:col-span-1">
