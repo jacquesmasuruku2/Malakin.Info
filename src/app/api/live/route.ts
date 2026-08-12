@@ -44,80 +44,96 @@ export async function GET(request: Request) {
 
     // Get current live event
     if (type === 'current') {
-      const now = new Date();
-      const currentLive = await prisma.liveEvent.findFirst({
-        where: {
-          startTime: { lte: now },
-          OR: [
-            { endTime: null },
-            { endTime: { gte: now } }
-          ]
-        },
+      try {
+        const now = new Date();
+        const currentLive = await prisma.liveEvent.findFirst({
+          where: {
+            startTime: { lte: now },
+            OR: [
+              { endTime: null },
+              { endTime: { gte: now } }
+            ]
+          },
+          orderBy: {
+            startTime: 'desc'
+          },
+        });
+
+        if (currentLive) {
+          // Update status to LIVE if needed
+          const calculatedStatus = calculateStatus(currentLive.startTime, currentLive.endTime);
+          if (calculatedStatus !== currentLive.status) {
+            await prisma.liveEvent.update({
+              where: { id: currentLive.id },
+              data: { status: calculatedStatus }
+            });
+            currentLive.status = calculatedStatus;
+          }
+        }
+
+        return cors(NextResponse.json(currentLive ? serializeLiveEvent(currentLive) : null));
+      } catch (error) {
+        console.error('[live API] Error fetching current live:', error);
+        return cors(NextResponse.json(null));
+      }
+    }
+
+    // Get upcoming events
+    if (type === 'upcoming') {
+      try {
+        const now = new Date();
+        const upcomingEvents = await prisma.liveEvent.findMany({
+          where: {
+            startTime: { gt: now },
+            status: 'SCHEDULED'
+          },
+          orderBy: {
+            startTime: 'asc'
+          },
+          take: 5,
+        });
+
+        return cors(NextResponse.json(upcomingEvents.map(serializeLiveEvent)));
+      } catch (error) {
+        console.error('[live API] Error fetching upcoming events:', error);
+        return cors(NextResponse.json([]));
+      }
+    }
+
+    // Get all events
+    try {
+      const events = await prisma.liveEvent.findMany({
         orderBy: {
           startTime: 'desc'
         },
       });
 
-      if (currentLive) {
-        // Update status to LIVE if needed
-        const calculatedStatus = calculateStatus(currentLive.startTime, currentLive.endTime);
-        if (calculatedStatus !== currentLive.status) {
-          await prisma.liveEvent.update({
-            where: { id: currentLive.id },
-            data: { status: calculatedStatus }
-          });
-          currentLive.status = calculatedStatus;
-        }
-      }
-
-      return cors(NextResponse.json(currentLive ? serializeLiveEvent(currentLive) : null));
-    }
-
-    // Get upcoming events
-    if (type === 'upcoming') {
-      const now = new Date();
-      const upcomingEvents = await prisma.liveEvent.findMany({
-        where: {
-          startTime: { gt: now },
-          status: 'SCHEDULED'
-        },
-        orderBy: {
-          startTime: 'asc'
-        },
-        take: 5,
-      });
-
-      return cors(NextResponse.json(upcomingEvents.map(serializeLiveEvent)));
-    }
-
-    // Get all events
-    const events = await prisma.liveEvent.findMany({
-      orderBy: {
-        startTime: 'desc'
-      },
-    });
-
-    // Update statuses for all events
-    const updatedEvents = await Promise.all(
-      events.map(async (event) => {
+      // Update statuses for all events (non-blocking)
+      const statusUpdates = events.map(async (event) => {
         const calculatedStatus = calculateStatus(event.startTime, event.endTime);
         if (calculatedStatus !== event.status) {
-          return await prisma.liveEvent.update({
-            where: { id: event.id },
-            data: { status: calculatedStatus }
-          });
+          try {
+            await prisma.liveEvent.update({
+              where: { id: event.id },
+              data: { status: calculatedStatus }
+            });
+          } catch (err) {
+            console.error('[live API] Error updating status:', err);
+          }
         }
-        return event;
-      })
-    );
+      });
 
-    return cors(NextResponse.json(updatedEvents.map(serializeLiveEvent)));
+      // Run status updates in background
+      Promise.allSettled(statusUpdates);
+
+      return cors(NextResponse.json(events.map(serializeLiveEvent)));
+    } catch (error) {
+      console.error('[live API] Error fetching all events:', error);
+      return cors(NextResponse.json([]));
+    }
   } catch (error) {
-    console.error('Error fetching live events:', error);
-    return cors(NextResponse.json(
-      { error: 'Failed to fetch live events' },
-      { status: 500 }
-    ));
+    console.error('[live API] Unexpected error:', error);
+    return cors(NextResponse.json([]));
   }
 }
 
