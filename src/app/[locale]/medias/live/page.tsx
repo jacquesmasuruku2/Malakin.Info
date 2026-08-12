@@ -16,12 +16,14 @@ interface LiveEvent {
   endTime: Date | null;
   viewerCount: number;
   isFeatured: boolean;
+  category?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export default function LivePage() {
   const [liveStreams, setLiveStreams] = useState<LiveEvent[]>([]);
+  const [activeCategory, setActiveCategory] = useState<'all' | 'religion' | 'sport' | 'other'>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +44,18 @@ export default function LivePage() {
 
     fetchLiveEvents();
   }, []);
+
+  const filteredLiveStreams = liveStreams.filter((stream) => {
+    if (activeCategory === 'all') return true;
+    const categoryLabel = stream.category?.toLowerCase() || '';
+    if (activeCategory === 'religion') {
+      return categoryLabel.includes('religion') || categoryLabel.includes('religieux');
+    }
+    if (activeCategory === 'sport') {
+      return categoryLabel.includes('sport');
+    }
+    return categoryLabel !== '' && !categoryLabel.includes('sport') && !categoryLabel.includes('religion');
+  });
 
   function formatStatus(status: string): string {
     switch (status) {
@@ -143,8 +157,34 @@ export default function LivePage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-6 flex flex-wrap gap-2">
+          <button
+            onClick={() => setActiveCategory('all')}
+            className={`px-3 py-2 rounded-full text-sm font-medium ${activeCategory === 'all' ? 'bg-primary text-white' : 'bg-muted'}`}
+          >
+            Tous
+          </button>
+          <button
+            onClick={() => setActiveCategory('religion')}
+            className={`px-3 py-2 rounded-full text-sm font-medium ${activeCategory === 'religion' ? 'bg-primary text-white' : 'bg-muted'}`}
+          >
+            Religion
+          </button>
+          <button
+            onClick={() => setActiveCategory('sport')}
+            className={`px-3 py-2 rounded-full text-sm font-medium ${activeCategory === 'sport' ? 'bg-primary text-white' : 'bg-muted'}`}
+          >
+            Sport
+          </button>
+          <button
+            onClick={() => setActiveCategory('other')}
+            className={`px-3 py-2 rounded-full text-sm font-medium ${activeCategory === 'other' ? 'bg-primary text-white' : 'bg-muted'}`}
+          >
+            Autres
+          </button>
+        </div>
         <div className="space-y-4">
-          {liveStreams.map((stream) => (
+          {filteredLiveStreams.map((stream) => (
             <article
               key={stream.id}
               className={`bg-card rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow border-l-4 ${
@@ -164,7 +204,7 @@ export default function LivePage() {
                   </div>
                 )}
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
                     {stream.status === 'LIVE' ? (
                       <span className="px-3 py-1 bg-red-500 text-white text-xs font-medium rounded-full animate-pulse">
                         🔴 {formatStatus(stream.status)}
@@ -174,6 +214,11 @@ export default function LivePage() {
                         {formatStatus(stream.status)}
                       </span>
                     )}
+                    {stream.category ? (
+                      <span className="px-3 py-1 bg-muted text-muted-foreground text-xs font-medium rounded-full">
+                        {stream.category}
+                      </span>
+                    ) : null}
                   </div>
                   <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
                     {stream.title}

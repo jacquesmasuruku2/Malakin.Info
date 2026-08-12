@@ -18,6 +18,11 @@ import {
 } from 'lucide-react';
 import { getApiUrl } from '@/lib/api';
 
+interface Category {
+  id: string;
+  title: string;
+}
+
 interface LiveEvent {
   id: string;
   title: string;
@@ -41,6 +46,7 @@ export default function EditLivePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [categories, setCategories] = useState<Category[]>([]);
   const [live, setLive] = useState<LiveEvent | null>(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -51,12 +57,25 @@ export default function EditLivePage() {
     youtubeUrl: '',
     startTime: '',
     endTime: '',
+    categoryId: '',
     isFeatured: false
   });
 
   useEffect(() => {
+    fetchCategories();
     fetchLive();
   }, [params.id]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories');
+      if (!response.ok) throw new Error('Failed to fetch categories');
+      const data = await response.json();
+      setCategories(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchLive = async () => {
     try {
@@ -73,6 +92,7 @@ export default function EditLivePage() {
         youtubeUrl: data.youtubeUrl || '',
         startTime: new Date(data.startTime).toISOString().slice(0, 16),
         endTime: data.endTime ? new Date(data.endTime).toISOString().slice(0, 16) : '',
+        categoryId: data.categoryId || '',
         isFeatured: data.isFeatured
       });
     } catch (err) {
@@ -102,7 +122,8 @@ export default function EditLivePage() {
         body: JSON.stringify({
           ...formData,
           startTime: new Date(formData.startTime).toISOString(),
-          endTime: formData.endTime ? new Date(formData.endTime).toISOString() : null
+          endTime: formData.endTime ? new Date(formData.endTime).toISOString() : null,
+          categoryId: formData.categoryId || null,
         })
       });
 
@@ -243,6 +264,25 @@ export default function EditLivePage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                     placeholder="Description de la diffusion..."
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Catégorie
+                  </label>
+                  <select
+                    name="categoryId"
+                    value={formData.categoryId}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  >
+                    <option value="">Aucune catégorie</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.title}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>

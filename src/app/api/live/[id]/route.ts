@@ -10,6 +10,14 @@ function cors(response: NextResponse) {
   return response;
 }
 
+function serializeLiveEvent(event: any) {
+  return {
+    ...event,
+    category: event.category?.title ?? null,
+    categoryId: event.categoryId ?? null,
+  };
+}
+
 // Handle OPTIONS request for CORS preflight
 export async function OPTIONS() {
   const response = new NextResponse(null, { status: 200 });
@@ -38,7 +46,10 @@ export async function GET(
   try {
     const { id } = await params;
     const event = await prisma.liveEvent.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        category: true,
+      },
     });
 
     if (!event) {
@@ -53,12 +64,13 @@ export async function GET(
     if (calculatedStatus !== event.status) {
       const updatedEvent = await prisma.liveEvent.update({
         where: { id },
-        data: { status: calculatedStatus }
+        data: { status: calculatedStatus },
+        include: { category: true },
       });
-      return cors(NextResponse.json(updatedEvent));
+      return cors(NextResponse.json(serializeLiveEvent(updatedEvent)));
     }
 
-    return cors(NextResponse.json(event));
+    return cors(NextResponse.json(serializeLiveEvent(event)));
   } catch (error) {
     console.error('Error fetching live event:', error);
     return cors(NextResponse.json(
@@ -99,10 +111,23 @@ export async function PUT(
 
     const event = await prisma.liveEvent.update({
       where: { id },
-      data
+      data: {
+        title: data.title,
+        slug: data.slug,
+        description: data.description || null,
+        thumbnail: data.thumbnail || null,
+        streamUrl: data.streamUrl || null,
+        youtubeUrl: data.youtubeUrl || null,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        isFeatured: data.isFeatured,
+        categoryId: body.categoryId || null,
+        status: data.status,
+      },
+      include: { category: true },
     });
 
-    return cors(NextResponse.json(event));
+    return cors(NextResponse.json(serializeLiveEvent(event)));
   } catch (error) {
     console.error('Error updating live event:', error);
     return cors(NextResponse.json(

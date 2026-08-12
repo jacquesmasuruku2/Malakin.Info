@@ -16,6 +16,14 @@ export async function OPTIONS() {
   return cors(response);
 }
 
+function serializeLiveEvent(event: any) {
+  return {
+    ...event,
+    category: event.category?.title ?? null,
+    categoryId: event.categoryId ?? null,
+  };
+}
+
 // Helper function to calculate status based on time
 function calculateStatus(startTime: Date, endTime: Date | null): 'SCHEDULED' | 'LIVE' | 'ENDED' {
   const now = new Date();
@@ -49,7 +57,10 @@ export async function GET(request: Request) {
         },
         orderBy: {
           startTime: 'desc'
-        }
+        },
+        include: {
+          category: true,
+        },
       });
 
       if (currentLive) {
@@ -64,7 +75,7 @@ export async function GET(request: Request) {
         }
       }
 
-      return cors(NextResponse.json(currentLive));
+      return cors(NextResponse.json(currentLive ? serializeLiveEvent(currentLive) : null));
     }
 
     // Get upcoming events
@@ -78,17 +89,23 @@ export async function GET(request: Request) {
         orderBy: {
           startTime: 'asc'
         },
-        take: 5
+        take: 5,
+        include: {
+          category: true,
+        },
       });
 
-      return cors(NextResponse.json(upcomingEvents));
+      return cors(NextResponse.json(upcomingEvents.map(serializeLiveEvent)));
     }
 
     // Get all events
     const events = await prisma.liveEvent.findMany({
       orderBy: {
         startTime: 'desc'
-      }
+      },
+      include: {
+        category: true,
+      },
     });
 
     // Update statuses for all events
@@ -105,7 +122,7 @@ export async function GET(request: Request) {
       })
     );
 
-    return cors(NextResponse.json(updatedEvents));
+    return cors(NextResponse.json(updatedEvents.map(serializeLiveEvent)));
   } catch (error) {
     console.error('Error fetching live events:', error);
     return cors(NextResponse.json(
@@ -134,14 +151,21 @@ export async function POST(request: Request) {
 
     const event = await prisma.liveEvent.create({
       data: {
-        ...body,
+        title: body.title,
+        slug: body.slug,
+        description: body.description || null,
+        thumbnail: body.thumbnail || null,
+        streamUrl: body.streamUrl || null,
+        youtubeUrl: body.youtubeUrl || null,
         status,
         startTime,
-        endTime
+        endTime,
+        isFeatured: body.isFeatured || false,
+        categoryId: body.categoryId || undefined,
       }
     });
 
-    return cors(NextResponse.json(event, { status: 201 }));
+    return cors(NextResponse.json(serializeLiveEvent(event), { status: 201 }));
   } catch (error) {
     console.error('Error creating live event:', error);
     return cors(NextResponse.json(

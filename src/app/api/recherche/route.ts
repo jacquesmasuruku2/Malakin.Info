@@ -11,10 +11,10 @@ function buildTerms(query: string) {
 function buildArticleFilters(term: string) {
   return {
     OR: [
-      { title: { contains: term, mode: 'insensitive' } },
-      { excerpt: { contains: term, mode: 'insensitive' } },
-      { category: { title: { contains: term, mode: 'insensitive' } } },
-      { author: { name: { contains: term, mode: 'insensitive' } } },
+      { title: { contains: term, mode: 'insensitive' as const } },
+      { excerpt: { contains: term, mode: 'insensitive' as const } },
+      { category: { title: { contains: term, mode: 'insensitive' as const } } },
+      { author: { name: { contains: term, mode: 'insensitive' as const } } },
     ],
   };
 }
@@ -22,8 +22,8 @@ function buildArticleFilters(term: string) {
 function buildAuthorFilters(term: string) {
   return {
     OR: [
-      { name: { contains: term, mode: 'insensitive' } },
-      { bio: { contains: term, mode: 'insensitive' } },
+      { name: { contains: term, mode: 'insensitive' as const } },
+      { bio: { contains: term, mode: 'insensitive' as const } },
     ],
   };
 }
@@ -31,15 +31,25 @@ function buildAuthorFilters(term: string) {
 function buildMediaFilters(term: string) {
   return {
     OR: [
-      { title: { contains: term, mode: 'insensitive' } },
-      { description: { contains: term, mode: 'insensitive' } },
+      { title: { contains: term, mode: 'insensitive' as const } },
+      { description: { contains: term, mode: 'insensitive' as const } },
+    ],
+  };
+}
+
+function buildLiveFilters(term: string) {
+  return {
+    OR: [
+      { title: { contains: term, mode: 'insensitive' as const } },
+      { description: { contains: term, mode: 'insensitive' as const } },
+      { category: { title: { contains: term, mode: 'insensitive' as const } } },
     ],
   };
 }
 
 function buildCategoryFilters(term: string) {
   return {
-    title: { contains: term, mode: 'insensitive' },
+    title: { contains: term, mode: 'insensitive' as const },
   };
 }
 
@@ -54,7 +64,7 @@ export async function GET(request: Request) {
 
     const terms = buildTerms(query);
 
-    const [articles, authors, medias, categories] = await Promise.all([
+    const [articles, authors, medias, lives, categories] = await Promise.all([
       prisma.article.findMany({
         where: {
           AND: terms.map(buildArticleFilters),
@@ -82,6 +92,18 @@ export async function GET(request: Request) {
         },
         orderBy: {
           publishedAt: 'desc',
+        },
+        take: 50,
+      }),
+      prisma.liveEvent.findMany({
+        where: {
+          AND: terms.map(buildLiveFilters),
+        },
+        include: {
+          category: true,
+        },
+        orderBy: {
+          startTime: 'desc',
         },
         take: 50,
       }),
@@ -123,6 +145,15 @@ export async function GET(request: Request) {
         title: media.title,
         excerpt: media.description || '',
         path: `/medias/${media.id}`,
+      })),
+      ...lives.map((live) => ({
+        id: live.id,
+        type: 'live' as const,
+        title: live.title,
+        excerpt: live.description || '',
+        category: live.category?.title || '',
+        date: live.startTime.toISOString(),
+        path: `/medias/live/${live.id}`,
       })),
       ...categories.map((category) => ({
         id: category.id,

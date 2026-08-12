@@ -2,7 +2,7 @@
 
 import AdminLayout from '@/components/AdminLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -18,10 +18,16 @@ import {
 } from 'lucide-react';
 import { getApiUrl } from '@/lib/api';
 
+interface Category {
+  id: string;
+  title: string;
+}
+
 export default function NewLivePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [categories, setCategories] = useState<Category[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -31,6 +37,7 @@ export default function NewLivePage() {
     youtubeUrl: '',
     startTime: '',
     endTime: '',
+    categoryId: '',
     isFeatured: false
   });
 
@@ -53,6 +60,21 @@ export default function NewLivePage() {
     }
   };
 
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const response = await fetch('/api/categories');
+        if (!response.ok) throw new Error('Failed to fetch categories');
+        const data = await response.json();
+        setCategories(data);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    fetchCategories();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -65,7 +87,8 @@ export default function NewLivePage() {
         body: JSON.stringify({
           ...formData,
           startTime: new Date(formData.startTime).toISOString(),
-          endTime: formData.endTime ? new Date(formData.endTime).toISOString() : null
+          endTime: formData.endTime ? new Date(formData.endTime).toISOString() : null,
+          categoryId: formData.categoryId || null,
         })
       });
 
@@ -171,6 +194,25 @@ export default function NewLivePage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                     placeholder="Description de la diffusion..."
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Catégorie
+                  </label>
+                  <select
+                    name="categoryId"
+                    value={formData.categoryId}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  >
+                    <option value="">Aucune catégorie</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.title}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>

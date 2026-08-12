@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-import { Search, Calendar, Clock, ArrowRight, User, Film, Folder } from 'lucide-react';
+import { Search, Calendar, Clock, ArrowRight, User, Film, Folder, Play } from 'lucide-react';
 
-type SearchResultType = 'article' | 'author' | 'media' | 'category';
+type SearchResultType = 'article' | 'author' | 'media' | 'live' | 'category';
 
 interface SearchResult {
   id: string;
@@ -84,7 +84,7 @@ export default function SearchContent() {
   }, [query, locale]);
 
   const counts = useMemo(() => {
-    const c = { all: results.length, article: 0, author: 0, media: 0, category: 0 } as Record<string, number>;
+    const c = { all: results.length, article: 0, author: 0, media: 0, live: 0, category: 0 } as Record<string, number>;
     for (const r of results) {
       c[r.type] = (c[r.type] || 0) + 1;
     }
@@ -110,6 +110,8 @@ export default function SearchContent() {
         return <User className="w-4 h-4" />;
       case 'media':
         return <Film className="w-4 h-4" />;
+      case 'live':
+        return <Play className="w-4 h-4" />;
       case 'category':
         return <Folder className="w-4 h-4" />;
       default:
@@ -123,6 +125,8 @@ export default function SearchContent() {
         return 'Auteur';
       case 'media':
         return 'Média';
+      case 'live':
+        return 'Direct';
       case 'category':
         return 'Catégorie';
       default:
@@ -212,6 +216,12 @@ export default function SearchContent() {
                 className={`px-3 py-1 rounded-lg text-sm font-medium ${activeType === 'media' ? 'bg-primary text-white' : 'bg-muted'}`}
               >
                 Médias ({counts.media})
+              </button>
+              <button
+                onClick={() => setActiveType('live')}
+                className={`px-3 py-1 rounded-lg text-sm font-medium ${activeType === 'live' ? 'bg-primary text-white' : 'bg-muted'}`}
+              >
+                Directs ({counts.live})
               </button>
               <button
                 onClick={() => setActiveType('category')}

@@ -8,18 +8,19 @@ datasource db {
 }
 
 model Category {
-  id           String               @id @default(cuid())
-  title        String
-  slug         String               @unique
-  description  String?
-  color        String?
-  icon         String?
-  defaultLocale String              @default("fr")
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
-  articles     Article[]
-  media        Media[]
-  translations CategoryTranslation[]
+  id            String                @id @default(cuid())
+  title         String
+  slug          String                @unique
+  description   String?
+  color         String?
+  icon          String?
+  defaultLocale String                @default("fr")
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  articles      Article[]
+  media         Media[]
+  liveEvents    LiveEvent[]
+  translations  CategoryTranslation[]
 }
 
 model CategoryTranslation {
@@ -338,6 +339,8 @@ model LiveEvent {
   endTime      DateTime?
   viewerCount  Int                 @default(0)
   isFeatured   Boolean            @default(false)
+  categoryId   String?
+  category     Category?           @relation(fields: [categoryId], references: [id])
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
   viewerSessions LiveViewerSession[]
@@ -345,6 +348,7 @@ model LiveEvent {
   @@index([status])
   @@index([startTime])
   @@index([isFeatured])
+  @@index([categoryId])
 }
 
 model LiveViewerSession {
