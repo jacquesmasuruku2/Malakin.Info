@@ -172,10 +172,13 @@ export async function POST(request: Request) {
       ));
     }
   } catch (error) {
-    console.error('Newsletter subscription error:');
-    console.error(error instanceof Error ? error.stack ?? error.message : String(error));
+    console.error('[newsletter signup] Unexpected request error:', {
+      code: error instanceof Prisma.PrismaClientKnownRequestError ? error.code : 'UNKNOWN',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return cors(NextResponse.json(
-      { error: 'Erreur lors de l\'abonnement' },
+      { error: "Erreur lors de l'abonnement" },
       { status: 500 }
     ));
   }
