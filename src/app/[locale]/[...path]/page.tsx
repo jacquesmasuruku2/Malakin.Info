@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         category: true,
         author: true,
       },
-    });
+    } as any);
 
     if (!article) {
       return {
@@ -114,7 +114,7 @@ export default async function CatchAllArticlePage({
         category: true,
         author: true,
       },
-    });
+    } as any);
 
     if (!article) {
       notFound();
@@ -174,7 +174,7 @@ export default async function CatchAllArticlePage({
       orderBy: {
         publishedAt: 'desc',
       },
-    });
+    } as any);
 
     const formattedDate = article.publishedAt 
       ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
