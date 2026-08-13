@@ -35,13 +35,13 @@ export default async function CultureCatchAllPage({
         category: true,
         author: true,
       },
-    });
+    } as any) as any;
 
     if (!article) {
       notFound();
     }
 
-    const relatedArticles = await prisma.article.findMany({
+    const relatedArticles: any[] = await prisma.article.findMany({
       where: {
         categoryId: article.categoryId,
         id: { not: article.id },
@@ -54,7 +54,7 @@ export default async function CultureCatchAllPage({
       orderBy: {
         publishedAt: 'desc',
       },
-    });
+    } as any);
 
     const formattedDate = article.publishedAt 
       ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
@@ -196,7 +196,7 @@ export default async function CultureCatchAllPage({
               {t.relatedArticles}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {relatedArticles.map((related) => (
+              {relatedArticles.map((related: any) => (
                 <Link
                   key={related.id}
                   href={`/${locale}/${related.category?.slug || 'actualites'}/${related.slug}`}

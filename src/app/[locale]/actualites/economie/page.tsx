@@ -26,7 +26,7 @@ export default async function EconomiePage({ params }: { params: Promise<{ local
         orderBy: {
           publishedAt: 'desc',
         },
-      });
+      } as any);
     }
   } catch (error) {
     console.error('Database connection error:', error);

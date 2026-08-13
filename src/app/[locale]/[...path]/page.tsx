@@ -161,7 +161,7 @@ export default async function CatchAllArticlePage({
       },
     };
 
-    const relatedArticles = await prisma.article.findMany({
+    const relatedArticles: any[] = await prisma.article.findMany({
       where: {
         categoryId: article.categoryId,
         id: { not: article.id },

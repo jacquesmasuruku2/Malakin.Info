@@ -26,17 +26,17 @@ export default async function CulturePage({
       publishedAt: 'desc',
     },
     take: 12,
-  });
+  } as any);
 
   // Subcategories with their counts (based on article titles)
   const categories = [
-    { name: 'Musique', href: `/${locale}/culture/musique`, icon: Music, count: articles.filter(a => a.title.toLowerCase().includes('musique') || a.title.toLowerCase().includes('musique')).length },
-    { name: 'Cinéma', href: `/${locale}/culture/cinema`, icon: Film, count: articles.filter(a => a.title.toLowerCase().includes('cinéma') || a.title.toLowerCase().includes('film')).length },
-    { name: 'Arts', href: `/${locale}/culture/arts`, icon: Palette, count: articles.filter(a => a.title.toLowerCase().includes('art') || a.title.toLowerCase().includes('exposition')).length },
-    { name: 'Tendances', href: `/${locale}/culture/tendances`, icon: TrendingUp, count: articles.filter(a => a.title.toLowerCase().includes('tendance') || a.title.toLowerCase().includes('mode')).length },
+    { name: 'Musique', href: `/${locale}/culture/musique`, icon: Music, count: articles.filter((a: any) => a.title.toLowerCase().includes('musique') || a.title.toLowerCase().includes('musique')).length },
+    { name: 'Cinéma', href: `/${locale}/culture/cinema`, icon: Film, count: articles.filter((a: any) => a.title.toLowerCase().includes('cinéma') || a.title.toLowerCase().includes('film')).length },
+    { name: 'Arts', href: `/${locale}/culture/arts`, icon: Palette, count: articles.filter((a: any) => a.title.toLowerCase().includes('art') || a.title.toLowerCase().includes('exposition')).length },
+    { name: 'Tendances', href: `/${locale}/culture/tendances`, icon: TrendingUp, count: articles.filter((a: any) => a.title.toLowerCase().includes('tendance') || a.title.toLowerCase().includes('mode')).length },
   ];
 
-  const featuredCulture = articles.slice(0, 3).map((article) => ({
+  const featuredCulture = articles.slice(0, 3).map((article: any) => ({
     id: article.id,
     category: article.category?.title || 'Culture',
     categorySlug: article.category?.slug || 'culture',
@@ -48,7 +48,7 @@ export default async function CulturePage({
     slug: article.slug,
   }));
 
-  const latestCulture = articles.slice(3, 7).map((article) => ({
+  const latestCulture = articles.slice(3, 7).map((article: any) => ({
     id: article.id,
     category: article.category?.title || 'Culture',
     title: article.title,
@@ -107,7 +107,7 @@ export default async function CulturePage({
                 <div>
                   <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {featuredCulture.map((item) => (
+                    {featuredCulture.map((item: any) => (
                       <article
                         key={item.id}
                         className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
@@ -154,7 +154,7 @@ export default async function CulturePage({
                 <div>
                   <h2 className="font-heading text-2xl font-bold mb-6">Dernières actualités</h2>
                   <div className="space-y-4">
-                    {latestCulture.map((item) => (
+                    {latestCulture.map((item: any) => (
                       <article
                         key={item.id}
                         className="flex gap-4 p-4 bg-card rounded-lg hover:bg-muted/50 transition-colors"

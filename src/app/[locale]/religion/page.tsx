@@ -23,7 +23,7 @@ async function getReligionArticles() {
         publishedAt: 'desc',
       },
       take: 20,
-    });
+    } as any);
 
     return religionArticles;
   } catch (error) {
@@ -36,9 +36,9 @@ export default async function ReligionPage() {
   const articles = await getReligionArticles();
 
   const categories = [
-    { name: 'Méditations', href: '/religion/meditations', icon: BookOpen, count: articles.filter(a => a.category.slug === 'meditations').length || 56 },
-    { name: 'Homélies', href: '/religion/homelies', icon: Heart, count: articles.filter(a => a.category.slug === 'homelies').length || 89 },
-    { name: 'Musiques Sacrées', href: '/religion/musiques-sacrees', icon: Music, count: articles.filter(a => a.category.slug === 'musiques-sacrees').length || 34 },
+    { name: 'Méditations', href: '/religion/meditations', icon: BookOpen, count: articles.filter((a: any) => a.category.slug === 'meditations').length || 56 },
+    { name: 'Homélies', href: '/religion/homelies', icon: Heart, count: articles.filter((a: any) => a.category.slug === 'homelies').length || 89 },
+    { name: 'Musiques Sacrées', href: '/religion/musiques-sacrees', icon: Music, count: articles.filter((a: any) => a.category.slug === 'musiques-sacrees').length || 34 },
     { name: 'Agenda Religieux', href: '/religion/agenda-religieux', icon: CalendarIcon, count: 23 },
   ];
 
@@ -48,7 +48,7 @@ export default async function ReligionPage() {
     { name: 'Autres Messages', href: '/religion/message-du-temps/autres-messages', count: 67 },
   ];
 
-  const featuredContent = articles.slice(0, 6).map(article => ({
+  const featuredContent = articles.slice(0, 6).map((article: any) => ({
     id: article.id,
     category: article.category.title,
     title: article.title,
@@ -146,7 +146,7 @@ export default async function ReligionPage() {
             <div>
               <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {featuredContent.map((content) => (
+                {featuredContent.map((content: any) => (
                   <article
                     key={content.id}
                     className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"

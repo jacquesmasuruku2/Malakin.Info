@@ -26,17 +26,17 @@ export default async function SportPage({
       publishedAt: 'desc',
     },
     take: 12,
-  });
+  } as any);
 
   // Subcategories with their counts (based on article titles)
   const categories = [
-    { name: 'Football', href: `/${locale}/sport/football`, icon: Trophy, count: articles.filter(a => a.title.toLowerCase().includes('football') || a.title.toLowerCase().includes('can')).length },
-    { name: 'Basketball', href: `/${locale}/sport/basket`, icon: Circle, count: articles.filter(a => a.title.toLowerCase().includes('basket') || a.title.toLowerCase().includes('nba')).length },
-    { name: 'Athlétisme', href: `/${locale}/sport/athletisme`, icon: Activity, count: articles.filter(a => a.title.toLowerCase().includes('athlétisme') || a.title.toLowerCase().includes('athlète')).length },
-    { name: 'Événements', href: `/${locale}/sport/evenements`, icon: Flag, count: articles.filter(a => a.title.toLowerCase().includes('championnat') || a.title.toLowerCase().includes('compétition')).length },
+    { name: 'Football', href: `/${locale}/sport/football`, icon: Trophy, count: articles.filter((a: any) => a.title.toLowerCase().includes('football') || a.title.toLowerCase().includes('can')).length },
+    { name: 'Basketball', href: `/${locale}/sport/basket`, icon: Circle, count: articles.filter((a: any) => a.title.toLowerCase().includes('basket') || a.title.toLowerCase().includes('nba')).length },
+    { name: 'Athlétisme', href: `/${locale}/sport/athletisme`, icon: Activity, count: articles.filter((a: any) => a.title.toLowerCase().includes('athlétisme') || a.title.toLowerCase().includes('athlète')).length },
+    { name: 'Événements', href: `/${locale}/sport/evenements`, icon: Flag, count: articles.filter((a: any) => a.title.toLowerCase().includes('championnat') || a.title.toLowerCase().includes('compétition')).length },
   ];
 
-  const featuredSport = articles.slice(0, 3).map((article) => ({
+  const featuredSport = articles.slice(0, 3).map((article: any) => ({
     id: article.id,
     category: article.category?.title || 'Sport',
     categorySlug: article.category?.slug || 'sport',
@@ -48,7 +48,7 @@ export default async function SportPage({
     slug: article.slug,
   }));
 
-  const latestSport = articles.slice(3, 7).map((article) => ({
+  const latestSport = articles.slice(3, 7).map((article: any) => ({
     id: article.id,
     category: article.category?.title || 'Sport',
     title: article.title,
@@ -107,7 +107,7 @@ export default async function SportPage({
                 <div>
                   <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {featuredSport.map((item) => (
+                    {featuredSport.map((item: any) => (
                       <article
                         key={item.id}
                         className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
@@ -154,7 +154,7 @@ export default async function SportPage({
                 <div>
                   <h2 className="font-heading text-2xl font-bold mb-6">Dernières actualités</h2>
                   <div className="space-y-4">
-                    {latestSport.map((item) => (
+                    {latestSport.map((item: any) => (
                       <article
                         key={item.id}
                         className="flex gap-4 p-4 bg-card rounded-lg hover:bg-muted/50 transition-colors"

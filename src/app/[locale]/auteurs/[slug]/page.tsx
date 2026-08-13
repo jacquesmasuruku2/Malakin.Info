@@ -86,7 +86,7 @@ export default async function AuthorPage({ params }: { params: { slug: string } 
           </div>
         ) : (
           <div className="space-y-6">
-            {author.articles.map((article) => (
+            {author.articles.map((article: any) => (
               <article
                 key={article.id}
                 className="bg-card rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow border-l-4 border-primary"

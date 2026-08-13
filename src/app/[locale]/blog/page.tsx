@@ -28,7 +28,7 @@ export default async function BlogPage() {
       orderBy: {
         publishedAt: 'desc',
       },
-    });
+    } as any);
   } catch (error) {
     console.error('Database connection error:', error);
   }

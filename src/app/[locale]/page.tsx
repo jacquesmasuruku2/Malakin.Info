@@ -30,7 +30,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       orderBy: {
         publishedAt: 'desc',
       },
-    });
+    } as any);
 
     latestArticles = await prisma.article.findMany({
       include: {
@@ -41,7 +41,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       orderBy: {
         publishedAt: 'desc',
       },
-    });
+    } as any);
 
     const now = new Date();
     currentLive = await prisma.liveEvent.findFirst({

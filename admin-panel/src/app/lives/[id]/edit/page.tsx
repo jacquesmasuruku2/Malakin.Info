@@ -31,6 +31,7 @@ interface LiveEvent {
   thumbnail: string | null;
   streamUrl: string | null;
   youtubeUrl: string | null;
+  streamType: 'VIDEO' | 'AUDIO';
   status: 'SCHEDULED' | 'LIVE' | 'ENDED';
   startTime: string;
   endTime: string | null;
@@ -55,6 +56,7 @@ export default function EditLivePage() {
     thumbnail: '',
     streamUrl: '',
     youtubeUrl: '',
+    streamType: 'VIDEO' as 'VIDEO' | 'AUDIO',
     startTime: '',
     endTime: '',
     categoryId: '',
@@ -93,6 +95,7 @@ export default function EditLivePage() {
         thumbnail: data.thumbnail || '',
         streamUrl: data.streamUrl || '',
         youtubeUrl: data.youtubeUrl || '',
+        streamType: data.streamType || 'VIDEO',
         startTime: new Date(data.startTime).toISOString().slice(0, 16),
         endTime: data.endTime ? new Date(data.endTime).toISOString().slice(0, 16) : '',
         categoryId: data.categoryId || '',
@@ -295,6 +298,21 @@ export default function EditLivePage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Planning</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Type de direct
+                  </label>
+                  <select
+                    name="streamType"
+                    value={formData.streamType}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  >
+                    <option value="VIDEO">Vidéo</option>
+                    <option value="AUDIO">Audio</option>
+                  </select>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Date et heure de début *

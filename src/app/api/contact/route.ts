@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { sendTelegramMessage } from '@/lib/telegram';
-
-const prisma = new PrismaClient();
 
 // Helper function to add CORS headers
 function cors(response: NextResponse) {

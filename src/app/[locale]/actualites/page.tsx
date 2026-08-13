@@ -21,7 +21,7 @@ export default async function ActualitesPage({
       publishedAt: 'desc',
     },
     take: 12,
-  });
+  } as any);
 
   // Fetch all categories with article counts
   const categories = await prisma.category.findMany({
@@ -56,14 +56,14 @@ export default async function ActualitesPage({
   }) : [];
 
   // Format categories for display
-  const categoryList = categories.map((cat) => ({
+  const categoryList: { name: string; href: string; count: number }[] = categories.map((cat: any) => ({
     name: cat.title,
     href: `/${locale}/${cat.slug}`,
     count: cat._count.articles,
   }));
 
   // Format articles for display
-  const news = articles.map((article) => ({
+  const news: { id: string; category: string; categorySlug: string; title: string; excerpt: string; image: string | null; date: string; readTime: string; slug: string }[] = articles.map((article: any) => ({
     id: article.id,
     category: article.category?.title || 'Actualités',
     categorySlug: article.category?.slug || 'actualites',
@@ -99,7 +99,7 @@ export default async function ActualitesPage({
               <p className="text-red-100">Suivez nos diffusions en direct</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {liveEvents.map((live) => (
+              {liveEvents.map((live: any) => (
                 <Link
                   key={live.id}
                   href={`/${locale}/medias/live/${live.id}`}

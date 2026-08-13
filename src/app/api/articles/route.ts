@@ -27,7 +27,7 @@ export async function GET() {
     });
 
     // Convert BigInt to number for JSON serialization
-    const serializedArticles = articles.map(article => ({
+    const serializedArticles = articles.map((article: any) => ({
       ...article,
       views: Number(article.views),
     }));

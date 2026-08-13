@@ -26,16 +26,16 @@ export default async function ScienceTechPage({
       publishedAt: 'desc',
     },
     take: 12,
-  });
+  } as any);
 
   // Subcategories with their counts (these would be subcategories or tags in a real implementation)
   const categories = [
-    { name: 'Base de Données', href: `/${locale}/science-tech/base-de-donnees`, icon: Database, count: articles.filter(a => a.title.toLowerCase().includes('base') || a.title.toLowerCase().includes('donnée')).length },
-    { name: 'Analyse de Données', href: `/${locale}/science-tech/analyse-de-donnees`, icon: BarChart3, count: articles.filter(a => a.title.toLowerCase().includes('analyse') || a.title.toLowerCase().includes('data')).length },
-    { name: 'Nature & Environnement', href: `/${locale}/science-tech/nature-environnement`, icon: Globe, count: articles.filter(a => a.title.toLowerCase().includes('nature') || a.title.toLowerCase().includes('environnement')).length },
+    { name: 'Base de Données', href: `/${locale}/science-tech/base-de-donnees`, icon: Database, count: articles.filter((a: any) => a.title.toLowerCase().includes('base') || a.title.toLowerCase().includes('donnée')).length },
+    { name: 'Analyse de Données', href: `/${locale}/science-tech/analyse-de-donnees`, icon: BarChart3, count: articles.filter((a: any) => a.title.toLowerCase().includes('analyse') || a.title.toLowerCase().includes('data')).length },
+    { name: 'Nature & Environnement', href: `/${locale}/science-tech/nature-environnement`, icon: Globe, count: articles.filter((a: any) => a.title.toLowerCase().includes('nature') || a.title.toLowerCase().includes('environnement')).length },
   ];
 
-  const featured = articles.slice(0, 3).map((article) => ({
+  const featured = articles.slice(0, 3).map((article: any) => ({
     id: article.id,
     category: article.category?.title || 'Science & Tech',
     categorySlug: article.category?.slug || 'science-tech',
@@ -47,7 +47,7 @@ export default async function ScienceTechPage({
     slug: article.slug,
   }));
 
-  const latest = articles.slice(3, 6).map((article) => ({
+  const latest = articles.slice(3, 6).map((article: any) => ({
     id: article.id,
     category: article.category?.title || 'Science & Tech',
     title: article.title,
@@ -107,7 +107,7 @@ export default async function ScienceTechPage({
                 <div>
                   <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {featured.map((item) => (
+                    {featured.map((item: any) => (
                       <article
                         key={item.id}
                         className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
@@ -157,7 +157,7 @@ export default async function ScienceTechPage({
                 <div>
                   <h2 className="font-heading text-2xl font-bold mb-6">Derniers articles</h2>
                   <div className="space-y-4">
-                    {latest.map((item) => (
+                    {latest.map((item: any) => (
                       <article
                         key={item.id}
                         className="bg-card rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow border-l-4 border-primary"

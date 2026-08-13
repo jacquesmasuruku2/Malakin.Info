@@ -124,6 +124,7 @@ export async function PUT(
         thumbnail: data.thumbnail || null,
         streamUrl: data.streamUrl || null,
         youtubeUrl: data.youtubeUrl || null,
+        streamType: data.streamType === 'AUDIO' ? 'AUDIO' : 'VIDEO',
         startTime: data.startTime,
         endTime: data.endTime,
         isFeatured: data.isFeatured,
