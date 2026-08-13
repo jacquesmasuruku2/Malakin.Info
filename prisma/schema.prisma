@@ -68,9 +68,10 @@ model Article {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   defaultLocale String   @default("fr")
-  category      Category @relation(fields: [categoryId], references: [id])
-  author        Author?  @relation(fields: [authorId], references: [id])
+  category      Category      @relation(fields: [categoryId], references: [id])
+  author        Author?       @relation(fields: [authorId], references: [id])
   likes         Like[]
+  favorites     UserFavorite[]
 
   @@index([categoryId])
   @@index([authorId])
@@ -95,21 +96,24 @@ model ArticleTranslation {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String            @id @default(cuid())
+  email         String            @unique
   name          String
   passwordHash  String
-  role          String    @default("reader")
+  role          String            @default("reader")
   avatarUrl     String?
   bio           String?
-  isActive      Boolean   @default(true)
-  emailVerified Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  isActive      Boolean           @default(true)
+  emailVerified Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
   lastLoginAt   DateTime?
   comments      Comment[]
   likes         Like[]
   sessions      Session[]
+  favorites     UserFavorite[]
+  preferences   UserPreference?
+  donations     Donation[]
 
   @@index([email])
   @@index([role])
@@ -122,6 +126,31 @@ model Session {
   expiresAt DateTime
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  articleId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@index([userId])
+  @@index([articleId])
+}
+
+model UserPreference {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  locale          String   @default("fr")
+  theme           String   @default("light")
+  emailNewsletter Boolean  @default(false)
+  emailDigest     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Comment {
@@ -206,6 +235,7 @@ model Media {
 
 model Donation {
   id            String   @id @default(cuid())
+  userId        String?
   donorName     String?
   donorEmail    String?
   amount        Decimal  @db.Decimal(10, 2)
@@ -218,9 +248,11 @@ model Donation {
   transactionId String?  @unique
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  user          User?    @relation(fields: [userId], references: [id])
 
   @@index([status])
   @@index([createdAt(sort: Desc)])
+  @@index([userId])
 }
 
 model Partnership {

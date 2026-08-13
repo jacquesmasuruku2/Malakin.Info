@@ -1,40 +1,72 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import { Settings, Bell, Shield, Globe, Save, LogOut } from 'lucide-react';
 
 export default function SettingsPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const { data: session, status } = useSession();
   const [formData, setFormData] = useState({
-    emailNotifications: true,
-    pushNotifications: false,
-    language: 'fr',
+    emailNewsletter: false,
+    emailDigest: false,
+    locale: 'fr',
     theme: 'light',
   });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (!userData) {
-      router.push('/fr/compte/connexion');
-      return;
+    if (session?.user) {
+      fetchPreferences();
     }
-    setUser(JSON.parse(userData));
-  }, [router]);
+  }, [session]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    router.push('/');
+  const fetchPreferences = async () => {
+    try {
+      const response = await fetch('/api/user/preferences');
+      if (response.ok) {
+        const data = await response.json();
+        setFormData({
+          emailNewsletter: data.emailNewsletter || false,
+          emailDigest: data.emailDigest || false,
+          locale: data.locale || 'fr',
+          theme: data.theme || 'light',
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching preferences:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSave = () => {
-    // Save settings logic here
-    console.log('Settings saved:', formData);
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/' });
   };
 
-  if (!user) {
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const response = await fetch('/api/user/preferences', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        alert('Préférences enregistrées avec succès');
+      }
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      alert('Erreur lors de l\'enregistrement');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (status === 'loading' || loading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
   }
 
@@ -56,25 +88,25 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <label className="flex items-center justify-between cursor-pointer">
                 <div>
-                  <p className="font-medium text-foreground">Notifications par email</p>
+                  <p className="font-medium text-foreground">Newsletter par email</p>
                   <p className="text-sm text-muted-foreground">Recevoir les actualités par email</p>
                 </div>
                 <input
                   type="checkbox"
-                  checked={formData.emailNotifications}
-                  onChange={(e) => setFormData({ ...formData, emailNotifications: e.target.checked })}
+                  checked={formData.emailNewsletter}
+                  onChange={(e) => setFormData({ ...formData, emailNewsletter: e.target.checked })}
                   className="w-5 h-5 text-primary border-border rounded focus:ring-primary"
                 />
               </label>
               <label className="flex items-center justify-between cursor-pointer">
                 <div>
-                  <p className="font-medium text-foreground">Notifications push</p>
-                  <p className="text-sm text-muted-foreground">Recevoir les notifications sur votre appareil</p>
+                  <p className="font-medium text-foreground">Digest quotidien</p>
+                  <p className="text-sm text-muted-foreground">Résumé quotidien des articles</p>
                 </div>
                 <input
                   type="checkbox"
-                  checked={formData.pushNotifications}
-                  onChange={(e) => setFormData({ ...formData, pushNotifications: e.target.checked })}
+                  checked={formData.emailDigest}
+                  onChange={(e) => setFormData({ ...formData, emailDigest: e.target.checked })}
                   className="w-5 h-5 text-primary border-border rounded focus:ring-primary"
                 />
               </label>
@@ -93,8 +125,8 @@ export default function SettingsPage() {
                   type="radio"
                   name="language"
                   value="fr"
-                  checked={formData.language === 'fr'}
-                  onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                  checked={formData.locale === 'fr'}
+                  onChange={(e) => setFormData({ ...formData, locale: e.target.value })}
                   className="w-4 h-4 text-primary border-border focus:ring-primary"
                 />
                 <span className="text-foreground">Français</span>
@@ -104,11 +136,43 @@ export default function SettingsPage() {
                   type="radio"
                   name="language"
                   value="en"
-                  checked={formData.language === 'en'}
-                  onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                  checked={formData.locale === 'en'}
+                  onChange={(e) => setFormData({ ...formData, locale: e.target.value })}
                   className="w-4 h-4 text-primary border-border focus:ring-primary"
                 />
                 <span className="text-foreground">English</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Theme */}
+          <div className="bg-card rounded-lg p-6 shadow-sm">
+            <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Settings className="w-5 h-5" />
+              Thème
+            </h2>
+            <div className="space-y-2">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="theme"
+                  value="light"
+                  checked={formData.theme === 'light'}
+                  onChange={(e) => setFormData({ ...formData, theme: e.target.value })}
+                  className="w-4 h-4 text-primary border-border focus:ring-primary"
+                />
+                <span className="text-foreground">Clair</span>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="theme"
+                  value="dark"
+                  checked={formData.theme === 'dark'}
+                  onChange={(e) => setFormData({ ...formData, theme: e.target.value })}
+                  className="w-4 h-4 text-primary border-border focus:ring-primary"
+                />
+                <span className="text-foreground">Sombre</span>
               </label>
             </div>
           </div>
@@ -136,10 +200,11 @@ export default function SettingsPage() {
           <div className="flex justify-between items-center">
             <button
               onClick={handleSave}
-              className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              disabled={saving}
+              className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
-              Enregistrer les modifications
+              {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
             </button>
             <button
               onClick={handleLogout}

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grip, LogOut, Settings, Heart, MessageSquare, Bookmark, Menu } from 'lucide-react';
 import SearchBar from './SearchBar';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -12,10 +13,10 @@ import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session, status } = useSession();
   const { isServicesOpen, openServices, closeServices, toggleServices } = useServicesModal();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [user, setUser] = useState<any>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isTopbarVisible, setIsTopbarVisible] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -23,24 +24,6 @@ export default function Navigation() {
   
   const locale = getLocaleFromPathname(pathname);
   const t = getMessages(locale).nav;
-
-  // Check if user is logged in
-  useEffect(() => {
-    const checkAuth = () => {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        setUser(JSON.parse(userData));
-      } else {
-        setUser(null);
-      }
-    };
-
-    checkAuth();
-
-    // Listen for storage changes (for multi-tab support)
-    window.addEventListener('storage', checkAuth);
-    return () => window.removeEventListener('storage', checkAuth);
-  }, []);
 
   // detect mobile viewport
   useEffect(() => {
@@ -90,12 +73,9 @@ export default function Navigation() {
     };
   }, [isMobile]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    setUser(null);
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/' });
     setIsUserMenuOpen(false);
-    window.location.href = '/';
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -377,29 +357,29 @@ export default function Navigation() {
                 <span>{t.magazine}</span>
               </Link>
               
-              {user ? (
+              {session?.user ? (
                 <div className="relative">
                   <button
                     className="flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   >
-                    {user.avatarUrl ? (
+                    {session.user.avatarUrl ? (
                       <img
-                        src={user.avatarUrl}
-                        alt={user.name}
+                        src={session.user.avatarUrl}
+                        alt={session.user.name}
                         className="w-6 h-6 rounded-full object-cover"
                       />
                     ) : (
                       <User className="w-4 h-4 text-foreground" />
                     )}
-                    <span className="text-sm font-medium text-foreground">{user.name}</span>
+                    <span className="text-sm font-medium text-foreground">{session.user.name}</span>
                   </button>
                   
                   {isUserMenuOpen && (
                     <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50">
                       <div className="px-4 py-2 border-b border-gray-200">
-                        <p className="text-sm font-medium text-foreground">{user.name}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
+                        <p className="text-sm font-medium text-foreground">{session.user.name}</p>
+                        <p className="text-xs text-gray-500">{session.user.email}</p>
                       </div>
                       <Link
                         href={`/${locale}/compte/profil`}
@@ -432,6 +412,14 @@ export default function Navigation() {
                       >
                         <Bookmark className="w-4 h-4" />
                         <span>{t.favorites}</span>
+                      </Link>
+                      <Link
+                        href={`/${locale}/compte/dons`}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-gray-100 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <DollarSign className="w-4 h-4" />
+                        <span>Mes dons</span>
                       </Link>
                       <Link
                         href={`/${locale}/compte/parametres`}
@@ -476,15 +464,15 @@ export default function Navigation() {
             {/* Right side - Mobile */}
             <div className="md:hidden flex items-center space-x-2">
               <LanguageSwitcher />
-              {user ? (
+              {session?.user ? (
                 <button
                   className="p-2 text-foreground hover:text-primary transition-colors"
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 >
-                  {user.avatarUrl ? (
+                  {session.user.avatarUrl ? (
                     <img
-                      src={user.avatarUrl}
-                      alt={user.name}
+                      src={session.user.avatarUrl}
+                      alt={session.user.name}
                       className="w-6 h-6 rounded-full object-cover"
                     />
                   ) : (

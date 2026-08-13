@@ -1,32 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Heart, Calendar, ExternalLink } from 'lucide-react';
 
 export default function LikesPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const { data: session, status } = useSession();
   const [likes, setLikes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (!userData) {
-      router.push('/fr/compte/connexion');
-      return;
+    if (session?.user) {
+      fetchLikes();
     }
-    setUser(JSON.parse(userData));
-    fetchLikes();
-  }, [router]);
+  }, [session]);
 
   const fetchLikes = async () => {
     try {
-      const userData = localStorage.getItem('user');
-      if (!userData) return;
-      
-      const parsedUser = JSON.parse(userData);
-      const response = await fetch(`/api/user/likes?userId=${parsedUser.id}`);
+      const response = await fetch('/api/user/likes');
       
       if (response.ok) {
         const data = await response.json();
@@ -39,7 +30,7 @@ export default function LikesPage() {
     }
   };
 
-  if (!user) {
+  if (status === 'loading' || loading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
   }
 
@@ -51,9 +42,7 @@ export default function LikesPage() {
           <p className="text-muted-foreground">Les articles que vous avez aimés</p>
         </div>
 
-        {loading ? (
-          <div className="text-center py-12">Chargement...</div>
-        ) : likes.length === 0 ? (
+        {likes.length === 0 ? (
           <div className="bg-card rounded-lg p-12 text-center">
             <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">Aucun like</h2>

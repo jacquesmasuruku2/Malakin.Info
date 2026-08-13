@@ -1,32 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { MessageSquare, Calendar, ExternalLink } from 'lucide-react';
 
 export default function CommentsPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const { data: session, status } = useSession();
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (!userData) {
-      router.push('/fr/compte/connexion');
-      return;
+    if (session?.user) {
+      fetchComments();
     }
-    setUser(JSON.parse(userData));
-    fetchComments();
-  }, [router]);
+  }, [session]);
 
   const fetchComments = async () => {
     try {
-      const userData = localStorage.getItem('user');
-      if (!userData) return;
-      
-      const parsedUser = JSON.parse(userData);
-      const response = await fetch(`/api/user/comments?userId=${parsedUser.id}`);
+      const response = await fetch('/api/user/comments');
       
       if (response.ok) {
         const data = await response.json();
@@ -39,7 +30,7 @@ export default function CommentsPage() {
     }
   };
 
-  if (!user) {
+  if (status === 'loading' || loading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
   }
 
@@ -51,9 +42,7 @@ export default function CommentsPage() {
           <p className="text-muted-foreground">Tous vos commentaires sur les articles</p>
         </div>
 
-        {loading ? (
-          <div className="text-center py-12">Chargement...</div>
-        ) : comments.length === 0 ? (
+        {comments.length === 0 ? (
           <div className="bg-card rounded-lg p-12 text-center">
             <MessageSquare className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">Aucun commentaire</h2>

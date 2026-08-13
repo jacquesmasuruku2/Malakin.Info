@@ -1,33 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { name, email, bio } = body;
-
-    // Get user from cookie
-    const sessionToken = request.cookies.get('session_token')?.value;
-    if (!sessionToken) {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Find session
-    const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
-      include: { user: true },
-    });
-
-    if (!session || session.expiresAt < new Date()) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
+    const body = await request.json();
+    const { name, bio } = body;
 
     // Update user
     const updatedUser = await prisma.user.update({
-      where: { id: session.userId },
+      where: { id: session.user.id },
       data: {
         ...(name && { name }),
-        ...(email && { email: email.toLowerCase() }),
         ...(bio !== undefined && { bio }),
       },
     });
@@ -37,6 +28,41 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json(userWithoutPassword);
   } catch (error) {
     console.error('Error updating profile:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        _count: {
+          select: {
+            comments: true,
+            likes: true,
+            favorites: true,
+            donations: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const { passwordHash, ...userWithoutPassword } = user;
+
+    return NextResponse.json(userWithoutPassword);
+  } catch (error) {
+    console.error('Error fetching profile:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

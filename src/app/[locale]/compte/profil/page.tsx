@@ -1,33 +1,27 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { User, Mail, Calendar, Edit, Save, X, Camera } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import { User, Mail, Calendar, Edit, Save, X, Camera, LogOut } from 'lucide-react';
 
 export default function ProfilePage() {
-  const router = useRouter();
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     bio: '',
   });
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (!userData) {
-      router.push('/fr/compte/connexion');
-      return;
+    if (session?.user) {
+      setUser(session.user);
+      setFormData({
+        name: session.user.name || '',
+        bio: session.user.bio || '',
+      });
     }
-    const parsedUser = JSON.parse(userData);
-    setUser(parsedUser);
-    setFormData({
-      name: parsedUser.name || '',
-      email: parsedUser.email || '',
-      bio: parsedUser.bio || '',
-    });
-  }, [router]);
+  }, [session]);
 
   const handleSave = async () => {
     try {
@@ -41,7 +35,6 @@ export default function ProfilePage() {
 
       if (response.ok) {
         const updatedUser = await response.json();
-        localStorage.setItem('user', JSON.stringify(updatedUser));
         setUser(updatedUser);
         setIsEditing(false);
       }
@@ -53,13 +46,16 @@ export default function ProfilePage() {
   const handleCancel = () => {
     setFormData({
       name: user.name || '',
-      email: user.email || '',
       bio: user.bio || '',
     });
     setIsEditing(false);
   };
 
-  if (!user) {
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/' });
+  };
+
+  if (status === 'loading' || !user) {
     return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
   }
 
@@ -106,29 +102,29 @@ export default function ProfilePage() {
                 </h1>
                 <p className="text-muted-foreground flex items-center justify-center sm:justify-start gap-2">
                   <Mail className="w-4 h-4" />
-                  {isEditing ? (
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  ) : (
-                    user.email
-                  )}
+                  {user.email}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2 flex items-center justify-center sm:justify-start gap-2">
                   <Calendar className="w-4 h-4" />
-                  Membre depuis {new Date(user.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                  Membre depuis {user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : 'Récent'}
                 </p>
               </div>
-              <button
-                onClick={() => (isEditing ? handleCancel() : setIsEditing(true))}
-                className="flex items-center gap-2 px-4 py-2 border border-border rounded-md hover:bg-muted transition-colors"
-              >
-                {isEditing ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
-                {isEditing ? 'Annuler' : 'Modifier le profil'}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => (isEditing ? handleCancel() : setIsEditing(true))}
+                  className="flex items-center gap-2 px-4 py-2 border border-border rounded-md hover:bg-muted transition-colors"
+                >
+                  {isEditing ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
+                  {isEditing ? 'Annuler' : 'Modifier'}
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-2 border border-red-600 text-red-600 rounded-md hover:bg-red-50 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Déconnexion
+                </button>
+              </div>
             </div>
 
             {/* Bio */}
@@ -150,18 +146,22 @@ export default function ProfilePage() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
               <div className="bg-muted/50 rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-primary">0</p>
+                <p className="text-2xl font-bold text-primary">{user._count?.comments || 0}</p>
                 <p className="text-sm text-muted-foreground">Commentaires</p>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-primary">0</p>
+                <p className="text-2xl font-bold text-primary">{user._count?.likes || 0}</p>
                 <p className="text-sm text-muted-foreground">Likes</p>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-primary">0</p>
+                <p className="text-2xl font-bold text-primary">{user._count?.favorites || 0}</p>
                 <p className="text-sm text-muted-foreground">Favoris</p>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4 text-center">
+                <p className="text-2xl font-bold text-primary">{user._count?.donations || 0}</p>
+                <p className="text-sm text-muted-foreground">Dons</p>
               </div>
             </div>
 
