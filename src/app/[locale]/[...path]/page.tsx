@@ -321,7 +321,7 @@ export default async function CatchAllArticlePage({
               {t.relatedArticles}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {relatedArticles.map((related) => (
+              {relatedArticles.map((related: any) => (
                 <Link
                   key={related.id}
                   href={`/${locale}/${related.category?.slug || 'actualites'}/${related.slug}`}
