@@ -9,6 +9,7 @@ type RadioStation = {
   streamUrl: string;
   logoUrl?: string | null;
   description?: string | null;
+  showLabel?: boolean;
   isActive: boolean;
 };
 
@@ -18,6 +19,7 @@ const DEFAULT_STATION: RadioStation = {
   streamUrl: 'https://stream.zeno.fm/5k7n5xq7z4zuv',
   logoUrl: '/images/logo.png',
   description: 'Le son de Malakinfo en direct',
+  showLabel: true,
   isActive: true,
 };
 
@@ -167,31 +169,33 @@ export default function RadioPlayer() {
       />
 
       <div className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-slate-950/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-3 py-2 sm:px-5">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <div className="relative h-12 w-12 overflow-hidden rounded-full border border-white/10 bg-slate-800">
-              {station.logoUrl ? (
-                <img
-                  src={station.logoUrl}
-                  alt={station.name}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-primary">
-                  <Radio className="h-5 w-5" />
-                </div>
-              )}
-            </div>
+        <div className={`mx-auto flex max-w-7xl items-center gap-3 px-3 py-2 sm:px-5 ${station.showLabel === false ? 'justify-end' : ''}`}>
+          {station.showLabel !== false && (
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="relative h-12 w-12 overflow-hidden rounded-full border border-white/10 bg-slate-800">
+                {station.logoUrl ? (
+                  <img
+                    src={station.logoUrl}
+                    alt={station.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-primary">
+                    <Radio className="h-5 w-5" />
+                  </div>
+                )}
+              </div>
 
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold text-white">{station.name}</div>
-              <div className="truncate text-[11px] text-slate-300">
-                {station.description || 'Radio en direct'}
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold text-white">{station.name}</div>
+                <div className="truncate text-[11px] text-slate-300">
+                  {station.description || 'Radio en direct'}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className={`flex items-center gap-2 sm:gap-3 ${station.showLabel === false ? 'ml-auto' : ''}`}>
             <button
               type="button"
               onClick={togglePlayback}

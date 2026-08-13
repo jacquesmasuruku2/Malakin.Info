@@ -97,49 +97,55 @@ export default function MobileBottomNav() {
 
   return (
     <nav
-      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-neutral-900 shadow-[0_-8px_30px_rgba(0,0,0,0.18)] md:hidden transition-transform duration-300 ${
+      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-[#101418] shadow-[0_-12px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm md:hidden transition-transform duration-300 ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
     >
-      <div className="flex h-14 items-stretch overflow-x-auto [&::-webkit-scrollbar]:hidden">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = !item.isButton && item.href ? (pathname === item.href || pathname.startsWith(item.href + '/')) : false;
+      <div className="flex h-[60px] w-full items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex min-w-max items-stretch">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = !item.isButton && item.href ? (pathname === item.href || pathname.startsWith(item.href + '/')) : false;
 
-          if (item.isButton && item.action) {
-            const isPrimary = item.primary;
+            if (item.isButton && item.action) {
+              const isPrimary = item.primary;
+
+              return (
+                <button
+                  key={item.name}
+                  onClick={item.action}
+                  className={`group relative flex w-[104px] shrink-0 flex-col items-center justify-center border-r border-white/10 transition-all duration-200 ease-out ${
+                    isPrimary
+                      ? 'bg-gradient-to-b from-[#f9d91c] to-[#f4c51d] text-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]'
+                      : 'bg-[#121a1f] text-gray-300 hover:bg-[#1a252d]'
+                  }`}
+                >
+                  <div className={`absolute inset-x-2 top-1 h-px ${isPrimary ? 'bg-white/40' : 'bg-white/10'}`} />
+                  <Icon className={`mb-1 h-[18px] w-[18px] transition-transform duration-200 group-hover:scale-105 ${isPrimary ? 'text-slate-950' : 'text-gray-300'}`} />
+                  <span className={`max-w-full truncate text-[8px] font-medium uppercase tracking-[0.12em] ${isPrimary ? 'text-slate-950' : 'text-gray-300'}`}>
+                    {item.name}
+                  </span>
+                </button>
+              );
+            }
 
             return (
-              <button
+              <Link
                 key={item.name}
-                onClick={item.action}
-                className={`flex min-w-[84px] flex-1 flex-col items-center justify-center border-r border-white/10 transition-colors ${
-                  isPrimary
-                    ? 'bg-primary text-slate-950'
-                    : 'bg-neutral-900 text-gray-300'
+                href={item.href || '#'}
+                className={`group relative flex w-[92px] shrink-0 flex-col items-center justify-center border-r border-white/10 px-1 text-center transition-all duration-200 hover:bg-[#1a252d] ${
+                  isActive ? 'bg-[#11181d]' : 'bg-[#121a1f]'
                 }`}
               >
-                <Icon className={`mb-0.5 h-4 w-4 ${isPrimary ? 'text-slate-950' : 'text-gray-300'}`} />
-                <span className={`text-[9px] font-medium uppercase tracking-[0.08em] ${isPrimary ? 'text-slate-950' : 'text-gray-300'}`}>
+                <div className={`absolute left-2 right-2 top-1 h-px ${isActive ? 'bg-primary/70' : 'bg-white/10'}`} />
+                <Icon className={`mb-1 h-[16px] w-[16px] transition-all duration-200 ${isActive ? 'text-primary scale-105' : 'text-gray-300 group-hover:text-white'}`} />
+                <span className={`max-w-full truncate text-[7.5px] font-medium uppercase tracking-[0.08em] ${isActive ? 'text-primary' : 'text-gray-300 group-hover:text-white'}`}>
                   {item.name}
                 </span>
-              </button>
+              </Link>
             );
-          }
-
-          return (
-            <Link
-              key={item.name}
-              href={item.href || '#'}
-              className="flex min-w-[74px] flex-1 flex-col items-center justify-center border-r border-white/10 bg-neutral-900 text-gray-300 transition-colors hover:text-white"
-            >
-              <Icon className={`mb-0.5 h-4 w-4 ${isActive ? 'text-primary' : 'text-gray-300'}`} />
-              <span className={`text-[9px] uppercase tracking-[0.06em] ${isActive ? 'font-medium text-primary' : 'text-gray-300'}`}>
-                {item.name}
-              </span>
-            </Link>
-          );
-        })}
+          })}
+        </div>
       </div>
     </nav>
   );

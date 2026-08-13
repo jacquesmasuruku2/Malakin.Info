@@ -19,6 +19,7 @@ export async function GET() {
         streamUrl: 'https://stream.zeno.fm/5k7n5xq7z4zuv',
         logoUrl: '/images/logo.png',
         description: 'Le son de Malakinfo en direct',
+        showLabel: true,
         isActive: true,
       },
       { status: 200 }
@@ -33,6 +34,7 @@ export async function GET() {
         streamUrl: 'https://stream.zeno.fm/5k7n5xq7z4zuv',
         logoUrl: '/images/logo.png',
         description: 'Le son de Malakinfo en direct',
+        showLabel: true,
         isActive: true,
       },
       { status: 200 }

@@ -266,30 +266,30 @@ export default function Navigation() {
     <nav className="sticky top-0 z-50">
       {/* TopBar - Barre Supérieure Sombre (animated on mobile) */}
       <div className={`topbar flex md:flex bg-neutral-900 transition-all duration-300 ease-in-out ${isTopbarVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-6 pointer-events-none'} md:opacity-100 md:translate-y-0 md:pointer-events-auto`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="flex justify-between items-center py-2">
-            {/* Left side - Secondary links */}
-            <div className="flex items-center space-x-6">
-              <Link href={`/${locale}/emploi`} className="text-xs text-gray-300 hover:text-white transition-colors whitespace-nowrap">
-                {t.jobOffers}
-              </Link>
-              <Link href={`/${locale}/medias/live`} className="text-xs text-gray-300 hover:text-white transition-colors whitespace-nowrap">
-                {t.directs}
-              </Link>
-              <Link href={`/${locale}/boutique`} className="text-xs text-gray-300 hover:text-white transition-colors whitespace-nowrap">
-                {t.shopping}
-              </Link>
-              <Link href={`/${locale}/newsletter`} className="text-xs text-gray-300 hover:text-white transition-colors whitespace-nowrap">
-                {t.newsletter}
-              </Link>
+        <div className="mx-auto w-full max-w-7xl px-2 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-3 py-2">
+            <div className="flex-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex min-w-max items-center justify-center gap-2 sm:gap-4 md:justify-start">
+                <Link href={`/${locale}/emploi`} className="whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.08em] text-gray-300 transition-colors hover:text-white sm:text-xs">
+                  {t.jobOffers}
+                </Link>
+                <Link href={`/${locale}/medias/live`} className="whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.08em] text-gray-300 transition-colors hover:text-white sm:text-xs">
+                  {t.directs}
+                </Link>
+                <Link href={`/${locale}/boutique`} className="whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.08em] text-gray-300 transition-colors hover:text-white sm:text-xs">
+                  {t.shopping}
+                </Link>
+                <Link href={`/${locale}/newsletter`} className="whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.08em] text-gray-300 transition-colors hover:text-white sm:text-xs">
+                  {t.newsletter}
+                </Link>
+              </div>
             </div>
-            
-            {/* Right side - Partner sites */}
-            <div className="hidden md:flex items-center space-x-6">
-              <Link href="https://thedrc.activitie.com" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-300 hover:text-white transition-colors">
+
+            <div className="hidden items-center gap-4 md:flex">
+              <Link href="https://thedrc.activitie.com" target="_blank" rel="noopener noreferrer" className="text-[10px] font-medium uppercase tracking-[0.08em] text-gray-300 transition-colors hover:text-white">
                 Activitie
               </Link>
-              <Link href="https://businessgeneral.com" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-300 hover:text-white transition-colors">
+              <Link href="https://businessgeneral.com" target="_blank" rel="noopener noreferrer" className="text-[10px] font-medium uppercase tracking-[0.08em] text-gray-300 transition-colors hover:text-white">
                 Business General
               </Link>
             </div>

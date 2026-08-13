@@ -31,6 +31,7 @@ export default function AdminLayout({
     { name: 'Articles', href: '/articles', icon: FileText },
     { name: 'Catégories', href: '/categories', icon: FolderOpen },
     { name: 'Auteurs', href: '/authors', icon: Users },
+    { name: 'Radio', href: '/radio', icon: Radio },
     { name: 'Lives', href: '/lives', icon: Radio },
     { name: 'Newsletter', href: '/newsletter', icon: MessageSquare },
     { name: 'Envoyer une newsletter', href: '/newsletter/send', icon: Briefcase },
