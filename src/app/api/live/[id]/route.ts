@@ -48,9 +48,6 @@ export async function GET(
     console.log('[live API] GET request for ID:', id);
     const event = await prisma.liveEvent.findUnique({
       where: { id },
-      include: {
-        category: true,
-      },
     });
     console.log('[live API] Event found:', !!event);
 
@@ -69,7 +66,6 @@ export async function GET(
       const updatedEvent = await prisma.liveEvent.update({
         where: { id },
         data: { status: calculatedStatus },
-        include: { category: true },
       });
       return cors(NextResponse.json(serializeLiveEvent(updatedEvent)));
     }
@@ -131,7 +127,6 @@ export async function PUT(
         categoryId: body.categoryId || null,
         status: data.status,
       },
-      include: { category: true },
     });
 
     return cors(NextResponse.json(serializeLiveEvent(event)));

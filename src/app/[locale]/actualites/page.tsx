@@ -23,16 +23,17 @@ export default async function ActualitesPage({
     take: 12,
   } as any);
 
-  // Fetch all categories with article counts
-  const categories = await prisma.category.findMany({
-    include: {
-      _count: {
-        select: {
-          articles: true,
-        },
-      },
+  // Fetch all categories and compute article counts without a non-existent relation field
+  const categories = await prisma.category.findMany();
+  const articleCounts = await prisma.article.groupBy({
+    by: ['categoryId'],
+    _count: {
+      categoryId: true,
     },
   });
+  const articleCountMap = new Map(
+    articleCounts.map((item) => [item.categoryId, item._count.categoryId])
+  );
 
   // Fetch live events for this category
   const actualitesCategory = await prisma.category.findUnique({
@@ -50,16 +51,13 @@ export default async function ActualitesPage({
     orderBy: {
       startTime: 'desc'
     },
-    include: {
-      category: true
-    }
   }) : [];
 
   // Format categories for display
   const categoryList: { name: string; href: string; count: number }[] = categories.map((cat: any) => ({
     name: cat.title,
     href: `/${locale}/${cat.slug}`,
-    count: cat._count.articles,
+    count: articleCountMap.get(cat.id) ?? 0,
   }));
 
   // Format articles for display

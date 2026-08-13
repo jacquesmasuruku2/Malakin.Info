@@ -18,6 +18,7 @@ model Category {
   updatedAt     DateTime @updatedAt
   defaultLocale String   @default("fr")
   media         Media[]
+  articles      Article[]
 }
 
 model CategoryTranslation {
@@ -35,17 +36,19 @@ model CategoryTranslation {
 }
 
 model Author {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
-  slug      String   @unique
+  slug      String    @unique
   bio       String?
   role      String?
   email     String?
   imageUrl  String?
   imageAlt  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   media     Media[]
+  articles  Article[]
+  blogPosts BlogPost[]
 }
 
 model Article {
@@ -65,6 +68,8 @@ model Article {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   defaultLocale String   @default("fr")
+  category      Category @relation(fields: [categoryId], references: [id])
+  author        Author?  @relation(fields: [authorId], references: [id])
   likes         Like[]
 
   @@index([categoryId])
@@ -129,6 +134,8 @@ model Comment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
 
   @@index([articleId])
   @@index([userId])
@@ -307,6 +314,7 @@ model BlogPost {
   views        BigInt   @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  author       Author?  @relation(fields: [authorId], references: [id])
 
   @@index([type])
   @@index([publishedAt(sort: Desc)])

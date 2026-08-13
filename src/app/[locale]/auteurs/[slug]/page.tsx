@@ -8,20 +8,25 @@ async function getAuthorBySlug(slug: string) {
     console.log('Fetching author with slug:', slug);
     const author = await prisma.author.findUnique({
       where: { slug },
+    });
+
+    if (!author) {
+      console.log('Author not found:', slug);
+      return null;
+    }
+
+    const articles = await prisma.article.findMany({
+      where: { authorId: author.id },
       include: {
-        articles: {
-          include: {
-            category: true,
-          },
-          orderBy: {
-            publishedAt: 'desc',
-          },
-        },
+        category: true,
+      },
+      orderBy: {
+        publishedAt: 'desc',
       },
     });
 
-    console.log('Author found:', author ? author.name : 'null');
-    return author;
+    console.log('Author found:', author.name);
+    return { ...author, articles };
   } catch (error) {
     console.error('Error fetching author:', error);
     console.error('DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');

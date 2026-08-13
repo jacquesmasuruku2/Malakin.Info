@@ -41,22 +41,21 @@ async function getArticleTranslationUncached(
   articleId: string,
   locale: string
 ): Promise<TranslationContent> {
-  const article = await prisma.article.findUnique({
-    where: { id: articleId },
-    include: {
-      translations: {
-        where: { locale }
-      }
-    }
-  });
+  const [article, translation] = await Promise.all([
+    prisma.article.findUnique({
+      where: { id: articleId }
+    }),
+    prisma.articleTranslation.findFirst({
+      where: { articleId, locale }
+    })
+  ]);
 
   if (!article) {
     throw new Error('Article not found');
   }
 
   // If translation exists for requested locale, use it
-  if (article.translations.length > 0) {
-    const translation = article.translations[0];
+  if (translation) {
     return {
       title: translation.title,
       excerpt: translation.excerpt,
@@ -99,22 +98,21 @@ async function getCategoryTranslationUncached(
   categoryId: string,
   locale: string
 ): Promise<{ title: string; description: string | null }> {
-  const category = await prisma.category.findUnique({
-    where: { id: categoryId },
-    include: {
-      translations: {
-        where: { locale }
-      }
-    }
-  });
+  const [category, translation] = await Promise.all([
+    prisma.category.findUnique({
+      where: { id: categoryId }
+    }),
+    prisma.categoryTranslation.findFirst({
+      where: { categoryId, locale }
+    })
+  ]);
 
   if (!category) {
     throw new Error('Category not found');
   }
 
   // If translation exists for requested locale, use it
-  if (category.translations.length > 0) {
-    const translation = category.translations[0];
+  if (translation) {
     return {
       title: translation.title,
       description: translation.description
@@ -214,12 +212,14 @@ export async function saveCategoryTranslation(
  * Get all available translations for an article
  */
 export async function getArticleTranslations(articleId: string) {
-  const article = await prisma.article.findUnique({
-    where: { id: articleId },
-    include: {
-      translations: true
-    }
-  });
+  const [article, translations] = await Promise.all([
+    prisma.article.findUnique({
+      where: { id: articleId }
+    }),
+    prisma.articleTranslation.findMany({
+      where: { articleId }
+    })
+  ]);
 
   if (!article) {
     throw new Error('Article not found');
@@ -227,7 +227,7 @@ export async function getArticleTranslations(articleId: string) {
 
   return {
     defaultLocale: article.defaultLocale,
-    translations: article.translations.map(t => ({
+    translations: translations.map(t => ({
       locale: t.locale,
       title: t.title,
       excerpt: t.excerpt
@@ -239,12 +239,14 @@ export async function getArticleTranslations(articleId: string) {
  * Get all available translations for a category
  */
 export async function getCategoryTranslations(categoryId: string) {
-  const category = await prisma.category.findUnique({
-    where: { id: categoryId },
-    include: {
-      translations: true
-    }
-  });
+  const [category, translations] = await Promise.all([
+    prisma.category.findUnique({
+      where: { id: categoryId }
+    }),
+    prisma.categoryTranslation.findMany({
+      where: { categoryId }
+    })
+  ]);
 
   if (!category) {
     throw new Error('Category not found');
@@ -252,7 +254,7 @@ export async function getCategoryTranslations(categoryId: string) {
 
   return {
     defaultLocale: category.defaultLocale,
-    translations: category.translations.map(t => ({
+    translations: translations.map(t => ({
       locale: t.locale,
       title: t.title,
       description: t.description

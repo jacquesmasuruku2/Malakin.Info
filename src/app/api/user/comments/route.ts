@@ -12,19 +12,27 @@ export async function GET(request: NextRequest) {
 
     const comments = await prisma.comment.findMany({
       where: { userId },
-      include: {
-        article: {
-          include: {
-            category: true,
-          },
-        },
-      },
       orderBy: {
         createdAt: 'desc',
       },
     });
 
-    return NextResponse.json(comments);
+    const articleIds = [...new Set(comments.map((comment) => comment.articleId))];
+    const articles = articleIds.length
+      ? await prisma.article.findMany({
+          where: { id: { in: articleIds } },
+          include: { category: true },
+        })
+      : [];
+
+    const articleMap = new Map(articles.map((article) => [article.id, article]));
+
+    return NextResponse.json(
+      comments.map((comment) => ({
+        ...comment,
+        article: articleMap.get(comment.articleId) ?? null,
+      })),
+    );
   } catch (error) {
     console.error('Error fetching comments:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

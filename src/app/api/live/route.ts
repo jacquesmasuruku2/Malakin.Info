@@ -64,9 +64,6 @@ export async function GET(request: Request) {
           orderBy: {
             startTime: 'desc'
           },
-          include: {
-            category: true,
-          },
         });
         console.log('[live API] Current live fetched:', currentLive?.id || 'none');
 
@@ -106,9 +103,6 @@ export async function GET(request: Request) {
             startTime: 'asc'
           },
           take: 5,
-          include: {
-            category: true,
-          },
         });
         console.log('[live API] Upcoming events fetched:', upcomingEvents.length);
 
@@ -127,14 +121,11 @@ export async function GET(request: Request) {
         orderBy: {
           startTime: 'desc'
         },
-        include: {
-          category: true,
-        },
       });
       console.log('[live API] All events fetched:', events.length);
 
       // Update statuses for all events (non-blocking)
-      const statusUpdates = events.map(async (event) => {
+      const statusUpdates = events.map(async (event: any) => {
         const calculatedStatus = calculateStatus(event.startTime, event.endTime);
         if (calculatedStatus !== event.status) {
           try {

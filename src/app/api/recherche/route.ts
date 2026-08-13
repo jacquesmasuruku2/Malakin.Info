@@ -99,9 +99,6 @@ export async function GET(request: Request) {
         where: {
           AND: terms.map(buildLiveFilters),
         },
-        include: {
-          category: true,
-        },
         orderBy: {
           startTime: 'desc',
         },
@@ -151,7 +148,7 @@ export async function GET(request: Request) {
         type: 'live' as const,
         title: live.title,
         excerpt: live.description || '',
-        category: live.category?.title || '',
+        category: '',
         date: live.startTime.toISOString(),
         path: `/medias/live/${live.id}`,
       })),

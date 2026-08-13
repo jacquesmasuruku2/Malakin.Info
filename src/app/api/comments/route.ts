@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       where: {
         articleId,
         status: 'approved',
-        parentId: null, // Only top-level comments
+        parentId: null,
       },
       include: {
         user: {
@@ -90,30 +90,38 @@ export async function GET(request: NextRequest) {
             avatarUrl: true,
           },
         },
-        replies: {
-          where: {
-            status: 'approved',
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                avatarUrl: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
       },
       orderBy: {
         createdAt: 'desc',
       },
     });
 
-    return NextResponse.json(comments);
+    const replies = await prisma.comment.findMany({
+      where: {
+        articleId,
+        status: 'approved',
+        parentId: { not: null },
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    const commentsWithReplies = comments.map((comment) => ({
+      ...comment,
+      replies: replies.filter((reply) => reply.parentId === comment.id),
+    }));
+
+    return NextResponse.json(commentsWithReplies);
   } catch (error) {
     console.error('Error fetching comments:', error);
     return NextResponse.json(
