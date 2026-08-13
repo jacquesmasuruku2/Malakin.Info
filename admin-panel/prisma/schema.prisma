@@ -184,17 +184,41 @@ model NewsletterSubscription {
 }
 
 model RadioStation {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   name        String
   streamUrl   String
   logoUrl     String?
   description String?
-  showLabel   Boolean  @default(true)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  showLabel   Boolean       @default(true)
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  programs    RadioProgram[]
 
   @@index([isActive])
+}
+
+model RadioProgram {
+  id          String       @id @default(cuid())
+  stationId   String?
+  title       String
+  slug        String       @unique
+  host        String?
+  description String?
+  streamUrl   String?
+  imageUrl    String?
+  startTime   DateTime
+  endTime     DateTime?
+  isLive      Boolean      @default(false)
+  isFeatured  Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  station     RadioStation? @relation(fields: [stationId], references: [id])
+
+  @@index([stationId])
+  @@index([startTime])
+  @@index([isLive])
+  @@index([isFeatured])
 }
 
 model Media {
