@@ -64,20 +64,26 @@ export default function RadioPage() {
         ...station,
         id: station.id || undefined,
       };
+      console.log('[RadioPage] Submitting payload:', payload);
 
       const response = await fetch(getApiUrl('/api/radio'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      console.log('[RadioPage] Response status:', response.status);
 
       if (!response.ok) {
+        const errorData = await response.json();
+        console.error('[RadioPage] Error response:', errorData);
         throw new Error('Unable to save radio station');
       }
 
+      const responseData = await response.json();
+      console.log('[RadioPage] Success response:', responseData);
       router.refresh();
     } catch (error) {
-      console.error('Error saving radio station:', error);
+      console.error('[RadioPage] Error saving radio station:', error);
       alert('Erreur lors de la sauvegarde de la radio');
     } finally {
       setSaving(false);

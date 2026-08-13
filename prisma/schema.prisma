@@ -8,19 +8,16 @@ datasource db {
 }
 
 model Category {
-  id            String                @id @default(cuid())
+  id            String   @id @default(cuid())
   title         String
-  slug          String                @unique
+  slug          String   @unique
   description   String?
   color         String?
   icon          String?
-  defaultLocale String                @default("fr")
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
-  articles      Article[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  defaultLocale String   @default("fr")
   media         Media[]
-  liveEvents    LiveEvent[]
-  translations  CategoryTranslation[]
 }
 
 model CategoryTranslation {
@@ -31,7 +28,6 @@ model CategoryTranslation {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@unique([categoryId, locale])
   @@index([categoryId])
@@ -39,43 +35,37 @@ model CategoryTranslation {
 }
 
 model Author {
-  id        String     @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
-  slug      String     @unique
+  slug      String   @unique
   bio       String?
   role      String?
   email     String?
   imageUrl  String?
   imageAlt  String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  articles  Article[]
-  blogPosts BlogPost[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   media     Media[]
 }
 
 model Article {
-  id           String            @id @default(cuid())
-  title        String
-  slug         String            @unique
-  excerpt      String
-  content      Json
-  categoryId   String
-  authorId     String?
-  publishedAt  DateTime
-  mainImageUrl String?
-  mainImageAlt String?
-  readTime     String?
-  featured     Boolean           @default(false)
-  views        BigInt            @default(0)
-  defaultLocale String           @default("fr")
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  author       Author?           @relation(fields: [authorId], references: [id])
-  category     Category          @relation(fields: [categoryId], references: [id])
-  comments     Comment[]
-  likes        Like[]
-  translations ArticleTranslation[]
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  excerpt       String
+  content       Json
+  categoryId    String
+  authorId      String?
+  publishedAt   DateTime
+  mainImageUrl  String?
+  mainImageAlt  String?
+  readTime      String?
+  featured      Boolean  @default(false)
+  views         BigInt   @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  defaultLocale String   @default("fr")
+  likes         Like[]
 
   @@index([categoryId])
   @@index([authorId])
@@ -93,7 +83,6 @@ model ArticleTranslation {
   content   Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   @@unique([articleId, locale])
   @@index([articleId])
@@ -131,18 +120,15 @@ model Session {
 }
 
 model Comment {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   articleId String
   userId    String
   parentId  String?
   content   String
-  status    String    @default("pending")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  article   Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  parent    Comment?  @relation("CommentToComment", fields: [parentId], references: [id], onDelete: Cascade)
-  replies   Comment[] @relation("CommentToComment")
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([articleId])
   @@index([userId])
@@ -179,11 +165,11 @@ model ContactMessage {
 model NewsletterSubscription {
   id             String    @id @default(cuid())
   email          String    @unique
-  name           String?
-  interests      Json?     
   isActive       Boolean   @default(true)
   subscribedAt   DateTime  @default(now())
   unsubscribedAt DateTime?
+  interests      Json?
+  name           String?
 }
 
 model Media {
@@ -321,7 +307,6 @@ model BlogPost {
   views        BigInt   @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  author       Author?  @relation(fields: [authorId], references: [id])
 
   @@index([type])
   @@index([publishedAt(sort: Desc)])
@@ -329,23 +314,21 @@ model BlogPost {
 }
 
 model LiveEvent {
-  id           String              @id @default(cuid())
-  title        String
-  slug         String              @unique
-  description  String?
-  thumbnail    String?
-  streamUrl    String?
-  youtubeUrl   String?
-  status       LiveStatus          @default(SCHEDULED)
-  startTime    DateTime
-  endTime      DateTime?
-  viewerCount  Int                 @default(0)
-  isFeatured   Boolean            @default(false)
-  categoryId   String?
-  category     Category?           @relation(fields: [categoryId], references: [id])
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  viewerSessions LiveViewerSession[]
+  id          String     @id @default(cuid())
+  title       String
+  slug        String     @unique
+  description String?
+  thumbnail   String?
+  streamUrl   String?
+  youtubeUrl  String?
+  status      LiveStatus @default(SCHEDULED)
+  startTime   DateTime
+  endTime     DateTime?
+  viewerCount Int        @default(0)
+  isFeatured  Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  categoryId  String?
 
   @@index([status])
   @@index([startTime])
@@ -354,16 +337,11 @@ model LiveEvent {
 }
 
 model LiveViewerSession {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   liveEventId String
   sessionId   String
-  lastSeenAt  DateTime  @default(now())
-  createdAt   DateTime  @default(now())
-  liveEvent   LiveEvent @relation(fields: [liveEventId], references: [id], onDelete: Cascade)
-
-  @@unique([liveEventId, sessionId])
-  @@index([liveEventId])
-  @@index([lastSeenAt])
+  lastSeenAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
 }
 
 model RadioStation {
@@ -372,12 +350,9 @@ model RadioStation {
   streamUrl   String
   logoUrl     String?
   description String?
-  showLabel   Boolean  @default(true)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  @@index([isActive])
 }
 
 enum LiveStatus {
