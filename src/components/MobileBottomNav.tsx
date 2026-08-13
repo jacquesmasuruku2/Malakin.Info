@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { Grip } from 'lucide-react';
+import { Grip, Play, Briefcase, Radio, ShoppingBag, Mail } from 'lucide-react';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
 
@@ -15,22 +15,47 @@ export default function MobileBottomNav() {
   const [isVisible, setIsVisible] = useState(true);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const navItems: Array<{
-    name: string;
-    icon: typeof Grip;
-    action?: () => void;
-    isButton?: boolean;
-    href?: string;
-  }> = [
+  const navItems = [
+    {
+      name: 'Radio',
+      icon: Radio,
+      action: () => window.dispatchEvent(new CustomEvent('malakinfo-radio-toggle')),
+      isButton: true,
+      primary: true,
+    },
+    {
+      name: t.jobOffers,
+      icon: Briefcase,
+      href: `/${locale}/emploi`,
+      primary: false,
+    },
+    {
+      name: t.directs,
+      icon: Radio,
+      href: `/${locale}/medias/live`,
+      primary: false,
+    },
+    {
+      name: t.shopping,
+      icon: ShoppingBag,
+      href: `/${locale}/boutique`,
+      primary: false,
+    },
+    {
+      name: t.newsletter,
+      icon: Mail,
+      href: `/${locale}/newsletter`,
+      primary: false,
+    },
     {
       name: t.menu,
       icon: Grip,
       action: openServices,
       isButton: true,
+      primary: false,
     },
   ];
 
-  // Auto-hide after 10 seconds
   useEffect(() => {
     const startHideTimer = () => {
       if (hideTimeoutRef.current) {
@@ -50,7 +75,6 @@ export default function MobileBottomNav() {
     };
   }, []);
 
-  // Show menu on touch
   const handleTouch = () => {
     setIsVisible(true);
     if (hideTimeoutRef.current) {
@@ -73,24 +97,32 @@ export default function MobileBottomNav() {
 
   return (
     <nav
-      className={`fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg md:hidden transition-transform duration-300 ${
+      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-neutral-900 shadow-[0_-8px_30px_rgba(0,0,0,0.18)] md:hidden transition-transform duration-300 ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
     >
-      <div className="flex items-center justify-center h-16">
+      <div className="flex h-14 items-stretch overflow-x-auto [&::-webkit-scrollbar]:hidden">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = !item.isButton && item.href ? (pathname === item.href || pathname.startsWith(item.href + '/')) : false;
 
           if (item.isButton && item.action) {
+            const isPrimary = item.primary;
+
             return (
               <button
                 key={item.name}
                 onClick={item.action}
-                className="flex flex-col items-center justify-center w-full h-full"
+                className={`flex min-w-[84px] flex-1 flex-col items-center justify-center border-r border-white/10 transition-colors ${
+                  isPrimary
+                    ? 'bg-primary text-slate-950'
+                    : 'bg-neutral-900 text-gray-300'
+                }`}
               >
-                <Icon className="w-5 h-5 mb-1 text-gray-500" />
-                <span className="text-xs text-gray-500">{item.name}</span>
+                <Icon className={`mb-0.5 h-4 w-4 ${isPrimary ? 'text-slate-950' : 'text-gray-300'}`} />
+                <span className={`text-[9px] font-medium uppercase tracking-[0.08em] ${isPrimary ? 'text-slate-950' : 'text-gray-300'}`}>
+                  {item.name}
+                </span>
               </button>
             );
           }
@@ -98,19 +130,11 @@ export default function MobileBottomNav() {
           return (
             <Link
               key={item.name}
-              href={item.href || ''}
-              className="flex flex-col items-center justify-center flex-1 h-full"
+              href={item.href || '#'}
+              className="flex min-w-[74px] flex-1 flex-col items-center justify-center border-r border-white/10 bg-neutral-900 text-gray-300 transition-colors hover:text-white"
             >
-              <Icon
-                className={`w-5 h-5 mb-1 ${
-                  isActive ? 'text-primary' : 'text-gray-500'
-                }`}
-              />
-              <span
-                className={`text-xs ${
-                  isActive ? 'text-primary font-medium' : 'text-gray-500'
-                }`}
-              >
+              <Icon className={`mb-0.5 h-4 w-4 ${isActive ? 'text-primary' : 'text-gray-300'}`} />
+              <span className={`text-[9px] uppercase tracking-[0.06em] ${isActive ? 'font-medium text-primary' : 'text-gray-300'}`}>
                 {item.name}
               </span>
             </Link>
