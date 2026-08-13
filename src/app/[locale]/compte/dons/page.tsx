@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Heart, Calendar, DollarSign, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Heart, Calendar, DollarSign, CheckCircle, Clock, XCircle, Plus } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 export default function DonationsPage() {
+  const pathname = usePathname();
+  const locale = pathname.split('/')[1] || 'fr';
   const { data: session, status } = useSession();
   const [donations, setDonations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,9 +70,18 @@ export default function DonationsPage() {
   return (
     <div className="min-h-screen bg-muted/30 py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Mes dons</h1>
-          <p className="text-muted-foreground">Historique de vos contributions</p>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Mes dons</h1>
+            <p className="text-muted-foreground">Historique de vos contributions</p>
+          </div>
+          <a
+            href={`/${locale}/nous-soutenir`}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Faire un don
+          </a>
         </div>
 
         {/* Summary Card */}
@@ -91,7 +103,7 @@ export default function DonationsPage() {
               Vous n'avez pas encore fait de don. Votre soutien nous aide à continuer notre travail.
             </p>
             <a
-              href="/fr/faire-un-don"
+              href={`/${locale}/nous-soutenir`}
               className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
             >
               <DollarSign className="w-4 h-4" />
