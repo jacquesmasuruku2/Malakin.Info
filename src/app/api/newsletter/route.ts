@@ -63,19 +63,23 @@ export async function POST(request: Request) {
       });
       console.log('[newsletter] Subscription created successfully:', subscription.id);
 
-      // Send Telegram notification (non-blocking)
-      sendTelegramMessage(`Nouvel abonnement à la newsletter : ${subscription.email}`)
-        .then(result => console.info('Telegram notification result', { email: subscription.email, result }))
-        .catch(err => console.error('Telegram notification failed:', err));
-
-      // Send welcome email (non-blocking)
-      sendWelcomeEmail({ to: subscription.email, name: subscription.name })
-        .catch(err => console.error('Welcome email failed:', err));
-
-      return cors(NextResponse.json(
+      // Send response immediately before notifications
+      const response = cors(NextResponse.json(
         { message: 'Abonnement réussi', subscription },
         { status: 201 }
       ));
+
+      // Send Telegram notification (non-blocking, after response)
+      sendTelegramMessage(`Nouvel abonnement à la newsletter : ${subscription.email}`)
+        .then(result => console.info('[newsletter] Telegram notification result', { email: subscription.email, result }))
+        .catch(err => console.error('[newsletter] Telegram notification failed:', err));
+
+      // Send welcome email (non-blocking, after response)
+      sendWelcomeEmail({ to: subscription.email, name: subscription.name })
+        .then(() => console.info('[newsletter] Welcome email sent successfully'))
+        .catch(err => console.error('[newsletter] Welcome email failed:', err));
+
+      return response;
     } catch (error) {
       // Handle duplicate email error
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
