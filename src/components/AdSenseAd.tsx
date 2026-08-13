@@ -20,11 +20,13 @@ export default function AdSenseAd({
   const adRef = useRef<HTMLModElement>(null);
   const [isAdLoaded, setIsAdLoaded] = useState(false);
 
-  useEffect(() => {
-    // Skip if ad is already loaded
-    if (isAdLoaded) return;
+  const adClientId = process.env.NEXT_PUBLIC_ADSENSE_ID || '';
+  const placeholderSlots = ['1234567890', '0987654321', '3333333333'];
+  const isValidAdConfig = Boolean(adClientId) && Boolean(adSlot) && !placeholderSlots.includes(adSlot.trim()) && !adClientId.includes('XXXXXXXXXXXXXXXX');
 
-    // Check if the ad element already has content (already initialized)
+  useEffect(() => {
+    if (!isValidAdConfig || isAdLoaded) return;
+
     if (adRef.current && adRef.current.innerHTML.trim() !== '') {
       setIsAdLoaded(true);
       return;
@@ -38,9 +40,11 @@ export default function AdSenseAd({
         console.error('AdSense error:', e);
       }
     }
-  }, [adSlot, isAdLoaded]);
+  }, [adSlot, isAdLoaded, isValidAdConfig]);
 
-  const adClientId = process.env.NEXT_PUBLIC_ADSENSE_ID || 'ca-pub-4621769509750492';
+  if (!isValidAdConfig) {
+    return null;
+  }
 
   return (
     <div className={`adsense-ad-container ${className}`}>
