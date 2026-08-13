@@ -16,14 +16,15 @@ export async function OPTIONS() {
   return cors(response);
 }
 
-const DEFAULT_STATION = {
-  name: 'Malakinfo Radio',
-  streamUrl: 'https://stream.zeno.fm/5k7n5xq7z4zuv',
+export const DEFAULT_STATION = {
+  id: 'default-radio',
+  name: 'Radio Okapi',
+  streamUrl: 'http://rs1.radiostreamer.com:8000/stream',
   logoUrl: '/images/logo.png',
-  description: 'Le son de Malakinfo en direct',
+  description: 'La voix de la paix',
   showLabel: true,
   isActive: true,
-};
+} as const;
 
 export async function GET() {
   try {
@@ -48,18 +49,13 @@ export async function POST(request: Request) {
     const body = await request.json();
     console.log('[radio API] Request body:', body);
 
-    if (!body?.streamUrl) {
-      console.warn('[radio API] Missing streamUrl');
-      return cors(NextResponse.json({ error: 'Le flux radio est requis.' }, { status: 400 }));
-    }
-
     const payload = {
-      name: body.name || DEFAULT_STATION.name,
-      streamUrl: body.streamUrl,
-      logoUrl: body.logoUrl || DEFAULT_STATION.logoUrl,
-      description: body.description || DEFAULT_STATION.description,
-      showLabel: body.showLabel ?? DEFAULT_STATION.showLabel,
-      isActive: body.isActive ?? DEFAULT_STATION.isActive,
+      name: String(body?.name ?? '').trim() || DEFAULT_STATION.name,
+      streamUrl: String(body?.streamUrl ?? '').trim() || DEFAULT_STATION.streamUrl,
+      logoUrl: String(body?.logoUrl ?? '').trim() || DEFAULT_STATION.logoUrl,
+      description: String(body?.description ?? '').trim() || DEFAULT_STATION.description,
+      showLabel: body?.showLabel ?? DEFAULT_STATION.showLabel,
+      isActive: body?.isActive ?? DEFAULT_STATION.isActive,
     };
     console.log('[radio API] Payload:', payload);
 
