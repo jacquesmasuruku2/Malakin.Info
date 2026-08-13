@@ -15,6 +15,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   let featuredArticles: any[] = [];
   let latestArticles: any[] = [];
   let currentLive: any = null;
+  let activeRadio: any = null;
 
   try {
     featuredArticles = await prisma.article.findMany({
@@ -42,10 +43,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       },
     });
 
-    // Get current live event
     const now = new Date();
     currentLive = await prisma.liveEvent.findFirst({
       where: {
+        streamType: 'VIDEO',
         startTime: { lte: now },
         OR: [
           { endTime: null },
@@ -55,6 +56,11 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       orderBy: {
         startTime: 'desc'
       }
+    });
+
+    activeRadio = await prisma.radioStation.findFirst({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
     });
   } catch (error) {
     console.error('Database connection error:', error);
@@ -93,32 +99,42 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     { name: locale === 'fr' ? 'Culture' : 'Culture', href: `/${locale}/culture`, color: 'bg-pink-500' },
   ];
 
+  const liveBanner = currentLive ? {
+    label: locale === 'fr' ? '🔴 EN DIRECT' : '🔴 LIVE',
+    title: currentLive.title,
+    text: locale === 'fr' ? 'Regarder maintenant' : 'Watch now',
+    href: `/${locale}/medias/live/${currentLive.id}`,
+  } : activeRadio ? {
+    label: locale === 'fr' ? '📻 RADIO EN DIRECT' : '📻 LIVE RADIO',
+    title: activeRadio.name || 'Radio Okapi',
+    text: activeRadio.description || 'La voix de la paix',
+    href: `/${locale}`,
+  } : null;
+
   return (
     <div className="flex flex-col">
-      {/* Live Banner - Si un live est en cours */}
-      {currentLive && (
+      {/* Live Banner - Priorité: TV live, puis radio active */}
+      {liveBanner && (
         <div className="bg-gradient-to-r from-red-600 to-red-700 text-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Desktop / tablet: keep existing two-column banner */}
-            <Link href={`/${locale}/medias/live/${currentLive.id}`} className="hidden md:flex items-center justify-between py-4">
+            <Link href={liveBanner.href} className="hidden md:flex items-center justify-between py-4">
               <div className="flex items-center gap-3">
                 <span className="px-3 py-1 bg-white text-red-600 text-sm font-bold rounded-full animate-pulse">
-                  🔴 EN DIRECT
+                  {liveBanner.label}
                 </span>
-                <span className="font-semibold">{currentLive.title}</span>
+                <span className="font-semibold">{liveBanner.title}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Radio className="w-4 h-4" />
-                <span>{locale === 'fr' ? 'Regarder maintenant' : 'Watch now'}</span>
+                <span>{liveBanner.text}</span>
                 <ArrowRight className="w-4 h-4" />
               </div>
             </Link>
 
-            {/* Mobile: marquee / billboard single-line scrolling text */}
-            <Link href={`/${locale}/medias/live/${currentLive.id}`} className="md:hidden block">
+            <Link href={liveBanner.href} className="md:hidden block">
               <div className="py-3 marquee-track">
                 <span className="marquee-content text-sm font-semibold">
-                  {`🔴 EN DIRECT — ${currentLive.title} — ${locale === 'fr' ? 'Regarder maintenant' : 'Watch now'}`}
+                  {`${liveBanner.label} — ${liveBanner.title} — ${liveBanner.text}`}
                 </span>
               </div>
             </Link>

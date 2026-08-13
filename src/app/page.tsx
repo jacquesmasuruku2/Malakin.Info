@@ -7,6 +7,8 @@ export const dynamic = 'force-dynamic';
 export default async function Home() {
   let featuredArticles: any[] = [];
   let latestArticles: any[] = [];
+  let currentLive: any = null;
+  let activeRadio: any = null;
 
   try {
     featuredArticles = await prisma.article.findMany({
@@ -32,6 +34,24 @@ export default async function Home() {
       orderBy: {
         publishedAt: 'desc',
       },
+    });
+
+    const now = new Date();
+    currentLive = await prisma.liveEvent.findFirst({
+      where: {
+        streamType: 'VIDEO',
+        startTime: { lte: now },
+        OR: [
+          { endTime: null },
+          { endTime: { gte: now } }
+        ]
+      },
+      orderBy: { startTime: 'desc' }
+    });
+
+    activeRadio = await prisma.radioStation.findFirst({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
     });
   } catch (error) {
     console.error('Database connection error:', error);
@@ -65,8 +85,39 @@ export default async function Home() {
     { name: 'Culture', href: '/culture', color: 'bg-pink-500' },
   ];
 
+  const liveBanner = currentLive ? {
+    label: '🔴 EN DIRECT',
+    title: currentLive.title,
+    text: 'Regarder maintenant',
+    href: `/medias/live/${currentLive.id}`,
+  } : activeRadio ? {
+    label: '📻 RADIO EN DIRECT',
+    title: activeRadio.name || 'Radio Okapi',
+    text: activeRadio.description || 'La voix de la paix',
+    href: '/#radio',
+  } : null;
+
   return (
     <div className="flex flex-col">
+      {liveBanner && (
+        <div className="bg-gradient-to-r from-red-600 to-red-700 text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Link href={liveBanner.href} className="flex items-center justify-between py-4">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-white text-red-600 text-sm font-bold rounded-full animate-pulse">
+                  {liveBanner.label}
+                </span>
+                <span className="font-semibold">{liveBanner.title}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <span>{liveBanner.text}</span>
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

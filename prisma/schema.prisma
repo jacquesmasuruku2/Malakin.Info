@@ -313,6 +313,11 @@ model BlogPost {
   @@index([featured])
 }
 
+enum StreamType {
+  VIDEO
+  AUDIO
+}
+
 model LiveEvent {
   id          String     @id @default(cuid())
   title       String
@@ -321,6 +326,7 @@ model LiveEvent {
   thumbnail   String?
   streamUrl   String?
   youtubeUrl  String?
+  streamType  StreamType @default(VIDEO)
   status      LiveStatus @default(SCHEDULED)
   startTime   DateTime
   endTime     DateTime?
@@ -331,6 +337,7 @@ model LiveEvent {
   categoryId  String?
 
   @@index([status])
+  @@index([streamType])
   @@index([startTime])
   @@index([isFeatured])
   @@index([categoryId])

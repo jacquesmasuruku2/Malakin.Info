@@ -19,6 +19,7 @@ export async function OPTIONS() {
 function serializeLiveEvent(event: any) {
   return {
     ...event,
+    streamType: event.streamType ?? 'VIDEO',
     category: event.category?.title ?? null,
     categoryId: event.categoryId ?? null,
   };
@@ -53,6 +54,7 @@ export async function GET(request: Request) {
         const now = new Date();
         const currentLive = await prisma.liveEvent.findFirst({
           where: {
+            streamType: 'VIDEO',
             startTime: { lte: now },
             OR: [
               { endTime: null },
@@ -188,6 +190,7 @@ export async function POST(request: Request) {
         thumbnail: body.thumbnail || null,
         streamUrl: body.streamUrl || null,
         youtubeUrl: body.youtubeUrl || null,
+        streamType: body.streamType === 'AUDIO' ? 'AUDIO' : 'VIDEO',
         status,
         startTime,
         endTime,
