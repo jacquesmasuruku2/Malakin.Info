@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { User, Mail, Calendar, Edit, Save, X, Camera, LogOut } from 'lucide-react';
+import { User, Mail, Calendar, Edit, Save, X, Camera, LogOut, MessageSquare, Heart, Bookmark, DollarSign, Settings, ChevronRight } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 export default function ProfilePage() {
+  const pathname = usePathname();
+  const locale = pathname.split('/')[1] || 'fr';
   const { data: session, status } = useSession();
   const [user, setUser] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -58,6 +61,49 @@ export default function ProfilePage() {
   if (status === 'loading' || !user) {
     return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
   }
+
+  const menuItems = [
+    {
+      icon: MessageSquare,
+      label: 'Mes commentaires',
+      count: user._count?.comments || 0,
+      href: `/${locale}/compte/commentaires`,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+    },
+    {
+      icon: Heart,
+      label: 'Mes likes',
+      count: user._count?.likes || 0,
+      href: `/${locale}/compte/likes`,
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+    },
+    {
+      icon: Bookmark,
+      label: 'Favoris',
+      count: user._count?.favorites || 0,
+      href: `/${locale}/compte/favoris`,
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-50',
+    },
+    {
+      icon: DollarSign,
+      label: 'Mes dons',
+      count: user._count?.donations || 0,
+      href: `/${locale}/compte/dons`,
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+    },
+    {
+      icon: Settings,
+      label: 'Paramètres',
+      count: null,
+      href: `/${locale}/compte/parametres`,
+      color: 'text-gray-600',
+      bgColor: 'bg-gray-50',
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-muted/30 py-12 px-4">
@@ -128,7 +174,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Bio */}
-            <div className="mb-6">
+            <div className="mb-8">
               <h2 className="text-lg font-semibold text-foreground mb-2">À propos</h2>
               {isEditing ? (
                 <textarea
@@ -145,8 +191,8 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
               <div className="bg-muted/50 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-primary">{user._count?.comments || 0}</p>
                 <p className="text-sm text-muted-foreground">Commentaires</p>
@@ -163,6 +209,34 @@ export default function ProfilePage() {
                 <p className="text-2xl font-bold text-primary">{user._count?.donations || 0}</p>
                 <p className="text-sm text-muted-foreground">Dons</p>
               </div>
+            </div>
+
+            {/* Menu Items */}
+            <div className="space-y-3 mb-8">
+              <h2 className="text-lg font-semibold text-foreground mb-4">Mon compte</h2>
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className="flex items-center justify-between p-4 bg-card border border-border rounded-lg hover:bg-muted/50 transition-colors group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`p-3 rounded-lg ${item.bgColor}`}>
+                        <Icon className={`w-5 h-5 ${item.color}`} />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{item.label}</p>
+                        {item.count !== null && (
+                          <p className="text-sm text-muted-foreground">{item.count} élément{item.count > 1 ? 's' : ''}</p>
+                        )}
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  </a>
+                );
+              })}
             </div>
 
             {/* Save Button */}
