@@ -367,12 +367,11 @@ export default function Navigation() {
                       <img
                         src={session.user.avatarUrl}
                         alt={session.user.name}
-                        className="w-6 h-6 rounded-full object-cover"
+                        className="w-8 h-8 rounded-full object-cover"
                       />
                     ) : (
-                      <User className="w-4 h-4 text-foreground" />
+                      <User className="w-5 h-5 text-foreground" />
                     )}
-                    <span className="text-sm font-medium text-foreground">{session.user.name}</span>
                   </button>
                   
                   {isUserMenuOpen && (
@@ -473,7 +472,7 @@ export default function Navigation() {
                     <img
                       src={session.user.avatarUrl}
                       alt={session.user.name}
-                      className="w-6 h-6 rounded-full object-cover"
+                      className="w-7 h-7 rounded-full object-cover"
                     />
                   ) : (
                     <User className="w-5 h-5" />
