@@ -8,6 +8,14 @@ declare module 'next-auth' {
       email: string;
       name: string;
       avatarUrl?: string;
+      bio?: string;
+      createdAt?: string;
+      _count?: {
+        comments: number;
+        likes: number;
+        favorites: number;
+        donations: number;
+      };
     };
   }
   interface User {
@@ -15,6 +23,14 @@ declare module 'next-auth' {
     email: string;
     name: string;
     avatarUrl?: string;
+    bio?: string;
+    createdAt?: string;
+    _count?: {
+      comments: number;
+      likes: number;
+      favorites: number;
+      donations: number;
+    };
   }
 }
 
@@ -101,6 +117,27 @@ export const authOptions = {
         if (session.user && token) {
           session.user.id = token.id;
           session.user.avatarUrl = token.avatarUrl;
+          
+          // Fetch additional user data from database
+          const user = await prisma.user.findUnique({
+            where: { id: token.id },
+            include: {
+              _count: {
+                select: {
+                  comments: true,
+                  likes: true,
+                  favorites: true,
+                  donations: true,
+                },
+              },
+            },
+          });
+
+          if (user) {
+            session.user.bio = user.bio;
+            session.user.createdAt = user.createdAt?.toISOString();
+            session.user._count = user._count;
+          }
         }
         return session;
       } catch (error) {
