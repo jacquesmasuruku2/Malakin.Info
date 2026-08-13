@@ -1,5 +1,6 @@
 import GoogleProvider from 'next-auth/providers/google';
 import { prisma } from '@/lib/prisma';
+import type { AuthOptions } from 'next-auth';
 
 declare module 'next-auth' {
   interface Session {
@@ -44,7 +45,7 @@ declare module 'next-auth/jwt' {
 // Check if Google OAuth is configured
 const isGoogleConfigured = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
 
-export const authOptions = {
+export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   providers: isGoogleConfigured ? [
     GoogleProvider({
