@@ -1,161 +1,77 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import ReadAlso from './ReadAlso';
 
 interface ReadAlsoRendererProps {
   content: string;
 }
 
-interface ReadAlsoData {
-  title: string;
-  url: string;
-  accentColor?: string;
-}
-
 const proseClasses = "prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-2 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-6 prose-h2:mb-3 prose-h3:mt-5 prose-h3:mb-2 prose-p:my-2 prose-ul:my-3 prose-ol:my-3 prose-li:my-1 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground";
 
 export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
-  const [processedContent, setProcessedContent] = useState<React.ReactElement[]>([]);
+  if (!content) {
+    return null;
+  }
 
-  useEffect(() => {
-    if (!content) {
-      setProcessedContent([]);
-      return;
-    }
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(content, 'text/html');
+  const blocks = Array.from(doc.querySelectorAll('div[data-type="read-also"]'));
 
-    // Parse the HTML content
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(content, 'text/html');
-    
-    // Find all read-also blocks
-    const readAlsoBlocks = doc.querySelectorAll('div[data-type="read-also"]');
-    
-    if (readAlsoBlocks.length === 0) {
-      // No read-also blocks, render as plain HTML
-      setProcessedContent([
-        <div 
-          key="content" 
-          dangerouslySetInnerHTML={{ __html: content }} 
-          className={proseClasses}
-        />
-      ]);
-      return;
-    }
+  if (blocks.length === 0) {
+    return (
+      <div
+        dangerouslySetInnerHTML={{ __html: content }}
+        className={proseClasses}
+      />
+    );
+  }
 
-    // Split content and replace read-also blocks with components
-    const elements: React.ReactElement[] = [];
-    let lastIndex = 0;
+  const elements: React.ReactNode[] = [];
+  let cursor = 0;
 
-    readAlsoBlocks.forEach((block, index) => {
-      // Get content before this block
-      const beforeContent = content.substring(lastIndex, (block as any).start || 0);
-      
-      if (beforeContent) {
+  blocks.forEach((block, index) => {
+    const rawBlock = block.outerHTML;
+    const blockIndex = content.indexOf(rawBlock, cursor);
+
+    if (blockIndex > cursor) {
+      const beforeContent = content.slice(cursor, blockIndex);
+      if (beforeContent.trim()) {
         elements.push(
-          <div 
+          <div
             key={`before-${index}`}
             dangerouslySetInnerHTML={{ __html: beforeContent }}
             className={proseClasses}
           />
         );
       }
-
-      // Extract data from the block
-      const title = block.getAttribute('data-title') || '';
-      const url = block.getAttribute('data-url') || '';
-      const accentColor = block.getAttribute('data-accent-color') || '#2563eb';
-
-      // Add ReadAlso component
-      elements.push(
-        <ReadAlso 
-          key={`read-also-${index}`}
-          title={title}
-          url={url}
-          accentColor={accentColor}
-        />
-      );
-
-      // Update last index
-      lastIndex = (block as any).end || content.length;
-    });
-
-    // Add remaining content after last block
-    const afterContent = content.substring(lastIndex);
-    if (afterContent) {
-      elements.push(
-        <div 
-          key="after"
-          dangerouslySetInnerHTML={{ __html: afterContent }}
-          className={proseClasses}
-        />
-      );
     }
 
-    setProcessedContent(elements);
-  }, [content]);
+    const title = block.getAttribute('data-title') || '';
+    const url = block.getAttribute('data-url') || '';
+    const accentColor = block.getAttribute('data-accent-color') || '#2563eb';
 
-  // Alternative approach: Use regex to find and replace
-  const renderContent = () => {
-    if (!content) return null;
+    elements.push(
+      <ReadAlso
+        key={`read-also-${index}`}
+        title={title}
+        url={url}
+        accentColor={accentColor}
+      />
+    );
 
-    // More flexible regex to handle different attribute orders
-    const regex = /<div[^>]*data-type="read-also"[^>]*data-title="([^"]*)"[^>]*data-url="([^"]*)"[^>]*data-accent-color="([^"]*)"[^>]*>/g;
-    const parts: (string | React.ReactElement)[] = [];
-    let lastIndex = 0;
-    let match;
+    cursor = blockIndex >= 0 ? blockIndex + rawBlock.length : cursor;
+  });
 
-    while ((match = regex.exec(content)) !== null) {
-      // Add content before the match
-      const before = content.substring(lastIndex, match.index);
-      if (before) {
-        parts.push(
-          <div 
-            key={`before-${match.index}`}
-            dangerouslySetInnerHTML={{ __html: before }}
-            className={proseClasses}
-          />
-        );
-      }
-
-      // Add ReadAlso component
-      parts.push(
-        <ReadAlso 
-          key={`read-also-${match.index}`}
-          title={match[1]}
-          url={match[2]}
-          accentColor={match[3]}
-        />
-      );
-
-      lastIndex = match.index + match[0].length;
-      
-      // Find the closing div
-      const closingDiv = content.indexOf('</div>', lastIndex);
-      if (closingDiv !== -1) {
-        lastIndex = closingDiv + 6; // Skip past </div>
-      }
-    }
-
-    // Add remaining content
-    const after = content.substring(lastIndex);
-    if (after) {
-      parts.push(
-        <div 
-          key="after"
-          dangerouslySetInnerHTML={{ __html: after }}
-          className={proseClasses}
-        />
-      );
-    }
-
-    return parts.length > 0 ? parts : (
-      <div 
-        dangerouslySetInnerHTML={{ __html: content }}
+  const remainingContent = content.slice(cursor);
+  if (remainingContent.trim()) {
+    elements.push(
+      <div
+        key="after-read-also"
+        dangerouslySetInnerHTML={{ __html: remainingContent }}
         className={proseClasses}
       />
     );
-  };
+  }
 
-  return <>{renderContent()}</>;
+  return <>{elements}</>;
 }
