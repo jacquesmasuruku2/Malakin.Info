@@ -50,6 +50,23 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
   const heroImage = hero.mainImageUrl || 'https://placehold.co/1200x700/0f172a/ffffff?text=Malakinfo';
   const heroCategory = hero.category?.title || 'Actualités';
   const heroExcerpt = normalizeText(hero.excerpt, 220);
+  const footerSocialLinks = [
+    {
+      label: 'Facebook',
+      href: 'https://web.facebook.com/profile.php?id=61593119312402&locale=fr_FR',
+      bgColor: '#1877F2',
+    },
+    {
+      label: 'X',
+      href: 'https://x.com/',
+      bgColor: '#000000',
+    },
+    {
+      label: 'Instagram',
+      href: 'https://www.instagram.com/',
+      bgColor: '#E1306C',
+    },
+  ];
 
   const secondaryCards = secondary.map((article) => {
     const articleUrl = buildArticleUrl(article);
@@ -149,6 +166,25 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
               <td style="padding: 0 24px 12px 24px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
                   ${secondaryCards}
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding: 0 24px 16px 24px; text-align:center;">
+                <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 18px; color:#666666; font-weight: bold; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 10px;">
+                  Suivez-nous
+                </div>
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; border-collapse: separate;">
+                  <tr>
+                    ${footerSocialLinks.map((item) => `
+                      <td style="padding: 0 6px;">
+                        <a href="${item.href}" style="display:inline-block; background:${item.bgColor}; color:#ffffff; font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; text-decoration:none; border-radius: 999px; padding: 8px 14px; line-height: 18px;">
+                          ${escapeHtml(item.label)}
+                        </a>
+                      </td>
+                    `).join('')}
+                  </tr>
                 </table>
               </td>
             </tr>
