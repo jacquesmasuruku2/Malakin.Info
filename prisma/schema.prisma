@@ -18,7 +18,6 @@ model Category {
   updatedAt     DateTime @updatedAt
   defaultLocale String   @default("fr")
   media         Media[]
-  articles      Article[]
 }
 
 model CategoryTranslation {
@@ -36,19 +35,17 @@ model CategoryTranslation {
 }
 
 model Author {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
-  slug      String    @unique
+  slug      String   @unique
   bio       String?
   role      String?
   email     String?
   imageUrl  String?
   imageAlt  String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   media     Media[]
-  articles  Article[]
-  blogPosts BlogPost[]
 }
 
 model Article {
@@ -68,10 +65,7 @@ model Article {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   defaultLocale String   @default("fr")
-  category      Category      @relation(fields: [categoryId], references: [id])
-  author        Author?       @relation(fields: [authorId], references: [id])
   likes         Like[]
-  favorites     UserFavorite[]
 
   @@index([categoryId])
   @@index([authorId])
@@ -96,24 +90,21 @@ model ArticleTranslation {
 }
 
 model User {
-  id            String            @id @default(cuid())
-  email         String            @unique
+  id            String    @id @default(cuid())
+  email         String    @unique
   name          String
   passwordHash  String
-  role          String            @default("reader")
+  role          String    @default("reader")
   avatarUrl     String?
   bio           String?
-  isActive      Boolean           @default(true)
-  emailVerified Boolean           @default(false)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   lastLoginAt   DateTime?
   comments      Comment[]
   likes         Like[]
   sessions      Session[]
-  favorites     UserFavorite[]
-  preferences   UserPreference?
-  donations     Donation[]
 
   @@index([email])
   @@index([role])
@@ -128,31 +119,6 @@ model Session {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model UserFavorite {
-  id        String   @id @default(cuid())
-  userId    String
-  articleId String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, articleId])
-  @@index([userId])
-  @@index([articleId])
-}
-
-model UserPreference {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  locale          String   @default("fr")
-  theme           String   @default("light")
-  emailNewsletter Boolean  @default(false)
-  emailDigest     Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 model Comment {
   id        String   @id @default(cuid())
   articleId String
@@ -163,8 +129,6 @@ model Comment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies   Comment[] @relation("CommentReplies")
 
   @@index([articleId])
   @@index([userId])
@@ -235,7 +199,6 @@ model Media {
 
 model Donation {
   id            String   @id @default(cuid())
-  userId        String?
   donorName     String?
   donorEmail    String?
   amount        Decimal  @db.Decimal(10, 2)
@@ -248,11 +211,9 @@ model Donation {
   transactionId String?  @unique
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  user          User?    @relation(fields: [userId], references: [id])
 
   @@index([status])
   @@index([createdAt(sort: Desc)])
-  @@index([userId])
 }
 
 model Partnership {
@@ -346,16 +307,10 @@ model BlogPost {
   views        BigInt   @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  author       Author?  @relation(fields: [authorId], references: [id])
 
   @@index([type])
   @@index([publishedAt(sort: Desc)])
   @@index([featured])
-}
-
-enum StreamType {
-  VIDEO
-  AUDIO
 }
 
 model LiveEvent {
@@ -366,7 +321,6 @@ model LiveEvent {
   thumbnail   String?
   streamUrl   String?
   youtubeUrl  String?
-  streamType  StreamType @default(VIDEO)
   status      LiveStatus @default(SCHEDULED)
   startTime   DateTime
   endTime     DateTime?
@@ -377,7 +331,6 @@ model LiveEvent {
   categoryId  String?
 
   @@index([status])
-  @@index([streamType])
   @@index([startTime])
   @@index([isFeatured])
   @@index([categoryId])
@@ -392,40 +345,14 @@ model LiveViewerSession {
 }
 
 model RadioStation {
-  id          String        @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   streamUrl   String
   logoUrl     String?
   description String?
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  programs    RadioProgram[]
-
-  @@index([isActive])
-}
-
-model RadioProgram {
-  id          String       @id @default(cuid())
-  stationId   String?
-  title       String
-  slug        String       @unique
-  host        String?
-  description String?
-  streamUrl   String?
-  imageUrl    String?
-  startTime   DateTime
-  endTime     DateTime?
-  isLive      Boolean      @default(false)
-  isFeatured  Boolean      @default(false)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  station     RadioStation? @relation(fields: [stationId], references: [id])
-
-  @@index([stationId])
-  @@index([startTime])
-  @@index([isLive])
-  @@index([isFeatured])
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 enum LiveStatus {
