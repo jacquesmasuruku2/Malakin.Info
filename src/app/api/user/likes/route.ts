@@ -3,16 +3,35 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 
+async function resolveCurrentUserId(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+
+  if (session?.user?.id) {
+    return session.user.id;
+  }
+
+  const sessionToken = request.cookies.get('session_token')?.value;
+  if (!sessionToken) {
+    return null;
+  }
+
+  const customSession = await prisma.session.findUnique({
+    where: { token: sessionToken },
+  });
+
+  return customSession?.userId ?? null;
+}
+
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const userId = await resolveCurrentUserId(request);
     
-    if (!session?.user?.id) {
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const likes = await prisma.like.findMany({
-      where: { userId: session.user.id },
+      where: { userId },
       orderBy: {
         createdAt: 'desc',
       },

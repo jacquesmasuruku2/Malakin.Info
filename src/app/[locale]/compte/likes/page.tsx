@@ -2,29 +2,51 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Heart, Calendar, ExternalLink } from 'lucide-react';
+import { Heart, Calendar, ExternalLink, User } from 'lucide-react';
 
 export default function LikesPage() {
   const { data: session, status } = useSession();
   const [likes, setLikes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [localUser, setLocalUser] = useState<any>(null);
 
   useEffect(() => {
-    if (session?.user) {
-      fetchLikes();
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          setLocalUser(JSON.parse(storedUser));
+        } catch {
+          setLocalUser(null);
+        }
+      }
     }
-  }, [session]);
+  }, []);
+
+  const currentUser = session?.user ?? localUser;
+
+  useEffect(() => {
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
+
+    fetchLikes();
+  }, [currentUser]);
 
   const fetchLikes = async () => {
     try {
       const response = await fetch('/api/user/likes');
-      
+
       if (response.ok) {
         const data = await response.json();
-        setLikes(data);
+        setLikes(Array.isArray(data) ? data : []);
+      } else {
+        setLikes([]);
       }
     } catch (error) {
       console.error('Error fetching likes:', error);
+      setLikes([]);
     } finally {
       setLoading(false);
     }
@@ -37,12 +59,31 @@ export default function LikesPage() {
   return (
     <div className="min-h-screen bg-muted/30 py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Mes likes</h1>
-          <p className="text-muted-foreground">Les articles que vous avez aimés</p>
+        <div className="mb-8 flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-sm">
+          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-primary">
+            {currentUser?.avatarUrl ? (
+              <img src={currentUser.avatarUrl} alt={currentUser.name || 'Utilisateur'} className="h-full w-full object-cover" />
+            ) : (
+              <User className="h-6 w-6" />
+            )}
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-1">Mes likes</h1>
+            <p className="text-muted-foreground">
+              {currentUser ? `Connecté en tant que ${currentUser.name || currentUser.email}` : 'Vous devez être connecté pour voir vos likes.'}
+            </p>
+          </div>
         </div>
 
-        {likes.length === 0 ? (
+        {!currentUser ? (
+          <div className="bg-card rounded-lg p-12 text-center">
+            <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-foreground mb-2">Connexion requise</h2>
+            <p className="text-muted-foreground mb-4">
+              Veuillez vous reconnecter pour voir vos likes.
+            </p>
+          </div>
+        ) : likes.length === 0 ? (
           <div className="bg-card rounded-lg p-12 text-center">
             <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">Aucun like</h2>

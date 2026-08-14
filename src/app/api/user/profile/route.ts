@@ -3,11 +3,30 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 
+async function resolveCurrentUserId(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+
+  if (session?.user?.id) {
+    return session.user.id;
+  }
+
+  const sessionToken = request.cookies.get('session_token')?.value;
+  if (!sessionToken) {
+    return null;
+  }
+
+  const customSession = await prisma.session.findUnique({
+    where: { token: sessionToken },
+  });
+
+  return customSession?.userId ?? null;
+}
+
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const userId = await resolveCurrentUserId(request);
     
-    if (!session?.user?.id) {
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -16,7 +35,7 @@ export async function PUT(request: NextRequest) {
 
     // Update user
     const updatedUser = await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: userId },
       data: {
         ...(name && { name }),
         ...(bio !== undefined && { bio }),
@@ -34,14 +53,14 @@ export async function PUT(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.id) {
+    const userId = await resolveCurrentUserId(request);
+
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: userId },
       include: {
         _count: {
           select: {

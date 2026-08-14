@@ -17,12 +17,28 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
+    const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+
     if (session?.user) {
       setUser(session.user);
       setFormData({
         name: session.user.name || '',
         bio: session.user.bio || '',
       });
+      return;
+    }
+
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setFormData({
+          name: parsedUser.name || '',
+          bio: parsedUser.bio || '',
+        });
+      } catch {
+        setUser(null);
+      }
     }
   }, [session]);
 

@@ -3,27 +3,36 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 
+async function resolveCurrentUser(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+
+  if (session?.user?.id) {
+    return prisma.user.findUnique({ where: { id: session.user.id } });
+  }
+
+  const sessionToken = request.cookies.get('session_token')?.value;
+  if (!sessionToken) {
+    return null;
+  }
+
+  const customSession = await prisma.session.findUnique({
+    where: { token: sessionToken },
+  });
+
+  if (!customSession) {
+    return null;
+  }
+
+  return prisma.user.findUnique({ where: { id: customSession.userId } });
+}
+
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const currentUser = await resolveCurrentUser(request);
 
-    if (!session?.user) {
+    if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const resolvedUser = session.user.id
-      ? await prisma.user.findUnique({
-          where: { id: session.user.id },
-        })
-      : null;
-
-    const fallbackUser = !resolvedUser && session.user.email
-      ? await prisma.user.findUnique({
-          where: { email: session.user.email.toLowerCase() },
-        })
-      : null;
-
-    const currentUser = resolvedUser ?? fallbackUser;
 
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

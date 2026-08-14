@@ -24,6 +24,21 @@ export default function Navigation() {
   
   const locale = getLocaleFromPathname(pathname);
   const t = getMessages(locale).nav;
+  const [localUser, setLocalUser] = useState<any>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setLocalUser(JSON.parse(storedUser));
+      } catch {
+        setLocalUser(null);
+      }
+    }
+  }, []);
+
+  const activeUser = session?.user ?? localUser;
 
   // detect mobile viewport
   useEffect(() => {
@@ -74,6 +89,10 @@ export default function Navigation() {
   }, [isMobile]);
 
   const handleLogout = async () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+    }
     await signOut({ callbackUrl: '/' });
     setIsUserMenuOpen(false);
   };
@@ -357,16 +376,16 @@ export default function Navigation() {
                 <span>{t.magazine}</span>
               </Link>
               
-              {session?.user ? (
+              {activeUser ? (
                 <div className="relative">
                   <button
                     className="flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   >
-                    {session.user.avatarUrl ? (
+                    {activeUser.avatarUrl ? (
                       <img
-                        src={session.user.avatarUrl}
-                        alt={session.user.name}
+                        src={activeUser.avatarUrl}
+                        alt={activeUser.name}
                         className="w-8 h-8 rounded-full object-cover"
                       />
                     ) : (
@@ -377,8 +396,8 @@ export default function Navigation() {
                   {isUserMenuOpen && (
                     <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50">
                       <div className="px-4 py-2 border-b border-gray-200">
-                        <p className="text-sm font-medium text-foreground">{session.user.name}</p>
-                        <p className="text-xs text-gray-500">{session.user.email}</p>
+                        <p className="text-sm font-medium text-foreground">{activeUser.name}</p>
+                        <p className="text-xs text-gray-500">{activeUser.email}</p>
                       </div>
                       <Link
                         href={`/${locale}/compte/profil`}
@@ -463,15 +482,15 @@ export default function Navigation() {
             {/* Right side - Mobile */}
             <div className="md:hidden flex items-center space-x-2">
               <LanguageSwitcher />
-              {session?.user ? (
+              {activeUser ? (
                 <button
                   className="p-2 text-foreground hover:text-primary transition-colors"
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 >
-                  {session.user.avatarUrl ? (
+                  {activeUser.avatarUrl ? (
                     <img
-                      src={session.user.avatarUrl}
-                      alt={session.user.name}
+                      src={activeUser.avatarUrl}
+                      alt={activeUser.name}
                       className="w-7 h-7 rounded-full object-cover"
                     />
                   ) : (
