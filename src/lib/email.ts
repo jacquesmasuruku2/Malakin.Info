@@ -5,7 +5,10 @@ const port = Number(process.env.SMTP_PORT || '587');
 const secure = process.env.SMTP_SECURE === 'true';
 const user = process.env.SMTP_USER;
 const pass = process.env.SMTP_PASS;
-const from = process.env.EMAIL_FROM;
+const from = (process.env.EMAIL_FROM || 'Malakinfo <no-reply@malakinfo.com>').replace(
+  /<\s*noreplay@/i,
+  '<no-reply@',
+);
 
 if (!host || !user || !pass || !from) {
   console.warn('SMTP email is not fully configured. Email sending will be disabled.');
