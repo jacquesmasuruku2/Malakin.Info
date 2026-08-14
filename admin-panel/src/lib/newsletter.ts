@@ -32,6 +32,27 @@ const buildArticleUrl = (article: NewsletterArticle) => {
   return `${baseUrl.replace(/\/$/, '')}/${categorySlug}/${slug}`;
 };
 
+const responsiveNewsletterCss = `
+  <style>
+    @media only screen and (max-width: 620px) {
+      .newsletter-shell { width: 100% !important; }
+      .newsletter-content { width: 100% !important; }
+      .newsletter-mobile-padding { padding-left: 16px !important; padding-right: 16px !important; }
+      .newsletter-hero-image { width: 100% !important; max-width: 100% !important; height: auto !important; }
+      .newsletter-card-image { width: 100% !important; max-width: 100% !important; height: auto !important; }
+      .newsletter-stack { display: block !important; width: 100% !important; }
+      .newsletter-stack-cell { display: block !important; width: 100% !important; max-width: 100% !important; }
+      .newsletter-stack-cell img { width: 100% !important; max-width: 100% !important; height: auto !important; }
+      .newsletter-button-cell { display: block !important; width: 100% !important; }
+      .newsletter-button-link { display: block !important; width: auto !important; text-align: center !important; }
+      .newsletter-social-cell { display: inline-block !important; padding: 0 4px 8px 4px !important; }
+      .newsletter-social-link { display: inline-block !important; }
+      .newsletter-title { font-size: 24px !important; line-height: 30px !important; }
+      .newsletter-subtitle { font-size: 18px !important; line-height: 24px !important; }
+    }
+  </style>
+`;
+
 export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
   if (!articles || articles.length === 0) {
     return '<p>Pas d’articles sélectionnés.</p>';
@@ -78,14 +99,14 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
     return `
       <tr>
         <td style="padding: 0 0 20px 0;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;" class="newsletter-stack">
             <tr>
-              <td width="200" valign="top" style="padding: 0 16px 0 0;">
+              <td width="200" valign="top" class="newsletter-stack-cell" style="padding: 0 16px 0 0; width: 200px; max-width: 200px;">
                 <a href="${articleUrl}" style="display:block; text-decoration:none;">
-                  <img src="${image}" alt="${title}" width="200" style="display:block; width:200px; max-width:100%; height:auto; border-radius:8px; border:0; background:#f3f4f6;" />
+                  <img src="${image}" alt="${title}" width="200" class="newsletter-card-image" style="display:block; width:200px; max-width:100%; height:auto; border-radius:8px; border:0; background:#f3f4f6;" />
                 </a>
               </td>
-              <td valign="top">
+              <td valign="top" class="newsletter-stack-cell" style="width: auto;">
                 <div style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; color: #c81f2d; letter-spacing: 0.8px; text-transform: uppercase; margin: 0 0 8px 0;">
                   ${escapeHtml(category)}
                 </div>
@@ -104,10 +125,11 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
   }).join('');
 
   return `
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8; margin:0; padding:0;">
+    ${responsiveNewsletterCss}
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="newsletter-shell" style="background:#f5f6f8; margin:0; padding:0;">
       <tr>
         <td align="center" style="padding: 32px 16px;">
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px; background:#ffffff; border-collapse:collapse; margin:0 auto;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="newsletter-content" style="max-width:600px; background:#ffffff; border-collapse:collapse; margin:0 auto;">
             <tr>
               <td style="padding: 18px 24px; background:#0d1b3d; text-align:center;">
                 <div style="font-family: Arial, sans-serif; font-size: 12px; letter-spacing: 2px; color:#ffffff; text-transform: uppercase; font-weight: bold;">
@@ -119,13 +141,13 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
             <tr>
               <td style="padding: 0;">
                 <a href="${heroUrl}" style="display:block; text-decoration:none;">
-                  <img src="${heroImage}" alt="${escapeHtml(hero.title)}" width="600" style="display:block; width:100%; max-width:600px; height:auto; border:0; background:#e5e7eb;" />
+                  <img src="${heroImage}" alt="${escapeHtml(hero.title)}" width="600" class="newsletter-hero-image" style="display:block; width:100%; max-width:600px; height:auto; border:0; background:#e5e7eb;" />
                 </a>
               </td>
             </tr>
 
             <tr>
-              <td style="padding: 20px 24px 8px 24px;">
+              <td class="newsletter-mobile-padding" style="padding: 20px 24px 8px 24px;">
                 <div style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; color:#c81f2d; text-transform: uppercase; letter-spacing: 1px;">
                   ${escapeHtml(heroCategory)}
                 </div>
@@ -133,15 +155,15 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
             </tr>
 
             <tr>
-              <td style="padding: 0 24px;">
-                <a href="${heroUrl}" style="font-family: Arial, sans-serif; font-size: 30px; line-height: 38px; color:#111827; text-decoration:none; font-weight:bold;">
+              <td class="newsletter-mobile-padding" style="padding: 0 24px;">
+                <a href="${heroUrl}" class="newsletter-title" style="font-family: Arial, sans-serif; font-size: 30px; line-height: 38px; color:#111827; text-decoration:none; font-weight:bold;">
                   ${escapeHtml(hero.title)}
                 </a>
               </td>
             </tr>
 
             <tr>
-              <td style="padding: 12px 24px 18px 24px;">
+              <td class="newsletter-mobile-padding" style="padding: 12px 24px 18px 24px;">
                 <div style="font-family: Arial, sans-serif; font-size: 15px; line-height: 24px; color:#222222;">
                   ${escapeHtml(heroExcerpt)}
                 </div>
@@ -149,11 +171,11 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
             </tr>
 
             <tr>
-              <td style="padding: 0 24px 24px 24px;">
+              <td class="newsletter-mobile-padding" style="padding: 0 24px 24px 24px;">
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
                   <tr>
-                    <td bgcolor="#c81f2d" style="border-radius: 4px;">
-                      <a href="${heroUrl}" style="display:inline-block; padding: 12px 20px; font-family: Arial, sans-serif; font-size: 13px; line-height: 18px; color:#ffffff; text-decoration:none; font-weight:bold; text-transform: uppercase;">
+                    <td bgcolor="#c81f2d" class="newsletter-button-cell" style="border-radius: 4px;">
+                      <a href="${heroUrl}" class="newsletter-button-link" style="display:inline-block; padding: 12px 20px; font-family: Arial, sans-serif; font-size: 13px; line-height: 18px; color:#ffffff; text-decoration:none; font-weight:bold; text-transform: uppercase;">
                         LIRE LA SUITE
                       </a>
                     </td>
@@ -163,7 +185,7 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
             </tr>
 
             <tr>
-              <td style="padding: 0 24px 12px 24px;">
+              <td class="newsletter-mobile-padding" style="padding: 0 24px 12px 24px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
                   ${secondaryCards}
                 </table>
@@ -171,15 +193,15 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
             </tr>
 
             <tr>
-              <td style="padding: 0 24px 16px 24px; text-align:center;">
+              <td class="newsletter-mobile-padding" style="padding: 0 24px 16px 24px; text-align:center;">
                 <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 18px; color:#666666; font-weight: bold; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 10px;">
                   Suivez-nous
                 </div>
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; border-collapse: separate;">
                   <tr>
                     ${footerSocialLinks.map((item) => `
-                      <td style="padding: 0 6px;">
-                        <a href="${item.href}" style="display:inline-block; background:${item.bgColor}; color:#ffffff; font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; text-decoration:none; border-radius: 999px; padding: 8px 14px; line-height: 18px;">
+                      <td class="newsletter-social-cell" style="padding: 0 6px;">
+                        <a href="${item.href}" class="newsletter-social-link" style="display:inline-block; background:${item.bgColor}; color:#ffffff; font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; text-decoration:none; border-radius: 999px; padding: 8px 14px; line-height: 18px;">
                           ${escapeHtml(item.label)}
                         </a>
                       </td>
@@ -190,7 +212,7 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
             </tr>
 
             <tr>
-              <td style="padding: 18px 24px 28px 24px; font-family: Arial, sans-serif; font-size: 12px; line-height: 18px; color:#666666; text-align:center;">
+              <td class="newsletter-mobile-padding" style="padding: 18px 24px 28px 24px; font-family: Arial, sans-serif; font-size: 12px; line-height: 18px; color:#666666; text-align:center;">
                 Malakinfo • Actualités, analyses et perspectives
               </td>
             </tr>
