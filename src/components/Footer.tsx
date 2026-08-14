@@ -60,7 +60,7 @@ export default function Footer() {
     Instagram: {
       icon: () => <FaInstagram className="w-4 h-4" />,
       color: '#E4405F',
-      url: 'https://www.instagram.com/',
+      url: 'https://www.instagram.com/malakinfo/',
     },
     WhatsApp: {
       icon: () => <FaWhatsapp className="w-4 h-4" />,

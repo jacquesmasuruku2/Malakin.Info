@@ -208,6 +208,15 @@ export default function ContactPage() {
                   <span className="text-sm font-medium">Facebook</span>
                 </a>
                 <a
+                  href="https://www.instagram.com/malakinfo/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 hover:opacity-90 text-white rounded-lg px-4 py-3 transition-colors"
+                >
+                  <FaInstagram className="w-5 h-5" />
+                  <span className="text-sm font-medium">Instagram</span>
+                </a>
+                <a
                   href="https://wa.me/243998258441"
                   target="_blank"
                   rel="noopener noreferrer"

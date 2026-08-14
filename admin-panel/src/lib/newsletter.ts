@@ -104,7 +104,7 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
     },
     {
       label: 'Instagram',
-      href: 'https://www.instagram.com/',
+      href: 'https://www.instagram.com/malakinfo/',
       bgColor: '#E1306C',
       iconSvg: `
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block; width:18px; height:18px; fill: currentColor;">
