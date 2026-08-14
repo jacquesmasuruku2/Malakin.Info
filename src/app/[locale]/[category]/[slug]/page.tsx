@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Playfair_Display } from 'next/font/google';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, User, Bookmark, ArrowLeft } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
@@ -11,6 +12,11 @@ import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
 import { SponsoredSection } from '@/components/SponsoredSection';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '700', '900'],
+});
 
 export const dynamic = 'force-dynamic';
 
@@ -199,7 +205,7 @@ export default async function ArticlePage({
               <span>{article.author?.name || t.teamMalakin}</span>
             </div>
 
-            <h1 className="font-serif text-3xl font-bold leading-tight tracking-tight text-gray-900 md:text-5xl">
+            <h1 className={`${playfair.className} text-3xl font-bold leading-tight tracking-tight text-gray-900 md:text-5xl`}>
               {displayTitle}
             </h1>
           </header>
@@ -216,7 +222,9 @@ export default async function ArticlePage({
                 </div>
               )}
 
-              <ReadAlsoRenderer content={displayContent} />
+              <div className={`${playfair.className} text-base font-normal leading-relaxed text-gray-800 md:text-lg`}>
+                <ReadAlsoRenderer content={displayContent} />
+              </div>
 
               <div className="mt-8">
                 <AdSenseAd adSlot="0987654321" className="my-4" />
@@ -250,9 +258,6 @@ export default async function ArticlePage({
                   />
                 )}
                 <div className="flex-1">
-                  <h3 className="font-heading text-base sm:text-lg font-semibold text-foreground mb-2">
-                    {article.author.name}
-                  </h3>
                   {article.author.bio && (
                     <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-none">
                       {article.author.bio}

@@ -212,9 +212,6 @@ export default async function ActualitesCatchAllPage({
                   />
                 )}
                 <div className="flex-1">
-                  <h3 className="font-heading text-base sm:text-lg font-semibold text-foreground mb-2">
-                    {article.author.name}
-                  </h3>
                   {article.author.bio && (
                     <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-none">
                       {article.author.bio}
