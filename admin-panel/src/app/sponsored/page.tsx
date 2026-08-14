@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AdminLayout from '@/components/AdminLayout';
 import { Plus, Trash2, Pencil, Search, ExternalLink, ArrowLeft } from 'lucide-react';
@@ -23,7 +23,7 @@ interface SponsoredArticle {
   articleId?: string | null;
 }
 
-export default function SponsoredArticlesPage() {
+function SponsoredArticlesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedArticleId = searchParams.get('articleId') || '';
@@ -345,5 +345,13 @@ export default function SponsoredArticlesPage() {
         </div>
       </div>
     </AdminLayout>
+  );
+}
+
+export default function SponsoredArticlesPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-gray-500">Chargement...</div>}>
+      <SponsoredArticlesPageContent />
+    </Suspense>
   );
 }

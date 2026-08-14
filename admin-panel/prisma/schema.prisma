@@ -64,6 +64,7 @@ model Article {
   authorId          String?
   publishedAt       DateTime
   mainImageUrl      String?
+  externalLink      String?
   mainImageAlt      String?
   readTime          String?
   featured          Boolean            @default(false)

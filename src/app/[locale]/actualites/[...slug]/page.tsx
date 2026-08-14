@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, User, ArrowLeft } from 'lucide-react';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
@@ -39,6 +39,10 @@ export default async function ActualitesCatchAllPage({
 
     if (!article) {
       notFound();
+    }
+
+    if (article.externalLink) {
+      redirect(article.externalLink);
     }
 
     const relatedArticles: any[] = await prisma.article.findMany({

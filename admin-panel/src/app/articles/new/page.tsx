@@ -24,6 +24,7 @@ export default function NewArticlePage() {
     featured: false,
     readTime: '',
     mainImageUrl: '',
+    externalLink: '',
   });
 
   // Load draft from localStorage on mount
@@ -116,6 +117,7 @@ export default function NewArticlePage() {
       featured: false,
       readTime: '',
       mainImageUrl: '',
+      externalLink: '',
     });
   };
 
@@ -310,6 +312,22 @@ export default function NewArticlePage() {
                   />
                   <p className="text-sm text-gray-500 mt-2">
                     Collez l'URL de votre image hébergée sur Cloudinary, Imgur, ImgBB ou tout autre service d'hébergement d'images.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Lien externe de destination
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.externalLink}
+                    onChange={(e) => setFormData({ ...formData, externalLink: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="https://www.example.com"
+                  />
+                  <p className="text-sm text-gray-500 mt-2">
+                    Si ce champ est rempli, les visiteurs seront redirigés vers cette URL au clic sur l'article.
                   </p>
                 </div>
 

@@ -5,7 +5,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import WordEditor from '@/components/WordEditor';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Save, X } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { getApiUrl } from '@/lib/api';
 
 interface Article {
@@ -20,6 +20,7 @@ interface Article {
   featured: boolean;
   readTime: string | null;
   mainImageUrl: string | null;
+  externalLink: string | null;
 }
 
 export default function EditArticlePage() {
@@ -27,8 +28,8 @@ export default function EditArticlePage() {
   const params = useParams();
   const articleId = params.id as string;
 
-  const [categories, setCategories] = useState<{id: string, title: string}[]>([]);
-  const [authors, setAuthors] = useState<{id: string, name: string}[]>([]);
+  const [categories, setCategories] = useState<{ id: string; title: string }[]>([]);
+  const [authors, setAuthors] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
@@ -43,9 +44,9 @@ export default function EditArticlePage() {
     featured: false,
     readTime: '',
     mainImageUrl: '',
+    externalLink: '',
   });
 
-  // Auto-save to localStorage
   useEffect(() => {
     const timer = setTimeout(() => {
       localStorage.setItem(`article-draft-${articleId}`, JSON.stringify(formData));
@@ -77,6 +78,7 @@ export default function EditArticlePage() {
         featured: data.featured,
         readTime: data.readTime || '',
         mainImageUrl: data.mainImageUrl || '',
+        externalLink: data.externalLink || '',
       });
     } catch (error) {
       console.error('Failed to fetch article:', error);
@@ -88,9 +90,7 @@ export default function EditArticlePage() {
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories');
-      if (!response.ok) {
-        throw new Error('Failed to fetch categories');
-      }
+      if (!response.ok) throw new Error('Failed to fetch categories');
       const data = await response.json();
       setCategories(data);
     } catch (error) {
@@ -115,14 +115,11 @@ export default function EditArticlePage() {
     try {
       const response = await fetch(getApiUrl(`/api/articles/${articleId}`), {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
       if (response.ok) {
-        // Clear draft on successful save
         localStorage.removeItem(`article-draft-${articleId}`);
         router.push('/articles');
       } else {
@@ -163,7 +160,6 @@ export default function EditArticlePage() {
     <ProtectedRoute>
       <AdminLayout>
         <div className="max-w-5xl mx-auto">
-          {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -188,13 +184,10 @@ export default function EditArticlePage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Main Content Card */}
             <div className="card rounded-xl shadow-sm border overflow-hidden">
               <div className="p-6 space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Titre *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Titre *</label>
                   <input
                     type="text"
                     required
@@ -206,9 +199,7 @@ export default function EditArticlePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Slug *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Slug *</label>
                   <input
                     type="text"
                     required
@@ -220,9 +211,7 @@ export default function EditArticlePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Extrait *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Extrait *</label>
                   <textarea
                     required
                     value={formData.excerpt}
@@ -233,20 +222,16 @@ export default function EditArticlePage() {
                   />
                 </div>
 
-                {/* Rich Text Editor */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Contenu *
-                  </label>
-                  <WordEditor 
-                    content={formData.content} 
-                    onChange={(content) => setFormData({ ...formData, content })} 
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Contenu *</label>
+                  <WordEditor
+                    content={formData.content}
+                    onChange={(content) => setFormData({ ...formData, content })}
                   />
                 </div>
               </div>
             </div>
 
-            {/* Settings Card */}
             <div className="card rounded-xl shadow-sm border overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
                 <h2 className="text-lg font-semibold text-primary">Paramètres de l'article</h2>
@@ -254,9 +239,7 @@ export default function EditArticlePage() {
               <div className="p-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Catégorie *
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Catégorie *</label>
                     <select
                       required
                       value={formData.categoryId}
@@ -273,9 +256,7 @@ export default function EditArticlePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Auteur
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Auteur</label>
                     <select
                       value={formData.authorId}
                       onChange={(e) => setFormData({ ...formData, authorId: e.target.value })}
@@ -293,9 +274,7 @@ export default function EditArticlePage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Date de publication
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Date de publication</label>
                     <input
                       type="date"
                       value={formData.publishedAt}
@@ -305,9 +284,7 @@ export default function EditArticlePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Temps de lecture (minutes)
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Temps de lecture (minutes)</label>
                     <input
                       type="number"
                       value={formData.readTime}
@@ -319,9 +296,7 @@ export default function EditArticlePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    URL de l'image principale
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">URL de l'image principale</label>
                   <input
                     type="url"
                     value={formData.mainImageUrl}
@@ -331,6 +306,20 @@ export default function EditArticlePage() {
                   />
                   <p className="text-sm text-gray-500 mt-2">
                     Collez l'URL de votre image hébergée sur Cloudinary, Imgur, ImgBB ou tout autre service d'hébergement d'images.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Lien externe de destination</label>
+                  <input
+                    type="url"
+                    value={formData.externalLink}
+                    onChange={(e) => setFormData({ ...formData, externalLink: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="https://www.example.com"
+                  />
+                  <p className="text-sm text-gray-500 mt-2">
+                    Si ce champ est rempli, les visiteurs seront redirigés vers cette URL au clic sur l'article.
                   </p>
                 </div>
 
@@ -349,7 +338,6 @@ export default function EditArticlePage() {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex items-center justify-end gap-4 pt-6">
               <button
                 type="button"

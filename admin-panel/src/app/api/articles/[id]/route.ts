@@ -43,6 +43,7 @@ export async function PUT(
         featured: body.featured,
         readTime: body.readTime ? String(body.readTime) : null,
         mainImageUrl: body.mainImageUrl || null,
+        externalLink: body.externalLink || null,
       },
       include: {
         category: true,

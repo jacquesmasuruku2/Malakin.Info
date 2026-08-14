@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
         featured: body.featured || false,
         readTime: body.readTime,
         mainImageUrl: body.mainImageUrl,
+        externalLink: body.externalLink || null,
       },
       include: {
         category: true,

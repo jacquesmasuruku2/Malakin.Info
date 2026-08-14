@@ -100,6 +100,10 @@ export default async function ArticlePage({
       notFound();
     }
 
+    if (article.externalLink) {
+      redirect(article.externalLink);
+    }
+
     // If the category in URL doesn't match the article's actual category, redirect
     if (article.category?.slug !== category) {
       redirect(`/${locale}/${article.category?.slug || 'actualites'}/${slug}`);
