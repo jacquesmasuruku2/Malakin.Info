@@ -72,7 +72,7 @@ export default function NewsletterArticleSelector({ articles, selectedIds, onCha
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold text-slate-900">Layout newsletter</p>
-          <p className="text-xs text-slate-500">Sélectionnez 3 ou 6 articles</p>
+          <p className="text-xs text-slate-500">Sélectionnez entre 1 et 6 articles</p>
         </div>
         <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
           {selectedIds.length} / 6
@@ -128,7 +128,7 @@ export default function NewsletterArticleSelector({ articles, selectedIds, onCha
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-semibold text-slate-900">Articles sélectionnés</p>
           <div className="text-xs text-slate-500">
-            {selectedIds.length === 3 || selectedIds.length === 6 ? 'OK' : 'Doit être 3 ou 6 articles'}
+            {selectedIds.length >= 1 && selectedIds.length <= 6 ? 'OK' : 'Doit être entre 1 et 6 articles'}
           </div>
         </div>
 

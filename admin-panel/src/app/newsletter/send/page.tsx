@@ -55,7 +55,7 @@ export default function NewsletterSendPage() {
   );
 
   const htmlPreview = useMemo(() => {
-    if (selectedArticles.length !== 3 && selectedArticles.length !== 6) {
+    if (selectedArticles.length < 1 || selectedArticles.length > 6) {
       return '';
     }
 
@@ -68,8 +68,8 @@ export default function NewsletterSendPage() {
   }, [selectedArticles]);
 
   const handleSubmit = async () => {
-    if (selectedArticles.length !== 3 && selectedArticles.length !== 6) {
-      setStatus({ type: 'error', message: 'Veuillez sélectionner 3 ou 6 articles.' });
+    if (selectedArticles.length < 1 || selectedArticles.length > 6) {
+      setStatus({ type: 'error', message: 'Veuillez sélectionner entre 1 et 6 articles.' });
       return;
     }
 
@@ -118,7 +118,7 @@ export default function NewsletterSendPage() {
         <div>
           <h1 className="text-3xl font-bold text-primary">Envoyer une newsletter</h1>
           <p className="text-secondary mt-1">
-            Créez un bulletin structuré avec un article à la une et 2 ou 5 compléments.
+            Créez un bulletin structuré avec un article à la une et jusqu’à 5 compléments, maximum 6 articles.
           </p>
         </div>
 
@@ -157,7 +157,7 @@ export default function NewsletterSendPage() {
             <NewsletterArticleSelector articles={articles} selectedIds={selectedIds} onChange={setSelectedIds} />
           )}
 
-          {selectedArticles.length === 3 || selectedArticles.length === 6 ? (
+          {selectedArticles.length >= 1 && selectedArticles.length <= 6 ? (
             <div className="rounded-xl border border-slate-200 bg-white p-4">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-slate-900">Aperçu</h2>
@@ -190,7 +190,7 @@ export default function NewsletterSendPage() {
 
           <button
             type="button"
-            disabled={isSending || (selectedArticles.length !== 3 && selectedArticles.length !== 6)}
+            disabled={isSending || selectedArticles.length < 1 || selectedArticles.length > 6}
             onClick={handleSubmit}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-6 py-3 text-white shadow-sm hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
           >

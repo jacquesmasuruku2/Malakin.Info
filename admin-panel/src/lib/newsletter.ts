@@ -60,8 +60,8 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
 
   const orderedArticles = articles.slice(0, 6);
 
-  if (orderedArticles.length !== 3 && orderedArticles.length !== 6) {
-    throw new Error('La newsletter doit contenir 3 ou 6 articles.');
+  if (orderedArticles.length < 1 || orderedArticles.length > 6) {
+    throw new Error('La newsletter doit contenir entre 1 et 6 articles.');
   }
 
   const hero = orderedArticles[0];
@@ -72,6 +72,16 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
   const heroCategory = hero.category?.title || 'Actualités';
   const heroExcerpt = normalizeText(hero.excerpt, 220);
   const footerSocialLinks = [
+    {
+      label: 'Site web',
+      href: 'https://www.malakinfo.com',
+      bgColor: '#0F172A',
+      iconSvg: `
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block; width:18px; height:18px; fill: currentColor;">
+          <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm6.9 9h-3.1a15.7 15.7 0 0 0-1.2-5.3A8 8 0 0 1 18.9 11zm-8.9-5.3A15.7 15.7 0 0 0 9 11H5.9A8 8 0 0 1 10 5.7zM5.9 13H9a15.7 15.7 0 0 0 1.2 5.3A8 8 0 0 1 5.9 13zm6.1 5.3A15.7 15.7 0 0 0 15 13h3.1a8 8 0 0 1-4.1 5.3zm4.1-7.3H15A15.7 15.7 0 0 0 13.8 5.7 8 8 0 0 1 16.1 11zm-8.2 0H9A15.7 15.7 0 0 1 10.2 5.7 8 8 0 0 1 7.9 11zm3.3 0h2.6A13.7 13.7 0 0 1 12 18.3 13.7 13.7 0 0 1 11.2 11zm-2.6 0A13.7 13.7 0 0 1 12 5.7 13.7 13.7 0 0 1 12.8 11H8.6z"/>
+        </svg>
+      `,
+    },
     {
       label: 'Facebook',
       href: 'https://web.facebook.com/profile.php?id=61593119312402&locale=fr_FR',
