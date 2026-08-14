@@ -7,6 +7,7 @@ import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import { SponsoredSection, type SponsoredItem } from '@/components/SponsoredSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -176,6 +177,25 @@ export default async function CatchAllArticlePage({
       },
     } as any) as any;
 
+    const sponsoredFromDb = await prisma.sponsoredArticle.findMany({
+      where: {
+        articleId: article.id,
+        isActive: true,
+      },
+      orderBy: {
+        sortOrder: 'asc',
+      },
+    });
+
+    const sponsoredArticles: SponsoredItem[] = sponsoredFromDb.map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      imageUrl: item.imageUrl,
+      targetUrl: item.targetUrl,
+      sponsorName: item.sponsorName,
+      categoryBadge: item.categoryBadge || 'Publicité',
+    }));
+
     const formattedDate = article.publishedAt 
       ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
           day: 'numeric', 
@@ -280,6 +300,10 @@ export default async function CatchAllArticlePage({
             locale={locale}
           />
         </article>
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 md:pb-12">
+          <SponsoredSection items={sponsoredArticles} />
+        </div>
 
         {/* Author Section */}
         {article.author && (

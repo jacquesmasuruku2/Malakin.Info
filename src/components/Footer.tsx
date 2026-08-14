@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Mail, Phone, MapPin, ChevronRight, ArrowUp, Globe, Sparkles, Award, Users, Radio, TrendingUp, BookOpen, Newspaper, Music, Film, Briefcase, Heart, Share2, Smartphone, Download, Camera, Mic, Coffee, MessageCircle, Send, Video, MessageSquare } from 'lucide-react';
-import { FaFacebook, FaInstagram, FaYoutube, FaTwitter, FaLinkedin, FaTiktok, FaWhatsapp, FaTelegram } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaYoutube, FaXTwitter, FaLinkedin, FaTiktok, FaWhatsapp, FaTelegram } from 'react-icons/fa6';
 import { useState, useEffect } from 'react';
 import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
 
@@ -33,12 +33,45 @@ export default function Footer() {
 
   // Social media icons mapping with official icons and URLs
   const socialIcons = {
-    Website: { icon: Globe, color: '#0F172A', url: 'https://www.malakinfo.com' },
-    Facebook: { icon: FaFacebook, color: '#1877F2', url: 'https://www.facebook.com/profile.php?id=61593119312402' },
-    X: { icon: FaTwitter, color: '#000000', url: 'https://x.com/Malakinfo1' },
-    Instagram: { icon: FaInstagram, color: '#E4405F', url: 'https://www.instagram.com/' },
-    WhatsApp: { icon: FaWhatsapp, color: '#25D366', url: 'https://wa.me/243998258441' },
-    Telegram: { icon: FaTelegram, color: '#0088cc', url: 'https://t.me/' }
+    Website: {
+      icon: () => (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" className="w-4 h-4" style={{ display: 'block' }}>
+          <circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" strokeWidth="1.8" />
+          <path d="M3.5 12h17M12 3.5c2.7 2.6 4.2 5.2 4.2 8.5s-1.5 5.9-4.2 8.5c-2.7-2.6-4.2-5.2-4.2-8.5S9.3 6.1 12 3.5Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+        </svg>
+      ),
+      color: '#0F172A',
+      url: 'https://www.malakinfo.com',
+    },
+    Facebook: {
+      icon: () => <FaFacebook className="w-4 h-4" />,
+      color: '#1877F2',
+      url: 'https://www.facebook.com/profile.php?id=61593119312402',
+    },
+    X: {
+      icon: () => (
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" className="w-4 h-4" style={{ display: 'block' }}>
+          <path d="M18.9 2h3.4l-7.4 8.5L22.9 22h-6.7l-5.2-7.2L5.1 22H1.7l7.9-9.1L1 2h6.9l4.7 6.5L18.9 2zm-1.2 18h1.9L7.2 3.9H5.2L17.7 20z" fill="currentColor" />
+        </svg>
+      ),
+      color: '#000000',
+      url: 'https://x.com/Malakinfo1',
+    },
+    Instagram: {
+      icon: () => <FaInstagram className="w-4 h-4" />,
+      color: '#E4405F',
+      url: 'https://www.instagram.com/',
+    },
+    WhatsApp: {
+      icon: () => <FaWhatsapp className="w-4 h-4" />,
+      color: '#25D366',
+      url: 'https://wa.me/243998258441',
+    },
+    Telegram: {
+      icon: () => <FaTelegram className="w-4 h-4" />,
+      color: '#0088cc',
+      url: 'https://t.me/',
+    },
   };
 
   return (
@@ -302,7 +335,7 @@ export default function Footer() {
                 onMouseLeave={() => setHoveredItem(null)}
               >
                 <span style={{ color }}>
-                  <Icon className="w-4 h-4" />
+                  <Icon />
                 </span>
                 {name}
                 <span className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[8px] text-red-400 block">●</span>

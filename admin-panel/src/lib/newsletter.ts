@@ -78,7 +78,7 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
       bgColor: '#0F172A',
       iconSvg: `
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block; width:18px; height:18px; fill: currentColor;">
-          <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm6.9 9h-3.1a15.7 15.7 0 0 0-1.2-5.3A8 8 0 0 1 18.9 11zm-8.9-5.3A15.7 15.7 0 0 0 9 11H5.9A8 8 0 0 1 10 5.7zM5.9 13H9a15.7 15.7 0 0 0 1.2 5.3A8 8 0 0 1 5.9 13zm6.1 5.3A15.7 15.7 0 0 0 15 13h3.1a8 8 0 0 1-4.1 5.3zm4.1-7.3H15A15.7 15.7 0 0 0 13.8 5.7 8 8 0 0 1 16.1 11zm-8.2 0H9A15.7 15.7 0 0 1 10.2 5.7 8 8 0 0 1 7.9 11zm3.3 0h2.6A13.7 13.7 0 0 1 12 18.3 13.7 13.7 0 0 1 11.2 11zm-2.6 0A13.7 13.7 0 0 1 12 5.7 13.7 13.7 0 0 1 12.8 11H8.6z"/>
+          <path d="M12 2.5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 12 2.5Zm6.96 8.5h-2.56A15.7 15.7 0 0 0 15.35 7a7.35 7.35 0 0 1 3.61 4Zm-6.96-5.45A13.66 13.66 0 0 1 15.17 11H8.83A13.66 13.66 0 0 1 12 5.55ZM8.83 13h6.34A13.66 13.66 0 0 1 12 18.45 13.66 13.66 0 0 1 8.83 13Zm6.34 0h2.56a7.35 7.35 0 0 1-3.61 4 15.7 15.7 0 0 0 1.05-4Zm-8.4 0h2.56a15.7 15.7 0 0 0 1.05 4 7.35 7.35 0 0 1-3.61-4Zm3.61-8.5a15.7 15.7 0 0 0-1.05 4h-2.56a7.35 7.35 0 0 1 3.61-4Zm4.26 0a7.35 7.35 0 0 1 3.61 4h-2.56a15.7 15.7 0 0 0-1.05-4ZM6.04 13h2.56a15.7 15.7 0 0 0 1.05 4 7.35 7.35 0 0 1-3.61-4Zm11.92 0h-2.56a15.7 15.7 0 0 0-1.05 4 7.35 7.35 0 0 1 3.61-4Z"/>
         </svg>
       `,
     },
@@ -98,7 +98,7 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
       bgColor: '#000000',
       iconSvg: `
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block; width:18px; height:18px; fill: currentColor;">
-          <path d="M18.9 2h3.4l-7.4 8.5L22.9 22h-6.7l-5.2-7.2L5.1 22H1.7l7.9-9.1L1 2h6.9l4.7 6.5L18.9 2zm-1.2 18h1.9L7.2 3.9H5.2L17.7 20z"/>
+          <path d="M18.901 2H22l-6.77 7.74L23.29 22h-6.17l-4.83-7.09L6.6 22H3.5l7.25-8.29L.71 2h6.32l4.38 6.46L18.9 2Zm-1.08 18.2h1.71L7.23 3.7H5.43l12.39 16.5Z"/>
         </svg>
       `,
     },

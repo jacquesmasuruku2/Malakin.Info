@@ -55,33 +55,54 @@ model Author {
 }
 
 model Article {
-  id           String            @id @default(cuid())
-  title        String
-  slug         String            @unique
-  excerpt      String
-  content      Json
-  categoryId   String
-  authorId     String?
-  publishedAt  DateTime
-  mainImageUrl String?
-  mainImageAlt String?
-  readTime     String?
-  featured     Boolean           @default(false)
-  views        BigInt            @default(0)
-  defaultLocale String           @default("fr")
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  author       Author?           @relation(fields: [authorId], references: [id])
-  category     Category          @relation(fields: [categoryId], references: [id])
-  comments     Comment[]
-  likes        Like[]
-  translations ArticleTranslation[]
+  id                String             @id @default(cuid())
+  title             String
+  slug              String             @unique
+  excerpt           String
+  content           Json
+  categoryId        String
+  authorId          String?
+  publishedAt       DateTime
+  mainImageUrl      String?
+  mainImageAlt      String?
+  readTime          String?
+  featured          Boolean            @default(false)
+  views             BigInt             @default(0)
+  defaultLocale     String             @default("fr")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  author            Author?            @relation(fields: [authorId], references: [id])
+  category          Category           @relation(fields: [categoryId], references: [id])
+  comments          Comment[]
+  likes             Like[]
+  translations      ArticleTranslation[]
+  sponsoredArticles SponsoredArticle[]
 
   @@index([categoryId])
   @@index([authorId])
   @@index([publishedAt(sort: Desc)])
   @@index([featured])
   @@index([views(sort: Desc)])
+}
+
+model SponsoredArticle {
+  id            String   @id @default(cuid())
+  articleId     String?
+  title         String
+  imageUrl      String
+  targetUrl     String
+  sponsorName   String
+  categoryBadge String   @default("Publicité")
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  article       Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId])
+  @@index([isActive])
+  @@index([sortOrder])
 }
 
 model ArticleTranslation {

@@ -34,6 +34,7 @@ export default function AdminLayout({
     { name: 'Radio', href: '/radio', icon: Radio },
     { name: 'Émissions radio', href: '/radio/programs', icon: Radio },
     { name: 'Lives', href: '/lives', icon: Radio },
+    { name: 'Sponsors', href: '/sponsored', icon: Briefcase },
     { name: 'Newsletter', href: '/newsletter', icon: MessageSquare },
     { name: 'Envoyer une newsletter', href: '/newsletter/send', icon: Briefcase },
     { name: 'Soumissions', href: '/form-submissions', icon: MessageSquare },

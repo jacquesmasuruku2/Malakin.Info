@@ -89,9 +89,9 @@ export default function NewArticlePage() {
       });
 
       if (response.ok) {
-        // Clear draft on successful save
+        const createdArticle = await response.json();
         localStorage.removeItem('article-draft');
-        router.push('/articles');
+        router.push(`/sponsored?articleId=${createdArticle.id}`);
       } else {
         alert('Erreur lors de la création de l\'article');
       }
