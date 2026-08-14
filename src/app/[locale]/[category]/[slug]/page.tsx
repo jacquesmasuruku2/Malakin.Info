@@ -8,6 +8,7 @@ import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
 import ViewIncrementer from '@/components/ViewIncrementer';
 import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
+import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 
 export const dynamic = 'force-dynamic';
@@ -129,6 +130,25 @@ export default async function ArticlePage({
       },
     } as any);
 
+    const sponsoredFromDb = await prisma.sponsoredArticle.findMany({
+      where: {
+        articleId: article.id,
+        isActive: true,
+      },
+      orderBy: {
+        sortOrder: 'asc',
+      },
+    });
+
+    const sponsoredArticles: ArticleSidebarSponsor[] = sponsoredFromDb.map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      imageUrl: item.imageUrl,
+      targetUrl: item.targetUrl,
+      sponsorName: item.sponsorName,
+      categoryBadge: item.categoryBadge || 'Publicité',
+    }));
+
     const formattedDate = article.publishedAt 
       ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
           day: 'numeric', 
@@ -163,70 +183,70 @@ export default async function ArticlePage({
           </div>
         </header>
 
-        {/* Article */}
-        <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-          {/* Category & Meta */}
-          <div className="mb-6">
-            <Link
-              href={`/${locale}/${article.category?.slug || 'actualites'}`}
-              className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs sm:text-sm font-medium rounded-full mb-3 sm:mb-4 hover:bg-primary/20 transition-colors"
-            >
-              {displayCategoryTitle || 'Actualités'}
-            </Link>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                {formattedDate}
-              </span>
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                {readTime}
-              </span>
-              <span className="flex items-center gap-1">
-                <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                {article.author?.name || t.teamMalakin}
-              </span>
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+          <div className="grid grid-cols-1 gap-8 xl:grid-cols-[240px_minmax(0,1fr)]">
+            <div className="xl:order-1">
+              <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
             </div>
-          </div>
 
-          {/* Title */}
-          <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
-            {displayTitle}
-          </h1>
+            <article className="max-w-4xl xl:justify-self-center">
+              <div className="mb-6">
+                <Link
+                  href={`/${locale}/${article.category?.slug || 'actualites'}`}
+                  className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs sm:text-sm font-medium rounded-full mb-3 sm:mb-4 hover:bg-primary/20 transition-colors"
+                >
+                  {displayCategoryTitle || 'Actualités'}
+                </Link>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                    {formattedDate}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                    {readTime}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                    {article.author?.name || t.teamMalakin}
+                  </span>
+                </div>
+              </div>
 
-          {/* Excerpt */}
-          {displayExcerpt && (
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
-              {displayExcerpt}
-            </p>
-          )}
+              <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
+                {displayTitle}
+              </h1>
 
-          {/* Featured Image */}
-          {article.mainImageUrl && (
-            <div className="mb-0 rounded-lg overflow-hidden">
-              <img
-                src={article.mainImageUrl}
-                alt={displayTitle}
-                className="w-full h-auto object-cover"
+              {displayExcerpt && (
+                <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
+                  {displayExcerpt}
+                </p>
+              )}
+
+              {article.mainImageUrl && (
+                <div className="mb-0 rounded-lg overflow-hidden">
+                  <img
+                    src={article.mainImageUrl}
+                    alt={displayTitle}
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+              )}
+
+              <ReadAlsoRenderer content={displayContent} />
+
+              <div className="mt-6">
+                <AdSenseAd adSlot="0987654321" className="my-4" />
+              </div>
+
+              <ShareButtons 
+                title={displayTitle} 
+                url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
+                locale={locale}
               />
-            </div>
-          )}
-
-          {/* Content */}
-          <ReadAlsoRenderer content={displayContent} />
-
-          {/* AdSense Ad - After Content */}
-          <div className="mt-6">
-            <AdSenseAd adSlot="0987654321" className="my-4" />
+            </article>
           </div>
-
-          {/* Share Buttons */}
-          <ShareButtons 
-            title={displayTitle} 
-            url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
-            locale={locale}
-          />
-        </article>
+        </div>
 
         {/* Author Section */}
         {article.author && (

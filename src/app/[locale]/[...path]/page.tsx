@@ -8,7 +8,7 @@ import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
-import { SponsoredSection, type SponsoredItem } from '@/components/SponsoredSection';
+import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
 
 export const dynamic = 'force-dynamic';
 
@@ -188,7 +188,7 @@ export default async function CatchAllArticlePage({
       },
     });
 
-    const sponsoredArticles: SponsoredItem[] = sponsoredFromDb.map((item: any) => ({
+    const sponsoredArticles: ArticleSidebarSponsor[] = sponsoredFromDb.map((item: any) => ({
       id: item.id,
       title: item.title,
       imageUrl: item.imageUrl,
@@ -227,78 +227,71 @@ export default async function CatchAllArticlePage({
           </div>
         </header>
 
-        {/* Article */}
-        <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-          {/* Category & Meta */}
-          <div className="mb-6">
-            <Link
-              href={`/${locale}/${article.category?.slug || 'actualites'}`}
-              className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs sm:text-sm font-medium rounded-full mb-3 sm:mb-4 hover:bg-primary/20 transition-colors"
-            >
-              {article.category?.title || 'Actualités'}
-            </Link>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                {formattedDate}
-              </span>
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                {readTime}
-              </span>
-              <span className="flex items-center gap-1">
-                <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                {article.author?.name || t.teamMalakin}
-              </span>
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+          <div className="grid grid-cols-1 gap-8 xl:grid-cols-[240px_minmax(0,1fr)]">
+            <div className="xl:order-1">
+              <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
             </div>
-          </div>
 
-          {/* Title */}
-          <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
-            {article.title}
-          </h1>
+            <article className="max-w-4xl xl:justify-self-center">
+              <div className="mb-6">
+                <Link
+                  href={`/${locale}/${article.category?.slug || 'actualites'}`}
+                  className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs sm:text-sm font-medium rounded-full mb-3 sm:mb-4 hover:bg-primary/20 transition-colors"
+                >
+                  {article.category?.title || 'Actualités'}
+                </Link>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                    {formattedDate}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                    {readTime}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                    {article.author?.name || t.teamMalakin}
+                  </span>
+                </div>
+              </div>
 
-          {/* Excerpt */}
-          {article.excerpt && (
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
-              {article.excerpt}
-            </p>
-          )}
+              <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
+                {article.title}
+              </h1>
 
-          {/* Featured Image */}
-          {article.mainImageUrl && (
-            <div className="mb-8 rounded-lg overflow-hidden">
-              <img
-                src={article.mainImageUrl}
-                alt={article.title}
-                className="w-full h-auto object-cover"
+              {article.excerpt && (
+                <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
+                  {article.excerpt}
+                </p>
+              )}
+
+              {article.mainImageUrl && (
+                <div className="mb-8 rounded-lg overflow-hidden">
+                  <img
+                    src={article.mainImageUrl}
+                    alt={article.title}
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+              )}
+
+              <AdSenseAd adSlot="1234567890" className="my-4" />
+
+              <ReadAlsoRenderer content={typeof article.content === 'string' ? article.content : ''} />
+
+              <div className="mt-8">
+                <AdSenseAd adSlot="0987654321" className="my-4" />
+              </div>
+
+              <ShareButtons 
+                title={article.title} 
+                url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${article.category?.slug || 'actualites'}/${slug}`}
+                locale={locale}
               />
-            </div>
-          )}
-
-          {/* AdSense Ad - After Featured Image */}
-          <div className="mb-8">
-            <AdSenseAd adSlot="1234567890" className="my-4" />
+            </article>
           </div>
-
-          {/* Content */}
-          <ReadAlsoRenderer content={typeof article.content === 'string' ? article.content : ''} />
-
-          {/* AdSense Ad - After Content */}
-          <div className="mt-8">
-            <AdSenseAd adSlot="0987654321" className="my-4" />
-          </div>
-
-          {/* Share Buttons */}
-          <ShareButtons 
-            title={article.title} 
-            url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${article.category?.slug || 'actualites'}/${slug}`}
-            locale={locale}
-          />
-        </article>
-
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 md:pb-12">
-          <SponsoredSection items={sponsoredArticles} />
         </div>
 
         {/* Author Section */}
