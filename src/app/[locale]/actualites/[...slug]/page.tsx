@@ -106,13 +106,9 @@ export default async function ActualitesCatchAllPage({
           </div>
         </header>
 
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-          <div className="grid grid-cols-1 gap-8 xl:grid-cols-[240px_minmax(0,1fr)]">
-            <div className="xl:order-1">
-              <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
-            </div>
-
-            <article className="max-w-4xl xl:justify-self-center">
+        <div className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+          <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_300px]">
+            <article className="w-full min-w-0">
               <div className="mb-6">
                 <Link
                   href={`/${locale}/${article.category?.slug || 'actualites'}`}
@@ -172,6 +168,10 @@ export default async function ActualitesCatchAllPage({
                 locale={locale}
               />
             </article>
+
+            <aside className="w-full min-w-0 xl:justify-self-end xl:sticky xl:top-6 xl:self-start">
+              <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
+            </aside>
           </div>
         </div>
 

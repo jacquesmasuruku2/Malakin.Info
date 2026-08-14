@@ -170,83 +170,51 @@ export default async function ArticlePage({
         {/* Increment views */}
         <ViewIncrementer articleId={article.id} />
 
-        {/* Header */}
-        <header className="bg-muted/50 border-b border-border">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <Link
-              href={`/${locale}/${article.category?.slug || 'actualites'}`}
-              className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              {t.backTo} {displayCategoryTitle || 'Actualités'}
-            </Link>
-          </div>
-        </header>
-
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-          <div className="grid grid-cols-1 gap-8 xl:grid-cols-[240px_minmax(0,1fr)]">
-            <div className="xl:order-1">
-              <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
+        <main className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8">
+          <header className="mb-8 w-full">
+            <div className="mb-3 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.12em] text-gray-500">
+              <span>{formattedDate}</span>
+              <span className="text-gray-300">|</span>
+              <span>{article.author?.name || t.teamMalakin}</span>
             </div>
 
-            <article className="max-w-4xl xl:justify-self-center">
-              <div className="mb-6">
-                <Link
-                  href={`/${locale}/${article.category?.slug || 'actualites'}`}
-                  className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs sm:text-sm font-medium rounded-full mb-3 sm:mb-4 hover:bg-primary/20 transition-colors"
-                >
-                  {displayCategoryTitle || 'Actualités'}
-                </Link>
-                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                    {formattedDate}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                    {readTime}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                    {article.author?.name || t.teamMalakin}
-                  </span>
-                </div>
-              </div>
+            <h1 className="font-serif text-3xl font-bold leading-tight tracking-tight text-gray-900 md:text-5xl">
+              {displayTitle}
+            </h1>
+          </header>
 
-              <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
-                {displayTitle}
-              </h1>
-
-              {displayExcerpt && (
-                <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
-                  {displayExcerpt}
-                </p>
-              )}
-
+          <div className="grid w-full grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+            <article className="w-full min-w-0">
               {article.mainImageUrl && (
-                <div className="mb-0 rounded-lg overflow-hidden">
+                <div className="mb-8 overflow-hidden bg-white">
                   <img
                     src={article.mainImageUrl}
                     alt={displayTitle}
-                    className="w-full h-auto object-cover"
+                    className="block h-auto w-full object-cover"
                   />
                 </div>
               )}
 
               <ReadAlsoRenderer content={displayContent} />
 
-              <div className="mt-6">
+              <div className="mt-8">
                 <AdSenseAd adSlot="0987654321" className="my-4" />
               </div>
 
-              <ShareButtons 
-                title={displayTitle} 
-                url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
-                locale={locale}
-              />
+              <div className="mt-6">
+                <ShareButtons 
+                  title={displayTitle} 
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
+                  locale={locale}
+                />
+              </div>
             </article>
+
+            <aside className="w-full min-w-0 lg:sticky lg:top-6 lg:self-start">
+              <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
+            </aside>
           </div>
-        </div>
+        </main>
 
         {/* Author Section */}
         {article.author && (
@@ -286,40 +254,37 @@ export default async function ArticlePage({
         <CommentsSection articleId={article.id} locale={locale} />
 
         {relatedArticles.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 border-t border-border">
-            <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground mb-6 sm:mb-8">
+          <section className="mx-auto max-w-5xl px-4 pb-12 pt-12 md:px-6">
+            <h2 className="mb-6 text-xl font-bold text-gray-900 md:text-2xl">
               {t.relatedArticles}
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               {relatedArticles.map((related: any) => (
                 <Link
                   key={related.id}
                   href={`/${locale}/${related.category?.slug || 'actualites'}/${related.slug}`}
-                  className="group"
+                  className="group block"
                 >
-                  <article className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                  <article className="overflow-hidden bg-white">
                     {related.mainImageUrl && (
-                      <div className="h-32 sm:h-40 overflow-hidden">
+                      <div className="overflow-hidden bg-gray-100">
                         <img
                           src={related.mainImageUrl}
                           alt={related.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="h-40 w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                         />
                       </div>
                     )}
-                    <div className="p-3 sm:p-4">
-                      <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded mb-2">
-                        {related.category?.title || 'Actualités'}
-                      </span>
-                      <h3 className="font-heading font-semibold text-foreground mb-2 text-sm sm:text-base line-clamp-2 group-hover:text-primary transition-colors">
+                    <div className="pt-3">
+                      <h3 className="text-base font-bold leading-snug text-gray-900 group-hover:text-red-700">
                         {related.title}
                       </h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Calendar className="w-3 h-3" />
+                      <div className="mt-2 text-xs text-gray-500">
                         {related.publishedAt 
                           ? new Date(related.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
                               day: 'numeric', 
-                              month: 'short' 
+                              month: 'short',
+                              year: 'numeric'
                             }) 
                           : ''}
                       </div>

@@ -6,7 +6,7 @@ interface ReadAlsoRendererProps {
   content: string;
 }
 
-const proseClasses = "prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-2 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-6 prose-h2:mb-3 prose-h3:mt-5 prose-h3:mb-2 prose-p:my-2 prose-ul:my-3 prose-ol:my-3 prose-li:my-1 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground";
+const proseClasses = "prose prose-base w-full max-w-none !max-w-none font-sans text-base leading-relaxed text-gray-800 prose-headings:font-bold prose-headings:text-gray-900 prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-5 prose-p:mt-0 prose-a:text-red-700 prose-a:no-underline hover:prose-a:underline prose-img:my-6 prose-img:rounded-none prose-img:shadow-none prose-strong:text-gray-900 prose-blockquote:border-l-2 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-1";
 
 export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
   if (!content) {

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 
 export interface ArticleSidebarSponsor {
   id: string;
@@ -17,65 +17,69 @@ interface ArticleSidebarProps {
 
 export default function ArticleSidebar({ locale, sponsors }: ArticleSidebarProps) {
   const newsletterHref = `/${locale}/newsletter`;
+  const sponsorCountLabel = `${sponsors.length} ${sponsors.length > 1 ? 'publicités' : 'publicité'}`;
 
   return (
-    <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
-      <div className="rounded-2xl border border-red-100 bg-gradient-to-br from-red-50 to-white p-4 shadow-sm">
-        <div className="mb-3 flex items-center justify-center rounded-full bg-red-600 p-2 text-white shadow-sm w-12 h-12">
-          <Mail className="h-5 w-5" />
-        </div>
-        <h3 className="text-lg font-black uppercase tracking-wide text-gray-900">
-          Newsletter
-        </h3>
-        <p className="mt-2 text-sm leading-relaxed text-gray-700">
-          Recevez les meilleurs contenus directement dans votre boîte mail.
-        </p>
-        <Link
-          href={newsletterHref}
-          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700"
-        >
-          S&apos;abonner
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
-
+    <div className="flex w-full max-w-[300px] flex-col gap-10">
       {sponsors.length > 0 && (
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-          <h3 className="mb-4 text-sm font-black uppercase tracking-[0.12em] text-gray-800">
-            Contenus sponsorisés
-          </h3>
-          <div className="space-y-4">
+        <div className="w-full rounded-sm border border-gray-200 bg-white p-3">
+          <div className="mb-3 flex items-center justify-between gap-2 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-[#D4AF37]">
+            <span>PUBLICITÉ</span>
+            <span className="rounded-full bg-[#F9F1D1] px-2 py-1 text-[9px] text-[#0B3B8B]">
+              {sponsorCountLabel}
+            </span>
+          </div>
+
+          <div className="space-y-2">
             {sponsors.map((item) => (
               <a
                 key={item.id}
                 href={item.targetUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group block overflow-hidden rounded-xl border border-gray-200 bg-gray-50 transition-shadow hover:shadow-md"
+                className="group block"
               >
-                <div className="relative aspect-[4/3] overflow-hidden bg-gray-200">
-                  <span className="absolute left-2 top-2 z-10 rounded bg-black/65 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white">
-                    {item.categoryBadge || 'Publicité'}
-                  </span>
+                <div className="flex items-center justify-center overflow-hidden bg-white">
                   <img
                     src={item.imageUrl}
                     alt={item.title}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="block h-auto w-full object-cover"
                   />
                 </div>
-                <div className="p-3">
-                  <h4 className="line-clamp-2 text-sm font-bold leading-snug text-gray-900 group-hover:text-red-700">
+
+                <div className="mt-2 flex items-start justify-between gap-2">
+                  <h4 className="line-clamp-2 flex-1 text-[12px] font-bold leading-snug text-[#0B3B8B] group-hover:text-[#D4AF37]">
                     {item.title}
                   </h4>
-                  <p className="mt-2 text-[11px] uppercase tracking-wide text-gray-500">
-                    Sponsorisé par <span className="font-semibold text-gray-700">{item.sponsorName}</span>
-                  </p>
+                  <span className="mt-0.5 inline-flex items-center rounded bg-[#0B3B8B] px-2 py-1 text-[8px] font-bold uppercase tracking-[0.08em] text-white">
+                    JE M'ABONNE
+                  </span>
                 </div>
               </a>
             ))}
           </div>
         </div>
       )}
-    </aside>
+
+      <div className="mt-auto w-full border-t border-gray-200 bg-white pt-5">
+        <Link
+          href={newsletterHref}
+          aria-label="S'abonner à la newsletter"
+          title="S'abonner à la newsletter"
+          className="group flex items-end justify-between gap-3 rounded-sm transition-colors hover:text-[#D4AF37]"
+        >
+          <div className="flex-1">
+            <h3 className="text-base font-bold text-[#0B3B8B] group-hover:text-[#D4AF37]">Newsletter</h3>
+            <p className="mt-1 text-xs text-gray-500 group-hover:text-gray-700">
+              Recevez les meilleurs contenus directement dans votre boîte mail.
+            </p>
+          </div>
+
+          <span className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-[#0B3B8B] text-white shadow-sm transition-colors group-hover:bg-[#D4AF37]">
+            <Mail className="h-4 w-4" />
+          </span>
+        </Link>
+      </div>
+    </div>
   );
 }

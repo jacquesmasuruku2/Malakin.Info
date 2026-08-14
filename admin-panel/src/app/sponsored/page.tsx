@@ -89,6 +89,18 @@ function SponsoredArticlesPageContent() {
     });
   }, [items, search, selectedArticleFilter]);
 
+  const activeSponsorCount = useMemo(
+    () => items.filter((item) => item.isActive).length,
+    [items],
+  );
+
+  const articleSponsorCount = useMemo(
+    () => items.filter(
+      (item) => item.articleId === selectedArticleFilter && item.isActive,
+    ).length,
+    [items, selectedArticleFilter],
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -160,6 +172,14 @@ function SponsoredArticlesPageContent() {
 
         <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-6">
           <div className="card rounded-lg shadow-sm border p-4">
+            <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+                {selectedArticleFilter
+                  ? `Publicités actives pour cet article : ${articleSponsorCount}`
+                  : `Total publicités actives : ${activeSponsorCount}`}
+              </div>
+            </div>
+
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
