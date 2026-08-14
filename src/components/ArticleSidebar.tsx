@@ -47,13 +47,10 @@ export default function ArticleSidebar({ locale, sponsors }: ArticleSidebarProps
                   />
                 </div>
 
-                <div className="mt-2 flex items-start justify-between gap-2">
-                  <h4 className="line-clamp-2 flex-1 text-[12px] font-bold leading-snug text-[#0B3B8B] group-hover:text-[#D4AF37]">
+                <div className="mt-2">
+                  <h4 className="line-clamp-2 text-[12px] font-bold leading-snug text-[#0B3B8B] group-hover:text-[#D4AF37]">
                     {item.title}
                   </h4>
-                  <span className="mt-0.5 inline-flex items-center rounded bg-[#0B3B8B] px-2 py-1 text-[8px] font-bold uppercase tracking-[0.08em] text-white">
-                    JE M'ABONNE
-                  </span>
                 </div>
               </a>
             ))}

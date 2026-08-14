@@ -100,9 +100,20 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
 
   useEffect(() => {
     if (editor) {
+      const nextContent = typeof content === 'string' ? content : '';
+      const currentContent = editor.getHTML();
+
+      if (nextContent && currentContent !== nextContent) {
+        editor.commands.setContent(nextContent, { emitUpdate: false });
+      }
+
+      if (!nextContent && currentContent !== '<p></p>') {
+        editor.commands.setContent('<p></p>', { emitUpdate: false });
+      }
+
       updateCounts(editor.getText());
     }
-  }, [editor]);
+  }, [editor, content]);
 
   const updateCounts = (text: string) => {
     const words = text.trim().split(/\s+/).filter(word => word.length > 0);

@@ -8,6 +8,7 @@ import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
 import ViewIncrementer from '@/components/ViewIncrementer';
+import FavoriteButton from '@/components/FavoriteButton';
 import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
 import { SponsoredSection } from '@/components/SponsoredSection';
@@ -228,7 +229,8 @@ export default async function ArticlePage({
                 <AdSenseAd adSlot="0987654321" className="my-4" />
               </div>
 
-              <div className="mt-6">
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <FavoriteButton articleId={article.id} locale={locale} />
                 <ShareButtons 
                   title={displayTitle} 
                   url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
