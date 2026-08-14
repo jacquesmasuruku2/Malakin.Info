@@ -67,6 +67,8 @@ export default function NewsletterSendPage() {
     }
   }, [selectedArticles]);
 
+  const previewContainerKey = `${previewMode}-${selectedIds.join('-') || 'empty'}`;
+
   const handleSubmit = async () => {
     if (selectedArticles.length < 1 || selectedArticles.length > 6) {
       setStatus({ type: 'error', message: 'Veuillez sélectionner entre 1 et 6 articles.' });
@@ -179,6 +181,7 @@ export default function NewsletterSendPage() {
               </div>
 
               <div
+                key={previewContainerKey}
                 className={`mx-auto overflow-auto rounded-lg border border-slate-200 bg-slate-100 p-3 ${
                   previewMode === 'desktop' ? 'max-w-[760px]' : 'max-w-[420px]'
                 }`}
