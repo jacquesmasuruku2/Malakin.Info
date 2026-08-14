@@ -178,7 +178,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
   return (
     <div className="bg-gray-100 rounded-lg overflow-hidden border border-gray-300">
       {/* Ribbon Toolbar */}
-      <div className="bg-white border-b border-gray-300">
+      <div className="sticky top-0 z-30 bg-white border-b border-gray-300 shadow-sm">
         {/* Tabs */}
         <div className="flex border-b border-gray-200">
           {['home', 'insert', 'layout'].map((tab) => (
