@@ -39,9 +39,9 @@ const responsiveNewsletterCss = `
       .newsletter-content { width: 100% !important; }
       .newsletter-mobile-padding { padding-left: 16px !important; padding-right: 16px !important; }
       .newsletter-hero-image { width: 100% !important; max-width: 100% !important; height: auto !important; }
-      .newsletter-card-image { width: 100% !important; max-width: 100% !important; height: auto !important; }
-      .newsletter-stack { display: block !important; width: 100% !important; }
-      .newsletter-stack-cell { display: block !important; width: 100% !important; max-width: 100% !important; }
+      .newsletter-card-image { width: 120px !important; max-width: 120px !important; height: auto !important; float: left !important; margin-right: 16px !important; margin-bottom: 8px !important; }
+      .newsletter-stack { width: 100% !important; }
+      .newsletter-stack-cell { display: block !important; width: auto !important; max-width: 100% !important; }
       .newsletter-stack-cell img { width: 100% !important; max-width: 100% !important; height: auto !important; }
       .newsletter-button-cell { display: block !important; width: 100% !important; }
       .newsletter-button-link { display: block !important; width: auto !important; text-align: center !important; }
@@ -49,6 +49,7 @@ const responsiveNewsletterCss = `
       .newsletter-social-link { display: inline-block !important; }
       .newsletter-title { font-size: 24px !important; line-height: 30px !important; }
       .newsletter-subtitle { font-size: 18px !important; line-height: 24px !important; }
+      .newsletter-text-content { overflow: hidden !important; }
     }
   </style>
 `;
@@ -140,7 +141,7 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
                   <img src="${image}" alt="${title}" width="200" class="newsletter-card-image" style="display:block; width:200px; max-width:100%; height:auto; border-radius:8px; border:0; background:#f3f4f6;" />
                 </a>
               </td>
-              <td valign="top" class="newsletter-stack-cell" style="width: auto;">
+              <td valign="top" class="newsletter-text-content" style="width: auto;">
                 <div style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; color: #c81f2d; letter-spacing: 0.8px; text-transform: uppercase; margin: 0 0 8px 0;">
                   ${escapeHtml(category)}
                 </div>
