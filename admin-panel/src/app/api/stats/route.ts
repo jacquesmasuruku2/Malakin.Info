@@ -10,9 +10,7 @@ export async function GET() {
       categoriesCount,
       totalViews,
       featuredArticlesCount,
-      publishedThisMonth,
-      livesCount,
-      activeLivesCount
+      publishedThisMonth
     ] = await Promise.all([
       prisma.article.count(),
       prisma.author.count(),
@@ -33,12 +31,6 @@ export async function GET() {
             gte: new Date(new Date().setDate(new Date().getDate() - 30))
           }
         }
-      }),
-      prisma.liveEvent.count(),
-      prisma.liveEvent.count({
-        where: {
-          status: 'LIVE'
-        }
       })
     ]);
 
@@ -49,8 +41,8 @@ export async function GET() {
       totalViews: Number(totalViews._sum.views || 0),
       featuredArticles: featuredArticlesCount,
       publishedThisMonth: publishedThisMonth,
-      lives: livesCount,
-      activeLives: activeLivesCount
+      lives: 0,
+      activeLives: 0
     };
 
     return NextResponse.json(stats);
