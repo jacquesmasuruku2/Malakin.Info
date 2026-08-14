@@ -7,6 +7,7 @@ import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
 import ViewIncrementer from '@/components/ViewIncrementer';
+import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 
 export const dynamic = 'force-dynamic';
@@ -212,12 +213,7 @@ export default async function ArticlePage({
           )}
 
           {/* Content */}
-          <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none prose-img:my-2 prose-img:rounded-lg prose-img:shadow-md prose-h2:mt-6 prose-h2:mb-3 prose-h3:mt-5 prose-h3:mb-2 prose-p:my-2 prose-ul:my-3 prose-ol:my-3 prose-li:my-1 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground [&>div:first-child]:mt-0 [&>div:first-child_p]:mt-0 [&>div:first-child_h1]:mt-0 [&>div:first-child_h2]:mt-0 [&>div:first-child_h3]:mt-0 [&>div:first-child]:!mt-0 [&>div]:first-child:mt-0 [&>div]:first-of-type:mt-0">
-            <div
-              dangerouslySetInnerHTML={{ __html: displayContent }}
-              className="text-foreground leading-relaxed prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-a:font-medium prose-strong:text-foreground [&>p:first-child]:mt-0 [&>h1:first-child]:mt-0 [&>h2:first-child]:mt-0 [&>h3:first-child]:mt-0"
-            />
-          </div>
+          <ReadAlsoRenderer content={displayContent} />
 
           {/* AdSense Ad - After Content */}
           <div className="mt-6">
