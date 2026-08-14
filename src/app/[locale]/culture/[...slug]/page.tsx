@@ -7,6 +7,7 @@ import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
 import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
+import ViewIncrementer from '@/components/ViewIncrementer';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,6 +94,8 @@ export default async function CultureCatchAllPage({
 
     return (
       <div className="min-h-screen bg-background">
+        <ViewIncrementer articleId={article.id} />
+
         {/* Header */}
         <header className="bg-muted/50 border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
