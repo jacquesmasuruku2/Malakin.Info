@@ -76,16 +76,40 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
       label: 'Facebook',
       href: 'https://web.facebook.com/profile.php?id=61593119312402&locale=fr_FR',
       bgColor: '#1877F2',
+      iconSvg: `
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block; width:18px; height:18px; fill: currentColor;">
+          <path d="M13.5 22v-8h2.7l.4-3.1h-3.1V7.6c0-.9.3-1.6 1.6-1.6h1.7V3c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.4H7.5V14h2.6v8h3.4z"/>
+        </svg>
+      `,
     },
     {
       label: 'X',
       href: 'https://x.com/',
       bgColor: '#000000',
+      iconSvg: `
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block; width:18px; height:18px; fill: currentColor;">
+          <path d="M18.9 2h3.4l-7.4 8.5L22.9 22h-6.7l-5.2-7.2L5.1 22H1.7l7.9-9.1L1 2h6.9l4.7 6.5L18.9 2zm-1.2 18h1.9L7.2 3.9H5.2L17.7 20z"/>
+        </svg>
+      `,
     },
     {
       label: 'Instagram',
       href: 'https://www.instagram.com/',
       bgColor: '#E1306C',
+      iconSvg: `
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block; width:18px; height:18px; fill: currentColor;">
+          <defs>
+            <linearGradient id="igGradientNewsletter" x1="0%" x2="100%" y1="0%" y2="100%">
+              <stop offset="0%" stop-color="#FFD600"/>
+              <stop offset="25%" stop-color="#FF7A00"/>
+              <stop offset="50%" stop-color="#FF0069"/>
+              <stop offset="75%" stop-color="#D300C5"/>
+              <stop offset="100%" stop-color="#7638FA"/>
+            </linearGradient>
+          </defs>
+          <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5A5.5 5.5 0 1 1 6.5 13 5.5 5.5 0 0 1 12 7.5zm0 2A3.5 3.5 0 1 0 15.5 13 3.5 3.5 0 0 0 12 9.5zm5.3-3.2a1.2 1.2 0 1 1-1.2 1.2 1.2 1.2 0 0 1 1.2-1.2z" fill="url(#igGradientNewsletter)"/>
+        </svg>
+      `,
     },
   ];
 
@@ -193,16 +217,16 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
             </tr>
 
             <tr>
-              <td class="newsletter-mobile-padding" style="padding: 0 24px 16px 24px; text-align:center;">
-                <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 18px; color:#666666; font-weight: bold; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 10px;">
+              <td class="newsletter-mobile-padding" style="padding: 0 24px 18px 24px; text-align:center;">
+                <div style="font-family: Arial, sans-serif; font-size: 13px; line-height: 20px; color:#0f172a; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 14px 0; border-top: 1px solid #e5e7eb; padding-top: 18px;">
                   Suivez-nous
                 </div>
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; border-collapse: separate;">
                   <tr>
                     ${footerSocialLinks.map((item) => `
-                      <td class="newsletter-social-cell" style="padding: 0 6px;">
-                        <a href="${item.href}" class="newsletter-social-link" style="display:inline-block; background:${item.bgColor}; color:#ffffff; font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; text-decoration:none; border-radius: 999px; padding: 8px 14px; line-height: 18px;">
-                          ${escapeHtml(item.label)}
+                      <td class="newsletter-social-cell" style="padding: 0 8px;">
+                        <a href="${item.href}" aria-label="${escapeHtml(item.label)}" class="newsletter-social-link" style="display:inline-flex; align-items:center; justify-content:center; width: 42px; height: 42px; background:${item.bgColor}; color:#ffffff; text-decoration:none; border-radius: 50%; vertical-align: middle; box-shadow: 0 4px 10px rgba(15,23,42,0.12); border: 1px solid rgba(255,255,255,0.25);">
+                          ${item.iconSvg}
                         </a>
                       </td>
                     `).join('')}
