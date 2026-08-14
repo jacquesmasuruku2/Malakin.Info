@@ -33,14 +33,12 @@ export default function Footer() {
 
   // Social media icons mapping with official icons and URLs
   const socialIcons = {
+    Website: { icon: Globe, color: '#0F172A', url: 'https://www.malakinfo.com' },
     Facebook: { icon: FaFacebook, color: '#1877F2', url: 'https://www.facebook.com/profile.php?id=61593119312402' },
-    Bluesky: { icon: MessageCircle, color: '#0085ff', url: '#' },
-    Threads: { icon: MessageSquare, color: '#000000', url: '#' },
-    Instagram: { icon: FaInstagram, color: '#E4405F', url: '#' },
-    YouTube: { icon: FaYoutube, color: '#FF0000', url: '#' },
-    TikTok: { icon: Video, color: '#000000', url: '#' },
+    X: { icon: FaTwitter, color: '#000000', url: 'https://x.com/Malakinfo1' },
+    Instagram: { icon: FaInstagram, color: '#E4405F', url: 'https://www.instagram.com/' },
     WhatsApp: { icon: FaWhatsapp, color: '#25D366', url: 'https://wa.me/243998258441' },
-    Telegram: { icon: FaTelegram, color: '#0088cc', url: '#' }
+    Telegram: { icon: FaTelegram, color: '#0088cc', url: 'https://t.me/' }
   };
 
   return (

@@ -94,7 +94,7 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
     },
     {
       label: 'X',
-      href: 'https://x.com/',
+      href: 'https://x.com/Malakinfo1',
       bgColor: '#000000',
       iconSvg: `
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="display:block; width:18px; height:18px; fill: currentColor;">
