@@ -7,6 +7,7 @@ import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
 import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
+import { SponsoredSection } from '@/components/SponsoredSection';
 import ViewIncrementer from '@/components/ViewIncrementer';
 
 export const dynamic = 'force-dynamic';
@@ -74,6 +75,26 @@ export default async function CultureCatchAllPage({
     });
 
     const sponsoredArticles: ArticleSidebarSponsor[] = sponsoredFromDb.map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      imageUrl: item.imageUrl,
+      targetUrl: item.targetUrl,
+      sponsorName: item.sponsorName,
+      categoryBadge: item.categoryBadge || 'Publicité',
+    }));
+
+    const otherSponsoredFromDb = await prisma.sponsoredArticle.findMany({
+      where: {
+        isActive: true,
+        articleId: { not: article.id },
+      },
+      orderBy: {
+        sortOrder: 'asc',
+      },
+      take: 4,
+    });
+
+    const otherSponsoredArticles = otherSponsoredFromDb.map((item: any) => ({
       id: item.id,
       title: item.title,
       imageUrl: item.imageUrl,
@@ -211,7 +232,12 @@ export default async function CultureCatchAllPage({
           </section>
         )}
 
-        {/* Related Articles */}
+        {otherSponsoredArticles.length > 0 && (
+          <div className="mx-auto max-w-5xl px-4 pb-0 pt-8 md:px-6">
+            <SponsoredSection items={otherSponsoredArticles} />
+          </div>
+        )}
+
         {relatedArticles.length > 0 && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 border-t border-border">
             <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground mb-6 sm:mb-8">

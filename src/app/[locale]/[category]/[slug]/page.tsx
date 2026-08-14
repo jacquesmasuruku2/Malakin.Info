@@ -9,6 +9,7 @@ import AdSenseAd from '@/components/AdSenseAd';
 import ViewIncrementer from '@/components/ViewIncrementer';
 import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
+import { SponsoredSection } from '@/components/SponsoredSection';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 
 export const dynamic = 'force-dynamic';
@@ -149,6 +150,26 @@ export default async function ArticlePage({
       categoryBadge: item.categoryBadge || 'Publicité',
     }));
 
+    const otherSponsoredFromDb = await prisma.sponsoredArticle.findMany({
+      where: {
+        isActive: true,
+        articleId: { not: article.id },
+      },
+      orderBy: {
+        sortOrder: 'asc',
+      },
+      take: 4,
+    });
+
+    const otherSponsoredArticles = otherSponsoredFromDb.map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      imageUrl: item.imageUrl,
+      targetUrl: item.targetUrl,
+      sponsorName: item.sponsorName,
+      categoryBadge: item.categoryBadge || 'Publicité',
+    }));
+
     const formattedDate = article.publishedAt 
       ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
           day: 'numeric', 
@@ -249,9 +270,13 @@ export default async function ArticlePage({
           </section>
         )}
 
-        {/* Related Articles */}
-        {/* Comments Section */}
         <CommentsSection articleId={article.id} locale={locale} />
+
+        {otherSponsoredArticles.length > 0 && (
+          <div className="mx-auto max-w-5xl px-4 pb-0 pt-8 md:px-6">
+            <SponsoredSection items={otherSponsoredArticles} />
+          </div>
+        )}
 
         {relatedArticles.length > 0 && (
           <section className="mx-auto max-w-5xl px-4 pb-12 pt-12 md:px-6">
