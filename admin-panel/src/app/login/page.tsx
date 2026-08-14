@@ -18,13 +18,9 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    // Simulate a small delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 500));
+    const success = await login(email, password, 'email');
 
-    const success = login(email, password);
-    
     if (success) {
-      // Rediriger vers l'URL sauvegardée ou vers le tableau de bord
       const redirectUrl = localStorage.getItem('redirect-after-login');
       if (redirectUrl && redirectUrl !== '/login' && redirectUrl !== '/') {
         localStorage.removeItem('redirect-after-login');
@@ -36,7 +32,7 @@ export default function LoginPage() {
       setError('Email ou mot de passe incorrect');
       setPassword('');
     }
-    
+
     setLoading(false);
   };
 
