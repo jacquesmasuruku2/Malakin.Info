@@ -1,8 +1,14 @@
 import Link from 'next/link';
+import { Playfair_Display } from 'next/font/google';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, User, Share2, Bookmark, ArrowLeft, Mail, MessageCircle, Send } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '700', '900'],
+});
 
 export const dynamic = 'force-dynamic';
 
@@ -83,13 +89,13 @@ export default async function BlogPostPage({
           </div>
 
           {/* Title */}
-          <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
+          <h1 className={`${playfair.className} text-[2.4rem] md:text-[3.5rem] font-bold text-foreground mb-6 leading-[1.08] tracking-[-0.03em]`}>
             {blogPost.title}
           </h1>
 
           {/* Excerpt */}
           {blogPost.excerpt && (
-            <p className="text-xl text-muted-foreground mb-4 leading-relaxed">
+            <p className={`${playfair.className} text-[1.08rem] md:text-[1.2rem] text-muted-foreground mb-4 leading-[1.8]`}>
               {blogPost.excerpt}
             </p>
           )}
@@ -106,7 +112,9 @@ export default async function BlogPostPage({
           )}
 
           {/* Content */}
-          <ReadAlsoRenderer content={typeof blogPost.content === 'string' ? blogPost.content : ''} />
+          <div className={`${playfair.className} text-[1.04rem] font-normal leading-[1.9] text-foreground md:text-[1.18rem]`}>
+            <ReadAlsoRenderer content={typeof blogPost.content === 'string' ? blogPost.content : ''} />
+          </div>
 
           {/* Share Buttons */}
           <div className="flex items-center gap-4 mt-6 pt-6 border-t border-border">
@@ -128,38 +136,6 @@ export default async function BlogPostPage({
             </button>
           </div>
 
-          {/* Author Section */}
-          {blogPost.author && (
-            <div className="mt-6 pt-6 border-t border-border">
-              <div className="bg-muted/30 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  {blogPost.author.imageUrl && (
-                    <img
-                      src={blogPost.author.imageUrl}
-                      alt={blogPost.author.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <h3 className="font-heading text-base font-semibold text-foreground mb-1">
-                      {blogPost.author.name}
-                    </h3>
-                    {blogPost.author.bio && (
-                      <p className="text-muted-foreground text-sm mb-2">
-                        {blogPost.author.bio}
-                      </p>
-                    )}
-                    <Link
-                      href={`/${locale}/auteurs/${blogPost.author.slug}`}
-                      className="text-xs text-primary hover:text-primary/80 font-medium"
-                    >
-                      Voir tous les articles de cet auteur
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </article>
       </div>
     );

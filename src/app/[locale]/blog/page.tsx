@@ -210,7 +210,6 @@ export default async function BlogPage() {
                         </span>
                         <span>{post.readTime}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">Par {post.author}</p>
                       <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
                         {post.title}
                       </h3>
@@ -245,7 +244,6 @@ export default async function BlogPage() {
                       <h3 className="font-heading font-semibold text-foreground mb-1 line-clamp-2">
                         {post.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground mb-2">Par {post.author}</p>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />

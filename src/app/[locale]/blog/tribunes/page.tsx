@@ -48,7 +48,6 @@ export default async function TribunesPage({ params }: { params: Promise<{ local
             >
               <div className="flex items-center gap-2 mb-3">
                 <PenTool className="w-5 h-5 text-primary" />
-                <span className="text-sm font-medium text-primary">Par {article.author?.name || 'Équipe Malakin'}</span>
               </div>
               <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
                 {article.title}

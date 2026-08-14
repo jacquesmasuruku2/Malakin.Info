@@ -269,14 +269,10 @@ export default async function CatchAllArticlePage({
                     <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                     {readTime}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                    {article.author?.name || t.teamMalakin}
-                  </span>
                 </div>
               </div>
 
-              <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
+              <h1 className="font-heading text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem] font-bold text-foreground mb-4 sm:mb-6 leading-[1.08] tracking-[-0.03em]">
                 {article.title}
               </h1>
 
@@ -298,7 +294,9 @@ export default async function CatchAllArticlePage({
 
               <AdSenseAd adSlot="1234567890" className="my-4" />
 
-              <ReadAlsoRenderer content={typeof article.content === 'string' ? article.content : ''} />
+              <div style={{ fontFamily: '"Playfair Display", Georgia, serif' }} className="text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]">
+                <ReadAlsoRenderer content={typeof article.content === 'string' ? article.content : ''} />
+              </div>
 
               <div className="mt-8">
                 <AdSenseAd adSlot="0987654321" className="my-4" />
@@ -316,36 +314,6 @@ export default async function CatchAllArticlePage({
             </aside>
           </div>
         </div>
-
-        {/* Author Section */}
-        {article.author && (
-          <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 border-t border-border">
-            <div className="bg-muted/50 rounded-lg p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                {article.author.imageUrl && (
-                  <img
-                    src={article.author.imageUrl}
-                    alt={article.author.name}
-                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
-                  />
-                )}
-                <div className="flex-1">
-                  {article.author.bio && (
-                    <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-none">
-                      {article.author.bio}
-                    </p>
-                  )}
-                  <Link
-                    href={`/${locale}/auteurs/${article.author.slug}`}
-                    className="text-xs sm:text-sm text-primary hover:text-primary/80 font-medium"
-                  >
-                    {t.seeAllArticles}
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
 
         {otherSponsoredArticles.length > 0 && (
           <div className="mx-auto max-w-5xl px-4 pb-0 pt-8 md:px-6">

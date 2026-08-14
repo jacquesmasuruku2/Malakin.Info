@@ -201,11 +201,9 @@ export default async function ArticlePage({
           <header className="mb-8 w-full">
             <div className="mb-3 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.12em] text-gray-500">
               <span>{formattedDate}</span>
-              <span className="text-gray-300">|</span>
-              <span>{article.author?.name || t.teamMalakin}</span>
             </div>
 
-            <h1 className={`${playfair.className} text-3xl font-bold leading-tight tracking-tight text-gray-900 md:text-5xl`}>
+            <h1 className={`${playfair.className} text-[2.25rem] font-bold leading-[1.08] tracking-[-0.03em] text-gray-900 md:text-[3.5rem]`}>
               {displayTitle}
             </h1>
           </header>
@@ -222,7 +220,7 @@ export default async function ArticlePage({
                 </div>
               )}
 
-              <div className={`${playfair.className} text-base font-normal leading-relaxed text-gray-800 md:text-lg`}>
+              <div className={`${playfair.className} text-[1.04rem] font-normal leading-[1.9] text-gray-800 md:text-[1.18rem]`}>
                 <ReadAlsoRenderer content={displayContent} />
               </div>
 
@@ -244,36 +242,6 @@ export default async function ArticlePage({
             </aside>
           </div>
         </main>
-
-        {/* Author Section */}
-        {article.author && (
-          <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 border-t border-border">
-            <div className="bg-muted/50 rounded-lg p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                {article.author.imageUrl && (
-                  <img
-                    src={article.author.imageUrl}
-                    alt={article.author.name}
-                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
-                  />
-                )}
-                <div className="flex-1">
-                  {article.author.bio && (
-                    <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-none">
-                      {article.author.bio}
-                    </p>
-                  )}
-                  <Link
-                    href={`/${locale}/auteurs/${article.author.slug}`}
-                    className="text-xs sm:text-sm text-primary hover:text-primary/80 font-medium"
-                  >
-                    {t.seeAllArticles}
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
 
         <CommentsSection articleId={article.id} locale={locale} />
 

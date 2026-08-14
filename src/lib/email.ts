@@ -59,3 +59,33 @@ export async function sendWelcomeEmail({
 
   return sendNewsletterEmail({ to, subject, html, text });
 }
+
+export async function sendPasswordResetEmail({
+  to,
+  name,
+  resetUrl,
+}: {
+  to: string;
+  name?: string | null;
+  resetUrl: string;
+}) {
+  const subject = 'Réinitialisation de votre mot de passe MalakInfo';
+  const html = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+      <p>Bonjour ${name || 'Utilisateur'},</p>
+      <p>Vous avez demandé la réinitialisation de votre mot de passe.</p>
+      <p>
+        <a href="${resetUrl}" style="display:inline-block; background:#0B3B8B; color:#fff; padding:12px 18px; border-radius:8px; text-decoration:none; font-weight:bold;">
+          Définir un nouveau mot de passe
+        </a>
+      </p>
+      <p>Ce lien est valable pendant 1 heure.</p>
+      <p>Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer cet e-mail.</p>
+      <p>À très vite,<br/>L'équipe MalakInfo</p>
+    </div>
+  `;
+
+  const text = `Bonjour ${name || 'Utilisateur'},\n\nVous avez demandé la réinitialisation de votre mot de passe.\n\nCliquez sur ce lien pour définir un nouveau mot de passe : ${resetUrl}\n\nCe lien est valable pendant 1 heure.\n\nSi vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail.\n\nÀ très vite,\nL'équipe MalakInfo`;
+
+  return sendNewsletterEmail({ to, subject, html, text });
+}
