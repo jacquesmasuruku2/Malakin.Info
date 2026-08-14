@@ -19,10 +19,10 @@ interface RadioStation {
 
 const emptyStation: RadioStation = {
   id: '',
-  name: 'Malakinfo Radio',
-  streamUrl: 'https://stream.zeno.fm/5k7n5xq7z4zuv',
+  name: 'BBC World Service',
+  streamUrl: 'https://as-hls-ww.live.cf.md.bbci.co.uk/pool_07364996/live/ww/bbc_world_service_news_internet/bbc_world_service_news_internet.isml/bbc_world_service_news_internet-audio%3d48000.norewind.m3u8',
   logoUrl: '/images/logo.png',
-  description: 'Le son de Malakinfo en direct',
+  description: 'Flux radio BBC par défaut',
   showLabel: true,
   isActive: true,
 };

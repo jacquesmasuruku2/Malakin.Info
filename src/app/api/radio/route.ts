@@ -18,10 +18,10 @@ export async function OPTIONS() {
 
 export const DEFAULT_STATION = {
   id: 'default-radio',
-  name: 'Radio Okapi',
-  streamUrl: 'http://rs1.radiostreamer.com:8000/stream',
+  name: 'BBC World Service',
+  streamUrl: 'https://as-hls-ww.live.cf.md.bbci.co.uk/pool_07364996/live/ww/bbc_world_service_news_internet/bbc_world_service_news_internet.isml/bbc_world_service_news_internet-audio%3d48000.norewind.m3u8',
   logoUrl: '/images/logo.png',
-  description: 'La voix de la paix',
+  description: 'Flux radio BBC par défaut',
   showLabel: true,
   isActive: true,
 } as const;

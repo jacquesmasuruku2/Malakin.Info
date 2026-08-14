@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Volume2, VolumeX, Play, Pause, Radio, Loader2, WifiOff } from 'lucide-react';
+import Hls from 'hls.js';
 
 type RadioStation = {
   id: string;
@@ -15,16 +16,17 @@ type RadioStation = {
 
 const DEFAULT_STATION: RadioStation = {
   id: 'default-radio',
-  name: 'Malakinfo Radio',
-  streamUrl: 'https://stream.zeno.fm/5k7n5xq7z4zuv',
+  name: 'BBC World Service',
+  streamUrl: 'https://as-hls-ww.live.cf.md.bbci.co.uk/pool_07364996/live/ww/bbc_world_service_news_internet/bbc_world_service_news_internet.isml/bbc_world_service_news_internet-audio%3d48000.norewind.m3u8',
   logoUrl: '/images/logo.png',
-  description: 'Le son de Malakinfo en direct',
+  description: 'Flux radio BBC par défaut',
   showLabel: true,
   isActive: true,
 };
 
 export default function RadioPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const [station, setStation] = useState<RadioStation>(DEFAULT_STATION);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
@@ -70,6 +72,55 @@ export default function RadioPlayer() {
     if (!audioRef.current) return;
     audioRef.current.volume = isMuted ? 0 : volume;
   }, [volume, isMuted]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const url = station.streamUrl;
+    const isHlsStream = /\.m3u8($|\?)/i.test(url);
+
+    if (isHlsStream && Hls.isSupported()) {
+      if (!hlsRef.current) {
+        hlsRef.current = new Hls({
+          autoStartLoad: true,
+          startLevel: -1,
+          enableWorker: true,
+          lowLatencyMode: false,
+        });
+      }
+
+      hlsRef.current.destroy();
+      hlsRef.current = new Hls({
+        autoStartLoad: true,
+        startLevel: -1,
+        enableWorker: true,
+        lowLatencyMode: false,
+      });
+      hlsRef.current.attachMedia(audio);
+      hlsRef.current.loadSource(url);
+      return () => {
+        hlsRef.current?.detachMedia();
+        hlsRef.current?.destroy();
+        hlsRef.current = null;
+      };
+    }
+
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    audio.src = url;
+    audio.load();
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [station.streamUrl]);
 
   useEffect(() => {
     const handleToggleRadio = async () => {
