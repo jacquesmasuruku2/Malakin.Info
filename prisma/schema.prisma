@@ -17,6 +17,7 @@ model Category {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   defaultLocale String   @default("fr")
+  articles      Article[]
   media         Media[]
 }
 
@@ -35,23 +36,25 @@ model CategoryTranslation {
 }
 
 model Author {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
-  slug      String   @unique
+  slug      String     @unique
   bio       String?
   role      String?
   email     String?
   imageUrl  String?
   imageAlt  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  articles  Article[]
+  blogPosts BlogPost[]
   media     Media[]
 }
 
 model Article {
-  id            String   @id @default(cuid())
+  id            String          @id @default(cuid())
   title         String
-  slug          String   @unique
+  slug          String          @unique
   excerpt       String
   content       Json
   categoryId    String
@@ -60,12 +63,16 @@ model Article {
   mainImageUrl  String?
   mainImageAlt  String?
   readTime      String?
-  featured      Boolean  @default(false)
-  views         BigInt   @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  defaultLocale String   @default("fr")
+  featured      Boolean         @default(false)
+  views         BigInt          @default(0)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  defaultLocale String          @default("fr")
+  author        Author?         @relation(fields: [authorId], references: [id])
+  category      Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  comments      Comment[]
   likes         Like[]
+  favorites     UserFavorite[]
 
   @@index([categoryId])
   @@index([authorId])
@@ -90,20 +97,23 @@ model ArticleTranslation {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String          @id @default(cuid())
+  email         String          @unique
   name          String
   passwordHash  String
-  role          String    @default("reader")
+  role          String          @default("reader")
   avatarUrl     String?
   bio           String?
-  isActive      Boolean   @default(true)
-  emailVerified Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  isActive      Boolean         @default(true)
+  emailVerified Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
   lastLoginAt   DateTime?
   comments      Comment[]
   likes         Like[]
+  favorites     UserFavorite[]
+  donations     Donation[]
+  preferences   UserPreference?
   sessions      Session[]
 
   @@index([email])
@@ -128,7 +138,10 @@ model Comment {
   status    String   @default("pending")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    Comment? @relation("CommentToComment", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentToComment")
 
   @@index([articleId])
   @@index([userId])
@@ -199,6 +212,7 @@ model Media {
 
 model Donation {
   id            String   @id @default(cuid())
+  userId        String?
   donorName     String?
   donorEmail    String?
   amount        Decimal  @db.Decimal(10, 2)
@@ -211,9 +225,38 @@ model Donation {
   transactionId String?  @unique
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([status])
   @@index([createdAt(sort: Desc)])
+  @@index([userId])
+}
+
+model UserFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  articleId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@index([userId])
+  @@index([articleId])
+}
+
+model UserPreference {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  locale           String   @default("fr")
+  theme            String   @default("light")
+  emailNewsletter  Boolean  @default(false)
+  emailDigest      Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Partnership {
@@ -307,6 +350,7 @@ model BlogPost {
   views        BigInt   @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  author       Author?  @relation(fields: [authorId], references: [id])
 
   @@index([type])
   @@index([publishedAt(sort: Desc)])
@@ -314,20 +358,21 @@ model BlogPost {
 }
 
 model LiveEvent {
-  id          String     @id @default(cuid())
+  id          String       @id @default(cuid())
   title       String
-  slug        String     @unique
+  slug        String       @unique
   description String?
   thumbnail   String?
   streamUrl   String?
   youtubeUrl  String?
-  status      LiveStatus @default(SCHEDULED)
+  streamType  StreamType   @default(VIDEO)
+  status      LiveStatus   @default(SCHEDULED)
   startTime   DateTime
   endTime     DateTime?
-  viewerCount Int        @default(0)
-  isFeatured  Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  viewerCount Int          @default(0)
+  isFeatured  Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   categoryId  String?
 
   @@index([status])
@@ -345,20 +390,49 @@ model LiveViewerSession {
 }
 
 model RadioStation {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   name        String
   streamUrl   String
   logoUrl     String?
   description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  programs    RadioProgram[]
+}
+
+model RadioProgram {
+  id          String        @id @default(cuid())
+  stationId   String?
+  title       String
+  slug        String        @unique
+  host        String?
+  description String?
+  streamUrl   String?
+  imageUrl    String?
+  startTime   DateTime
+  endTime     DateTime?
+  isLive      Boolean       @default(false)
+  isFeatured  Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  station     RadioStation? @relation(fields: [stationId], references: [id])
+
+  @@index([stationId])
+  @@index([startTime])
+  @@index([isLive])
+  @@index([isFeatured])
 }
 
 enum LiveStatus {
   SCHEDULED
   LIVE
   ENDED
+}
+
+enum StreamType {
+  VIDEO
+  AUDIO
 }
 
 enum crdb_internal_region {
