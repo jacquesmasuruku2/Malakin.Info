@@ -67,11 +67,18 @@ export default function EditArticlePage() {
     try {
       const response = await fetch(getApiUrl(`/api/articles/${articleId}`));
       const data: Article = await response.json();
+      const normalizedContent =
+        typeof data.content === 'string'
+          ? data.content
+          : data.content && typeof data.content === 'object'
+            ? data.content
+            : '';
+
       setFormData({
         title: data.title,
         slug: data.slug,
         excerpt: data.excerpt,
-        content: typeof data.content === 'string' ? data.content : JSON.stringify(data.content),
+        content: normalizedContent as string,
         categoryId: data.categoryId,
         authorId: data.authorId || '',
         publishedAt: data.publishedAt ? new Date(data.publishedAt).toISOString().split('T')[0] : '',

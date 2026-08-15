@@ -46,7 +46,7 @@ import { ReadAlsoExtension } from '@/lib/tiptap/ReadAlsoExtension';
 import ReadAlsoModal from '@/components/ReadAlsoModal';
 
 interface WordEditorProps {
-  content: string;
+  content: string | Record<string, unknown> | null | undefined;
   onChange: (content: string) => void;
 }
 
@@ -99,20 +99,26 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
   });
 
   useEffect(() => {
-    if (editor) {
-      const nextContent = typeof content === 'string' ? content : '';
-      const currentContent = editor.getHTML();
+    if (!editor) return;
 
-      if (nextContent && currentContent !== nextContent) {
-        editor.commands.setContent(nextContent, { emitUpdate: false });
-      }
+    const currentContent = editor.getHTML();
+    const nextContent =
+      typeof content === 'string'
+        ? content
+        : content && typeof content === 'object'
+          ? content
+          : '<p></p>';
 
-      if (!nextContent && currentContent !== '<p></p>') {
-        editor.commands.setContent('<p></p>', { emitUpdate: false });
-      }
+    const shouldReplace =
+      typeof nextContent === 'string'
+        ? nextContent !== currentContent
+        : JSON.stringify(nextContent) !== JSON.stringify(editor.getJSON());
 
-      updateCounts(editor.getText());
+    if (shouldReplace) {
+      editor.commands.setContent(nextContent as any, { emitUpdate: false });
     }
+
+    updateCounts(editor.getText());
   }, [editor, content]);
 
   const updateCounts = (text: string) => {
@@ -176,9 +182,9 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
   }
 
   return (
-    <div className="bg-gray-100 rounded-lg overflow-hidden border border-gray-300">
+    <div className="bg-gray-100 rounded-lg overflow-visible border border-gray-300">
       {/* Ribbon Toolbar */}
-      <div className="sticky top-0 z-30 bg-white border-b border-gray-300 shadow-sm">
+      <div className="sticky top-0 z-40 bg-white border-b border-gray-300 shadow-sm backdrop-blur-sm">
         {/* Tabs */}
         <div className="flex border-b border-gray-200">
           {['home', 'insert', 'layout'].map((tab) => (
@@ -574,15 +580,17 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
       </div>
 
       {/* Editor Page */}
-      <div className="bg-gray-100 p-8 overflow-auto" style={{ minHeight: '600px' }}>
+      <div className="bg-gray-100 p-6 lg:p-8" style={{ minHeight: '600px' }}>
         <div 
-          className="bg-white shadow-lg mx-auto max-w-4xl min-h-[800px] p-12"
+          className="bg-white shadow-lg mx-auto min-h-[900px] p-8 lg:p-12"
           style={{ 
+            width: '100%',
+            maxWidth: '1400px',
             transform: `scale(${zoom / 100})`,
             transformOrigin: 'top center'
           }}
         >
-          <EditorContent editor={editor} className="prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-[700px]" />
+          <EditorContent editor={editor} className="prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-[760px]" />
         </div>
       </div>
 
