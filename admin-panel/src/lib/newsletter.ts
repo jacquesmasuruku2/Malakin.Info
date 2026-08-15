@@ -178,15 +178,13 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
       <tr>
         <td style="padding: 0 0 20px 0;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;" class="newsletter-stack newsletter-secondary-row">
-            <tr class="newsletter-secondary-row">
-              <td valign="top" class="newsletter-stack-cell newsletter-secondary-image-cell" style="padding: 0 0 0 0; width: 100%; max-width: 100%;">
+            <tr>
+              <td width="300" valign="top" class="newsletter-stack-cell newsletter-secondary-image-cell" style="padding: 0 16px 0 0; width: 300px; max-width: 300px;">
                 <a href="${articleUrl}" style="display:block; text-decoration:none;">
-                  <img src="${image}" alt="${title}" width="600" class="newsletter-card-image newsletter-secondary-image" style="display:block; width:100%; max-width:100%; height:auto; border-radius:10px; border:0; background:#f3f4f6;" />
+                  <img src="${image}" alt="${title}" width="300" class="newsletter-card-image newsletter-secondary-image" style="display:block; width:300px; max-width:100%; height:auto; border-radius:8px; border:0; background:#f3f4f6;" />
                 </a>
               </td>
-            </tr>
-            <tr>
-              <td valign="top" class="newsletter-text-content newsletter-secondary-text-cell" style="width: 100%; padding-top: 10px;">
+              <td valign="top" class="newsletter-text-content newsletter-secondary-text-cell" style="width: auto;">
                 <div style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; color: #c81f2d; letter-spacing: 0.8px; text-transform: uppercase; margin: 0 0 8px 0;">
                   ${escapeHtml(category)}
                 </div>
