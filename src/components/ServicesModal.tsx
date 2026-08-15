@@ -131,7 +131,7 @@ export default function ServicesModal() {
             </button>
           </div>
 
-          <div className="grid gap-6 p-4 md:grid-cols-2">
+          <div className="grid gap-3 p-4 grid-cols-2">
             <div>
               <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">{t.services}</h4>
               <div className="grid gap-2">
@@ -140,7 +140,7 @@ export default function ServicesModal() {
                     key={item.name}
                     href={item.href}
                     onClick={closeServices}
-                    className="block px-3 py-3 bg-gray-50 rounded-lg text-sm text-[#081C3D] hover:bg-[#D4AF37] hover:text-white transition-all duration-200"
+                    className="block min-h-[44px] items-center px-3 py-2.5 bg-gray-50 rounded-lg text-sm text-[#081C3D] hover:bg-[#D4AF37] hover:text-white transition-all duration-200"
                   >
                     {item.name}
                   </a>

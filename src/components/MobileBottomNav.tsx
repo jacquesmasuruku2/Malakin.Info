@@ -116,13 +116,13 @@ export default function MobileBottomNav() {
                   onClick={item.action}
                   className={`group relative flex w-[104px] shrink-0 flex-col items-center justify-center border-r border-white/10 transition-all duration-200 ease-out ${
                     isPrimary
-                      ? 'bg-gradient-to-b from-[#f9d91c] to-[#f4c51d] text-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]'
+                      ? 'bg-[#11181d] text-gray-200 hover:bg-[#1a252d]'
                       : 'bg-[#121a1f] text-gray-300 hover:bg-[#1a252d]'
                   }`}
                 >
-                  <div className={`absolute inset-x-2 top-1 h-px ${isPrimary ? 'bg-white/40' : 'bg-white/10'}`} />
-                  <Icon className={`mb-1 h-[18px] w-[18px] transition-transform duration-200 group-hover:scale-105 ${isPrimary ? 'text-slate-950' : 'text-gray-300'}`} />
-                  <span className={`max-w-full truncate text-[8px] font-medium uppercase tracking-[0.12em] ${isPrimary ? 'text-slate-950' : 'text-gray-300'}`}>
+                  <div className={`absolute inset-x-2 top-1 h-px ${isPrimary ? 'bg-white/20' : 'bg-white/10'}`} />
+                  <Icon className={`mb-1 h-[18px] w-[18px] transition-transform duration-200 group-hover:scale-105 ${isPrimary ? 'text-[#f4c51d]' : 'text-gray-300'}`} />
+                  <span className={`max-w-full truncate text-[8px] font-medium uppercase tracking-[0.12em] ${isPrimary ? 'text-[#f4c51d]' : 'text-gray-300'}`}>
                     {item.name}
                   </span>
                 </button>
