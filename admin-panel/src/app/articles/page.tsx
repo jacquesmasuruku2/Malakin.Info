@@ -46,6 +46,8 @@ export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<{id: string, title: string}[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const [deleteDialog, setDeleteDialog] = useState<{
     isOpen: boolean;
     articleId: string | null;
@@ -135,6 +137,17 @@ export default function ArticlesPage() {
     const matchesCategory = filterCategory === 'all' || article.category.title === filterCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredArticles.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const currentPageArticles = filteredArticles.slice(
+    (safeCurrentPage - 1) * pageSize,
+    safeCurrentPage * pageSize
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterCategory, filterStatus]);
 
   return (
     <ProtectedRoute>
@@ -234,7 +247,7 @@ export default function ArticlesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredArticles.map((article) => (
+                {currentPageArticles.map((article) => (
                   <tr key={article.id} className="hover:bg-gray-50">
                     <td className="px-4 sm:px-6 py-4">
                       <div className="flex items-start space-x-3 sm:space-x-4">
@@ -344,17 +357,26 @@ export default function ArticlesPage() {
             </div>
           )}
 
-          {/* Pagination */}
           {!loading && filteredArticles.length > 0 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 gap-4">
               <p className="text-sm text-gray-700">
-                Affichage de <span className="font-medium">1</span> à <span className="font-medium">{filteredArticles.length}</span> sur <span className="font-medium">{filteredArticles.length}</span> résultats
+                Affichage de <span className="font-medium">{(safeCurrentPage - 1) * pageSize + 1}</span> à <span className="font-medium">{Math.min(safeCurrentPage * pageSize, filteredArticles.length)}</span> sur <span className="font-medium">{filteredArticles.length}</span> résultats
               </p>
               <div className="flex items-center gap-2">
-                <button className="px-3 py-1 text-sm text-gray-500 card border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50" disabled>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={safeCurrentPage <= 1}
+                  className="px-3 py-1 text-sm text-gray-700 card border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   Précédent
                 </button>
-                <button className="px-3 py-1 text-sm text-gray-500 card border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50" disabled>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={safeCurrentPage >= totalPages}
+                  className="px-3 py-1 text-sm text-gray-700 card border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   Suivant
                 </button>
               </div>

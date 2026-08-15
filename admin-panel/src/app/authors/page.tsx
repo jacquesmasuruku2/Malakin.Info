@@ -106,8 +106,25 @@ export default function AuthorsPage() {
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 bg-blue-600/10 rounded-full flex items-center justify-center">
-                      <User className="w-8 h-8 text-blue-600" />
+                    <div className="w-16 h-16 rounded-full overflow-hidden bg-blue-600/10 flex items-center justify-center ring-1 ring-gray-200">
+                      {author.imageUrl ? (
+                        <img
+                          src={author.imageUrl}
+                          alt={author.name}
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            target.style.display = 'none';
+                            const fallback = target.nextElementSibling as HTMLElement | null;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className={`h-full w-full items-center justify-center ${author.imageUrl ? 'hidden' : 'flex'}`}
+                      >
+                        <User className="w-8 h-8 text-blue-600" />
+                      </div>
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-primary">{author.name}</h3>
