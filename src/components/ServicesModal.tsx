@@ -40,23 +40,14 @@ export default function ServicesModal() {
   }, [isServicesOpen, closeServices]);
 
   const servicesItems = [
-    { name: t.search, href: `/${locale}/recherche` },
-    { name: t.pressReleases, href: `/${locale}/communiques` },
-    { name: t.archives, href: `/${locale}/archives` },
-    { name: t.radioAfrica, href: `/${locale}/radio-afrique` },
-    { name: t.scienceTech, href: `/${locale}/science-tech` },
-    { name: t.forumAfrica, href: `/${locale}/forum-afrique` },
-    { name: t.partnerships, href: `/${locale}/partenariats` },
-    { name: t.practicalInfo, href: `/${locale}/infos-pratiques` },
-    { name: t.media, href: `/${locale}/medias` },
-    { name: t.blog, href: `/${locale}/blog` },
-    { name: t.employment, href: `/${locale}/emploi` },
-    { name: t.support, href: `/${locale}/nous-soutenir` },
     { name: t.contact, href: `/${locale}/contact` },
-    { name: t.religion, href: `/${locale}/religion` },
-    { name: t.sport, href: `/${locale}/sport` },
-    { name: t.culture, href: `/${locale}/culture` },
+    { name: t.employment, href: `/${locale}/emploi` },
+    { name: t.media, href: `/${locale}/medias` },
     { name: t.music, href: `/${locale}/culture/musique` },
+    { name: t.partnerships, href: `/${locale}/partenariats` },
+    { name: t.scienceTech, href: `/${locale}/science-tech` },
+    { name: t.search, href: `/${locale}/recherche` },
+    { name: t.support, href: `/${locale}/nous-soutenir` },
   ];
 
   const menuCategories = [
@@ -139,76 +130,77 @@ export default function ServicesModal() {
               <X className="w-6 h-6" />
             </button>
           </div>
-          
-          {/* Services section accessible from mobile menu */}
-          <div className="p-4">
-            <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">{t.services}</h4>
-            <div className="grid gap-2">
-              {servicesItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  onClick={closeServices}
-                  className="block px-3 py-3 bg-gray-50 rounded-lg text-sm text-[#081C3D] hover:bg-[#D4AF37] hover:text-white transition-all duration-200"
-                >
-                  {item.name}
-                </a>
-              ))}
-            </div>
-          </div>
 
-          <div className="border-t border-gray-200" />
-
-          {/* Services Malakin navigation categories */}
-          <div className="p-4 space-y-0">
-            {menuCategories.map((category) => {
-              if (category.href) {
-                return (
+          <div className="grid gap-6 p-4 md:grid-cols-2">
+            <div>
+              <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">{t.services}</h4>
+              <div className="grid gap-2">
+                {servicesItems.map((item) => (
                   <a
-                    key={category.title}
-                    href={category.href}
+                    key={item.name}
+                    href={item.href}
                     onClick={closeServices}
-                    className="block px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] border-b border-gray-200 transition-colors"
+                    className="block px-3 py-3 bg-gray-50 rounded-lg text-sm text-[#081C3D] hover:bg-[#D4AF37] hover:text-white transition-all duration-200"
                   >
-                    {category.title}
+                    {item.name}
                   </a>
-                );
-              }
-              
-              const isExpanded = expandedCategory === category.title;
-              return (
-                <div key={category.title} className="border-b border-gray-200">
-                  <button
-                    className="w-full flex items-center justify-between px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors"
-                    onClick={() => setExpandedCategory(isExpanded ? null : category.title)}
-                  >
-                    <span>{category.title}</span>
-                    <ChevronRight
-                      className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
-                    />
-                  </button>
+                ))}
+              </div>
+            </div>
 
-                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                    isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                  }`}>
-                    {isExpanded && category.items && (
-                      <div className="pl-4 pr-3 py-2 space-y-1 bg-gray-50">
-                        {category.items.map((item) => (
-                          <a
-                            key={item.name}
-                            href={item.href}
-                            onClick={closeServices}
-                            className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
-                          >
-                            {item.name}
-                          </a>
-                        ))}
+            <div>
+              <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">Malakinfo Services</h4>
+              <div className="space-y-0">
+                {menuCategories.map((category) => {
+                  if (category.href) {
+                    return (
+                      <a
+                        key={category.title}
+                        href={category.href}
+                        onClick={closeServices}
+                        className="block px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] border-b border-gray-200 transition-colors"
+                      >
+                        {category.title}
+                      </a>
+                    );
+                  }
+
+                  const isExpanded = expandedCategory === category.title;
+                  return (
+                    <div key={category.title} className="border-b border-gray-200">
+                      <button
+                        className="w-full flex items-center justify-between px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors"
+                        onClick={() => setExpandedCategory(isExpanded ? null : category.title)}
+                      >
+                        <span>{category.title}</span>
+                        <ChevronRight
+                          className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
+                        />
+                      </button>
+
+                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                        isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                      }`}>
+                        {isExpanded && category.items && (
+                          <div className="pl-4 pr-3 py-2 space-y-1 bg-gray-50">
+                            {category.items.map((item) => (
+                              <a
+                                key={item.name}
+                                href={item.href}
+                                onClick={closeServices}
+                                className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
+                              >
+                                {item.name}
+                              </a>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -218,7 +210,7 @@ export default function ServicesModal() {
         <div className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 ${
           isServicesOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`} onClick={closeServices} />
-        <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] bg-white border border-gray-200 rounded-none shadow-2xl p-6 z-[70] max-h-[80vh] overflow-y-auto transition-all duration-300 ease-out ${
+        <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[760px] max-w-[90vw] bg-white border border-gray-200 rounded-none shadow-2xl p-6 z-[70] max-h-[80vh] overflow-y-auto transition-all duration-300 ease-out ${
           isServicesOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
         }`}>
           <div className="flex justify-between items-center mb-4 border-b-2 border-[#D4AF37] pb-4">
@@ -231,73 +223,76 @@ export default function ServicesModal() {
               <X className="w-5 h-5" />
             </button>
           </div>
-          
-          {/* Menu Categories */}
-          <div className="mb-6 space-y-0">
-            {menuCategories.map((category) => {
-              if (category.href) {
-                return (
+
+          <div className="grid gap-8 md:grid-cols-2">
+            <div>
+              <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">{t.services}</h4>
+              <div className="space-y-2">
+                {servicesItems.map((item) => (
                   <a
-                    key={category.title}
-                    href={category.href}
+                    key={item.name}
+                    href={item.href}
                     onClick={closeServices}
-                    className="block px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] border-b border-gray-200 transition-colors"
+                    className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
                   >
-                    {category.title}
+                    {item.name}
                   </a>
-                );
-              }
-              
-              const isExpanded = expandedCategory === category.title;
-              return (
-                <div key={category.title} className="border-b border-gray-200">
-                  <button
-                    className="w-full flex items-center justify-between px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors"
-                    onClick={() => setExpandedCategory(isExpanded ? null : category.title)}
-                  >
-                    <span>{category.title}</span>
-                    <ChevronRight
-                      className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
-                    />
-                  </button>
+                ))}
+              </div>
+            </div>
 
-                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                    isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                  }`}>
-                    {isExpanded && category.items && (
-                      <div className="pl-4 pr-3 py-2 space-y-1 bg-gray-50">
-                        {category.items.map((item) => (
-                          <a
-                            key={item.name}
-                            href={item.href}
-                            onClick={closeServices}
-                            className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
-                          >
-                            {item.name}
-                          </a>
-                        ))}
+            <div>
+              <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">Malakinfo Services</h4>
+              <div className="space-y-0">
+                {menuCategories.map((category) => {
+                  if (category.href) {
+                    return (
+                      <a
+                        key={category.title}
+                        href={category.href}
+                        onClick={closeServices}
+                        className="block px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] border-b border-gray-200 transition-colors"
+                      >
+                        {category.title}
+                      </a>
+                    );
+                  }
+
+                  const isExpanded = expandedCategory === category.title;
+                  return (
+                    <div key={category.title} className="border-b border-gray-200">
+                      <button
+                        className="w-full flex items-center justify-between px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors"
+                        onClick={() => setExpandedCategory(isExpanded ? null : category.title)}
+                      >
+                        <span>{category.title}</span>
+                        <ChevronRight
+                          className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
+                        />
+                      </button>
+
+                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                        isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                      }`}>
+                        {isExpanded && category.items && (
+                          <div className="pl-4 pr-3 py-2 space-y-1 bg-gray-50">
+                            {category.items.map((item) => (
+                              <a
+                                key={item.name}
+                                href={item.href}
+                                onClick={closeServices}
+                                className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
+                              >
+                                {item.name}
+                              </a>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Services Grid */}
-          <div className="border-t border-gray-200 pt-4">
-            <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">{t.services}</h4>
-            <div className="space-y-2">
-              {servicesItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  onClick={closeServices}
-                  className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
-                >
-                  {item.name}
-                </a>
-              ))}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
