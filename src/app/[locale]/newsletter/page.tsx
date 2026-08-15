@@ -43,173 +43,188 @@ export default function NewsletterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-primary to-primary/90 text-white py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Mail className="w-16 h-16 mx-auto mb-6 opacity-90" />
-          <h1 className="font-heading text-4xl md:text-5xl font-bold mb-4">
-            Restez informé
-          </h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            Abonnez-vous à notre newsletter pour recevoir les dernières actualités, analyses et exclusivités directement dans votre boîte mail.
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#f8fafc,_#f1f5f9_45%,_#eef2f7_100%)] text-slate-900">
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+        <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+          <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="bg-[#0f172a] px-6 py-8 text-white sm:px-8 lg:px-10 lg:py-12">
+              <div className="mb-6 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/5">
+                  <Mail className="h-4 w-4" />
+                </span>
+                MalakInfo
+              </div>
 
-      {/* Subscription Form Section */}
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10">
-        <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
-          <h2 className="font-heading text-2xl font-bold text-gray-900 mb-6 text-center">
-            Inscrivez-vous maintenant
-          </h2>
-          
-          {message && (
-            <div className={`mb-6 p-4 rounded-lg ${
-              message.type === 'success' 
-                ? 'bg-green-50 text-green-800 border border-green-200' 
-                : 'bg-red-50 text-red-800 border border-red-200'
-            }`}>
-              {message.text}
-            </div>
-          )}
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Adresse email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="votre@email.com"
-                required
-                disabled={isSubmitting}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors disabled:opacity-50"
-              />
-            </div>
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-red-300">
+                Lettre d'information
+              </p>
 
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                Nom (optionnel)
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                placeholder="Votre nom"
-                disabled={isSubmitting}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors disabled:opacity-50"
-              />
-            </div>
+              <h1 className="max-w-md text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl lg:text-5xl">
+                L’essentiel de l’actualité, dans votre boîte mail.
+              </h1>
 
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">
-                Choisissez vos centres d'intérêt
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <input type="checkbox" name="interests" value="actualites" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" defaultChecked={!isSubmitting} disabled={isSubmitting} />
-                  <span className="text-sm text-gray-700">Actualités</span>
-                </label>
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <input type="checkbox" name="interests" value="economie" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" disabled={isSubmitting} />
-                  <span className="text-sm text-gray-700">Économie</span>
-                </label>
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <input type="checkbox" name="interests" value="culture" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" disabled={isSubmitting} />
-                  <span className="text-sm text-gray-700">Culture</span>
-                </label>
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <input type="checkbox" name="interests" value="sport" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" disabled={isSubmitting} />
-                  <span className="text-sm text-gray-700">Sport</span>
-                </label>
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <input type="checkbox" name="interests" value="tech" className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" disabled={isSubmitting} />
-                  <span className="text-sm text-gray-700">Science & Tech</span>
-                </label>
+              <p className="mt-5 max-w-lg text-sm leading-7 text-slate-300 sm:text-base">
+                Une sélection claire, fiable et sans bruit pour rester informé sans perdre de temps.
+              </p>
+
+              <div className="mt-8 space-y-4 border-t border-white/10 pt-6">
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="mt-0.5 h-5 w-5 text-red-400" />
+                  <div>
+                    <p className="text-sm font-semibold text-white">Contenu exclusif</p>
+                    <p className="mt-1 text-sm text-slate-300">
+                      Accédez à des articles et analyses que vous ne trouverez nulle part ailleurs.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="mt-0.5 h-5 w-5 text-red-400" />
+                  <div>
+                    <p className="text-sm font-semibold text-white">Mises à jour quotidiennes</p>
+                    <p className="mt-1 text-sm text-slate-300">
+                      Recevez une sélection des meilleures actualités chaque matin directement dans votre boîte mail.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="mt-0.5 h-5 w-5 text-red-400" />
+                  <div>
+                    <p className="text-sm font-semibold text-white">100% gratuit</p>
+                    <p className="mt-1 text-sm text-slate-300">
+                      Notre newsletter est entièrement gratuite, sans spam ni publicité intrusive.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-start space-x-3">
-              <input
-                type="checkbox"
-                id="consent"
-                name="consent"
-                required
-                disabled={isSubmitting}
-                className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary mt-1 disabled:opacity-50"
-              />
-              <label htmlFor="consent" className="text-sm text-gray-600">
-                J'accepte de recevoir des emails de MalakInfo.com et je comprends que je peux me désabonner à tout moment.
-              </label>
-            </div>
+            <div className="bg-slate-50 px-6 py-8 sm:px-8 lg:px-9 lg:py-10">
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                <div className="mb-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                    Abonnement
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-slate-900">
+                    Inscrivez-vous maintenant
+                  </h2>
+                </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Envoi en cours...</span>
-                </>
-              ) : (
-                <>
-                  <span>S'abonner</span>
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              )}
-            </button>
-          </form>
+                {message && (
+                  <div
+                    className={`mb-5 rounded-xl border px-4 py-3 text-sm ${
+                      message.type === 'success'
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                        : 'border-red-200 bg-red-50 text-red-800'
+                    }`}
+                  >
+                    {message.text}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div>
+                    <label htmlFor="email" className="mb-2 block text-sm font-medium text-slate-700">
+                      Adresse email
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      placeholder="votre@email.com"
+                      required
+                      disabled={isSubmitting}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-red-400 focus:bg-white focus:ring-2 focus:ring-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="name" className="mb-2 block text-sm font-medium text-slate-700">
+                      Nom (optionnel)
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      placeholder="Votre nom"
+                      disabled={isSubmitting}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-red-400 focus:bg-white focus:ring-2 focus:ring-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    />
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <label className="block text-sm font-medium text-slate-700">
+                      Centres d’intérêt
+                    </label>
+                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-2">
+                      {[
+                        ['actualites', 'Actualités'],
+                        ['economie', 'Économie'],
+                        ['culture', 'Culture'],
+                        ['sport', 'Sport'],
+                        ['tech', 'Science & Tech'],
+                      ].map(([value, label]) => (
+                        <label
+                          key={value}
+                          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm text-slate-700"
+                        >
+                          <input
+                            type="checkbox"
+                            name="interests"
+                            value={value}
+                            defaultChecked={value === 'actualites'}
+                            disabled={isSubmitting}
+                            className="h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
+                          />
+                          <span className="truncate">{label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                    <input
+                      type="checkbox"
+                      id="consent"
+                      name="consent"
+                      required
+                      disabled={isSubmitting}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500 disabled:opacity-60"
+                    />
+                    <label htmlFor="consent" className="text-sm leading-6 text-slate-600">
+                      J’accepte de recevoir des emails de MalakInfo.com et je peux me désabonner à tout moment.
+                    </label>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#d11f2b] px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-[#b71a24] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Envoi en cours...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>S’abonner</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Benefits Section */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h3 className="font-heading text-2xl font-bold text-gray-900 mb-8 text-center">
-          Pourquoi s'abonner ?
-        </h3>
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-6 h-6 text-primary" />
-            </div>
-            <h4 className="font-semibold text-gray-900 mb-2">Contenu exclusif</h4>
-            <p className="text-sm text-gray-600">
-              Accédez à des articles et analyses que vous ne trouverez nulle part ailleurs.
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-6 h-6 text-primary" />
-            </div>
-            <h4 className="font-semibold text-gray-900 mb-2">Mises à jour quotidiennes</h4>
-            <p className="text-sm text-gray-600">
-              Recevez une sélection des meilleures actualités chaque matin directement dans votre boîte mail.
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-6 h-6 text-primary" />
-            </div>
-            <h4 className="font-semibold text-gray-900 mb-2">100% gratuit</h4>
-            <p className="text-sm text-gray-600">
-              Notre newsletter est entièrement gratuite, sans spam ni publicités intrusives.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Privacy Note */}
-      <div className="bg-gray-100 py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm text-gray-600">
-            Nous respectons votre vie privée. Vos informations ne seront jamais partagées avec des tiers. 
-            Consultez notre <a href="/politique-de-confidentialite" className="text-primary hover:underline">politique de confidentialité</a> pour en savoir plus.
-          </p>
+        <div className="mt-10 text-center text-sm text-slate-500">
+          Nous respectons votre vie privée. Vos informations ne sont jamais partagées.{' '}
+          <a href="/politique-de-confidentialite" className="font-medium text-slate-700 underline decoration-slate-300 underline-offset-4 hover:text-slate-900">
+            Politique de confidentialité
+          </a>
         </div>
       </div>
     </div>
