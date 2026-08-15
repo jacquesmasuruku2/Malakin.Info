@@ -251,7 +251,18 @@ export default async function CatchAllArticlePage({
         </header>
 
         <div className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-          <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="grid grid-cols-1 gap-8 xl:grid-cols-[72px_minmax(0,1fr)_300px]">
+            <div className="hidden xl:flex xl:justify-center xl:pt-8">
+              <div className="sticky top-24">
+                <ShareButtons
+                  title={article.title}
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${article.category?.slug || 'actualites'}/${slug}`}
+                  locale={locale}
+                  orientation="vertical"
+                />
+              </div>
+            </div>
+
             <article className="w-full min-w-0">
               <div className="mb-6">
                 <Link
@@ -292,6 +303,14 @@ export default async function CatchAllArticlePage({
                 </div>
               )}
 
+              <div className="xl:hidden">
+                <ShareButtons
+                  title={article.title}
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${article.category?.slug || 'actualites'}/${slug}`}
+                  locale={locale}
+                />
+              </div>
+
               <AdSenseAd adSlot="1234567890" className="my-4" />
 
               <div style={{ fontFamily: '"Playfair Display", Georgia, serif' }} className="text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]">
@@ -301,12 +320,6 @@ export default async function CatchAllArticlePage({
               <div className="mt-8">
                 <AdSenseAd adSlot="0987654321" className="my-4" />
               </div>
-
-              <ShareButtons 
-                title={article.title} 
-                url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${article.category?.slug || 'actualites'}/${slug}`}
-                locale={locale}
-              />
             </article>
 
             <aside className="w-full min-w-0 xl:justify-self-end xl:sticky xl:top-6 xl:self-start">

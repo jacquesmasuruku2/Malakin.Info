@@ -6,7 +6,27 @@ interface ReadAlsoRendererProps {
   content: string;
 }
 
-const proseClasses = "prose prose-lg w-full max-w-none !max-w-none text-[1.02rem] leading-[1.9] text-gray-800 md:text-[1.12rem] prose-headings:font-bold prose-headings:text-gray-900 prose-headings:tracking-[-0.02em] prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-5 prose-p:mt-0 prose-a:text-red-700 prose-a:no-underline hover:prose-a:underline prose-img:my-6 prose-img:rounded-none prose-img:shadow-none prose-strong:text-gray-900 prose-blockquote:border-l-2 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-1";
+const proseClasses = "prose prose-lg w-full max-w-none !max-w-none text-[1.02rem] leading-[1.9] text-gray-800 md:text-[1.12rem] prose-headings:font-bold prose-headings:text-gray-900 prose-headings:tracking-[-0.02em] prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-5 prose-p:mt-0 prose-p:first-of-type:font-bold prose-p:first-of-type:text-[1.08em] prose-p:first-of-type:leading-[1.8] prose-p:first-of-type:text-gray-900 prose-a:text-red-700 prose-a:no-underline hover:prose-a:underline prose-img:my-6 prose-img:rounded-none prose-img:shadow-none prose-strong:text-gray-900 prose-blockquote:border-l-2 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-1";
+
+const addDropCap = (html: string) => {
+  if (!html || !html.trim()) {
+    return html;
+  }
+
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const firstParagraph = doc.querySelector('p, blockquote, li');
+
+    if (firstParagraph) {
+      firstParagraph.classList.add('article-dropcap');
+    }
+
+    return doc.body.innerHTML;
+  } catch {
+    return html;
+  }
+};
 
 export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
   if (!content) {
@@ -19,11 +39,37 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
 
   if (blocks.length === 0) {
     return (
-      <div
-        dangerouslySetInnerHTML={{ __html: content }}
-        className={proseClasses}
-        style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
-      />
+      <>
+        <style>{`
+          .article-dropcap {
+            font-weight: 700;
+            color: #111827;
+            margin-top: 0.18em;
+          }
+
+          .article-dropcap:first-letter {
+            float: left;
+            font-family: Georgia, serif;
+            font-size: clamp(4.5rem, 7.4vw, 8rem);
+            line-height: 0.72;
+            padding-right: 0.11em;
+            padding-top: 0.08em;
+            margin-right: 0.04em;
+            font-weight: 700;
+            color: #0d1b2a;
+            letter-spacing: -0.05em;
+            display: inline-block;
+            transform: translateY(-0.03em);
+            opacity: 0.98;
+            text-shadow: 0 0 0 rgba(13, 27, 42, 0.08);
+          }
+        `}</style>
+        <div
+          dangerouslySetInnerHTML={{ __html: addDropCap(content) }}
+          className={proseClasses}
+          style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
+        />
+      </>
     );
   }
 
@@ -40,7 +86,7 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
         elements.push(
           <div
             key={`before-${index}`}
-            dangerouslySetInnerHTML={{ __html: beforeContent }}
+            dangerouslySetInnerHTML={{ __html: addDropCap(beforeContent) }}
             className={proseClasses}
             style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
           />
@@ -69,7 +115,7 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
     elements.push(
       <div
         key="after-read-also"
-        dangerouslySetInnerHTML={{ __html: remainingContent }}
+        dangerouslySetInnerHTML={{ __html: addDropCap(remainingContent) }}
         className={proseClasses}
         style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
       />

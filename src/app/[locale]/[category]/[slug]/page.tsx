@@ -209,7 +209,18 @@ export default async function ArticlePage({
             </h1>
           </header>
 
-          <div className="grid w-full grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="grid w-full grid-cols-1 items-start gap-8 xl:grid-cols-[72px_minmax(0,1fr)_300px]">
+            <div className="hidden xl:flex xl:justify-center xl:pt-8">
+              <div className="sticky top-24">
+                <ShareButtons
+                  title={displayTitle}
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
+                  locale={locale}
+                  orientation="vertical"
+                />
+              </div>
+            </div>
+
             <article className="w-full min-w-0">
               {article.mainImageUrl && (
                 <div className="mb-8 overflow-hidden bg-white">
@@ -221,6 +232,14 @@ export default async function ArticlePage({
                 </div>
               )}
 
+              <div className="xl:hidden">
+                <ShareButtons
+                  title={displayTitle}
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
+                  locale={locale}
+                />
+              </div>
+
               <div className={`${playfair.className} text-[1.04rem] font-normal leading-[1.9] text-gray-800 md:text-[1.18rem]`}>
                 <ReadAlsoRenderer content={displayContent} />
               </div>
@@ -231,15 +250,10 @@ export default async function ArticlePage({
 
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <FavoriteButton articleId={article.id} locale={locale} />
-                <ShareButtons 
-                  title={displayTitle} 
-                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
-                  locale={locale}
-                />
               </div>
             </article>
 
-            <aside className="w-full min-w-0 lg:sticky lg:top-6 lg:self-start">
+            <aside className="w-full min-w-0 xl:sticky xl:top-6 xl:self-start">
               <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
             </aside>
           </div>
