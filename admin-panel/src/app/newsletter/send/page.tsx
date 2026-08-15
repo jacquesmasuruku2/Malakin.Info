@@ -116,10 +116,10 @@ export default function NewsletterSendPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-primary">Envoyer une newsletter</h1>
-          <p className="text-secondary mt-1">
+          <h1 className="text-2xl font-bold text-primary md:text-3xl">Envoyer une newsletter</h1>
+          <p className="text-sm text-secondary mt-1 md:text-base">
             Créez un bulletin structuré avec un article à la une et jusqu’à 5 compléments, maximum 6 articles.
           </p>
         </div>
@@ -136,7 +136,7 @@ export default function NewsletterSendPage() {
           </div>
         )}
 
-        <div className="space-y-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm md:space-y-6 md:p-6">
           <div>
             <label htmlFor="subject" className="mb-2 block text-sm font-medium text-slate-700">
               Objet
@@ -182,11 +182,11 @@ export default function NewsletterSendPage() {
 
               <div
                 key={previewContainerKey}
-                className={`mx-auto overflow-auto rounded-lg border border-slate-200 bg-slate-100 p-3 ${
-                  previewMode === 'desktop' ? 'max-w-[760px]' : 'max-w-[420px]'
+                className={`mx-auto overflow-auto rounded-lg border border-slate-200 bg-slate-100 p-0 md:p-3 ${
+                  previewMode === 'desktop' ? 'max-w-[760px]' : 'max-w-[390px]'
                 }`}
               >
-                <div dangerouslySetInnerHTML={{ __html: htmlPreview }} />
+                <div className="scale-[1] md:scale-100" dangerouslySetInnerHTML={{ __html: htmlPreview }} />
               </div>
             </div>
           ) : null}

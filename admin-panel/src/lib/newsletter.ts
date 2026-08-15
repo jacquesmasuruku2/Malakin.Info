@@ -37,15 +37,23 @@ const responsiveNewsletterCss = `
     @media only screen and (max-width: 620px) {
       .newsletter-shell { width: 100% !important; }
       .newsletter-content { width: 100% !important; }
-      .newsletter-mobile-padding { padding-left: 16px !important; padding-right: 16px !important; }
-      .newsletter-hero-image { width: 100% !important; max-width: 100% !important; height: auto !important; }
+      .newsletter-mobile-padding { padding-left: 12px !important; padding-right: 12px !important; }
+      .newsletter-hero-image {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 260px !important;
+        min-height: 260px !important;
+        object-fit: cover !important;
+        display: block !important;
+      }
       .newsletter-card-image {
-        width: 96% !important;
-        max-width: 96% !important;
-        height: auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 220px !important;
+        object-fit: cover !important;
         float: none !important;
         display: block !important;
-        margin: 0 auto 10px auto !important;
+        margin: 0 0 10px 0 !important;
         border-radius: 10px !important;
       }
       .newsletter-stack {
@@ -71,20 +79,22 @@ const responsiveNewsletterCss = `
         display: block !important;
         width: 100% !important;
         max-width: 100% !important;
-        padding: 0 !important;
+        padding: 0 0 10px 0 !important;
       }
       .newsletter-secondary-text-cell {
         display: block !important;
         width: 100% !important;
         max-width: 100% !important;
-        padding-top: 10px !important;
+        padding-top: 0 !important;
       }
       .newsletter-secondary-image {
-        width: 96% !important;
-        max-width: 96% !important;
-        height: auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 220px !important;
+        min-height: 220px !important;
+        object-fit: cover !important;
         display: block !important;
-        margin: 0 auto !important;
+        margin: 0 !important;
       }
       .newsletter-button-cell { display: block !important; width: 100% !important; }
       .newsletter-button-link { display: block !important; width: auto !important; text-align: center !important; }
@@ -93,6 +103,7 @@ const responsiveNewsletterCss = `
       .newsletter-title { font-size: 24px !important; line-height: 30px !important; }
       .newsletter-subtitle { font-size: 18px !important; line-height: 24px !important; }
       .newsletter-text-content { overflow: hidden !important; display: block !important; }
+      .newsletter-secondary-row td { padding-bottom: 8px !important; }
     }
   </style>
 `;
@@ -179,12 +190,14 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
         <td style="padding: 0 0 20px 0;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;" class="newsletter-stack newsletter-secondary-row">
             <tr>
-              <td width="300" valign="top" class="newsletter-stack-cell newsletter-secondary-image-cell" style="padding: 0 16px 0 0; width: 300px; max-width: 300px;">
+              <td colspan="2" class="newsletter-stack-cell newsletter-secondary-image-cell" style="padding: 0 0 10px 0; width: 100%; display:block;">
                 <a href="${articleUrl}" style="display:block; text-decoration:none;">
-                  <img src="${image}" alt="${title}" width="300" class="newsletter-card-image newsletter-secondary-image" style="display:block; width:300px; max-width:100%; height:auto; border-radius:8px; border:0; background:#f3f4f6;" />
+                  <img src="${image}" alt="${title}" width="600" class="newsletter-card-image newsletter-secondary-image" style="display:block; width:100%; max-width:100%; height:auto; border-radius:8px; border:0; background:#f3f4f6;" />
                 </a>
               </td>
-              <td valign="top" class="newsletter-text-content newsletter-secondary-text-cell" style="width: auto;">
+            </tr>
+            <tr>
+              <td colspan="2" valign="top" class="newsletter-text-content newsletter-secondary-text-cell" style="width: 100%; display:block;">
                 <div style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; color: #c81f2d; letter-spacing: 0.8px; text-transform: uppercase; margin: 0 0 8px 0;">
                   ${escapeHtml(category)}
                 </div>
