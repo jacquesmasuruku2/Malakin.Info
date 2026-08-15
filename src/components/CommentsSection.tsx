@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useSession, signIn } from 'next-auth/react';
-import { Heart, MessageCircle, Send, User as UserIcon } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Send, User as UserIcon } from 'lucide-react';
 
 interface Comment {
   id: string;
@@ -303,11 +303,13 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
           <button
             type="button"
             onClick={handleLike}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium transition ${
-              isLiked ? 'bg-red-500 text-white' : 'bg-muted text-foreground hover:bg-muted/80'
+            className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+              isLiked
+                ? 'bg-gradient-to-r from-[#f6d365] to-[#d4af37] text-[#201a07] shadow-[0_8px_20px_rgba(212,175,55,0.35)]'
+                : 'bg-[#f8f5ea] text-[#3b2d00] ring-1 ring-[#e7d48d] hover:bg-[#f2e6b7]'
             }`}
           >
-            <Heart className="w-4 h-4" />
+            <ThumbsUp className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
             {likeCount}
           </button>
           <button
