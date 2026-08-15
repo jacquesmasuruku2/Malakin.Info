@@ -34,9 +34,36 @@ export default function RadioPlayer() {
   const [volume, setVolume] = useState(0.7);
   const [error, setError] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+  const lastScrollYRef = useRef(0);
 
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY <= 12) {
+        setIsHidden(false);
+        lastScrollYRef.current = currentScrollY;
+        return;
+      }
+
+      const scrollDelta = currentScrollY - lastScrollYRef.current;
+
+      if (scrollDelta < -12) {
+        setIsHidden(true);
+      } else if (scrollDelta > 12) {
+        setIsHidden(false);
+      }
+
+      lastScrollYRef.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -219,7 +246,11 @@ export default function RadioPlayer() {
         crossOrigin="anonymous"
       />
 
-      <div className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-slate-950/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
+      <div
+        className={`fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-slate-950/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out ${
+          isHidden ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'
+        } ${isHidden ? 'pointer-events-none' : 'pointer-events-auto'}`}
+      >
         <div className={`mx-auto flex max-w-7xl items-center gap-3 px-3 py-2 sm:px-5 ${station.showLabel === false ? 'justify-end' : ''}`}>
           {station.showLabel !== false && (
             <div className="flex min-w-0 flex-1 items-center gap-3">

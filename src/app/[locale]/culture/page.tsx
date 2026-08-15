@@ -105,45 +105,43 @@ export default async function CulturePage({
             {articles.length > 0 ? (
               <>
                 <div>
-                  <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
+                  <h2 className="font-heading text-2xl font-black uppercase tracking-[0.08em] text-[#081C3D] mb-6">À la une</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {featuredCulture.map((item: any) => (
                       <article
                         key={item.id}
-                        className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                        className="group overflow-hidden border border-gray-200 bg-white transition-all duration-200 hover:-translate-y-1 hover:border-[#D4AF37] hover:shadow-[0_16px_32px_rgba(8,28,61,0.08)]"
                       >
                         {item.image && (
-                          <div className="relative h-48">
+                          <div className="relative h-52 overflow-hidden">
                             <img
                               src={item.image}
                               alt={item.title}
-                              className="w-full h-full object-cover"
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
-                            <span className="absolute top-4 left-4 px-3 py-1 bg-accent text-white text-xs font-medium rounded-full">
+                            <span className="absolute bottom-3 left-3 inline-flex items-center bg-[#081C3D] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">
                               {item.category}
                             </span>
                           </div>
                         )}
-                        <div className="p-6">
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              {item.date}
-                            </span>
+                        <div className="p-5">
+                          <div className="mb-3 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                            <span>{item.date}</span>
+                            <span className="text-[#D4AF37]">•</span>
                             <span>{item.readTime}</span>
                           </div>
-                          <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
+                          <h3 className="font-heading text-[1.5rem] font-black leading-tight tracking-[-0.03em] text-[#081C3D] transition-colors group-hover:text-[#D4AF37] line-clamp-3">
                             {item.title}
                           </h3>
-                          <p className="text-muted-foreground line-clamp-2 mb-4">
+                          <p className="mt-3 text-sm leading-relaxed text-gray-600 line-clamp-3">
                             {item.excerpt}
                           </p>
                           <Link
                             href={`/${locale}/actualites/${item.categorySlug}/${item.slug}`}
-                            className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
+                            className="mt-4 inline-flex items-center text-[11px] font-bold uppercase tracking-[0.14em] text-[#081C3D] transition-colors hover:text-[#D4AF37]"
                           >
                             Lire
-                            <ArrowRight className="ml-2 w-4 h-4" />
+                            <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
                         </div>
                       </article>
