@@ -134,12 +134,12 @@ export default function MobileBottomNav() {
                 key={item.name}
                 href={item.href || '#'}
                 className={`group relative flex w-[92px] shrink-0 flex-col items-center justify-center border-r border-white/10 px-1 text-center transition-all duration-200 hover:bg-[#1a252d] ${
-                  isActive ? 'bg-[#11181d]' : 'bg-[#121a1f]'
+                  isActive ? 'bg-[#f4c51d] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]' : 'bg-[#121a1f]'
                 }`}
               >
-                <div className={`absolute left-2 right-2 top-1 h-px ${isActive ? 'bg-primary/70' : 'bg-white/10'}`} />
-                <Icon className={`mb-1 h-[16px] w-[16px] transition-all duration-200 ${isActive ? 'text-primary scale-105' : 'text-gray-300 group-hover:text-white'}`} />
-                <span className={`max-w-full truncate text-[7.5px] font-medium uppercase tracking-[0.08em] ${isActive ? 'text-primary' : 'text-gray-300 group-hover:text-white'}`}>
+                <div className={`absolute left-2 right-2 top-1 h-px ${isActive ? 'bg-white/50' : 'bg-white/10'}`} />
+                <Icon className={`mb-1 h-[16px] w-[16px] transition-all duration-200 ${isActive ? 'scale-105 text-slate-950' : 'text-gray-300 group-hover:text-white'}`} />
+                <span className={`max-w-full truncate text-[7.5px] font-medium uppercase tracking-[0.08em] ${isActive ? 'text-slate-950' : 'text-gray-300 group-hover:text-white'}`}>
                   {item.name}
                 </span>
               </Link>
