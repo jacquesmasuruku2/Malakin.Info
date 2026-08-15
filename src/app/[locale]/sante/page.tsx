@@ -1,31 +1,27 @@
 import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
 
-export default function SantePage() {
-  const news = [
-    {
-      id: 1,
-      title: 'Nouvelle initiative de vaccination contre le paludisme en Afrique centrale',
-      excerpt: 'L\'OMS lance un programme massif de vaccination dans cinq pays de la région pour réduire la mortalité infantile.',
-      image: 'https://images.unsplash.com/photo-1584515933487-779824d29309?w=800&h=400&fit=crop',
-      date: '25 Juin 2026',
-      readTime: '6 min',
-    },
-    {
-      id: 2,
-      title: 'Hôpitaux modernes : Nouveaux équipements pour les centres de santé',
-      excerpt: 'Le gouvernement annonce un investissement majeur pour moderniser les infrastructures hospitalières.',
-      image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&h=400&fit=crop',
-      date: '24 Juin 2026',
-      readTime: '4 min',
-    },
-  ];
+export default async function SantePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
+  const category = await prisma.category.findUnique({
+    where: { slug: 'sante' },
+  });
+
+  const articles = category
+    ? await prisma.article.findMany({
+        where: { categoryId: category.id },
+        orderBy: { publishedAt: 'desc' },
+        take: 12,
+      })
+    : [];
 
   return (
     <div className="flex flex-col">
       <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="text-gray-300 hover:text-white mb-4 inline-block">
+          <Link href={`/${locale}`} className="text-gray-300 hover:text-white mb-4 inline-block">
             ← Retour à l'accueil
           </Link>
           <h1 className="font-heading text-4xl font-bold mb-4">Santé</h1>
@@ -37,27 +33,33 @@ export default function SantePage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {news.map((item) => (
+          {articles.map((item: any) => (
             <article
               key={item.id}
               className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
             >
-              <div className="relative h-48">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              {item.mainImageUrl && (
+                <div className="relative h-48">
+                  <img
+                    src={item.mainImageUrl}
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
               <div className="p-6">
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                   <span className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    {item.date}
+                    {new Date(item.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    {item.readTime}
+                    {item.readTime || '5 min'}
                   </span>
                 </div>
                 <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
@@ -67,7 +69,7 @@ export default function SantePage() {
                   {item.excerpt}
                 </p>
                 <Link
-                  href={`/sante/${item.id}`}
+                  href={`/${locale}/${category?.slug || 'sante'}/${item.slug}`}
                   className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                 >
                   Lire la suite
