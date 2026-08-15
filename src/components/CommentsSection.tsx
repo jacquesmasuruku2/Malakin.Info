@@ -227,20 +227,20 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
 
   const renderCommentCard = (comment: Comment) => (
     <div className="w-full">
-      <div className="mb-4">
-        <p className="text-[2.2rem] font-black tracking-[-0.04em] text-foreground leading-none" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
-          {comment.user.name}
-        </p>
-        <p className="mt-2 text-[1.15rem] font-normal text-foreground/80">
-          {formatDate(comment.createdAt)}
-        </p>
-      </div>
+      <p className="text-[1.45rem] font-black tracking-[-0.04em] text-foreground leading-none" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+        {comment.user.name} :
+      </p>
+      <p className="mt-2 text-[1rem] font-normal text-foreground/80 leading-none" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+        {formatDate(comment.createdAt)}
+      </p>
 
-      <div className="relative overflow-hidden rounded-[14px] bg-[#f2f2f2] p-6 sm:p-8 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">
-        <div className="absolute left-0 top-0 h-0 w-0 border-l-[20px] border-l-transparent border-b-[18px] border-b-[#f2f2f2]" />
-        <p className="relative text-[1.15rem] leading-[1.75] text-foreground whitespace-pre-line" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
-          {comment.content}
-        </p>
+      <div className="relative mt-4">
+        <div className="absolute left-4 top-0 h-3.5 w-3.5 -translate-y-1/2 rotate-45 border-l-[2px] border-t-[2px] border-[#d52e96] bg-[#e9e9e9]" />
+        <div className="overflow-hidden rounded-[12px] bg-[#e9e9e9] px-5 py-4 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)] sm:px-6">
+          <p className="text-[1.02rem] leading-[1.7] text-foreground whitespace-pre-line" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+            {comment.content}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -429,27 +429,12 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
           <p>{t.noComments}</p>
         </div>
       ) : (
-        <div className="relative overflow-hidden rounded-[24px] bg-transparent px-0 py-2">
-          {comments.map((comment, index) => {
-            const isActive = index === activeCommentIndex;
-            const translateClass = isActive
-              ? 'translate-x-0 opacity-100'
-              : index < activeCommentIndex
-                ? '-translate-x-10 opacity-0'
-                : 'translate-x-10 opacity-0';
-
-            return (
-              <div
-                key={comment.id}
-                className={`transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${isActive ? 'relative block' : 'absolute inset-0 pointer-events-none'} ${translateClass}`}
-                style={{ minHeight: '220px' }}
-              >
-                <div className="mx-auto max-w-[1180px] px-1 sm:px-2">
-                  {renderCommentCard(comment)}
-                </div>
-              </div>
-            );
-          })}
+        <div className="space-y-8 py-2">
+          {comments.map((comment) => (
+            <div key={comment.id} className="mx-auto max-w-[1180px] px-1 sm:px-2">
+              {renderCommentCard(comment)}
+            </div>
+          ))}
         </div>
       )}
     </section>
