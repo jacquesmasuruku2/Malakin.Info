@@ -413,9 +413,6 @@ export default function Navigation() {
             <Link href={`/${locale}/medias`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
               {t.media}
             </Link>
-            <Link href={`/${locale}/classement`} className="whitespace-nowrap text-[10px] font-black uppercase tracking-[0.2em] text-[#d4af37] transition-colors hover:text-[#0b3b8b]">
-              {t.rankings}
-            </Link>
           </div>
         </div>
       </div>
