@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react';
-import { FaFacebook, FaInstagram, FaWhatsapp } from 'react-icons/fa6';
+import { FaFacebook, FaInstagram, FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -54,7 +54,7 @@ export default function ContactPage() {
     <div className="flex flex-col">
       <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="font-heading text-4xl font-bold mb-4">Contact</h1>
+          <h1 className="font-heading text-4xl font-bold mb-4">Contactez Malakinfo</h1>
           <p className="text-xl text-gray-200">
             Nous sommes à votre écoute. N'hésitez pas à nous contacter.
           </p>
@@ -163,8 +163,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Email</h3>
-                    <p className="text-muted-foreground">contact@arizona.info</p>
-                    <p className="text-muted-foreground">redaction@arizona.info</p>
+                    <p className="text-muted-foreground">contact@malakinfo.com</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -173,7 +172,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Téléphone</h3>
-                    <p className="text-muted-foreground">+243 000 000 000</p>
+                    <p className="text-muted-foreground">+243 998 258 441</p>
                     <p className="text-muted-foreground">Du lundi au vendredi, 8h - 18h</p>
                   </div>
                 </div>
@@ -184,7 +183,6 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Adresse</h3>
                     <p className="text-muted-foreground">
-                      Avenue de la Liberté, Quartier Gombe<br />
                       Kinshasa, République Démocratique du Congo
                     </p>
                   </div>
@@ -195,35 +193,44 @@ export default function ContactPage() {
             <div>
               <h2 className="font-heading text-2xl font-bold mb-6">Suivez-nous</h2>
               <p className="text-muted-foreground mb-4">
-                Restez connecté avec Arizona.info sur les réseaux sociaux.
+                Restez connecté avec Malakinfo sur les réseaux sociaux.
               </p>
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-wrap gap-4">
                 <a
                   href="https://www.facebook.com/profile.php?id=61593119312402"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-3 transition-colors"
+                  aria-label="Facebook"
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white transition-transform duration-200 hover:scale-105 hover:bg-blue-700"
                 >
                   <FaFacebook className="w-5 h-5" />
-                  <span className="text-sm font-medium">Facebook</span>
+                </a>
+                <a
+                  href="https://x.com/Malakinfo1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="X"
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-black text-white transition-transform duration-200 hover:scale-105 hover:opacity-90"
+                >
+                  <FaXTwitter className="w-5 h-5" />
                 </a>
                 <a
                   href="https://www.instagram.com/malakinfo/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 hover:opacity-90 text-white rounded-lg px-4 py-3 transition-colors"
+                  aria-label="Instagram"
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 text-white transition-transform duration-200 hover:scale-105 hover:opacity-90"
                 >
                   <FaInstagram className="w-5 h-5" />
-                  <span className="text-sm font-medium">Instagram</span>
                 </a>
                 <a
                   href="https://wa.me/243998258441"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 bg-green-600 hover:bg-green-700 text-white rounded-lg px-4 py-3 transition-colors"
+                  aria-label="WhatsApp"
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-green-600 text-white transition-transform duration-200 hover:scale-105 hover:bg-green-700"
                 >
                   <FaWhatsapp className="w-5 h-5" />
-                  <span className="text-sm font-medium">WhatsApp</span>
                 </a>
               </div>
             </div>
