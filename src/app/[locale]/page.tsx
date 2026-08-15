@@ -6,8 +6,16 @@ import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
+export default async function Home({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ category?: string }>;
+}) {
   const { locale } = await params;
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const selectedCategory = String(resolvedSearchParams.category || '').trim().toLowerCase();
   const normalizedLocale = getLocaleFromPathname(`/${locale}`);
   const messages = getMessages(normalizedLocale);
   const t = messages.home;
@@ -90,14 +98,23 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     image: article.mainImageUrl || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=300&fit=crop',
   }));
 
-  const categories = [
-    { name: locale === 'fr' ? 'Politique' : 'Politics', href: `/${locale}/politique`, color: 'bg-red-500' },
-    { name: locale === 'fr' ? 'Économie' : 'Economy', href: `/${locale}/economie`, color: 'bg-blue-500' },
-    { name: locale === 'fr' ? 'Société' : 'Society', href: `/${locale}/societe`, color: 'bg-green-500' },
-    { name: locale === 'fr' ? 'Santé' : 'Health', href: `/${locale}/sante`, color: 'bg-purple-500' },
-    { name: locale === 'fr' ? 'Sport' : 'Sport', href: `/${locale}/sport`, color: 'bg-orange-500' },
-    { name: locale === 'fr' ? 'Culture' : 'Culture', href: `/${locale}/culture`, color: 'bg-pink-500' },
+  const categoryFilters = [
+    { name: locale === 'fr' ? 'Tout' : 'All', slug: 'all', href: `/${locale}` },
+    { name: locale === 'fr' ? 'Actualités' : 'News', slug: 'actualites', href: `/${locale}?category=actualites` },
+    { name: locale === 'fr' ? 'Politique' : 'Politics', slug: 'politique', href: `/${locale}?category=politique` },
+    { name: locale === 'fr' ? 'Économie' : 'Economy', slug: 'economie', href: `/${locale}?category=economie` },
+    { name: locale === 'fr' ? 'Culture' : 'Culture', slug: 'culture', href: `/${locale}?category=culture` },
+    { name: locale === 'fr' ? 'Sport' : 'Sport', slug: 'sport', href: `/${locale}?category=sport` },
+    { name: locale === 'fr' ? 'Science & Tech' : 'Science & Tech', slug: 'science-tech', href: `/${locale}?category=science-tech` },
   ];
+
+  const filteredFeaturedNews = selectedCategory && selectedCategory !== 'all'
+    ? featuredNews.filter((item) => item.categorySlug === selectedCategory)
+    : featuredNews;
+
+  const filteredLatestNews = selectedCategory && selectedCategory !== 'all'
+    ? latestNews.filter((item) => item.categorySlug === selectedCategory)
+    : latestNews;
 
   const liveBanner = currentLive ? {
     label: locale === 'fr' ? '🔴 EN DIRECT' : '🔴 LIVE',
@@ -144,18 +161,36 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
       {/* Main Editorial Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8 border-b border-gray-200 pb-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {categoryFilters.map((item) => {
+              const isActive = selectedCategory === item.slug || (!selectedCategory && item.slug === 'all');
+              return (
+                <Link
+                  key={item.slug}
+                  href={item.href}
+                  className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                    isActive
+                      ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#081C3D]'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-[#081C3D] hover:text-[#081C3D]'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
-          
-          {/* Left Column - Main Content (70%) */}
           <div className="lg:col-span-7">
-            {/* Featured Article - À la une */}
-            {featuredNews.length > 0 && (
+            {filteredFeaturedNews.length > 0 && (
               <article className="mb-8 border-b-2 border-gray-200 pb-8">
-                <Link href={`/${locale}/${featuredNews[0].categorySlug}/${featuredNews[0].slug}`} className="block">
+                <Link href={`/${locale}/${filteredFeaturedNews[0].categorySlug}/${filteredFeaturedNews[0].slug}`} className="block">
                   <div className="relative h-80 md:h-96 mb-4">
                     <img
-                      src={featuredNews[0].image}
-                      alt={featuredNews[0].title}
+                      src={filteredFeaturedNews[0].image}
+                      alt={filteredFeaturedNews[0].title}
                       className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer"
                     />
                     <span className="absolute top-4 left-4 px-3 py-1 bg-[#D4AF37] text-[#081C3D] text-xs font-bold uppercase tracking-wide">
@@ -163,9 +198,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                     </span>
                   </div>
                 </Link>
-                <Link href={`/${locale}/${featuredNews[0].categorySlug}/${featuredNews[0].slug}`} className="block">
+                <Link href={`/${locale}/${filteredFeaturedNews[0].categorySlug}/${filteredFeaturedNews[0].slug}`} className="block">
                   <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-[#081C3D] mb-4 leading-tight hover:text-[#D4AF37] transition-colors cursor-pointer">
-                    {featuredNews[0].title}
+                    {filteredFeaturedNews[0].title}
                   </h1>
                 </Link>
                 <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
@@ -173,27 +208,26 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                     {new Date().toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                   </span>
                   <span>•</span>
-                  <span className="text-gray-500">{featuredNews[0].category}</span>
+                  <span className="text-gray-500">{filteredFeaturedNews[0].category}</span>
                 </div>
                 <p className="text-gray-700 text-lg mb-4 leading-relaxed">
-                  {featuredNews[0].excerpt}
+                  {filteredFeaturedNews[0].excerpt}
                 </p>
-                
-                {/* Related Sub-links */}
-                {featuredNews.length > 1 && (
+
+                {filteredFeaturedNews.length > 1 && (
                   <div className="flex flex-wrap gap-4 mt-6 pt-4 border-t border-gray-200">
                     <Link
-                      href={`/${locale}/${featuredNews[1].categorySlug}/${featuredNews[1].slug}`}
+                      href={`/${locale}/${filteredFeaturedNews[1].categorySlug}/${filteredFeaturedNews[1].slug}`}
                       className="text-sm font-semibold text-[#D4AF37] hover:underline"
                     >
-                      {locale === 'fr' ? 'Crisis:' : 'Crisis:'} {featuredNews[1].title}
+                      {locale === 'fr' ? 'Crisis:' : 'Crisis:'} {filteredFeaturedNews[1].title}
                     </Link>
-                    {featuredNews.length > 2 && (
+                    {filteredFeaturedNews.length > 2 && (
                       <Link
-                        href={`/${locale}/${featuredNews[2].categorySlug}/${featuredNews[2].slug}`}
+                        href={`/${locale}/${filteredFeaturedNews[2].categorySlug}/${filteredFeaturedNews[2].slug}`}
                         className="text-sm font-semibold text-[#D4AF37] hover:underline"
                       >
-                        {locale === 'fr' ? 'À la Une:' : 'Featured:'} {featuredNews[2].title}
+                        {locale === 'fr' ? 'À la Une:' : 'Featured:'} {filteredFeaturedNews[2].title}
                       </Link>
                     )}
                   </div>
@@ -201,67 +235,70 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               </article>
             )}
 
-            {/* Article Cards Grid */}
             <div className="mb-8">
               <h2 className="font-heading text-xl font-bold text-[#081C3D] mb-6 uppercase tracking-wide border-l-4 border-[#D4AF37] pl-3">
-                {locale === 'fr' ? 'Dernières actualités' : 'Latest news'}
+                {selectedCategory && selectedCategory !== 'all'
+                  ? categoryFilters.find((item) => item.slug === selectedCategory)?.name || (locale === 'fr' ? 'Actualités' : 'News')
+                  : locale === 'fr' ? 'Dernières actualités' : 'Latest news'}
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {latestNews.slice(0, 6).map((news) => (
-                  <article
-                    key={news.id}
-                    className="bg-white border border-gray-200 hover:border-[#D4AF37] transition-colors"
-                  >
-                    <Link href={`/${locale}/${news.categorySlug}/${news.slug}`} className="block">
-                      <div className="relative h-40">
-                        <img
-                          src={news.image}
-                          alt={news.title}
-                          className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer"
-                        />
-                        <span className="absolute bottom-2 left-2 px-2 py-1 bg-[#0B3B8B] text-white text-xs font-bold uppercase">
-                          {news.category}
-                        </span>
-                      </div>
-                    </Link>
-                    <div className="p-4">
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
-                        <span className="text-[#D4AF37] font-semibold">
-                          {new Date().toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                        <span>•</span>
-                        <span>{news.date}</span>
-                      </div>
-                      <Link
-                        href={`/${locale}/${news.categorySlug}/${news.slug}`}
-                        className="block"
-                      >
-                        <h3 className="font-heading font-bold text-[#081C3D] text-lg mb-2 hover:text-[#D4AF37] transition-colors line-clamp-2 cursor-pointer">
-                          {news.title}
-                        </h3>
+              {filteredLatestNews.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredLatestNews.slice(0, 6).map((news) => (
+                    <article
+                      key={news.id}
+                      className="bg-white border border-gray-200 hover:border-[#D4AF37] transition-colors"
+                    >
+                      <Link href={`/${locale}/${news.categorySlug}/${news.slug}`} className="block">
+                        <div className="relative h-40">
+                          <img
+                            src={news.image}
+                            alt={news.title}
+                            className="w-full h-full object-cover hover:opacity-95 transition-opacity cursor-pointer"
+                          />
+                          <span className="absolute bottom-2 left-2 px-2 py-1 bg-[#0B3B8B] text-white text-xs font-bold uppercase">
+                            {news.category}
+                          </span>
+                        </div>
                       </Link>
-                      <p className="text-gray-600 text-sm line-clamp-2">
-                        {(news as any).excerpt || ''}
-                      </p>
-                    </div>
-                  </article>
-                ))}
-              </div>
+                      <div className="p-4">
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                          <span className="text-[#D4AF37] font-semibold">
+                            {new Date().toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          <span>•</span>
+                          <span>{news.date}</span>
+                        </div>
+                        <Link href={`/${locale}/${news.categorySlug}/${news.slug}`} className="block">
+                          <h3 className="font-heading font-bold text-[#081C3D] text-lg mb-2 hover:text-[#D4AF37] transition-colors line-clamp-2 cursor-pointer">
+                            {news.title}
+                          </h3>
+                        </Link>
+                        <p className="text-gray-600 text-sm line-clamp-2">
+                          {(news as any).excerpt || ''}
+                        </p>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-gray-600">
+                  {locale === 'fr' ? 'Aucune actualité pour cette catégorie pour le moment.' : 'No articles available for this category yet.'}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right Column - Sidebar (30%) */}
           <div className="lg:col-span-3">
             <div className="sticky top-20">
               <div className="bg-white border border-gray-200">
                 <div className="bg-[#0B3B8B] text-white px-4 py-3">
                   <h3 className="font-heading font-bold text-lg uppercase tracking-wide flex items-center">
-                    {locale === 'fr' ? 'En continu' : 'Live feed'}
+                    {locale === 'fr' ? 'RÉPERTOIRE' : 'DIRECTORY'}
                     <span className="ml-2 animate-pulse">›</span>
                   </h3>
                 </div>
                 <div className="divide-y divide-gray-200">
-                  {latestNews.slice(0, 8).map((news, index) => (
+                  {filteredLatestNews.slice(0, 8).map((news) => (
                     <article
                       key={news.id}
                       className="px-3 py-2 hover:bg-gray-50 transition-colors"
@@ -271,10 +308,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                           {new Date().toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <Link
-                            href={`/${locale}/${news.categorySlug}/${news.slug}`}
-                            className="block"
-                          >
+                          <Link href={`/${locale}/${news.categorySlug}/${news.slug}`} className="block">
                             <h4 className="font-heading font-semibold text-[#081C3D] text-sm hover:text-[#D4AF37] transition-colors line-clamp-3 leading-snug m-0">
                               {news.title}
                             </h4>
@@ -289,7 +323,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 </div>
               </div>
 
-              {/* AdSense in Sidebar */}
               <div className="mt-6">
                 <AdSenseAd adSlot="3333333333" className="my-4" />
               </div>

@@ -511,35 +511,38 @@ export default function Navigation() {
       </div>
 
       {/* Bottom Navigation Bar - Barre de Catégories */}
-      <div className="bg-white border-b border-gray-200 hidden md:block">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center space-x-6 py-2 overflow-x-auto">
-            <Link href={`/${locale}/actualites`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              {t.news.toUpperCase()}
+      <div className="hidden border-b border-gray-200 bg-white md:block">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-4 overflow-x-auto py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <Link href={`/${locale}`} className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] text-[#081C3D] transition-colors hover:text-[#D4AF37]">
+              Accueil
             </Link>
-            <Link href={`/${locale}/actualites/politique`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              {t.politics.toUpperCase()}
+            <Link href={`/${locale}?category=actualites`} className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] text-[#081C3D] transition-colors hover:text-[#D4AF37]">
+              {t.news}
             </Link>
-            <Link href={`/${locale}/actualites/economie`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              {t.economy.toUpperCase()}
+            <Link href={`/${locale}?category=politique`} className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] text-[#081C3D] transition-colors hover:text-[#D4AF37]">
+              {t.politics}
             </Link>
-            <Link href={`/${locale}/science-tech`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              {t.scienceTech.toUpperCase()}
+            <Link href={`/${locale}?category=economie`} className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] text-[#081C3D] transition-colors hover:text-[#D4AF37]">
+              {t.economy}
             </Link>
-            <Link href={`/${locale}/culture`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              {t.culture.toUpperCase()}
+            <Link href={`/${locale}?category=science-tech`} className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] text-[#081C3D] transition-colors hover:text-[#D4AF37]">
+              {t.scienceTech}
             </Link>
-            <Link href={`/${locale}/sport`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              {t.sport.toUpperCase()}
+            <Link href={`/${locale}?category=culture`} className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] text-[#081C3D] transition-colors hover:text-[#D4AF37]">
+              {t.culture}
             </Link>
-            <Link href={`/${locale}/classement`} className="font-bold text-sm tracking-wide text-[#D4AF37] hover:text-[#0B3B8B] transition-colors whitespace-nowrap">
+            <Link href={`/${locale}?category=sport`} className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] text-[#081C3D] transition-colors hover:text-[#D4AF37]">
+              {t.sport}
+            </Link>
+            <Link href={`/${locale}/religion`} className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] text-[#081C3D] transition-colors hover:text-[#D4AF37]">
+              {t.religion}
+            </Link>
+            <Link href={`/${locale}/medias`} className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] text-[#081C3D] transition-colors hover:text-[#D4AF37]">
+              {t.media}
+            </Link>
+            <Link href={`/${locale}/classement`} className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] text-[#D4AF37] transition-colors hover:text-[#0B3B8B]">
               {t.rankings}
-            </Link>
-            <Link href={`/${locale}/medias`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              {t.media.toUpperCase()}
-            </Link>
-            <Link href={`/${locale}/religion`} className="font-bold text-sm tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors whitespace-nowrap">
-              {t.religion.toUpperCase()}
             </Link>
           </div>
         </div>
