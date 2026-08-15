@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { cn } from "@/lib/utils";
 import Providers from "@/components/Providers";
-import MobileBottomNav from "@/components/MobileBottomNav";
 import RadioPlayer from "@/components/RadioPlayer";
 import ServicesModal from "@/components/ServicesModal";
 import SplashScreen from "@/components/SplashScreen";
@@ -125,11 +124,10 @@ gtag('config', 'G-8V0GJZF6WD');`}
         </noscript>
         <SplashScreen />
         <Providers>
-          <main className="flex-1 pt-20 pb-16 md:pb-0 md:pt-24">
+          <main className="flex-1 pt-20 pb-20 md:pb-0 md:pt-24">
             {children}
           </main>
           <RadioPlayer />
-          <MobileBottomNav />
           <ServicesModal />
         </Providers>
       </body>

@@ -35,10 +35,16 @@ export default function RadioPlayer() {
   const [error, setError] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const lastScrollYRef = useRef(0);
 
   useEffect(() => {
+    const updateViewport = () => setIsMobile(window.innerWidth < 768);
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
     setIsMounted(true);
+
+    return () => window.removeEventListener('resize', updateViewport);
   }, []);
 
   useEffect(() => {
@@ -247,8 +253,10 @@ export default function RadioPlayer() {
       />
 
       <div
-        className={`fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-slate-950/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out ${
-          isHidden ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'
+        className={`fixed inset-x-0 z-50 border-b border-white/10 bg-slate-950/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out ${
+          isMobile ? 'bottom-0 md:top-0 md:bottom-auto' : 'top-0'
+        } ${
+          isHidden ? (isMobile ? 'translate-y-full opacity-0' : '-translate-y-full opacity-0') : 'translate-y-0 opacity-100'
         } ${isHidden ? 'pointer-events-none' : 'pointer-events-auto'}`}
       >
         <div className={`mx-auto flex max-w-7xl items-center gap-3 px-3 py-2 sm:px-5 ${station.showLabel === false ? 'justify-end' : ''}`}>
