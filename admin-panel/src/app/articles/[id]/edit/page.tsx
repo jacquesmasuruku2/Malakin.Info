@@ -33,7 +33,19 @@ export default function EditArticlePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    slug: string;
+    excerpt: string;
+    content: string | Record<string, unknown>;
+    categoryId: string;
+    authorId: string;
+    publishedAt: string;
+    featured: boolean;
+    readTime: string;
+    mainImageUrl: string;
+    externalLink: string;
+  }>({
     title: '',
     slug: '',
     excerpt: '',
@@ -63,22 +75,29 @@ export default function EditArticlePage() {
     fetchAuthors();
   }, [articleId]);
 
+  const normalizeArticleContent = (content: unknown) => {
+    if (typeof content === 'string') {
+      return content || '<p></p>';
+    }
+
+    if (content && typeof content === 'object') {
+      return content as Record<string, unknown>;
+    }
+
+    return '<p></p>';
+  };
+
   const fetchArticle = async () => {
     try {
       const response = await fetch(getApiUrl(`/api/articles/${articleId}`));
       const data: Article = await response.json();
-      const normalizedContent =
-        typeof data.content === 'string'
-          ? data.content
-          : data.content && typeof data.content === 'object'
-            ? data.content
-            : '';
+      const normalizedContent = normalizeArticleContent(data.content);
 
       setFormData({
         title: data.title,
         slug: data.slug,
         excerpt: data.excerpt,
-        content: normalizedContent as string,
+        content: normalizedContent,
         categoryId: data.categoryId,
         authorId: data.authorId || '',
         publishedAt: data.publishedAt ? new Date(data.publishedAt).toISOString().split('T')[0] : '',
@@ -120,10 +139,17 @@ export default function EditArticlePage() {
     setSaving(true);
 
     try {
+      const payload = {
+        ...formData,
+        content: typeof formData.content === 'string'
+          ? formData.content
+          : JSON.stringify(formData.content ?? ''),
+      };
+
       const response = await fetch(getApiUrl(`/api/articles/${articleId}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
