@@ -14,13 +14,13 @@ const printPlans = [
   { id: 'print-2y', label: '2 ANS', price: 120, period: '2 ans', badge: null },
 ];
 
-const countries = ['Canada', 'États-Unis', 'Autres pays'];
+const countries = ['RDC', 'Canada', 'Autres pays'];
 
 export default function NousSoutenirPage() {
   const [selectedDigitalPlan, setSelectedDigitalPlan] = useState('digital-1y');
   const [selectedPrintPlan, setSelectedPrintPlan] = useState('print-1y');
   const [selectedPlanType, setSelectedPlanType] = useState<'digital' | 'print'>('digital');
-  const [selectedCountry, setSelectedCountry] = useState('Canada');
+  const [selectedCountry, setSelectedCountry] = useState('RDC');
   const [isGift, setIsGift] = useState(false);
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -39,7 +39,9 @@ export default function NousSoutenirPage() {
 
     const query = new URLSearchParams({
       email: email.trim(),
-      plan: `${activePlan.label} (${activePlan.price} $)`,
+      plan: activePlan.label,
+      planName: activePlan.label,
+      amount: String(activePlan.price),
       type: selectedPlanType,
       country: selectedCountry,
       gift: String(isGift),
