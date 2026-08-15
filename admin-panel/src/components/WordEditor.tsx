@@ -182,19 +182,17 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
   }
 
   return (
-    <div className="bg-gray-100 rounded-lg overflow-visible border border-gray-300">
-      {/* Ribbon Toolbar */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-300 shadow-sm backdrop-blur-sm">
-        {/* Tabs */}
-        <div className="flex border-b border-gray-200">
+    <div className="bg-[#f3f3f1] rounded-xl overflow-visible border border-[#d9d9d7] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">
+      <div className="sticky top-0 z-40 bg-[#f7f6f4] border-b border-[#d5d2ce] shadow-[0_1px_0_rgba(15,23,42,0.06)] backdrop-blur-sm">
+        <div className="flex border-b border-[#e6e2dd] bg-[#f3f1ee]">
           {['home', 'insert', 'layout'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2 text-sm font-medium transition-colors ${
+              className={`px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] transition-colors ${
                 activeTab === tab
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'bg-white text-[#0f172a] border-b-2 border-[#2563eb]'
+                  : 'text-[#475569] hover:bg-white/70'
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -570,32 +568,29 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
         )}
       </div>
 
-      {/* Ruler */}
-      <div className="bg-gray-200 h-6 border-b border-gray-300 flex items-center px-4">
+      <div className="bg-[#dfe0df] h-6 border-b border-[#c9c7c4] flex items-center px-4">
         <div className="flex-1 flex items-center gap-1">
           {[...Array(20)].map((_, i) => (
-            <div key={i} className="w-px h-3 bg-gray-400"></div>
+            <div key={i} className="w-px h-3 bg-[#8a8a88]"></div>
           ))}
         </div>
       </div>
 
-      {/* Editor Page */}
-      <div className="bg-gray-100 p-6 lg:p-8" style={{ minHeight: '600px' }}>
+      <div className="bg-[#f4f4f3] p-6 lg:p-8" style={{ minHeight: '600px' }}>
         <div 
-          className="bg-white shadow-lg mx-auto min-h-[900px] p-8 lg:p-12"
+          className="bg-white shadow-[0_0_0_1px_rgba(15,23,42,0.06),0_16px_40px_rgba(15,23,42,0.08)] mx-auto min-h-[900px] p-8 lg:p-12"
           style={{ 
             width: '100%',
-            maxWidth: '1400px',
+            maxWidth: '1500px',
             transform: `scale(${zoom / 100})`,
             transformOrigin: 'top center'
           }}
         >
-          <EditorContent editor={editor} className="prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-[760px]" />
+          <EditorContent editor={editor} className="prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-[760px] leading-relaxed text-[15px]" />
         </div>
       </div>
 
-      {/* Status Bar */}
-      <div className="bg-gray-800 text-white px-4 py-2 flex items-center justify-between text-xs">
+      <div className="bg-[#1f2937] text-white px-4 py-2 flex items-center justify-between text-xs">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1">
             <FileText className="w-3 h-3" />

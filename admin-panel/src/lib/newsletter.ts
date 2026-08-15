@@ -40,12 +40,12 @@ const responsiveNewsletterCss = `
       .newsletter-mobile-padding { padding-left: 16px !important; padding-right: 16px !important; }
       .newsletter-hero-image { width: 100% !important; max-width: 100% !important; height: auto !important; }
       .newsletter-card-image {
-        width: 100% !important;
-        max-width: 100% !important;
+        width: 96% !important;
+        max-width: 96% !important;
         height: auto !important;
         float: none !important;
         display: block !important;
-        margin: 0 0 10px 0 !important;
+        margin: 0 auto 10px auto !important;
         border-radius: 10px !important;
       }
       .newsletter-stack {
@@ -80,11 +80,11 @@ const responsiveNewsletterCss = `
         padding-top: 10px !important;
       }
       .newsletter-secondary-image {
-        width: 100% !important;
-        max-width: 100% !important;
+        width: 96% !important;
+        max-width: 96% !important;
         height: auto !important;
         display: block !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
       }
       .newsletter-button-cell { display: block !important; width: 100% !important; }
       .newsletter-button-link { display: block !important; width: auto !important; text-align: center !important; }

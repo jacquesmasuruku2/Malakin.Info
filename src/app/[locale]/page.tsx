@@ -264,22 +264,22 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   {latestNews.slice(0, 8).map((news, index) => (
                     <article
                       key={news.id}
-                      className="p-4 hover:bg-gray-50 transition-colors"
+                      className="px-3 py-2 hover:bg-gray-50 transition-colors"
                     >
-                      <div className="flex items-start gap-3">
-                        <span className="text-[#D4AF37] font-bold text-sm whitespace-nowrap">
+                      <div className="flex items-start gap-2 sm:gap-3 min-w-0">
+                        <span className="text-[#D4AF37] font-bold text-[10px] sm:text-xs whitespace-nowrap pt-0.5">
                           {new Date().toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                         </span>
-                        <div>
+                        <div className="min-w-0 flex-1">
                           <Link
                             href={`/${locale}/${news.categorySlug}/${news.slug}`}
                             className="block"
                           >
-                            <h4 className="font-heading font-semibold text-[#081C3D] text-sm hover:text-[#D4AF37] transition-colors line-clamp-2">
+                            <h4 className="font-heading font-semibold text-[#081C3D] text-sm hover:text-[#D4AF37] transition-colors line-clamp-3 leading-snug m-0">
                               {news.title}
                             </h4>
                           </Link>
-                          <span className="text-xs text-gray-500 mt-1 block">
+                          <span className="text-[10px] sm:text-xs text-gray-500 mt-1 block">
                             {news.category}
                           </span>
                         </div>

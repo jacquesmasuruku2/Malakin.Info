@@ -254,29 +254,29 @@ export default async function Home() {
             {latestNews.map((news) => (
               <article
                 key={news.id}
-                className="flex gap-4 p-4 bg-card rounded-lg hover:bg-muted/50 transition-colors"
+                className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-card rounded-lg hover:bg-muted/50 transition-colors"
               >
-                <div className="w-32 h-24 flex-shrink-0">
+                <div className="w-24 h-20 sm:w-28 sm:h-24 flex-shrink-0 overflow-hidden rounded-lg">
                   <img
                     src={news.image}
                     alt={news.title}
-                    className="w-full h-full object-cover rounded-lg"
+                    className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="flex-1">
-                  <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded mb-2">
+                <div className="min-w-0 flex-1">
+                  <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-[10px] sm:text-xs font-medium rounded mb-1.5 sm:mb-2">
                     {news.category}
                   </span>
-                  <h3 className="font-heading font-semibold text-foreground mb-2 line-clamp-2">
+                  <h3 className="font-heading font-semibold text-foreground text-sm sm:text-base mb-1.5 sm:mb-2 line-clamp-3 leading-snug">
                     {news.title}
                   </h3>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-4 text-[10px] sm:text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
+                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                       {news.date}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
+                      <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                       {news.readTime}
                     </span>
                   </div>
