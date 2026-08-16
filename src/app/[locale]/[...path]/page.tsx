@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, User, ArrowLeft } from 'lucide-react';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
@@ -124,8 +124,12 @@ export default async function CatchAllArticlePage({
       notFound();
     }
 
-    // Don't redirect - just render the article regardless of the path
-    // This allows both /fr/culture/slug and /fr/actualites/culture/slug to work
+    const canonicalArticlePath = `/${locale}/${slug}`;
+    const currentPath = `/${locale}/${path.join('/')}`;
+
+    if (currentPath !== canonicalArticlePath) {
+      redirect(canonicalArticlePath);
+    }
 
     const baseUrl = 'https://malakinfo.com';
     const canonicalUrl = `${baseUrl}/${locale}/${article.category?.slug || 'actualites'}/${slug}`;

@@ -114,9 +114,11 @@ export default async function ArticlePage({
       redirect(article.externalLink);
     }
 
-    // If the category in URL doesn't match the article's actual category, redirect
-    if (article.category?.slug !== category) {
-      redirect(`/${locale}/${article.category?.slug || 'actualites'}/${slug}`);
+    const canonicalArticlePath = `/${locale}/${slug}`;
+    const currentPath = `/${locale}/${category}/${slug}`;
+
+    if (currentPath !== canonicalArticlePath) {
+      redirect(canonicalArticlePath);
     }
 
     // Get translated content based on locale
