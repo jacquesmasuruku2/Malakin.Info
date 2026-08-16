@@ -8,7 +8,7 @@ interface ReadAlsoRendererProps {
 
 const proseClasses = "prose prose-lg w-full max-w-none !max-w-none text-[1.02rem] leading-[1.9] text-gray-800 md:text-[1.12rem] prose-headings:font-bold prose-headings:text-gray-900 prose-headings:tracking-[-0.02em] prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-5 prose-p:mt-0 prose-p:first-of-type:font-bold prose-p:first-of-type:text-[1.08em] prose-p:first-of-type:leading-[1.8] prose-p:first-of-type:text-gray-900 prose-a:text-red-700 prose-a:no-underline hover:prose-a:underline prose-img:my-6 prose-img:rounded-none prose-img:shadow-none prose-strong:text-gray-900 prose-blockquote:border-l-2 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-1";
 
-const addDropCap = (html: string) => {
+const addDropCap = (html: string, force = false) => {
   if (!html || !html.trim()) {
     return html;
   }
@@ -16,10 +16,17 @@ const addDropCap = (html: string) => {
   try {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    const firstParagraph = doc.querySelector('p, blockquote, li');
+    const paragraphs = Array.from(doc.querySelectorAll('p, blockquote, li')).filter((node) => {
+      const text = node.textContent?.trim() || '';
+      return text.length > 0 && !node.closest('[data-type="read-also"]');
+    });
 
+    const firstParagraph = paragraphs[0];
     if (firstParagraph) {
-      firstParagraph.classList.add('article-dropcap');
+      firstParagraph.classList.remove('article-dropcap');
+      if (force || !firstParagraph.classList.contains('article-dropcap')) {
+        firstParagraph.classList.add('article-dropcap');
+      }
     }
 
     return doc.body.innerHTML;
@@ -83,10 +90,11 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
     if (blockIndex > cursor) {
       const beforeContent = content.slice(cursor, blockIndex);
       if (beforeContent.trim()) {
+        const shouldApplyDropCap = index === 0 && cursor === 0;
         elements.push(
           <div
             key={`before-${index}`}
-            dangerouslySetInnerHTML={{ __html: addDropCap(beforeContent) }}
+            dangerouslySetInnerHTML={{ __html: addDropCap(beforeContent, shouldApplyDropCap) }}
             className={proseClasses}
             style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
           />
@@ -115,7 +123,7 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
     elements.push(
       <div
         key="after-read-also"
-        dangerouslySetInnerHTML={{ __html: addDropCap(remainingContent) }}
+        dangerouslySetInnerHTML={{ __html: remainingContent }}
         className={proseClasses}
         style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
       />
