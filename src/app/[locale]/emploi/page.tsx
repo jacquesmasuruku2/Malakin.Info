@@ -89,68 +89,15 @@ export default function EmploiPage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <aside className="lg:col-span-1 space-y-6">
-            <div className="bg-card rounded-lg p-6 sticky top-24">
-              <h2 className="font-heading text-xl font-bold mb-4">Secteurs</h2>
-              <ul className="space-y-2">
-                {categories.map((category) => {
-                  const Icon = category.icon;
-                  return (
-                    <li key={category.name}>
-                      <Link
-                        href={category.href}
-                        className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon className="w-5 h-5 text-primary" />
-                          <span className="font-medium">{category.name}</span>
-                        </div>
-                        <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                          {category.count}
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+        <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-3">Les opportunités qui ouvrent des chemins</h2>
+          <p className="text-base leading-relaxed text-gray-700">
+            Trouvez ici les offres, les conseils et les perspectives qui peuvent faire la différence dans votre parcours professionnel et votre développement en Afrique.
+          </p>
+        </div>
 
-            <div className="bg-card rounded-lg p-6">
-              <h2 className="font-heading text-xl font-bold mb-4">Actions rapides</h2>
-              <ul className="space-y-2">
-                <li>
-                  <Link
-                    href="/emploi/deposez-offre"
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors"
-                  >
-                    <FileText className="w-5 h-5 text-primary" />
-                    <span className="font-medium">Déposer une offre</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/emploi/conseils-carriere"
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors"
-                  >
-                    <GraduationCap className="w-5 h-5 text-primary" />
-                    <span className="font-medium">Conseils carrière</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/emploi/bourses-stages"
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors"
-                  >
-                    <Briefcase className="w-5 h-5 text-primary" />
-                    <span className="font-medium">Bourses & Stages</span>
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </aside>
-
-          <div className="lg:col-span-3 space-y-8">
+        <div className="grid grid-cols-1 gap-8">
+          <div className="space-y-8">
             <div>
               <h2 className="font-heading text-2xl font-bold mb-6">Offres en vedette</h2>
               <div className="space-y-4">

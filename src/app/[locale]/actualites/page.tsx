@@ -147,34 +147,15 @@ export default async function ActualitesPage({
           </section>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
-          <aside className="lg:col-span-1">
-            <div className="bg-card rounded-lg p-6 sticky top-24">
-              <h2 className="font-heading text-xl font-bold mb-4">Catégories</h2>
-              <ul className="space-y-0">
-                {categoryList.map((category, index) => (
-                  <li key={category.name}>
-                    <Link
-                      href={category.href}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
-                    >
-                      <span className="font-medium">{category.name}</span>
-                      <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                        {category.count}
-                      </span>
-                    </Link>
-                    {index < categoryList.length - 1 && (
-                      <div className="h-px bg-border my-2"></div>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
+        <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-3">L’actualité en direct</h2>
+          <p className="text-base leading-relaxed text-gray-700">
+            Suivez les faits, les analyses et les sujets qui structurent le débat public en Afrique et dans le monde, avec une lecture claire, rapide et fiable.
+          </p>
+        </div>
 
-          {/* Main Content */}
-          <div className="lg:col-span-3">
+        <div className="grid grid-cols-1 gap-8">
+          <div>
             {news.length > 0 ? (
               <>
                 <div className="mb-8 border-b border-gray-200 pb-6">

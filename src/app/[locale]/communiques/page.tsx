@@ -78,99 +78,72 @@ export default function CommuniquesPage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <aside className="lg:col-span-1">
-            <div className="bg-card rounded-lg p-6 sticky top-24">
-              <h2 className="font-heading text-xl font-bold mb-4">Catégories</h2>
-              <ul className="space-y-0">
-                {categories.map((category, index) => {
-                  const Icon = category.icon;
-                  return (
-                    <li key={category.name}>
-                      <Link
-                        href={category.href}
-                        className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon className="w-5 h-5 text-primary" />
-                          <span className="font-medium">{category.name}</span>
-                        </div>
-                        <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                          {category.count}
-                        </span>
-                      </Link>
-                      {index < categories.length - 1 && (
-                        <div className="h-px bg-border my-2"></div>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </aside>
+        <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-3">Les communications qui comptent</h2>
+          <p className="text-base leading-relaxed text-gray-700">
+            Des annonces, des engagements et des informations institutionnelles présentés avec clarté pour suivre les décisions, les initiatives et les dossiers qui influencent la vie publique.
+          </p>
+        </div>
 
-          <div className="lg:col-span-3">
-            <div className="space-y-4">
-              {communiques.map((communique) => (
-                <article
-                  key={communique.id}
-                  className="bg-card rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow border-l-4 border-primary"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full">
-                        {communique.category}
-                      </span>
-                      {communique.urgent && (
-                        <span className="px-3 py-1 bg-red-500 text-white text-xs font-medium rounded-full animate-pulse">
-                          Urgent
-                        </span>
-                      )}
-                    </div>
-                    <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4" />
-                      {communique.date}
+        <div className="space-y-4">
+          {communiques.map((communique) => (
+            <article
+              key={communique.id}
+              className="bg-card rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow border-l-4 border-primary"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full">
+                    {communique.category}
+                  </span>
+                  {communique.urgent && (
+                    <span className="px-3 py-1 bg-red-500 text-white text-xs font-medium rounded-full animate-pulse">
+                      Urgent
                     </span>
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground mb-2">{communique.organization}</p>
-                  
-                  <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                    {communique.title}
-                  </h3>
-                  
-                  <p className="text-muted-foreground mb-4 line-clamp-2">
-                    {communique.excerpt}
-                  </p>
-                  
-                  <Link
-                    href={`/communiques/${communique.id}`}
-                    className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-                  >
-                    Lire le communiqué complet
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Link>
-                </article>
-              ))}
-            </div>
+                  )}
+                </div>
+                <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Calendar className="w-4 h-4" />
+                  {communique.date}
+                </span>
+              </div>
 
-            <div className="flex justify-center mt-8">
-              <nav className="flex items-center gap-2">
-                <button className="px-4 py-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                  Précédent
-                </button>
-                <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg">
-                  1
-                </button>
-                <button className="px-4 py-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                  2
-                </button>
-                <button className="px-4 py-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                  Suivant
-                </button>
-              </nav>
-            </div>
-          </div>
+              <p className="text-sm text-muted-foreground mb-2">{communique.organization}</p>
+
+              <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
+                {communique.title}
+              </h3>
+
+              <p className="text-muted-foreground mb-4 line-clamp-2">
+                {communique.excerpt}
+              </p>
+
+              <Link
+                href={`/communiques/${communique.id}`}
+                className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
+              >
+                Lire le communiqué complet
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Link>
+            </article>
+          ))}
+        </div>
+
+        <div className="flex justify-center mt-8">
+          <nav className="flex items-center gap-2">
+            <button className="px-4 py-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
+              Précédent
+            </button>
+            <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg">
+              1
+            </button>
+            <button className="px-4 py-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
+              2
+            </button>
+            <button className="px-4 py-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
+              Suivant
+            </button>
+          </nav>
         </div>
       </div>
     </div>

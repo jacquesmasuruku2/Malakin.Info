@@ -60,77 +60,53 @@ export default function InfosPratiquesPage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <aside className="lg:col-span-1">
-            <div className="bg-card rounded-lg p-6 sticky top-24">
-              <h2 className="font-heading text-xl font-bold mb-4">Catégories</h2>
-              <ul className="space-y-2">
-                {categories.map((category) => {
-                  const Icon = category.icon;
-                  return (
-                    <li key={category.name}>
-                      <Link
-                        href={category.href}
-                        className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon className="w-5 h-5 text-primary" />
-                          <span className="font-medium">{category.name}</span>
-                        </div>
-                        <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                          {category.count}
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </aside>
+        <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-3">Des repères utiles tous les jours</h2>
+          <p className="text-base leading-relaxed text-gray-700">
+            Des guides pratiques, des tutoriels et des ressources pour faciliter les démarches, mieux comprendre les services publics et gagner en autonomie dans la vie quotidienne.
+          </p>
+        </div>
 
-          <div className="lg:col-span-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {guides.map((guide) => (
-                <article
-                  key={guide.id}
-                  className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {guides.map((guide) => (
+            <article
+              key={guide.id}
+              className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="relative h-48">
+                <img
+                  src={guide.image}
+                  alt={guide.title}
+                  className="w-full h-full object-cover"
+                />
+                <span className="absolute top-4 left-4 px-3 py-1 bg-accent text-white text-xs font-medium rounded-full">
+                  {guide.category}
+                </span>
+              </div>
+              <div className="p-6">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    {guide.date}
+                  </span>
+                  <span>{guide.readTime}</span>
+                </div>
+                <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
+                  {guide.title}
+                </h3>
+                <p className="text-muted-foreground line-clamp-2 mb-4">
+                  {guide.description}
+                </p>
+                <Link
+                  href={`/infos-pratiques/${guide.id}`}
+                  className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                 >
-                  <div className="relative h-48">
-                    <img
-                      src={guide.image}
-                      alt={guide.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute top-4 left-4 px-3 py-1 bg-accent text-white text-xs font-medium rounded-full">
-                      {guide.category}
-                    </span>
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        {guide.date}
-                      </span>
-                      <span>{guide.readTime}</span>
-                    </div>
-                    <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
-                      {guide.title}
-                    </h3>
-                    <p className="text-muted-foreground line-clamp-2 mb-4">
-                      {guide.description}
-                    </p>
-                    <Link
-                      href={`/infos-pratiques/${guide.id}`}
-                      className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-                    >
-                      Accéder
-                      <ArrowRight className="ml-2 w-4 h-4" />
-                    </Link>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
+                  Accéder
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Link>
+              </div>
+            </article>
+          ))}
         </div>
       </div>
     </div>

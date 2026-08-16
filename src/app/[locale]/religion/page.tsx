@@ -95,54 +95,15 @@ export default async function ReligionPage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <aside className="lg:col-span-1 space-y-6">
-            <div className="bg-card rounded-lg p-6 sticky top-24">
-              <h2 className="font-heading text-xl font-bold mb-4">Rubriques</h2>
-              <ul className="space-y-2">
-                {categories.map((category) => {
-                  const Icon = category.icon;
-                  return (
-                    <li key={category.name}>
-                      <Link
-                        href={category.href}
-                        className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon className="w-5 h-5 text-primary" />
-                          <span className="font-medium">{category.name}</span>
-                        </div>
-                        <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                          {category.count}
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+        <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-3">Une foi, des enseignements et des paroles</h2>
+          <p className="text-base leading-relaxed text-gray-700">
+            Une lecture inspirante des sujets spirituels, des homélies, des méditations et des réflexions qui accompagnent la vie de foi et la réflexion sur le sens de l’existence.
+          </p>
+        </div>
 
-            <div className="bg-card rounded-lg p-6">
-              <h2 className="font-heading text-xl font-bold mb-4">Message du Temps</h2>
-              <ul className="space-y-2">
-                {messageDuTemps.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
-                    >
-                      <span className="font-medium">{item.name}</span>
-                      <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                        {item.count}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
-
-          <div className="lg:col-span-3 space-y-8">
+        <div className="grid grid-cols-1 gap-8">
+          <div className="space-y-8">
             <div>
               <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
