@@ -69,7 +69,7 @@ export default async function SantePage({ params }: { params: Promise<{ locale: 
                   {item.excerpt}
                 </p>
                 <Link
-                  href={`/${locale}/${category?.slug || 'sante'}/${item.slug}`}
+                  href={`/${locale}/${item.slug}`}
                   className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                 >
                   Lire la suite

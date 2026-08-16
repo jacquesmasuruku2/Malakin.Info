@@ -158,7 +158,7 @@ export default function CommentsPage() {
                       Modifier
                     </button>
                     <a
-                      href={`/${comment.article?.category?.slug || 'actualites'}/${comment.article?.slug}`}
+                      href={`/${comment.article?.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary hover:text-primary/80"

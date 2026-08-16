@@ -78,7 +78,7 @@ export default async function EconomiePage({ params }: { params: Promise<{ local
                   {item.excerpt}
                 </p>
                 <Link
-                  href={`/${locale}/${item.category?.slug || 'actualites'}/${item.slug}`}
+                  href={`/${locale}/${item.slug}`}
                   className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                 >
                   Lire la suite

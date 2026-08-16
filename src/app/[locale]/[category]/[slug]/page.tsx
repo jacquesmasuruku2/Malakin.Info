@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     };
   }
 
-  const canonicalUrl = `${baseUrl}/${locale}/${article.category?.slug || 'actualites'}/${slug}`;
+  const canonicalUrl = `${baseUrl}/${locale}/${slug}`;
   const absoluteImageUrl = article.mainImageUrl
     ? (article.mainImageUrl.startsWith('http') ? article.mainImageUrl : `${baseUrl}${article.mainImageUrl}`)
     : null;
@@ -216,7 +216,7 @@ export default async function ArticlePage({
               <div className="sticky top-24">
                 <ShareButtons
                   title={displayTitle}
-                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${slug}`}
                   locale={locale}
                   orientation="vertical"
                 />
@@ -237,7 +237,7 @@ export default async function ArticlePage({
               <div className="xl:hidden">
                 <ShareButtons
                   title={displayTitle}
-                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${category}/${slug}`}
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${slug}`}
                   locale={locale}
                 />
               </div>
@@ -278,7 +278,7 @@ export default async function ArticlePage({
               {relatedArticles.map((related: any) => (
                 <Link
                   key={related.id}
-                  href={`/${locale}/${related.category?.slug || 'actualites'}/${related.slug}`}
+                  href={`/${locale}/${related.slug}`}
                   className="group block"
                 >
                   <article className="overflow-hidden bg-white">

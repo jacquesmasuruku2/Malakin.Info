@@ -115,7 +115,7 @@ export default function LikesPage() {
                     })}
                   </p>
                   <a
-                    href={`/${like.article?.category?.slug || 'actualites'}/${like.article?.slug}`}
+                    href={`/${like.article?.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-medium"

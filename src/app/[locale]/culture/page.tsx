@@ -137,7 +137,7 @@ export default async function CulturePage({
                             {item.excerpt}
                           </p>
                           <Link
-                            href={`/${locale}/actualites/${item.categorySlug}/${item.slug}`}
+                            href={`/${locale}/${item.slug}`}
                             className="mt-4 inline-flex items-center text-[11px] font-bold uppercase tracking-[0.14em] text-[#081C3D] transition-colors hover:text-[#D4AF37]"
                           >
                             Lire

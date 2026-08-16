@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     }
 
     const baseUrl = 'https://malakinfo.com';
-    const canonicalUrl = `${baseUrl}/${locale}/${article.category?.slug || 'actualites'}/${slug}`;
+    const canonicalUrl = `${baseUrl}/${locale}/${slug}`;
     
     // Convert image URL to absolute if it's relative
     const absoluteImageUrl = article.mainImageUrl 
@@ -136,7 +136,7 @@ export default async function CatchAllArticlePage({
     }
 
     const baseUrl = 'https://malakinfo.com';
-    const canonicalUrl = `${baseUrl}/${locale}/${article.category?.slug || 'actualites'}/${slug}`;
+    const canonicalUrl = `${baseUrl}/${locale}/${slug}`;
 
     // Convert image URL to absolute if it's relative
     const absoluteImageUrl = article.mainImageUrl 
@@ -351,7 +351,7 @@ export default async function CatchAllArticlePage({
               {relatedArticles.map((related: any) => (
                 <Link
                   key={related.id}
-                  href={`/${locale}/${related.category?.slug || 'actualites'}/${related.slug}`}
+                  href={`/${locale}/${related.slug}`}
                   className="group"
                 >
                   <article className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">

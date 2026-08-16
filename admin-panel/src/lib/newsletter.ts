@@ -27,9 +27,14 @@ const normalizeText = (value: string | null | undefined, maxLength = 200) => {
 
 const buildArticleUrl = (article: NewsletterArticle) => {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com';
-  const categorySlug = article.category?.slug || 'actualites';
+  const locale = 'fr';
   const slug = article.slug || '';
-  return `${baseUrl.replace(/\/$/, '')}/${categorySlug}/${slug}`;
+
+  if (!slug) {
+    return `${baseUrl.replace(/\/$/, '')}`;
+  }
+
+  return `${baseUrl.replace(/\/$/, '')}/${locale}/${slug}`;
 };
 
 const responsiveNewsletterCss = `
@@ -98,8 +103,22 @@ const responsiveNewsletterCss = `
       }
       .newsletter-button-cell { display: block !important; width: 100% !important; }
       .newsletter-button-link { display: block !important; width: auto !important; text-align: center !important; }
-      .newsletter-social-cell { display: inline-block !important; padding: 0 4px 8px 4px !important; }
-      .newsletter-social-link { display: inline-block !important; }
+      .newsletter-social-cell { display: inline-block !important; padding: 0 5px 8px 5px !important; }
+      .newsletter-social-link {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 30px !important;
+        height: 30px !important;
+        min-width: 30px !important;
+        min-height: 30px !important;
+        border-radius: 50% !important;
+        box-shadow: 0 3px 8px rgba(15, 23, 42, 0.12) !important;
+      }
+      .newsletter-social-link svg {
+        width: 14px !important;
+        height: 14px !important;
+      }
       .newsletter-title { font-size: 24px !important; line-height: 30px !important; }
       .newsletter-subtitle { font-size: 18px !important; line-height: 24px !important; }
       .newsletter-text-content { overflow: hidden !important; display: block !important; }
@@ -291,8 +310,8 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; border-collapse: separate;">
                   <tr>
                     ${footerSocialLinks.map((item) => `
-                      <td class="newsletter-social-cell" style="padding: 0 8px;">
-                        <a href="${item.href}" aria-label="${escapeHtml(item.label)}" class="newsletter-social-link" style="display:inline-flex; align-items:center; justify-content:center; width: 42px; height: 42px; background:${item.bgColor}; color:#ffffff; text-decoration:none; border-radius: 50%; vertical-align: middle; box-shadow: 0 4px 10px rgba(15,23,42,0.12); border: 1px solid rgba(255,255,255,0.25);">
+                      <td class="newsletter-social-cell" style="padding: 0 6px;">
+                        <a href="${item.href}" aria-label="${escapeHtml(item.label)}" class="newsletter-social-link" style="display:inline-flex; align-items:center; justify-content:center; width: 34px; height: 34px; background:${item.bgColor}; color:#ffffff; text-decoration:none; border-radius: 50%; vertical-align: middle; box-shadow: 0 4px 10px rgba(15,23,42,0.12); border: 1px solid rgba(255,255,255,0.22);">
                           ${item.iconSvg}
                         </a>
                       </td>

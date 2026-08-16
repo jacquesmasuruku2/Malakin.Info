@@ -136,7 +136,7 @@ export default async function ActualitesCatchAllPage({
               <div className="sticky top-24">
                 <ShareButtons
                   title={article.title}
-                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${article.category?.slug || 'actualites'}/${articleSlug}`}
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${articleSlug}`}
                   locale={locale}
                   orientation="vertical"
                 />
@@ -186,7 +186,7 @@ export default async function ActualitesCatchAllPage({
               <div className="xl:hidden">
                 <ShareButtons
                   title={article.title}
-                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${article.category?.slug || 'actualites'}/${articleSlug}`}
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${articleSlug}`}
                   locale={locale}
                 />
               </div>
@@ -225,7 +225,7 @@ export default async function ActualitesCatchAllPage({
               {relatedArticles.map((related: any) => (
                 <Link
                   key={related.id}
-                  href={`/${locale}/${related.category?.slug || 'actualites'}/${related.slug}`}
+                  href={`/${locale}/${related.slug}`}
                   className="group"
                 >
                   <article className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">

@@ -187,7 +187,7 @@ export default async function Home({
             {filteredFeaturedNews.length > 0 && (
               <article className="mb-8 border-b border-gray-200 pb-8">
                 <div className="overflow-hidden border border-gray-200 bg-white">
-                  <Link href={`/${locale}/${filteredFeaturedNews[0].categorySlug}/${filteredFeaturedNews[0].slug}`} className="group block">
+                  <Link href={`/${locale}/${filteredFeaturedNews[0].slug}`} className="group block">
                     <div className="relative h-72 sm:h-80 md:h-[30rem] overflow-hidden bg-gray-100">
                       <img
                         src={filteredFeaturedNews[0].image}
@@ -224,7 +224,7 @@ export default async function Home({
                     </div>
 
                     <Link
-                      href={`/${locale}/${filteredFeaturedNews[0].categorySlug}/${filteredFeaturedNews[0].slug}`}
+                      href={`/${locale}/${filteredFeaturedNews[0].slug}`}
                       className="inline-flex shrink-0 items-center justify-center border border-[#081C3D] bg-[#081C3D] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#D4AF37] hover:text-[#081C3D]"
                     >
                       {locale === 'fr' ? 'Lire plus' : 'Read more'}
@@ -237,7 +237,7 @@ export default async function Home({
                     {filteredFeaturedNews.slice(1, 3).map((story) => (
                       <Link
                         key={story.id}
-                        href={`/${locale}/${story.categorySlug}/${story.slug}`}
+                        href={`/${locale}/${story.slug}`}
                         className="group block border-l border-gray-200 pl-4 first:border-l-0 first:pl-0"
                       >
                         <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#D4AF37]">
@@ -266,7 +266,7 @@ export default async function Home({
                       key={news.id}
                       className="group overflow-hidden border border-gray-200 bg-white transition-all duration-200 hover:-translate-y-1 hover:border-[#D4AF37] hover:shadow-[0_10px_30px_rgba(8,28,61,0.08)]"
                     >
-                      <Link href={`/${locale}/${news.categorySlug}/${news.slug}`} className="block">
+                      <Link href={`/${locale}/${news.slug}`} className="block">
                         <div className="relative h-52 overflow-hidden">
                           <img
                             src={news.image}
@@ -282,7 +282,7 @@ export default async function Home({
                         <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
                           <span className="text-[#D4AF37]">{news.date}</span>
                         </div>
-                        <Link href={`/${locale}/${news.categorySlug}/${news.slug}`} className="block">
+                        <Link href={`/${locale}/${news.slug}`} className="block">
                           <h3 className="font-heading text-xl font-bold leading-tight text-[#081C3D] hover:text-[#D4AF37] transition-colors line-clamp-3 cursor-pointer">
                             {news.title}
                           </h3>
@@ -322,7 +322,7 @@ export default async function Home({
                           {new Date().toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <Link href={`/${locale}/${news.categorySlug}/${news.slug}`} className="block">
+                          <Link href={`/${locale}/${news.slug}`} className="block">
                             <h4 className="font-heading font-semibold text-[#081C3D] text-sm hover:text-[#D4AF37] transition-colors line-clamp-3 leading-snug m-0">
                               {news.title}
                             </h4>
