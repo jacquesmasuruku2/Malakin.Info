@@ -323,8 +323,9 @@ export default function ArticlesPage() {
                         </a>
                         <Link 
                           href={`/articles/${article.id}/edit`}
-                          className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 transition-colors" 
-                          title="Modifier"
+                          className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 transition-colors"
+                          title="Éditer l'article"
+                          aria-label={`Éditer l'article ${article.title}`}
                         >
                           <Edit className="w-4 h-4" />
                         </Link>

@@ -90,9 +90,8 @@ export default function NewArticlePage() {
       });
 
       if (response.ok) {
-        const createdArticle = await response.json();
         localStorage.removeItem('article-draft');
-        router.push(`/sponsored?articleId=${createdArticle.id}`);
+        router.push('/articles');
       } else {
         alert('Erreur lors de la création de l\'article');
       }
