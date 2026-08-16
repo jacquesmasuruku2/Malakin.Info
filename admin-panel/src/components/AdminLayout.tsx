@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -17,6 +17,7 @@ import {
   Briefcase,
   Radio
 } from 'lucide-react';
+import { useAuth } from '@/components/AuthProvider';
 
 export default function AdminLayout({
   children,
@@ -24,7 +25,15 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
+    router.refresh();
+  };
 
   const sidebarItems = [
     { name: 'Tableau de bord', href: '/', icon: LayoutDashboard },
@@ -106,14 +115,23 @@ export default function AdminLayout({
 
             {/* Footer */}
             <div className="p-4 border-t" style={{ borderColor: 'var(--sidebar-border)' }}>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex w-full items-center space-x-3 px-4 py-3 text-sm font-medium rounded-md transition-colors hover:bg-red-50 hover:text-red-600"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Se déconnecter</span>
+              </button>
               <a
                 href="https://malakin-info.vercel.app"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-md transition-colors hover:bg-gray-100 hover:text-red-600"
+                className="mt-2 flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-md transition-colors hover:bg-gray-100 hover:text-red-600"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                <LogOut className="w-5 h-5" />
+                <span className="w-5 h-5" aria-hidden="true" />
                 <span>Retour au site</span>
               </a>
             </div>

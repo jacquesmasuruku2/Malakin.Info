@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { ArrowRight, Calendar, Clock, TrendingUp } from 'lucide-react';
+import NewsletterSignupInline from '@/components/NewsletterSignupInline';
 
 export const dynamic = 'force-dynamic';
 
@@ -288,24 +289,14 @@ export default async function Home() {
       </section>
 
       {/* Newsletter */}
-      <section className="py-16 bg-secondary text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="font-heading text-3xl font-bold mb-4">
-              Restez informé
-            </h2>
-            <p className="text-gray-200 mb-8">
-              Abonnez-vous à notre newsletter pour recevoir les dernières actualités directement dans votre boîte mail.
-            </p>
-            <a
-              href="https://malakinfo.com/fr/newsletter"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
-            >
-              S'abonner
-            </a>
-          </div>
+      <section className="bg-secondary py-16 text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <NewsletterSignupInline
+            locale="fr"
+            title="Restez informé"
+            subtitle="Abonnez-vous à notre newsletter pour recevoir les dernières actualités directement dans votre boîte mail."
+            buttonText="S'abonner"
+          />
         </div>
       </section>
     </div>

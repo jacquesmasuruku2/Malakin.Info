@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { ArrowRight, Calendar, Clock, TrendingUp, Radio } from 'lucide-react';
 import AdSenseAd from '@/components/AdSenseAd';
+import NewsletterSignupInline from '@/components/NewsletterSignupInline';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
@@ -346,25 +347,14 @@ export default async function Home({
       </div>
 
       {/* Newsletter Section */}
-      <section className="py-12 bg-gray-100 border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-4">
-              {locale === 'fr' ? 'Restez informé' : 'Stay informed'}
-            </h2>
-            <p className="text-gray-600 mb-6">
-              {locale === 'fr' ? 'Abonnez-vous à notre newsletter pour recevoir les dernières actualités.' : 'Subscribe to our newsletter to receive the latest news.'}
-            </p>
-            <a
-              href={locale === 'fr' ? 'https://malakinfo.com/fr/newsletter' : 'https://malakinfo.com/en/newsletter'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center px-6 py-3 bg-[#0B3B8B] text-white font-semibold rounded hover:bg-[#082a63] transition-colors"
-            >
-              {locale === 'fr' ? 'S\'abonner' : 'Subscribe'}
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </a>
-          </div>
+      <section className="border-t border-gray-200 bg-gray-100 py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <NewsletterSignupInline
+            locale={locale}
+            title={locale === 'fr' ? 'Restez informé' : 'Stay informed'}
+            subtitle={locale === 'fr' ? 'Abonnez-vous à notre newsletter pour recevoir les dernières actualités.' : 'Subscribe to our newsletter to receive the latest news.'}
+            buttonText={locale === 'fr' ? 'S\'abonner' : 'Subscribe'}
+          />
         </div>
       </section>
     </div>

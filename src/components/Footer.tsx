@@ -11,6 +11,10 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [newsletterName, setNewsletterName] = useState('');
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isNewsletterSubmitting, setIsNewsletterSubmitting] = useState(false);
   
   const locale = getLocaleFromPathname(pathname);
   const messages = getMessages(locale);
@@ -28,6 +32,52 @@ export default function Footer() {
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNewsletterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const email = newsletterEmail.trim();
+    if (!email || !email.includes('@')) {
+      setNewsletterStatus({ type: 'error', text: locale === 'fr' ? 'Veuillez saisir une adresse email valide.' : 'Please enter a valid email address.' });
+      return;
+    }
+
+    setIsNewsletterSubmitting(true);
+    setNewsletterStatus(null);
+
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          consent: true,
+          interests: ['actualites', 'economie', 'culture', 'sport', 'tech'],
+          name: newsletterName.trim() || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'Erreur lors de l’inscription.');
+      }
+
+      setNewsletterStatus({
+        type: 'success',
+        text: locale === 'fr' ? 'Merci, vous êtes inscrit à la newsletter.' : 'Thank you, you are subscribed to the newsletter.',
+      });
+      setNewsletterName('');
+      setNewsletterEmail('');
+    } catch (error) {
+      setNewsletterStatus({
+        type: 'error',
+        text: error instanceof Error ? error.message : (locale === 'fr' ? 'Une erreur est survenue.' : 'An error occurred.'),
+      });
+    } finally {
+      setIsNewsletterSubmitting(false);
+    }
   };
 
   // Social media icons mapping with official icons and URLs
@@ -322,8 +372,55 @@ export default function Footer() {
           </div>
         </div>
 
+        <div className="mt-12 border-t border-gray-800/50 pt-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-red-400">Newsletter</p>
+              <h4 className="mt-2 text-2xl font-bold text-white">{locale === 'fr' ? 'Restez informé' : 'Stay informed'}</h4>
+              <p className="mt-2 text-sm text-gray-300">
+                {locale === 'fr'
+                  ? 'Abonnez-vous pour recevoir les dernières actualités directement dans votre boîte mail.'
+                  : 'Subscribe to receive the latest news directly in your inbox.'}
+              </p>
+            </div>
+
+            <form onSubmit={handleNewsletterSubmit} className="w-full max-w-xl">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <input
+                  type="text"
+                  value={newsletterName}
+                  onChange={(event) => setNewsletterName(event.target.value)}
+                  placeholder={locale === 'fr' ? 'Votre nom (optionnel)' : 'Your name (optional)'}
+                  className="w-full max-w-[220px] rounded-md border border-gray-700 bg-gray-950/60 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:border-red-500 focus:outline-none"
+                  aria-label="Name newsletter"
+                />
+                <input
+                  type="email"
+                  value={newsletterEmail}
+                  onChange={(event) => setNewsletterEmail(event.target.value)}
+                  placeholder={locale === 'fr' ? 'Entrez votre adresse email' : 'Enter your email address'}
+                  className="flex-1 rounded-md border border-gray-700 bg-gray-950/60 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:border-red-500 focus:outline-none"
+                  aria-label="Email newsletter"
+                />
+                <button
+                  type="submit"
+                  disabled={isNewsletterSubmitting}
+                  className="rounded-md bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isNewsletterSubmitting ? (locale === 'fr' ? 'Envoi...' : 'Sending...') : (locale === 'fr' ? 'S\'abonner' : 'Subscribe')}
+                </button>
+              </div>
+              {newsletterStatus && (
+                <p className={`mt-3 text-sm ${newsletterStatus.type === 'success' ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {newsletterStatus.text}
+                </p>
+              )}
+            </form>
+          </div>
+        </div>
+
         {/* Legal bar with animated separator */}
-        <div className="border-t border-gray-800/50 mt-12 pt-6 mb-4 relative">
+        <div className="border-t border-gray-800/50 mt-6 pt-6 mb-4 relative">
           <div className="absolute -top-px left-0 w-1/4 h-px bg-gradient-to-r from-red-500 to-transparent"></div>
           <div className="flex flex-wrap gap-6 text-xs text-gray-300">
             {[
