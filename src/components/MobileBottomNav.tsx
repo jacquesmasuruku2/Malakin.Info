@@ -42,12 +42,6 @@ export default function MobileBottomNav() {
       primary: false,
     },
     {
-      name: t.newsletter,
-      icon: Mail,
-      href: `/${locale}/newsletter`,
-      primary: false,
-    },
-    {
       name: t.menu,
       icon: Grip,
       action: openServices,

@@ -355,13 +355,15 @@ export default async function Home({
             <p className="text-gray-600 mb-6">
               {locale === 'fr' ? 'Abonnez-vous à notre newsletter pour recevoir les dernières actualités.' : 'Subscribe to our newsletter to receive the latest news.'}
             </p>
-            <Link
-              href={`/${locale}/newsletter`}
+            <a
+              href={locale === 'fr' ? 'https://malakinfo.com/fr/newsletter' : 'https://malakinfo.com/en/newsletter'}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center px-6 py-3 bg-[#0B3B8B] text-white font-semibold rounded hover:bg-[#082a63] transition-colors"
             >
               {locale === 'fr' ? 'S\'abonner' : 'Subscribe'}
               <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
+            </a>
           </div>
         </div>
       </section>

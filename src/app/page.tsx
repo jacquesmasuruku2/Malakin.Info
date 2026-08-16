@@ -297,19 +297,14 @@ export default async function Home() {
             <p className="text-gray-200 mb-8">
               Abonnez-vous à notre newsletter pour recevoir les dernières actualités directement dans votre boîte mail.
             </p>
-            <form className="flex flex-col sm:flex-row gap-4">
-              <input
-                type="email"
-                placeholder="Votre adresse email"
-                className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <button
-                type="submit"
-                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
-              >
-                S'abonner
-              </button>
-            </form>
+            <a
+              href="https://malakinfo.com/fr/newsletter"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
+            >
+              S'abonner
+            </a>
           </div>
         </div>
       </section>
