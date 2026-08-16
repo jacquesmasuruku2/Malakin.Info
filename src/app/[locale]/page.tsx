@@ -307,7 +307,7 @@ export default async function Home({
               <div className="bg-white border border-gray-200">
                 <div className="bg-[#0B3B8B] text-white px-4 py-3">
                   <h3 className="font-heading font-bold text-lg uppercase tracking-wide flex items-center">
-                    {locale === 'fr' ? 'RÉPERTOIRE' : 'DIRECTORY'}
+                    {locale === 'fr' ? 'Dernières Infos' : 'Latest News'}
                     <span className="ml-2 animate-pulse">›</span>
                   </h3>
                 </div>
