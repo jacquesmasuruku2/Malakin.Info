@@ -142,7 +142,7 @@ export default async function ScienceTechPage({
                             {item.excerpt}
                           </p>
                           <Link
-                            href={`/${locale}/actualites/${item.categorySlug}/${item.slug}`}
+                            href={`/${locale}/${item.slug}`}
                             className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                           >
                             Lire la suite
@@ -185,7 +185,7 @@ export default async function ScienceTechPage({
                             </span>
                           </div>
                           <Link
-                            href={`/${locale}/actualites/${item.categorySlug}/${item.slug}`}
+                            href={`/${locale}/${item.slug}`}
                             className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                           >
                             Lire

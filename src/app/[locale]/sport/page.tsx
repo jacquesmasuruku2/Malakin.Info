@@ -139,7 +139,7 @@ export default async function SportPage({
                             {item.excerpt}
                           </p>
                           <Link
-                            href={`/${locale}/actualites/${item.categorySlug}/${item.slug}`}
+                            href={`/${locale}/${item.slug}`}
                             className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                           >
                             Lire
