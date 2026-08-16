@@ -131,6 +131,10 @@ export default async function CatchAllArticlePage({
       redirect(canonicalArticlePath);
     }
 
+    if (article.externalLink) {
+      redirect(article.externalLink);
+    }
+
     const baseUrl = 'https://malakinfo.com';
     const canonicalUrl = `${baseUrl}/${locale}/${article.category?.slug || 'actualites'}/${slug}`;
 

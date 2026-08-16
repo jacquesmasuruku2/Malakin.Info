@@ -110,15 +110,15 @@ export default async function ArticlePage({
       notFound();
     }
 
-    if (article.externalLink) {
-      redirect(article.externalLink);
-    }
-
     const canonicalArticlePath = `/${locale}/${slug}`;
     const currentPath = `/${locale}/${category}/${slug}`;
 
     if (currentPath !== canonicalArticlePath) {
       redirect(canonicalArticlePath);
+    }
+
+    if (article.externalLink) {
+      redirect(article.externalLink);
     }
 
     // Get translated content based on locale
