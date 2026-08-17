@@ -40,11 +40,13 @@ export default async function SantePage({ params }: { params: Promise<{ locale: 
             >
               {item.mainImageUrl && (
                 <div className="relative h-48">
-                  <img
-                    src={item.mainImageUrl}
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
+                  <Link href={`/${locale}/${item.slug}`}>
+                    <img
+                      src={item.mainImageUrl}
+                      alt={item.title}
+                      className="w-full h-full object-cover hover:opacity-90 transition-opacity cursor-pointer"
+                    />
+                  </Link>
                 </div>
               )}
               <div className="p-6">

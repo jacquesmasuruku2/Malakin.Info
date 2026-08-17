@@ -113,11 +113,13 @@ export default async function ReligionPage() {
                     className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="relative h-48">
-                      <img
-                        src={content.image}
-                        alt={content.title}
-                        className="w-full h-full object-cover"
-                      />
+                      <Link href={`/${content.slug}`}>
+                        <img
+                          src={content.image}
+                          alt={content.title}
+                          className="w-full h-full object-cover hover:opacity-90 transition-opacity cursor-pointer"
+                        />
+                      </Link>
                       <span className="absolute top-4 left-4 px-3 py-1 bg-primary text-white text-xs font-medium rounded-full">
                         {content.category}
                       </span>

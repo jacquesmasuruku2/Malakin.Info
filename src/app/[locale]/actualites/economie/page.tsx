@@ -54,11 +54,13 @@ export default async function EconomiePage({ params }: { params: Promise<{ local
               className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="relative h-48">
-                <img
-                  src={item.mainImageUrl || 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=400&fit=crop'}
-                  alt={item.title}
-                  className="w-full h-full object-cover"
-                />
+                <Link href={`/${locale}/${item.slug}`}>
+                  <img
+                    src={item.mainImageUrl || 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=400&fit=crop'}
+                    alt={item.title}
+                    className="w-full h-full object-cover hover:opacity-90 transition-opacity cursor-pointer"
+                  />
+                </Link>
               </div>
               <div className="p-6">
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">

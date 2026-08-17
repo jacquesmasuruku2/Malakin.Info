@@ -43,11 +43,13 @@ export default function SecuritePage() {
               className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="relative h-48">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover"
-                />
+                <Link href={`/actualites/securite/${item.id}`}>
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover hover:opacity-90 transition-opacity cursor-pointer"
+                  />
+                </Link>
               </div>
               <div className="p-6">
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">

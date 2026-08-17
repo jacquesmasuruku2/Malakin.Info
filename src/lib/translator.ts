@@ -171,7 +171,7 @@ export class Translator {
 /**
  * Mock translator for development/testing
  * This simulates translation by adding a prefix to show it's "translated"
- */
+ */ 
 export class MockTranslator extends Translator {
   async translate(
     text: string,
