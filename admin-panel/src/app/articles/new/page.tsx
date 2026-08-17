@@ -320,7 +320,7 @@ export default function NewArticlePage() {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Créer une traduction
+                      Traduire vers
                     </label>
                     <div className="flex gap-2">
                       <select
@@ -337,7 +337,7 @@ export default function NewArticlePage() {
                           ))}
                       </select>
                       <div className="px-3 py-3 text-xs text-gray-500 whitespace-nowrap">
-                        {translationLoading ? '...' : 'langue cible'}
+                        {translationLoading ? '...' : 'cible'}
                       </div>
                     </div>
                   </div>

@@ -39,6 +39,7 @@ export async function PUT(
         content: body.content,
         categoryId: body.categoryId,
         authorId: body.authorId || null,
+        defaultLocale: body.defaultLocale || 'fr',
         publishedAt: body.publishedAt ? new Date(body.publishedAt) : new Date(),
         featured: body.featured,
         readTime: body.readTime ? String(body.readTime) : null,

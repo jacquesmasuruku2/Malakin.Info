@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
         content: body.content,
         categoryId: body.categoryId,
         authorId: body.authorId,
+        defaultLocale: body.defaultLocale || 'fr',
         publishedAt: body.publishedAt ? new Date(body.publishedAt) : new Date(),
         featured: body.featured || false,
         readTime: body.readTime,

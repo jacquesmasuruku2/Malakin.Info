@@ -9,6 +9,7 @@ import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
 import { SponsoredSection } from '@/components/SponsoredSection';
 import ViewIncrementer from '@/components/ViewIncrementer';
+import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,6 +49,9 @@ export default async function CultureCatchAllPage({
     if (article.externalLink) {
       redirect(article.externalLink);
     }
+
+    const translatedArticle = await getArticleTranslation(article.id, locale);
+    const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
 
     const relatedArticles: any[] = await prisma.article.findMany({
       where: {
@@ -112,6 +116,9 @@ export default async function CultureCatchAllPage({
       : '';
 
     const readTime = article.readTime ? `${article.readTime} ${t.readTime}` : `5 ${t.readTime}`;
+    const displayTitle = translatedArticle.title || article.title;
+    const displayExcerpt = translatedArticle.excerpt || article.excerpt;
+    const displayContent = typeof translatedArticle.content === 'string' ? translatedArticle.content : JSON.stringify(translatedArticle.content ?? '');
 
     return (
       <div className="min-h-screen bg-background">
@@ -125,7 +132,7 @@ export default async function CultureCatchAllPage({
               className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              {t.backTo} {article.category?.title || 'Actualités'}
+              {t.backTo} {translatedCategory.title || article.category?.title || 'Actualités'}
             </Link>
           </div>
         </header>
@@ -135,7 +142,7 @@ export default async function CultureCatchAllPage({
             <div className="hidden xl:flex xl:justify-center xl:pt-8">
               <div className="sticky top-24">
                 <ShareButtons
-                  title={article.title}
+                  title={displayTitle}
                   url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${articleSlug}`}
                   locale={locale}
                   orientation="vertical"
@@ -149,7 +156,7 @@ export default async function CultureCatchAllPage({
                   href={`/${locale}/${article.category?.slug || 'actualites'}`}
                   className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs sm:text-sm font-medium rounded-full mb-3 sm:mb-4 hover:bg-primary/20 transition-colors"
                 >
-                  {article.category?.title || 'Actualités'}
+                  {translatedCategory.title || article.category?.title || 'Actualités'}
                 </Link>
                 <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
@@ -164,12 +171,12 @@ export default async function CultureCatchAllPage({
               </div>
 
               <h1 className="font-heading text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem] font-bold text-foreground mb-4 sm:mb-6 leading-[1.08] tracking-[-0.03em]">
-                {article.title}
+                {displayTitle}
               </h1>
 
-              {article.excerpt && (
+              {displayExcerpt && (
                 <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
-                  {article.excerpt}
+                  {displayExcerpt}
                 </p>
               )}
 
@@ -177,7 +184,7 @@ export default async function CultureCatchAllPage({
                 <div className="mb-8 rounded-lg overflow-hidden">
                   <img
                     src={article.mainImageUrl}
-                    alt={article.title}
+                    alt={displayTitle}
                     className="w-full h-auto object-cover"
                   />
                 </div>
@@ -185,7 +192,7 @@ export default async function CultureCatchAllPage({
 
               <div className="xl:hidden">
                 <ShareButtons
-                  title={article.title}
+                  title={displayTitle}
                   url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${articleSlug}`}
                   locale={locale}
                 />
@@ -196,7 +203,7 @@ export default async function CultureCatchAllPage({
               </div>
 
               <div style={{ fontFamily: '"Playfair Display", Georgia, serif' }} className="text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]">
-                <ReadAlsoRenderer content={typeof article.content === 'string' ? article.content : ''} />
+                <ReadAlsoRenderer content={displayContent} />
               </div>
 
               <div className="mt-8">

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { ChevronDown } from 'lucide-react';
-import { getLanguageOptions, getLocaleDisplayName, getLocalizedPath, normalizeLocale } from '@/lib/i18n';
+import { getLanguageOptions, getLocaleFromPathname, getLocalizedPath, normalizeLocale } from '@/lib/i18n';
 
 export default function LanguageSwitcher() {
   const pathname = usePathname();
@@ -13,8 +13,9 @@ export default function LanguageSwitcher() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const locale = normalizeLocale(pathname?.split('/').filter(Boolean)[0] || 'fr');
+    const locale = getLocaleFromPathname(pathname);
     setCurrentLocale(locale);
+    localStorage.setItem('preferred-locale', locale);
   }, [pathname]);
 
   useEffect(() => {
@@ -38,17 +39,6 @@ export default function LanguageSwitcher() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-
-  useEffect(() => {
-    const storedLocale = localStorage.getItem('preferred-locale');
-    if (storedLocale) {
-      const normalized = normalizeLocale(storedLocale);
-      if (normalized !== currentLocale) {
-        const localizedPath = getLocalizedPath(pathname || '/', normalized);
-        router.replace(localizedPath);
-      }
-    }
-  }, [currentLocale, pathname, router]);
 
   const options = useMemo(() => getLanguageOptions(), []);
 

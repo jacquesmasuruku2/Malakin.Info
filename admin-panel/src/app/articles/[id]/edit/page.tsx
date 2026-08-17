@@ -16,6 +16,7 @@ interface Article {
   content: string;
   categoryId: string;
   authorId: string | null;
+  defaultLocale: string;
   publishedAt: string;
   featured: boolean;
   readTime: string | null;
@@ -33,6 +34,9 @@ export default function EditArticlePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
+  const [translationLoading, setTranslationLoading] = useState(false);
+  const [translationTargetLocale, setTranslationTargetLocale] = useState('en');
+  const localeOptions = ['fr', 'en', 'es', 'sw', 'ln', 'rw'];
   const [formData, setFormData] = useState<{
     title: string;
     slug: string;
@@ -40,6 +44,7 @@ export default function EditArticlePage() {
     content: string | Record<string, unknown>;
     categoryId: string;
     authorId: string;
+    defaultLocale: string;
     publishedAt: string;
     featured: boolean;
     readTime: string;
@@ -52,6 +57,7 @@ export default function EditArticlePage() {
     content: '',
     categoryId: '',
     authorId: '',
+    defaultLocale: 'fr',
     publishedAt: '',
     featured: false,
     readTime: '',
@@ -100,6 +106,7 @@ export default function EditArticlePage() {
         content: normalizedContent,
         categoryId: data.categoryId,
         authorId: data.authorId || '',
+        defaultLocale: data.defaultLocale || 'fr',
         publishedAt: data.publishedAt ? new Date(data.publishedAt).toISOString().split('T')[0] : '',
         featured: data.featured,
         readTime: data.readTime || '',
@@ -171,6 +178,36 @@ export default function EditArticlePage() {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
+  };
+
+  const handleGenerateTranslation = async () => {
+    if (!translationTargetLocale || translationTargetLocale === formData.defaultLocale) {
+      alert('Sélectionnez une langue cible différente de la langue de base.');
+      return;
+    }
+
+    setTranslationLoading(true);
+
+    try {
+      const response = await fetch(getApiUrl(`/api/translate/article/${articleId}`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetLocale: translationTargetLocale }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'La traduction a échoué.');
+      }
+
+      alert(data?.message || 'Traduction créée avec succès.');
+    } catch (error) {
+      console.error('Failed to generate translation:', error);
+      alert(error instanceof Error ? error.message : 'La traduction a échoué.');
+    } finally {
+      setTranslationLoading(false);
+    }
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -289,6 +326,23 @@ export default function EditArticlePage() {
                   </div>
 
                   <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Langue de base</label>
+                    <select
+                      value={formData.defaultLocale}
+                      onChange={(e) => setFormData({ ...formData, defaultLocale: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    >
+                      {localeOptions.map((locale) => (
+                        <option key={locale} value={locale}>
+                          {locale.toUpperCase()}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Auteur</label>
                     <select
                       value={formData.authorId}
@@ -302,6 +356,33 @@ export default function EditArticlePage() {
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Créer une traduction</label>
+                    <div className="flex gap-2">
+                      <select
+                        value={translationTargetLocale}
+                        onChange={(e) => setTranslationTargetLocale(e.target.value)}
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      >
+                        {localeOptions
+                          .filter((locale) => locale !== formData.defaultLocale)
+                          .map((locale) => (
+                            <option key={locale} value={locale}>
+                              {locale.toUpperCase()}
+                            </option>
+                          ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={handleGenerateTranslation}
+                        disabled={translationLoading}
+                        className="px-4 py-3 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      >
+                        {translationLoading ? '...' : 'Traduire'}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
