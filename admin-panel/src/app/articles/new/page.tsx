@@ -13,6 +13,9 @@ export default function NewArticlePage() {
   const [authors, setAuthors] = useState<{id: string, name: string}[]>([]);
   const [loading, setLoading] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
+  const [translationTargetLocale, setTranslationTargetLocale] = useState('en');
+  const [translationLoading, setTranslationLoading] = useState(false);
+  const localeOptions = ['fr', 'en', 'es', 'sw', 'ln', 'rw'];
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -20,6 +23,7 @@ export default function NewArticlePage() {
     content: '',
     categoryId: '',
     authorId: '',
+    defaultLocale: 'fr',
     publishedAt: '',
     featured: false,
     readTime: '',
@@ -89,15 +93,39 @@ export default function NewArticlePage() {
         body: JSON.stringify(formData),
       });
 
-      if (response.ok) {
-        localStorage.removeItem('article-draft');
-        router.push('/articles');
-      } else {
-        alert('Erreur lors de la création de l\'article');
+      if (!response.ok) {
+        throw new Error('Erreur lors de la création de l\'article');
       }
+
+      const createdArticle = await response.json();
+
+      if (
+        translationTargetLocale &&
+        translationTargetLocale !== formData.defaultLocale &&
+        createdArticle?.id
+      ) {
+        setTranslationLoading(true);
+        try {
+          const translationResponse = await fetch(`/api/translate/article/${createdArticle.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetLocale: translationTargetLocale }),
+          });
+
+          if (!translationResponse.ok) {
+            const translationError = await translationResponse.json().catch(() => ({}));
+            console.error('Translation failed:', translationError);
+          }
+        } finally {
+          setTranslationLoading(false);
+        }
+      }
+
+      localStorage.removeItem('article-draft');
+      router.push('/articles');
     } catch (error) {
       console.error('Failed to create article:', error);
-      alert('Erreur lors de la création de l\'article');
+      alert(error instanceof Error ? error.message : 'Erreur lors de la création de l\'article');
     } finally {
       setLoading(false);
     }
@@ -112,6 +140,7 @@ export default function NewArticlePage() {
       content: '',
       categoryId: '',
       authorId: '',
+      defaultLocale: 'fr',
       publishedAt: '',
       featured: false,
       readTime: '',
@@ -254,6 +283,25 @@ export default function NewArticlePage() {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Langue de base
+                    </label>
+                    <select
+                      value={formData.defaultLocale}
+                      onChange={(e) => setFormData({ ...formData, defaultLocale: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    >
+                      {localeOptions.map((locale) => (
+                        <option key={locale} value={locale}>
+                          {locale.toUpperCase()}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Auteur
                     </label>
                     <select
@@ -268,6 +316,30 @@ export default function NewArticlePage() {
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Créer une traduction
+                    </label>
+                    <div className="flex gap-2">
+                      <select
+                        value={translationTargetLocale}
+                        onChange={(e) => setTranslationTargetLocale(e.target.value)}
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      >
+                        {localeOptions
+                          .filter((locale) => locale !== formData.defaultLocale)
+                          .map((locale) => (
+                            <option key={locale} value={locale}>
+                              {locale.toUpperCase()}
+                            </option>
+                          ))}
+                      </select>
+                      <div className="px-3 py-3 text-xs text-gray-500 whitespace-nowrap">
+                        {translationLoading ? '...' : 'langue cible'}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
