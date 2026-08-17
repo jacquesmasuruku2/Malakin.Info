@@ -38,6 +38,10 @@ const addDropCap = (html: string) => {
     return html;
   }
 
+  if (typeof window === 'undefined' || typeof DOMParser === 'undefined') {
+    return html;
+  }
+
   try {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -61,6 +65,21 @@ const addDropCap = (html: string) => {
 export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
   if (!content) {
     return null;
+  }
+
+  const hasBrowserDom = typeof window !== 'undefined' && typeof DOMParser !== 'undefined';
+
+  if (!hasBrowserDom) {
+    return (
+      <>
+        <style>{dropCapStyles}</style>
+        <div
+          dangerouslySetInnerHTML={{ __html: content }}
+          className={proseClasses}
+          style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
+        />
+      </>
+    );
   }
 
   const parser = new DOMParser();
