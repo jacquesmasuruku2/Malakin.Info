@@ -11,6 +11,7 @@ import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
 import { SponsoredSection } from '@/components/SponsoredSection';
 import ViewIncrementer from '@/components/ViewIncrementer';
+import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,16 +36,18 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
     const baseUrl = 'https://malakinfo.com';
     const canonicalUrl = `${baseUrl}/${locale}/${slug}`;
-    
+    const translatedArticle = await getArticleTranslation(article.id, locale);
+    const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
+
     // Convert image URL to absolute if it's relative
     const absoluteImageUrl = article.mainImageUrl 
       ? (article.mainImageUrl.startsWith('http') ? article.mainImageUrl : `${baseUrl}${article.mainImageUrl}`)
       : null;
     
     return {
-      title: article.title,
-      description: article.excerpt || article.title,
-      keywords: [article.category?.title || 'actualités', 'Malakinfo', 'Afrique', 'actualités'],
+      title: translatedArticle.title || article.title,
+      description: translatedArticle.excerpt || article.excerpt || article.title,
+      keywords: [translatedCategory.title || article.category?.title || 'actualités', 'Malakinfo', 'Afrique', 'actualités'],
       authors: article.author ? [{ name: article.author.name }] : [{ name: 'Malakinfo' }],
       creator: 'Malakinfo',
       publisher: 'Malakinfo',
@@ -60,26 +63,26 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         type: 'article',
         locale: locale === 'fr' ? 'fr_FR' : 'en_US',
         url: canonicalUrl,
-        title: article.title,
-        description: article.excerpt || article.title,
+        title: translatedArticle.title || article.title,
+        description: translatedArticle.excerpt || article.excerpt || article.title,
         siteName: 'Malakinfo',
         publishedTime: article.publishedAt?.toISOString(),
         modifiedTime: article.updatedAt?.toISOString(),
         authors: article.author ? [article.author.name] : ['Malakinfo'],
-        section: article.category?.title || 'Actualités',
+        section: translatedCategory.title || article.category?.title || 'Actualités',
         images: absoluteImageUrl ? [
           {
             url: absoluteImageUrl,
             width: 1200,
             height: 630,
-            alt: article.title,
+            alt: translatedArticle.title || article.title,
           },
         ] : [],
       },
       twitter: {
         card: 'summary_large_image',
-        title: article.title,
-        description: article.excerpt || article.title,
+        title: translatedArticle.title || article.title,
+        description: translatedArticle.excerpt || article.excerpt || article.title,
         images: absoluteImageUrl ? [absoluteImageUrl] : [],
         creator: '@malakinfo',
       },
@@ -137,6 +140,14 @@ export default async function CatchAllArticlePage({
 
     const baseUrl = 'https://malakinfo.com';
     const canonicalUrl = `${baseUrl}/${locale}/${slug}`;
+    const translatedArticle = await getArticleTranslation(article.id, locale);
+    const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
+    const displayTitle = translatedArticle.title || article.title;
+    const displayExcerpt = translatedArticle.excerpt || article.excerpt;
+    const displayContent =
+      typeof translatedArticle.content === 'string'
+        ? translatedArticle.content
+        : JSON.stringify(translatedArticle.content ?? '');
 
     // Convert image URL to absolute if it's relative
     const absoluteImageUrl = article.mainImageUrl 
@@ -147,8 +158,8 @@ export default async function CatchAllArticlePage({
     const jsonLd = {
       '@context': 'https://schema.org',
       '@type': 'Article',
-      headline: article.title,
-      description: article.excerpt || article.title,
+      headline: displayTitle,
+      description: displayExcerpt || displayTitle,
       image: absoluteImageUrl ? [absoluteImageUrl] : [],
       datePublished: article.publishedAt?.toISOString(),
       dateModified: article.updatedAt?.toISOString(),
@@ -251,8 +262,8 @@ export default async function CatchAllArticlePage({
             <Breadcrumbs
               locale={locale}
               items={[
-                { label: article.category?.title || 'Actualités', href: `/${locale}/${article.category?.slug || 'actualites'}` },
-                { label: article.title },
+                { label: translatedCategory.title || article.category?.title || 'Actualités', href: `/${locale}/${article.category?.slug || 'actualites'}` },
+                { label: displayTitle },
               ]}
             />
           </div>
@@ -263,7 +274,7 @@ export default async function CatchAllArticlePage({
             <div className="hidden xl:flex xl:justify-center xl:pt-8">
               <div className="sticky top-24">
                 <ShareButtons
-                  title={article.title}
+                  title={displayTitle}
                   url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${article.category?.slug || 'actualites'}/${slug}`}
                   locale={locale}
                   orientation="vertical"
@@ -277,7 +288,7 @@ export default async function CatchAllArticlePage({
                   href={`/${locale}/${article.category?.slug || 'actualites'}`}
                   className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs sm:text-sm font-medium rounded-full mb-3 sm:mb-4 hover:bg-primary/20 transition-colors"
                 >
-                  {article.category?.title || 'Actualités'}
+                  {translatedCategory.title || article.category?.title || 'Actualités'}
                 </Link>
                 <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
@@ -292,12 +303,12 @@ export default async function CatchAllArticlePage({
               </div>
 
               <h1 className="font-heading text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem] font-bold text-foreground mb-4 sm:mb-6 leading-[1.08] tracking-[-0.03em]">
-                {article.title}
+                {displayTitle}
               </h1>
 
-              {article.excerpt && (
+              {displayExcerpt && (
                 <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
-                  {article.excerpt}
+                  {displayExcerpt}
                 </p>
               )}
 
@@ -305,7 +316,7 @@ export default async function CatchAllArticlePage({
                 <div className="mb-8 rounded-lg overflow-hidden">
                   <img
                     src={article.mainImageUrl}
-                    alt={article.title}
+                    alt={displayTitle}
                     className="w-full h-auto object-cover"
                   />
                 </div>
@@ -313,7 +324,7 @@ export default async function CatchAllArticlePage({
 
               <div className="xl:hidden">
                 <ShareButtons
-                  title={article.title}
+                  title={displayTitle}
                   url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${article.category?.slug || 'actualites'}/${slug}`}
                   locale={locale}
                 />
@@ -322,7 +333,7 @@ export default async function CatchAllArticlePage({
               <AdSenseAd adSlot="1234567890" className="my-4" />
 
               <div style={{ fontFamily: '"Playfair Display", Georgia, serif' }} className="text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]">
-                <ReadAlsoRenderer content={typeof article.content === 'string' ? article.content : ''} />
+                <ReadAlsoRenderer content={displayContent} />
               </div>
 
               <div className="mt-8">
