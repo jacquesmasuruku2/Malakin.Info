@@ -42,7 +42,6 @@ function buildLiveFilters(term: string) {
     OR: [
       { title: { contains: term, mode: 'insensitive' as const } },
       { description: { contains: term, mode: 'insensitive' as const } },
-      { category: { title: { contains: term, mode: 'insensitive' as const } } },
     ],
   };
 }

@@ -135,44 +135,48 @@ export default function SearchContent() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
       <div className="mb-8">
-        <form onSubmit={handleSubmit} className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(event) => setInputValue(event.target.value)}
-            placeholder="Rechercher des articles, auteurs, médias..."
-            className="w-full pl-12 pr-4 py-3 border border-border rounded-lg text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-primary"
-          />
+        <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
+          <div className="relative">
+            <Search className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-[#0b3b8b]" />
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(event) => setInputValue(event.target.value)}
+              placeholder="Rechercher des articles, auteurs, médias..."
+              className="w-full rounded-full border-2 border-[#0b3b8b]/60 bg-white py-4 pl-12 pr-5 text-base text-[#0f172a] shadow-[0_10px_24px_rgba(11,59,139,0.08)] outline-none transition focus:border-[#0b3b8b] focus:ring-4 focus:ring-[#0b3b8b]/10"
+            />
+          </div>
         </form>
       </div>
 
       {error ? (
-        <div className="text-center py-12">
-          <p className="text-red-500 mb-4">{error}</p>
+        <div className="py-12 text-center">
+          <p className="mb-4 text-base font-medium text-red-600">{error}</p>
         </div>
       ) : isLoading ? (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="mt-4 text-muted-foreground">Recherche en cours...</p>
+        <div className="py-12 text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+          <p className="mt-4 text-sm font-medium uppercase tracking-[0.18em] text-[#475569]">Recherche en cours...</p>
         </div>
       ) : query && results.length === 0 ? (
-        <div className="text-center py-12">
-          <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-2xl font-heading font-semibold text-foreground mb-2">
+        <div className="py-12 text-center">
+          <div className="mx-auto mb-5 flex h-18 w-18 items-center justify-center rounded-full bg-[#edf4ff] text-[#0b3b8b] shadow-inner">
+            <Search className="h-8 w-8" />
+          </div>
+          <h2 className="mb-2 font-heading text-2xl font-bold text-[#0f172a] sm:text-3xl">
             Aucun résultat pour « {query} »
           </h2>
-          <p className="text-muted-foreground mb-6">
-            Essayez avec d'autres mots-clés ou explorez nos catégories
+          <p className="mb-6 text-[#475569]">
+            Essayez un autre mot-clé ou explorez directement nos catégories.
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             {['politique', 'economie', 'sport', 'culture', 'religion'].map((category) => (
               <a
                 key={category}
                 href={`/${locale}/${category}`}
-                className="px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg text-sm font-medium transition-colors"
+                className="rounded-full border border-[#dfe5ef] bg-white px-4 py-2 text-sm font-semibold text-[#0f172a] transition hover:border-[#0b3b8b] hover:text-[#0b3b8b]"
               >
                 {category}
               </a>
@@ -180,82 +184,91 @@ export default function SearchContent() {
           </div>
         </div>
       ) : !query ? (
-        <div className="text-center py-12">
-          <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-2xl font-heading font-semibold text-foreground mb-2">
+        <div className="py-14 text-center">
+          <div className="mx-auto mb-5 flex h-18 w-18 items-center justify-center rounded-full bg-[#edf4ff] text-[#0b3b8b] shadow-inner">
+            <Search className="h-8 w-8" />
+          </div>
+          <h2 className="mb-2 font-heading text-2xl font-bold text-[#0f172a] sm:text-3xl">
             Que recherchez-vous ?
           </h2>
-          <p className="text-muted-foreground mb-6">
-            Entrez un mot-clé pour trouver des articles, des auteurs, des médias et plus encore.
+          <p className="mx-auto max-w-xl text-[#475569]">
+            Entrez un mot-clé pour trouver des articles, des auteurs, des médias et des sujets d’actualité.
           </p>
         </div>
       ) : (
         <div>
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex gap-2 flex-wrap">
+          <div className="mb-6 flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#475569]">
+              {results.length} résultat{results.length > 1 ? 's' : ''}
+            </p>
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setActiveType('all')}
-                className={`px-3 py-1 rounded-lg text-sm font-medium ${activeType === 'all' ? 'bg-primary text-white' : 'bg-muted'}`}
+                className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] transition ${activeType === 'all' ? 'bg-[#0b3b8b] text-white' : 'bg-white text-[#334155] ring-1 ring-[#dfe5ef]'}`}
               >
                 Tous ({counts.all})
               </button>
               <button
                 onClick={() => setActiveType('article')}
-                className={`px-3 py-1 rounded-lg text-sm font-medium ${activeType === 'article' ? 'bg-primary text-white' : 'bg-muted'}`}
+                className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] transition ${activeType === 'article' ? 'bg-[#0b3b8b] text-white' : 'bg-white text-[#334155] ring-1 ring-[#dfe5ef]'}`}
               >
                 Articles ({counts.article})
               </button>
               <button
                 onClick={() => setActiveType('author')}
-                className={`px-3 py-1 rounded-lg text-sm font-medium ${activeType === 'author' ? 'bg-primary text-white' : 'bg-muted'}`}
+                className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] transition ${activeType === 'author' ? 'bg-[#0b3b8b] text-white' : 'bg-white text-[#334155] ring-1 ring-[#dfe5ef]'}`}
               >
                 Auteurs ({counts.author})
               </button>
               <button
                 onClick={() => setActiveType('media')}
-                className={`px-3 py-1 rounded-lg text-sm font-medium ${activeType === 'media' ? 'bg-primary text-white' : 'bg-muted'}`}
+                className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] transition ${activeType === 'media' ? 'bg-[#0b3b8b] text-white' : 'bg-white text-[#334155] ring-1 ring-[#dfe5ef]'}`}
               >
                 Médias ({counts.media})
               </button>
               <button
                 onClick={() => setActiveType('live')}
-                className={`px-3 py-1 rounded-lg text-sm font-medium ${activeType === 'live' ? 'bg-primary text-white' : 'bg-muted'}`}
+                className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] transition ${activeType === 'live' ? 'bg-[#0b3b8b] text-white' : 'bg-white text-[#334155] ring-1 ring-[#dfe5ef]'}`}
               >
                 Directs ({counts.live})
               </button>
               <button
                 onClick={() => setActiveType('category')}
-                className={`px-3 py-1 rounded-lg text-sm font-medium ${activeType === 'category' ? 'bg-primary text-white' : 'bg-muted'}`}
+                className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] transition ${activeType === 'category' ? 'bg-[#0b3b8b] text-white' : 'bg-white text-[#334155] ring-1 ring-[#dfe5ef]'}`}
               >
                 Catégories ({counts.category})
               </button>
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-5">
             {filteredResults.map((result) => (
               <article
                 key={`${result.type}-${result.id}`}
-                className="bg-card rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow border-l-4 border-primary"
+                className="rounded-2xl border border-[#e7e7e1] bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.06)] sm:p-6"
               >
-                <div className="flex flex-wrap items-center gap-2 mb-3 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  {iconForType(result.type)}
-                  <span>{labelForType(result.type)}</span>
-                  {result.category ? <span className="px-2 py-1 bg-muted rounded-full">{result.category}</span> : null}
+                <div className="mb-3 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#475569]">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#edf4ff] px-2.5 py-1 text-[#0b3b8b]">
+                    {iconForType(result.type)}
+                    {labelForType(result.type)}
+                  </span>
+                  {result.category ? (
+                    <span className="rounded-full bg-[#f8f3df] px-2.5 py-1 text-[#7a5b00]">{result.category}</span>
+                  ) : null}
                 </div>
-                <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
+                <h3 className="mb-2 font-heading text-xl font-bold text-[#0f172a] sm:text-2xl">
                   {result.title}
                 </h3>
                 {result.excerpt && (
-                  <p className="text-muted-foreground mb-4 line-clamp-2">
+                  <p className="mb-4 line-clamp-2 text-sm leading-6 text-[#475569] sm:text-base">
                     {result.excerpt}
                   </p>
                 )}
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[#475569]">
                     {result.date && (
                       <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
+                        <Calendar className="h-4 w-4" />
                         {new Date(result.date).toLocaleDateString('fr-FR', {
                           day: 'numeric',
                           month: 'long',
@@ -265,17 +278,17 @@ export default function SearchContent() {
                     )}
                     {result.readTime && (
                       <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
+                        <Clock className="h-4 w-4" />
                         {result.readTime}
                       </span>
                     )}
                   </div>
                   <a
                     href={result.path}
-                    className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
+                    className="inline-flex items-center gap-2 self-start rounded-full bg-[#0b3b8b] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#082a63]"
                   >
                     Voir
-                    <ArrowRight className="ml-2 w-4 h-4" />
+                    <ArrowRight className="h-4 w-4" />
                   </a>
                 </div>
               </article>
