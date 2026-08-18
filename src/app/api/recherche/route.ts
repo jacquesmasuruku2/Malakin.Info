@@ -125,7 +125,7 @@ export async function GET(request: Request) {
         categorySlug: article.category?.slug || '',
         date: article.publishedAt ? article.publishedAt.toISOString() : '',
         readTime: article.readTime || '',
-        path: `/articles/${article.slug}`,
+        path: `/${article.slug}`,
       })),
       ...authors.map((author) => ({
         id: author.id,

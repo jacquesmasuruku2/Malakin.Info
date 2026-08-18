@@ -12,6 +12,7 @@ interface SearchResult {
   title: string;
   excerpt: string;
   path: string;
+  slug?: string;
   category?: string;
   date?: string;
   readTime?: string;
@@ -62,7 +63,12 @@ export default function SearchContent() {
         setResults(
           data.map((item) => ({
             ...item,
-            path: item.path.startsWith('/') ? `/${locale}${item.path}` : `/${locale}${item.path}`,
+            path:
+              item.type === 'article'
+                ? `/${locale}/${item.slug}`
+                : item.path.startsWith('/')
+                  ? `/${locale}${item.path}`
+                  : `/${locale}/${item.path}`,
           }))
         );
       } catch (err) {
