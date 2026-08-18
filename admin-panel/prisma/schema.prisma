@@ -137,6 +137,7 @@ model AdminUser {
   updatedAt     DateTime      @updatedAt
   lastLoginAt   DateTime?
   sessions      AdminSession[]
+  passwordResets AdminPasswordReset[]
 
   @@index([email])
   @@index([provider])
@@ -151,6 +152,18 @@ model AdminSession {
   createdAt   DateTime   @default(now())
 
   @@index([adminUserId])
+}
+
+model AdminPasswordReset {
+  id          String    @id @default(cuid())
+  adminUserId String
+  tokenHash   String    @unique
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  adminUser  AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@index([adminUserId])
+  @@index([expiresAt])
 }
 
 model User {

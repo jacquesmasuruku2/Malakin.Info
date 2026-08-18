@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 
@@ -129,17 +130,18 @@ export default function LoginPage() {
           )}
 
           <div className="pt-1 text-right">
-            <button type="button" className="text-base font-medium text-[#0b3b8b] hover:underline">
+            <Link href="/forgot-password" className="text-base font-medium text-[#0b3b8b] hover:underline">
               Mot de passe oublié ?
-            </button>
+            </Link>
           </div>
 
           <button
             type="submit"
-            disabled={loading || !email || !password}
-            className="mt-2 w-full rounded-xl bg-[#0b3b8b] px-5 py-3 text-lg font-bold text-white shadow-[0_10px_18px_rgba(11,59,139,0.2)] transition hover:bg-[#082a63] disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={loading}
+            className="flex items-center gap-2 rounded-md bg-primary px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? 'Connexion...' : 'Confirmer →'}
+            <span>{loading ? 'Connexion...' : 'Confirmer'}</span>
+            <span aria-hidden="true">→</span>
           </button>
         </form>
       </div>
