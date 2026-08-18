@@ -138,7 +138,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center gap-2 rounded-md bg-primary px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center gap-2 rounded-md bg-[#0b3b8b] px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-[#082a63] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <span>{loading ? 'Connexion...' : 'Confirmer'}</span>
             <span aria-hidden="true">→</span>
