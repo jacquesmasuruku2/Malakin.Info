@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
-import { Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -37,90 +38,110 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        <div className="card rounded-2xl shadow-xl border overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-white/20 rounded-xl">
-                <Lock className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
-                <p className="text-blue-100 text-sm">Malakinfo.com</p>
-              </div>
+    <div className="flex min-h-screen items-center justify-center bg-[#f3f4f6] p-4">
+      <div className="w-full max-w-[760px] rounded-[18px] border border-[#d9dfe6] bg-[#f8f8f8] p-6 shadow-[0_6px_26px_rgba(15,23,42,0.04)] sm:p-8">
+        <h1 className="mb-6 text-4xl font-black tracking-[-0.05em] text-[#111827]">Connexion</h1>
+
+        <div className="grid gap-3 border-t border-[#dfe4ea] pt-5 sm:grid-cols-2">
+          <button
+            type="button"
+            className="flex items-center justify-center gap-3 rounded-xl border border-[#dfe4ea] bg-[#f9fafb] px-4 py-3 text-base font-medium text-[#111827] transition hover:bg-white"
+          >
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#f9d648] via-[#f08a2b] to-[#db4d3f] text-xs font-black text-white">
+              G
             </div>
-          </div>
+            <span>Google</span>
+          </button>
 
-          {/* Form */}
-          <div className="p-8">
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Connexion sécurisée</h2>
-              <p className="text-gray-600 text-sm">
-                Entrez votre mot de passe pour accéder au panneau d'administration.
-              </p>
+          <button
+            type="button"
+            className="flex items-center justify-center gap-3 rounded-xl border border-[#dfe4ea] bg-[#f9fafb] px-4 py-3 text-base font-medium text-[#111827] transition hover:bg-white"
+          >
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#1877f2] text-xs font-black text-white">
+              f
             </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Entrez votre email"
-                  autoFocus
-                />
-              </div>
-
-              <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Mot de passe
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Entrez votre mot de passe"
-                />
-                {error && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                    {error}
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || !email || !password}
-                className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
-              >
-                {loading ? 'Connexion...' : 'Se connecter'}
-              </button>
-            </form>
-
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-xs text-gray-500 text-center">
-                Accès sécurisé • Toutes les connexions sont enregistrées
-              </p>
-            </div>
-          </div>
+            <span>Facebook</span>
+          </button>
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-gray-500 text-sm mt-6">
-          © 2026 Malakinfo.com • Panel d'administration
-        </p>
+        <div className="my-5 flex items-center gap-4">
+          <div className="h-px flex-1 bg-[#dfe4ea]" />
+          <span className="text-sm font-medium uppercase tracking-[0.2em] text-[#6b7280]">ou</span>
+          <div className="h-px flex-1 bg-[#dfe4ea]" />
+        </div>
+
+        <div className="mb-5">
+          <h2 className="text-2xl font-bold tracking-[-0.04em] text-[#111827]">Se connecter avec un mot de passe</h2>
+          <p className="mt-2 text-base text-[#374151]">
+            Vous n&apos;avez pas de compte ? <span className="font-semibold text-[#0b3b8b]">Créez-en un.</span>
+          </p>
+          <p className="mt-1 text-base text-[#374151]">
+            <span className="font-medium text-[#0b3b8b]">Connectez-vous sans mot de passe.</span>
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="email" className="block text-base font-medium text-[#111827]">
+              Adresse e-mail
+            </label>
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#6b7280]" />
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-xl border border-[#cfd8e3] bg-white py-3 pl-12 pr-4 text-base text-[#111827] outline-none transition focus:border-[#0b3b8b] focus:ring-4 focus:ring-[#0b3b8b]/10"
+                placeholder=""
+                autoFocus
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="password" className="block text-base font-medium text-[#111827]">
+              Mot de passe
+            </label>
+            <div className="relative">
+              <Lock className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#6b7280]" />
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-xl border border-[#cfd8e3] bg-white py-3 pl-12 pr-12 text-base text-[#111827] outline-none transition focus:border-[#0b3b8b] focus:ring-4 focus:ring-[#0b3b8b]/10"
+                placeholder=""
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                onClick={() => setShowPassword((value) => !value)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b7280] transition hover:text-[#111827]"
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <p className="text-sm font-medium text-red-600">{error}</p>
+          )}
+
+          <div className="pt-1 text-right">
+            <button type="button" className="text-base font-medium text-[#0b3b8b] hover:underline">
+              Mot de passe oublié ?
+            </button>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading || !email || !password}
+            className="mt-2 w-full rounded-xl bg-[#0b3b8b] px-5 py-3 text-lg font-bold text-white shadow-[0_10px_18px_rgba(11,59,139,0.2)] transition hover:bg-[#082a63] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? 'Connexion...' : 'Confirmer →'}
+          </button>
+        </form>
       </div>
     </div>
   );
