@@ -28,67 +28,59 @@ export default function SupportCheckoutPage() {
   }, [planName, searchParams]);
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsProcessing(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    try {
+      // Create Stripe checkout session
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          amount,
+          planName,
+          country,
+          isGift,
+        }),
+      });
 
-    setIsProcessing(false);
-    setIsSuccess(true);
+      const { sessionId, error } = await response.json();
+
+      if (error) {
+        console.error('Error creating checkout session:', error);
+        alert('Erreur lors de la création de la session de paiement');
+        setIsProcessing(false);
+        return;
+      }
+
+      // Redirect to Stripe Checkout
+      const stripe = (await import('@stripe/stripe-js')).loadStripe(
+        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+      );
+
+      const stripeInstance = await stripe;
+      if (stripeInstance) {
+        const { error: stripeError } = await stripeInstance.redirectToCheckout({
+          sessionId,
+        });
+
+        if (stripeError) {
+          console.error('Stripe redirect error:', stripeError);
+          alert('Erreur lors de la redirection vers Stripe');
+          setIsProcessing(false);
+        }
+      }
+    } catch (error) {
+      console.error('Error during checkout:', error);
+      alert('Erreur lors du traitement du paiement');
+      setIsProcessing(false);
+    }
   };
-
-  if (isSuccess) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#eef1ef] px-4 py-10">
-        <div className="w-full max-w-xl rounded-2xl border border-[#dfe4dd] bg-white p-8 text-center shadow-sm">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[#e9f7ee] text-[#1e7d4d]">
-            <CheckCircle2 className="h-8 w-8" />
-          </div>
-
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#0b3b8b]">Abonnement validé</p>
-          <h1 className="text-3xl font-bold text-[#111827]">Merci pour votre soutien !</h1>
-          <p className="mt-4 text-base text-[#4b5563]">
-            Votre abonnement {planName} ({amount.toFixed(2).replace('.', ',')} $) a bien été enregistré pour <span className="font-semibold text-[#111827]">{email}</span>.
-          </p>
-
-          <div className="mt-6 rounded-xl border border-[#dfe4dd] bg-[#f8faf8] p-4 text-left text-sm text-[#111827]">
-            <div className="flex items-center justify-between gap-3">
-              <span>Plan</span>
-              <span className="font-semibold">{planName}</span>
-            </div>
-            <div className="mt-2 flex items-center justify-between gap-3">
-              <span>Pays</span>
-              <span>{country}</span>
-            </div>
-            <div className="mt-2 flex items-center justify-between gap-3">
-              <span>Offre cadeau</span>
-              <span>{isGift ? 'Oui' : 'Non'}</span>
-            </div>
-          </div>
-
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={() => router.push('/')}
-              className="flex-1 rounded-md bg-[#111827] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#0f172a]"
-            >
-              Retour à l&apos;accueil
-            </button>
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="flex-1 rounded-md border border-[#d1d5db] bg-white px-4 py-3 text-sm font-semibold text-[#111827] transition hover:bg-[#f9fafb]"
-            >
-              Revenir en arrière
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit} className="min-h-screen bg-[#dfe1df] px-4 py-6 text-[#111827] sm:px-6 lg:px-8">
@@ -190,27 +182,9 @@ export default function SupportCheckoutPage() {
                 <span className="inline-flex h-9 w-10 items-center justify-center rounded bg-[#eaf3ec] text-[10px] font-bold tracking-[0.08em] text-[#266b31]">PayPal</span>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-[#111827]">Numéro de carte</label>
-                  <input className="w-full rounded-md border border-[#cfcfcf] bg-[#f3f3f3] px-3.5 py-3 text-sm text-[#111827] outline-none transition focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/10" />
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-[#111827]">Expire le</label>
-                    <input className="w-full rounded-md border border-[#cfcfcf] bg-[#f3f3f3] px-3.5 py-3 text-sm text-[#111827] outline-none transition focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/10" />
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-[#111827]">CVV</label>
-                    <input className="w-full rounded-md border border-[#cfcfcf] bg-[#f3f3f3] px-3.5 py-3 text-sm text-[#111827] outline-none transition focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/10" />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-[#111827]">Code postal de la carte</label>
-                  <input className="w-full rounded-md border border-[#cfcfcf] bg-[#f3f3f3] px-3.5 py-3 text-sm text-[#111827] outline-none transition focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/10" />
-                </div>
+              <div className="rounded-md border border-[#cfcfcf] bg-[#f3f3f3] p-4 text-center text-sm text-[#6b7280]">
+                <p className="mb-2">Le paiement sera traité via Stripe Checkout sécurisé</p>
+                <p className="text-xs">Vous serez redirigé vers la page de paiement Stripe après avoir cliqué sur le bouton ci-dessous.</p>
               </div>
             </section>
           </div>
@@ -263,7 +237,7 @@ export default function SupportCheckoutPage() {
 
               <div className="mt-4 flex items-center justify-center gap-2 text-xs text-[#4b5563]">
                 <Lock className="h-3.5 w-3.5" />
-                Paiement sécurisé
+                Paiement sécurisé via Stripe
               </div>
             </div>
           </aside>
