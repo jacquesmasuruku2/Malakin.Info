@@ -332,3 +332,56 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
     </table>
   `;
 }
+
+export type CustomNewsletter = {
+  title: string;
+  content: string;
+  heroImageUrl?: string;
+  imageUrls?: string[];
+  imageLinkUrl?: string;
+  buttonLabel?: string;
+  buttonUrl?: string;
+};
+
+const safeUrl = (value: string | undefined) => {
+  const url = value?.trim() || '';
+  return /^https:\/\//i.test(url) ? url : '';
+};
+
+export function generateCustomNewsletterHtml(newsletter: CustomNewsletter) {
+  const heroImageUrl = safeUrl(newsletter.heroImageUrl);
+  const imageUrls = (newsletter.imageUrls || []).map(safeUrl).filter(Boolean).slice(0, 4);
+  const imageLinkUrl = safeUrl(newsletter.imageLinkUrl);
+  const buttonUrl = safeUrl(newsletter.buttonUrl);
+  const paragraphs = newsletter.content
+    .trim()
+    .split(/\n\s*\n/)
+    .filter(Boolean)
+    .map((paragraph) => `<p style="margin:0 0 18px 0;">${escapeHtml(paragraph).replace(/\n/g, '<br />')}</p>`)
+    .join('');
+  const images = imageUrls.map((url) => `
+    <tr><td style="padding:0 24px 18px 24px;"><img src="${url}" alt="" width="552" style="display:block;width:100%;max-width:552px;height:auto;border:0;border-radius:8px;" /></td></tr>
+  `).join('');
+  const hero = heroImageUrl
+    ? `<tr><td style="padding:0;">${imageLinkUrl ? `<a href="${imageLinkUrl}" style="display:block;text-decoration:none;">` : ''}<img src="${heroImageUrl}" alt="" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0;" />${imageLinkUrl ? '</a>' : ''}</td></tr>`
+    : '';
+  const button = buttonUrl && newsletter.buttonLabel?.trim()
+    ? `<p style="margin:24px 0 4px 0;"><a href="${buttonUrl}" style="display:inline-block;background:#c81f2d;color:#ffffff;padding:12px 20px;border-radius:4px;text-decoration:none;font-weight:bold;font-size:13px;text-transform:uppercase;">${escapeHtml(newsletter.buttonLabel)}</a></p>`
+    : '';
+
+  return `
+    ${responsiveNewsletterCss}
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f6f8;margin:0;padding:0;">
+      <tr><td align="center" style="padding:32px 16px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px;background:#ffffff;border-collapse:collapse;margin:0 auto;">
+          <tr><td style="padding:18px 24px;background:#0d1b3d;text-align:center;font-family:Arial,sans-serif;font-size:12px;letter-spacing:2px;color:#ffffff;text-transform:uppercase;font-weight:bold;">MALAKINFO</td></tr>
+          ${hero}
+          <tr><td class="newsletter-mobile-padding" style="padding:28px 24px 10px 24px;font-family:Arial,sans-serif;font-size:30px;line-height:38px;color:#111827;font-weight:bold;">${escapeHtml(newsletter.title)}</td></tr>
+          <tr><td class="newsletter-mobile-padding" style="padding:10px 24px 24px 24px;font-family:Arial,sans-serif;font-size:16px;line-height:26px;color:#222222;">${paragraphs}${button}</td></tr>
+          ${images}
+          <tr><td style="padding:18px 24px 28px 24px;font-family:Arial,sans-serif;font-size:12px;line-height:18px;color:#666666;text-align:center;border-top:1px solid #e5e7eb;">Malakinfo • Actualités, analyses et perspectives</td></tr>
+        </table>
+      </td></tr>
+    </table>
+  `;
+}
