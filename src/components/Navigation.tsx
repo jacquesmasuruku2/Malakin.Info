@@ -267,12 +267,12 @@ export default function Navigation() {
               </button>
             </div>
 
-            <div className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-center">
-              <Link href={`/${locale}`} className="pointer-events-auto inline-flex items-center justify-center">
+            <div className="pointer-events-none absolute left-12 right-12 top-1/2 flex -translate-y-1/2 justify-center sm:left-20 sm:right-20 md:left-0 md:right-0">
+              <Link href={`/${locale}`} className="pointer-events-auto inline-flex max-w-full items-center justify-center">
                 <img
                   src="/images/logo.png"
                   alt="MalakInfo"
-                  className="h-12 w-auto max-w-[180px] object-contain sm:h-14 sm:max-w-[220px] md:h-16 md:max-w-[260px] lg:h-20 lg:max-w-[300px]"
+                  className="h-9 w-auto max-w-[110px] object-contain sm:h-12 sm:max-w-[180px] md:h-16 md:max-w-[260px] lg:h-20 lg:max-w-[300px]"
                   loading="eager"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
@@ -283,7 +283,7 @@ export default function Navigation() {
                     }
                   }}
                 />
-                <span className="logo-fallback hidden font-heading text-xl font-black tracking-[-0.04em] text-[#0b3b8b] md:text-2xl">
+                <span className="logo-fallback hidden font-heading text-lg font-black tracking-[-0.04em] text-[#0b3b8b] md:text-2xl">
                   MalakInfo
                 </span>
               </Link>

@@ -49,19 +49,21 @@ export default function LanguageSwitcher() {
   };
 
   return (
-    <div ref={wrapperRef} className="relative z-50">
+    <div ref={wrapperRef} className="relative z-50 flex-shrink-0">
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center gap-2 rounded-full border border-[#dfe4ea] bg-[#0b3b8b] px-3 py-2 text-white shadow-[0_8px_24px_rgba(11,59,139,0.18)] transition-all duration-200 hover:brightness-105 sm:px-4"
+        className="flex max-w-[120px] items-center justify-between gap-1 rounded-full border border-[#dfe4ea] bg-[#0b3b8b] px-2.5 py-2 text-white shadow-[0_8px_24px_rgba(11,59,139,0.18)] transition-all duration-200 hover:brightness-105 sm:max-w-none sm:gap-2 sm:px-3 sm:py-2.5"
         aria-label="Changer la langue"
       >
-        <Languages className="h-4 w-4 text-white" />
-        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/90">Langue</span>
-        <span className="rounded-full bg-white/12 px-2 py-1 text-sm font-semibold text-white shadow-inner">
-          {currentOption.label}
+        <Languages className="hidden h-4 w-4 text-white sm:block" />
+        <span className="hidden text-[10px] font-semibold uppercase tracking-[0.18em] text-white/90 sm:inline">
+          Langue
         </span>
-        <ChevronDown className={`h-4 w-4 text-white transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <span className="rounded-full bg-white/12 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-inner sm:px-2 sm:py-1 sm:text-sm">
+          {currentOption.value.toUpperCase()}
+        </span>
+        <ChevronDown className={`h-3.5 w-3.5 text-white transition-transform duration-200 sm:h-4 sm:w-4 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
