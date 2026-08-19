@@ -15,6 +15,7 @@ import { SponsoredSection } from '@/components/SponsoredSection';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 import ScrollToComments from '@/components/ScrollToComments';
 import Paywall from '@/components/Paywall';
+import { hasPremiumAccess } from '@/lib/premium-access';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -126,6 +127,7 @@ export default async function ArticlePage({
     // Get translated content based on locale
     const translatedArticle = await getArticleTranslation(article.id, locale);
     const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
+    const premiumAccess = article.isPremium ? await hasPremiumAccess(article.id) : true;
 
     const relatedArticles: any[] = await prisma.article.findMany({
       where: {
@@ -194,7 +196,9 @@ export default async function ArticlePage({
     // Use translated content if available, otherwise fallback to original
     const displayTitle = translatedArticle.title;
     const displayExcerpt = translatedArticle.excerpt;
-    const displayContent = typeof translatedArticle.content === 'string' ? translatedArticle.content : JSON.stringify(translatedArticle.content);
+    const displayContent = premiumAccess
+      ? (typeof translatedArticle.content === 'string' ? translatedArticle.content : JSON.stringify(translatedArticle.content))
+      : '';
     const displayCategoryTitle = translatedCategory.title;
 
     return (
@@ -247,11 +251,17 @@ export default async function ArticlePage({
                 />
               </div>
 
-              <div className={`${playfair.className} text-[1.04rem] font-normal leading-[1.9] text-gray-800 md:text-[1.18rem]`}>
-                <ReadAlsoRenderer content={displayContent} />
-              </div>
+              {premiumAccess ? (
+                <div className={`${playfair.className} text-[1.04rem] font-normal leading-[1.9] text-gray-800 md:text-[1.18rem]`}>
+                  <ReadAlsoRenderer content={displayContent} />
+                </div>
+              ) : (
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-6 text-center text-muted-foreground">
+                  {locale === 'fr' ? 'Le contenu intégral est réservé aux abonnés et aux acheteurs de cet article.' : 'The full article is reserved for subscribers and purchasers.'}
+                </div>
+              )}
 
-              {article.isPremium && (
+              {article.isPremium && !premiumAccess && (
                 <Paywall 
                   articleId={article.id} 
                   articleTitle={displayTitle}

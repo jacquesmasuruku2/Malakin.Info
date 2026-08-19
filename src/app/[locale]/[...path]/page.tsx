@@ -12,6 +12,8 @@ import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/Article
 import { SponsoredSection } from '@/components/SponsoredSection';
 import ViewIncrementer from '@/components/ViewIncrementer';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
+import { hasPremiumAccess } from '@/lib/premium-access';
+import Paywall from '@/components/Paywall';
 
 export const dynamic = 'force-dynamic';
 
@@ -142,12 +144,14 @@ export default async function CatchAllArticlePage({
     const canonicalUrl = `${baseUrl}/${locale}/${slug}`;
     const translatedArticle = await getArticleTranslation(article.id, locale);
     const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
+    const premiumAccess = article.isPremium ? await hasPremiumAccess(article.id) : true;
     const displayTitle = translatedArticle.title || article.title;
     const displayExcerpt = translatedArticle.excerpt || article.excerpt;
-    const displayContent =
-      typeof translatedArticle.content === 'string'
+    const displayContent = premiumAccess
+      ? (typeof translatedArticle.content === 'string'
         ? translatedArticle.content
-        : JSON.stringify(translatedArticle.content ?? '');
+        : JSON.stringify(translatedArticle.content ?? ''))
+      : '';
 
     // Convert image URL to absolute if it's relative
     const absoluteImageUrl = article.mainImageUrl 
@@ -332,9 +336,23 @@ export default async function CatchAllArticlePage({
 
               <AdSenseAd adSlot="1234567890" className="my-4" />
 
-              <div style={{ fontFamily: '"Playfair Display", Georgia, serif' }} className="text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]">
-                <ReadAlsoRenderer content={displayContent} />
-              </div>
+              {premiumAccess ? (
+                <div style={{ fontFamily: '"Playfair Display", Georgia, serif' }} className="text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]">
+                  <ReadAlsoRenderer content={displayContent} />
+                </div>
+              ) : (
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-6 text-center text-muted-foreground">
+                  {locale === 'fr' ? 'Le contenu intégral est réservé aux abonnés et aux acheteurs de cet article.' : 'The full article is reserved for subscribers and purchasers.'}
+                </div>
+              )}
+
+              {article.isPremium && !premiumAccess && (
+                <Paywall
+                  articleId={article.id}
+                  articleTitle={displayTitle}
+                  premiumPrice={article.premiumPrice ? Number(article.premiumPrice) : 1.9}
+                />
+              )}
 
               <div className="mt-8">
                 <AdSenseAd adSlot="0987654321" className="my-4" />
