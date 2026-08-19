@@ -14,6 +14,7 @@ import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/Article
 import { SponsoredSection } from '@/components/SponsoredSection';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 import ScrollToComments from '@/components/ScrollToComments';
+import Paywall from '@/components/Paywall';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -249,6 +250,14 @@ export default async function ArticlePage({
               <div className={`${playfair.className} text-[1.04rem] font-normal leading-[1.9] text-gray-800 md:text-[1.18rem]`}>
                 <ReadAlsoRenderer content={displayContent} />
               </div>
+
+              {article.isPremium && (
+                <Paywall 
+                  articleId={article.id} 
+                  articleTitle={displayTitle}
+                  premiumPrice={article.premiumPrice ? Number(article.premiumPrice) : 1.9}
+                />
+              )}
 
               <div className="mt-8">
                 <AdSenseAd adSlot="0987654321" className="my-4" />

@@ -65,6 +65,8 @@ model Article {
   mainImageAlt      String?
   readTime          String?
   featured          Boolean            @default(false)
+  isPremium         Boolean            @default(false)
+  premiumPrice      Decimal?           @db.Decimal(10, 2)
   views             BigInt             @default(0)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
@@ -80,6 +82,7 @@ model Article {
   @@index([authorId])
   @@index([publishedAt(sort: Desc)])
   @@index([featured])
+  @@index([isPremium])
   @@index([views(sort: Desc)])
 }
 
