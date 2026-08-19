@@ -65,7 +65,7 @@ export default function SupportCheckoutPage() {
       );
 
       if (stripeInstance) {
-        const result = await stripeInstance.redirectToCheckout({
+        const result = await (stripeInstance as any).redirectToCheckout({
           sessionId,
         });
 
