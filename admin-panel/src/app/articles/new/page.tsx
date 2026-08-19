@@ -150,6 +150,8 @@ export default function NewArticlePage() {
       defaultLocale: 'fr',
       publishedAt: '',
       featured: false,
+      isPremium: false,
+      premiumPrice: '',
       readTime: '',
       mainImageUrl: '',
       externalLink: '',
