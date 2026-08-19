@@ -12,7 +12,7 @@ import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/Article
 import { SponsoredSection } from '@/components/SponsoredSection';
 import ViewIncrementer from '@/components/ViewIncrementer';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
-import { hasPremiumAccess } from '@/lib/premium-access';
+import { getPremiumPreviewContent, hasPremiumAccess } from '@/lib/premium-access';
 import Paywall from '@/components/Paywall';
 
 export const dynamic = 'force-dynamic';
@@ -151,6 +151,9 @@ export default async function CatchAllArticlePage({
       ? (typeof translatedArticle.content === 'string'
         ? translatedArticle.content
         : JSON.stringify(translatedArticle.content ?? ''))
+      : '';
+    const previewContent = !premiumAccess
+      ? getPremiumPreviewContent(typeof translatedArticle.content === 'string' ? translatedArticle.content : JSON.stringify(translatedArticle.content ?? ''))
       : '';
 
     // Convert image URL to absolute if it's relative
@@ -341,8 +344,11 @@ export default async function CatchAllArticlePage({
                   <ReadAlsoRenderer content={displayContent} />
                 </div>
               ) : (
-                <div className="rounded-xl border border-primary/20 bg-primary/5 p-6 text-center text-muted-foreground">
-                  {locale === 'fr' ? 'Le contenu intégral est réservé aux abonnés et aux acheteurs de cet article.' : 'The full article is reserved for subscribers and purchasers.'}
+                <div>
+                  <div className="premium-preview premium-preview-lines text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]" dangerouslySetInnerHTML={{ __html: previewContent }} />
+                  <p className="mt-3 text-sm font-medium text-muted-foreground">
+                    {locale === 'fr' ? 'Les cinq premières lignes sont visibles. Abonnez-vous ou achetez cet article pour lire la suite.' : 'The first five lines are visible. Subscribe or purchase this article to continue reading.'}
+                  </p>
                 </div>
               )}
 

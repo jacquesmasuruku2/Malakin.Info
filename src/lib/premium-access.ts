@@ -48,3 +48,8 @@ export async function hasPremiumAccess(articleId: string) {
     return false;
   }
 }
+
+export function getPremiumPreviewContent(content: string) {
+  const firstParagraph = content.match(/<p\b[^>]*>[\s\S]*?<\/p>/i)?.[0];
+  return firstParagraph || '';
+}

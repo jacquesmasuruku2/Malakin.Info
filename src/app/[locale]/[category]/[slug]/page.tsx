@@ -15,7 +15,7 @@ import { SponsoredSection } from '@/components/SponsoredSection';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 import ScrollToComments from '@/components/ScrollToComments';
 import Paywall from '@/components/Paywall';
-import { hasPremiumAccess } from '@/lib/premium-access';
+import { getPremiumPreviewContent, hasPremiumAccess } from '@/lib/premium-access';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -199,6 +199,9 @@ export default async function ArticlePage({
     const displayContent = premiumAccess
       ? (typeof translatedArticle.content === 'string' ? translatedArticle.content : JSON.stringify(translatedArticle.content))
       : '';
+    const previewContent = !premiumAccess
+      ? getPremiumPreviewContent(typeof translatedArticle.content === 'string' ? translatedArticle.content : JSON.stringify(translatedArticle.content))
+      : '';
     const displayCategoryTitle = translatedCategory.title;
 
     return (
@@ -256,8 +259,11 @@ export default async function ArticlePage({
                   <ReadAlsoRenderer content={displayContent} />
                 </div>
               ) : (
-                <div className="rounded-xl border border-primary/20 bg-primary/5 p-6 text-center text-muted-foreground">
-                  {locale === 'fr' ? 'Le contenu intégral est réservé aux abonnés et aux acheteurs de cet article.' : 'The full article is reserved for subscribers and purchasers.'}
+                <div>
+                  <div className="premium-preview premium-preview-lines text-[1.04rem] leading-[1.9] text-gray-800 md:text-[1.18rem]" dangerouslySetInnerHTML={{ __html: previewContent }} />
+                  <p className="mt-3 text-sm font-medium text-muted-foreground">
+                    {locale === 'fr' ? 'Les cinq premières lignes sont visibles. Abonnez-vous ou achetez cet article pour lire la suite.' : 'The first five lines are visible. Subscribe or purchase this article to continue reading.'}
+                  </p>
                 </div>
               )}
 

@@ -156,6 +156,12 @@
   .improved-contrast {
     color: #0a1628;
   }
+  .premium-preview-lines {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+  }
   /* Marquee / scrolling banner for live broadcasts on mobile */
   .marquee-track {
     overflow: hidden;
