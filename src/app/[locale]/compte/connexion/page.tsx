@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { signIn, useSearchParams } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export default function ConnexionPage() {
