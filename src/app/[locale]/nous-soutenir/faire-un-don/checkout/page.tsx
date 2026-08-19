@@ -49,7 +49,7 @@ export default function SupportCheckoutPage() {
         }),
       });
 
-      const { sessionId, error } = await response.json();
+      const { url, error } = await response.json();
 
       if (error) {
         console.error('Error creating checkout session:', error);
@@ -58,22 +58,12 @@ export default function SupportCheckoutPage() {
         return;
       }
 
-      // Redirect to Stripe Checkout
-      const { loadStripe } = await import('@stripe/stripe-js');
-      const stripeInstance = await loadStripe(
-        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-      );
-
-      if (stripeInstance) {
-        const result = await (stripeInstance as any).redirectToCheckout({
-          sessionId,
-        });
-
-        if (result.error) {
-          console.error('Stripe redirect error:', result.error);
-          alert('Erreur lors de la redirection vers Stripe');
-          setIsProcessing(false);
-        }
+      // Redirect to Stripe Checkout URL directly
+      if (url) {
+        window.location.href = url;
+      } else {
+        alert('Erreur lors de la création de la session de paiement');
+        setIsProcessing(false);
       }
     } catch (error) {
       console.error('Error during checkout:', error);
