@@ -50,7 +50,7 @@ export default function FavoriteButton({ articleId, locale, initialFavorited = f
       });
 
       if (response.status === 401) {
-        window.location.href = `/${locale}/compte/connexion`;
+        window.location.href = `/${locale}/compte/connexion?redirect=${encodeURIComponent(window.location.href)}`;
         return;
       }
 

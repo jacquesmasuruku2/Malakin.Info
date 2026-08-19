@@ -2,10 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
+import { signIn, useSearchParams } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export default function ConnexionPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/';
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -34,7 +39,7 @@ export default function ConnexionPage() {
       if (response.ok) {
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('token', data.token);
-        window.location.href = '/';
+        window.location.href = redirectUrl;
       } else {
         setError(data.error || 'Une erreur est survenue');
       }
@@ -48,7 +53,7 @@ export default function ConnexionPage() {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
-      await signIn('google', { callbackUrl: '/fr/compte/profil' });
+      await signIn('google', { callbackUrl: redirectUrl });
     } catch (error) {
       setError('Erreur lors de la connexion avec Google');
       setGoogleLoading(false);

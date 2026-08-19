@@ -349,7 +349,7 @@ export default function Navigation() {
                   )}
                 </div>
               ) : (
-                <Link href={`/${locale}/compte/connexion`} className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1f2937] transition-colors hover:text-[#0b3b8b]">
+                <Link href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(pathname)}`} className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1f2937] transition-colors hover:text-[#0b3b8b]">
                   <User className="h-4 w-4" />
                   <span>{t.login}</span>
                 </Link>
@@ -373,7 +373,7 @@ export default function Navigation() {
                   )}
                 </button>
               ) : (
-                <Link href={`/${locale}/compte/connexion`} className="p-2 text-[#111827] transition-colors hover:text-[#0b3b8b]">
+                <Link href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(pathname)}`} className="p-2 text-[#111827] transition-colors hover:text-[#0b3b8b]">
                   <User className="h-5 w-5" />
                 </Link>
               )}

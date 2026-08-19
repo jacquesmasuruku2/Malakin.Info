@@ -371,7 +371,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
           <p className="mb-4 text-sm text-muted-foreground">{t.loginPrompt}</p>
           <div className="flex flex-wrap gap-3">
             <Link
-              href={`/${locale}/compte/connexion`}
+              href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(window.location.href)}`}
               className="inline-flex items-center justify-center rounded-2xl border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/80 transition"
             >
               {t.login}
