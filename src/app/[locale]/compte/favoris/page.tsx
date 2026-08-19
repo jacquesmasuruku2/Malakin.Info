@@ -37,17 +37,7 @@ export default function FavoritesPage() {
   const fetchFavorites = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch('/api/user/favorites', { headers });
+      const response = await fetch('/api/user/favorites');
 
       if (response.ok) {
         const data = await response.json();

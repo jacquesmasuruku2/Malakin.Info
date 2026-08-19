@@ -40,17 +40,7 @@ export default function CommentsPage() {
   const fetchComments = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch('/api/user/comments', { headers });
+      const response = await fetch('/api/user/comments');
 
       if (response.ok) {
         const data = await response.json();

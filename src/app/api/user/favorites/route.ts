@@ -4,7 +4,13 @@ import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 
 async function resolveCurrentUserId(request: NextRequest) {
-  // First try Authorization header (from localStorage)
+  // Try NextAuth session first (for Google OAuth users)
+  const session = await getServerSession(authOptions);
+  if (session?.user?.id) {
+    return session.user.id;
+  }
+
+  // Then try Authorization header (from localStorage)
   const authHeader = request.headers.get('authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
@@ -14,12 +20,6 @@ async function resolveCurrentUserId(request: NextRequest) {
     if (customSession) {
       return customSession.userId;
     }
-  }
-
-  // Then try NextAuth session
-  const session = await getServerSession(authOptions);
-  if (session?.user?.id) {
-    return session.user.id;
   }
 
   // Finally try session token cookie
