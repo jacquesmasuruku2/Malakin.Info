@@ -324,7 +324,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   );
 
   return (
-    <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 border-t border-border">
+    <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 border-t border-border" data-comments-section>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <p className="text-sm text-muted-foreground">{commentTotal} {t.comments}</p>
@@ -371,14 +371,14 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
           <p className="mb-4 text-sm text-muted-foreground">{t.loginPrompt}</p>
           <div className="flex flex-wrap gap-3">
             <Link
-              href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(window.location.href)}`}
+              href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(window.location.href)}&scroll_to_comments=true`}
               className="inline-flex items-center justify-center rounded-2xl border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/80 transition"
             >
               {t.login}
             </Link>
             <button
               type="button"
-              onClick={() => signIn('google', { callbackUrl: window.location.href })}
+              onClick={() => signIn('google', { callbackUrl: `${window.location.href}?scroll_to_comments=true` })}
               className="inline-flex items-center justify-center rounded-2xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition"
             >
               {t.loginWithGoogle}

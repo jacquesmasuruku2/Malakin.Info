@@ -13,6 +13,7 @@ import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
 import { SponsoredSection } from '@/components/SponsoredSection';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
+import ScrollToComments from '@/components/ScrollToComments';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -197,6 +198,9 @@ export default async function ArticlePage({
 
     return (
       <div className="min-h-screen bg-background">
+        {/* Scroll to comments if needed */}
+        <ScrollToComments />
+
         {/* Increment views */}
         <ViewIncrementer articleId={article.id} />
 

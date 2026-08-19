@@ -10,6 +10,7 @@ export default function ConnexionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/';
+  const scrollToComments = searchParams.get('scroll_to_comments') === 'true';
   
   const [formData, setFormData] = useState({
     email: '',
@@ -39,7 +40,13 @@ export default function ConnexionPage() {
       if (response.ok) {
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('token', data.token);
-        window.location.href = redirectUrl;
+        
+        // Add scroll_to_comments parameter if needed
+        const finalRedirectUrl = scrollToComments 
+          ? `${redirectUrl}${redirectUrl.includes('?') ? '&' : '?'}scroll_to_comments=true`
+          : redirectUrl;
+        
+        window.location.href = finalRedirectUrl;
       } else {
         setError(data.error || 'Une erreur est survenue');
       }
@@ -53,7 +60,11 @@ export default function ConnexionPage() {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
-      await signIn('google', { callbackUrl: redirectUrl });
+      const callbackUrl = scrollToComments 
+        ? `${redirectUrl}${redirectUrl.includes('?') ? '&' : '?'}scroll_to_comments=true`
+        : redirectUrl;
+      
+      await signIn('google', { callbackUrl });
     } catch (error) {
       setError('Erreur lors de la connexion avec Google');
       setGoogleLoading(false);
