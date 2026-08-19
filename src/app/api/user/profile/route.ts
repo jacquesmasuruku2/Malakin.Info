@@ -4,12 +4,25 @@ import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 
 async function resolveCurrentUserId(request: NextRequest) {
+  // Try NextAuth session first (for Google OAuth users)
   const session = await getServerSession(authOptions);
-
   if (session?.user?.id) {
     return session.user.id;
   }
 
+  // Then try Authorization header (from localStorage)
+  const authHeader = request.headers.get('authorization');
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    const customSession = await prisma.session.findUnique({
+      where: { token },
+    });
+    if (customSession) {
+      return customSession.userId;
+    }
+  }
+
+  // Finally try session token cookie
   const sessionToken = request.cookies.get('session_token')?.value;
   if (!sessionToken) {
     return null;
