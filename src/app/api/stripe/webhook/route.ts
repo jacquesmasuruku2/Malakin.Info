@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { headers } from 'next/headers';
+import { prisma } from '@/lib/prisma';
 
 const getStripe = () => {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -40,24 +41,55 @@ export async function POST(request: NextRequest) {
         console.log('Amount:', session.amount_total);
         console.log('Metadata:', session.metadata);
 
-        // Here you can:
-        // 1. Save the subscription to your database
-        // 2. Send confirmation email
-        // 3. Update user account status
-        // 4. etc.
+        const purchaseType = session.metadata?.purchaseType;
+        const articleId = session.metadata?.articleId;
 
-        // Example: Save to database
-        // await prisma.subscription.create({
-        //   data: {
-        //     stripeSessionId: session.id,
-        //     email: session.customer_email,
-        //     amount: session.amount_total,
-        //     planName: session.metadata?.planName,
-        //     country: session.metadata?.country,
-        //     isGift: session.metadata?.isGift === 'true',
-        //     status: 'active',
-        //   }
-        // });
+        // Find or create user by email
+        let user = await prisma.user.findUnique({
+          where: { email: session.customer_email! },
+        });
+
+        if (!user) {
+          // Create a temporary user for the purchase
+          user = await prisma.user.create({
+            data: {
+              email: session.customer_email!,
+              name: session.customer_email!.split('@')[0],
+              passwordHash: '', // Will need to set password later
+            },
+          });
+        }
+
+        // Calculate expiration date (1 week from now)
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+
+        if (purchaseType === 'single_article' && articleId) {
+          // Record article purchase
+          await prisma.articlePurchase.create({
+            data: {
+              userId: user.id,
+              articleId,
+              amount: session.amount_total! / 100, // Convert from cents
+              currency: session.currency?.toUpperCase() || 'USD',
+              status: 'completed',
+              expiresAt,
+            },
+          });
+          console.log('Article purchase recorded for user:', user.id);
+        } else {
+          // Record subscription
+          await prisma.subscription.create({
+            data: {
+              userId: user.id,
+              amount: session.amount_total! / 100, // Convert from cents
+              currency: session.currency?.toUpperCase() || 'USD',
+              status: 'active',
+              expiresAt,
+            },
+          });
+          console.log('Subscription recorded for user:', user.id);
+        }
 
         break;
 

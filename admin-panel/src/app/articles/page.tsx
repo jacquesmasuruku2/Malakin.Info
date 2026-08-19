@@ -26,6 +26,8 @@ interface Article {
   excerpt: string;
   publishedAt: string;
   featured: boolean;
+  isPremium: boolean;
+  premiumPrice: number | null;
   views: number;
   mainImageUrl: string | null;
   category: {
@@ -277,6 +279,11 @@ export default function ArticlesPage() {
                           {article.featured && (
                             <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full mt-1">
                               À la une
+                            </span>
+                          )}
+                          {article.isPremium && (
+                            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-800 rounded-full mt-1">
+                              Premium
                             </span>
                           )}
                           <div className="sm:hidden mt-1">

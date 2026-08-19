@@ -19,13 +19,32 @@ export default function AdSenseAd({
 }: AdSenseAdProps) {
   const adRef = useRef<HTMLModElement>(null);
   const [isAdLoaded, setIsAdLoaded] = useState(false);
+  const [isAdFree, setIsAdFree] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const adClientId = process.env.NEXT_PUBLIC_ADSENSE_ID || '';
   const placeholderSlots = ['1234567890', '0987654321', '3333333333'];
   const isValidAdConfig = Boolean(adClientId) && Boolean(adSlot) && !placeholderSlots.includes(adSlot.trim()) && !adClientId.includes('XXXXXXXXXXXXXXXX');
 
   useEffect(() => {
-    if (!isValidAdConfig || isAdLoaded) return;
+    const checkAdFreeStatus = async () => {
+      try {
+        const response = await fetch('/api/user/ad-free-status');
+        const data = await response.json();
+        setIsAdFree(data.adFree);
+      } catch (error) {
+        console.error('Error checking ad-free status:', error);
+        setIsAdFree(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAdFreeStatus();
+  }, []);
+
+  useEffect(() => {
+    if (!isValidAdConfig || isAdLoaded || isAdFree || isLoading) return;
 
     if (adRef.current && adRef.current.innerHTML.trim() !== '') {
       setIsAdLoaded(true);
@@ -40,9 +59,9 @@ export default function AdSenseAd({
         console.error('AdSense error:', e);
       }
     }
-  }, [adSlot, isAdLoaded, isValidAdConfig]);
+  }, [adSlot, isAdLoaded, isValidAdConfig, isAdFree, isLoading]);
 
-  if (!isValidAdConfig) {
+  if (!isValidAdConfig || isAdFree) {
     return null;
   }
 

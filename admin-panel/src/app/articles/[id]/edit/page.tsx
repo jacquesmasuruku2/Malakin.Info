@@ -19,6 +19,8 @@ interface Article {
   defaultLocale: string;
   publishedAt: string;
   featured: boolean;
+  isPremium: boolean;
+  premiumPrice: number | null;
   readTime: string | null;
   mainImageUrl: string | null;
   externalLink: string | null;
@@ -47,6 +49,8 @@ export default function EditArticlePage() {
     defaultLocale: string;
     publishedAt: string;
     featured: boolean;
+    isPremium: boolean;
+    premiumPrice: string;
     readTime: string;
     mainImageUrl: string;
     externalLink: string;
@@ -60,6 +64,8 @@ export default function EditArticlePage() {
     defaultLocale: 'fr',
     publishedAt: '',
     featured: false,
+    isPremium: false,
+    premiumPrice: '',
     readTime: '',
     mainImageUrl: '',
     externalLink: '',
@@ -109,6 +115,8 @@ export default function EditArticlePage() {
         defaultLocale: data.defaultLocale || 'fr',
         publishedAt: data.publishedAt ? new Date(data.publishedAt).toISOString().split('T')[0] : '',
         featured: data.featured,
+        isPremium: data.isPremium || false,
+        premiumPrice: data.premiumPrice ? String(data.premiumPrice) : '',
         readTime: data.readTime || '',
         mainImageUrl: data.mainImageUrl || '',
         externalLink: data.externalLink || '',
@@ -449,6 +457,38 @@ export default function EditArticlePage() {
                     Article à la une
                   </label>
                 </div>
+
+                <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg">
+                  <input
+                    type="checkbox"
+                    id="isPremium"
+                    checked={formData.isPremium}
+                    onChange={(e) => setFormData({ ...formData, isPremium: e.target.checked })}
+                    className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                  />
+                  <label htmlFor="isPremium" className="text-sm font-medium text-gray-700">
+                    Article premium (réservé aux abonnés)
+                  </label>
+                </div>
+
+                {formData.isPremium && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Prix de l'article ($)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.premiumPrice}
+                      onChange={(e) => setFormData({ ...formData, premiumPrice: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      placeholder="1.90"
+                    />
+                    <p className="text-sm text-gray-500 mt-2">
+                      Laissez vide pour utiliser le prix par défaut (1.90$)
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
