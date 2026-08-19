@@ -59,18 +59,18 @@ export default function SupportCheckoutPage() {
       }
 
       // Redirect to Stripe Checkout
-      const stripe = (await import('@stripe/stripe-js')).loadStripe(
+      const { loadStripe } = await import('@stripe/stripe-js');
+      const stripeInstance = await loadStripe(
         process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
       );
 
-      const stripeInstance = await stripe;
       if (stripeInstance) {
-        const { error: stripeError } = await stripeInstance.redirectToCheckout({
+        const result = await stripeInstance.redirectToCheckout({
           sessionId,
         });
 
-        if (stripeError) {
-          console.error('Stripe redirect error:', stripeError);
+        if (result.error) {
+          console.error('Stripe redirect error:', result.error);
           alert('Erreur lors de la redirection vers Stripe');
           setIsProcessing(false);
         }
