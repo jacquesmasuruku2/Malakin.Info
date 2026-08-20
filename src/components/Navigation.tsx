@@ -129,6 +129,7 @@ export default function Navigation() {
       title: t.media,
       icon: Radio,
       items: [
+        { name: locale === 'fr' ? 'Diffusion en direct' : 'Live broadcasts', href: `/${locale}/diffusion-en-direct` },
         { name: t.photos, href: `/${locale}/medias/photos` },
         { name: t.videos, href: `/${locale}/medias/videos` },
         { name: t.podcasts, href: `/${locale}/medias/podcasts` },
