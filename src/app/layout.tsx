@@ -125,7 +125,7 @@ gtag('config', 'G-8V0GJZF6WD');`}
         </noscript>
         <SplashScreen />
         <Providers>
-          <main className="flex-1 pt-20 pb-20 md:pb-0 md:pt-24">
+          <main className="flex-1 pb-20 md:pb-0">
             {children}
           </main>
           <RadioPlayer />

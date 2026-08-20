@@ -389,22 +389,22 @@ export default function Navigation() {
             <Link href={`/${locale}`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
               Accueil
             </Link>
-            <Link href={`/${locale}?category=actualites`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/actualites`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
               {t.news}
             </Link>
-            <Link href={`/${locale}?category=politique`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/politique`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
               {t.politics}
             </Link>
-            <Link href={`/${locale}?category=economie`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/economie`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
               {t.economy}
             </Link>
-            <Link href={`/${locale}?category=science-tech`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/science-tech`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
               {t.scienceTech}
             </Link>
-            <Link href={`/${locale}?category=culture`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/culture`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
               {t.culture}
             </Link>
-            <Link href={`/${locale}?category=sport`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/sport`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
               {t.sport}
             </Link>
             <Link href={`/${locale}/religion`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
