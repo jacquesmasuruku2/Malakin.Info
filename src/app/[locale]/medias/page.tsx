@@ -1,202 +1,70 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight, Play, Image as ImageIcon, Mic, Radio } from 'lucide-react';
+import { ArrowDownToLine, ArrowRight, Calendar, Image as ImageIcon, Mic, Play, Radio } from 'lucide-react';
+import { prisma } from '@/lib/prisma';
 
-export default async function MediasPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
+export const dynamic = 'force-dynamic';
+
+export default async function MediasPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const isFrench = locale === 'fr';
+  let media: any[] = [];
+  let liveEvents: any[] = [];
+  let radioPrograms: any[] = [];
 
-  const categories = [
-    { name: 'Photos', href: `/${locale}/medias/photos`, icon: ImageIcon, count: 156 },
-    { name: 'Vidéos', href: `/${locale}/medias/videos`, icon: Play, count: 89 },
-    { name: 'Podcasts', href: `/${locale}/medias/podcasts`, icon: Mic, count: 45 },
-    { name: 'Live', href: `/${locale}/medias/live`, icon: Radio, count: 12 },
-  ];
+  try {
+    [media, liveEvents, radioPrograms] = await Promise.all([
+      prisma.media.findMany({ orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }], take: 24 }),
+      prisma.liveEvent.findMany({ where: { OR: [{ status: 'LIVE' }, { status: 'SCHEDULED' }] }, orderBy: { startTime: 'asc' }, take: 6 }),
+      prisma.radioProgram.findMany({ where: { OR: [{ isLive: true }, { endTime: { gte: new Date() } }] }, orderBy: [{ isLive: 'desc' }, { startTime: 'asc' }], take: 6 }),
+    ]);
+  } catch (error) {
+    console.error('Media page database error:', error);
+  }
 
-  const featuredMedia = [
-    {
-      id: 1,
-      type: 'Vidéo',
-      title: 'Reportage exclusif : Le quotidien des entrepreneurs africains',
-      description: 'Découvrez les défis et les succès des startups qui transforment le continent.',
-      thumbnail: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&h=450&fit=crop',
-      duration: '12:34',
-      date: '27 Juin 2026',
-    },
-    {
-      id: 2,
-      type: 'Photo',
-      title: 'Galerie : Festival des arts de Kinshasa 2026',
-      description: 'Les plus belles images du festival qui a rassemblé des artistes de tout le continent.',
-      thumbnail: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&h=450&fit=crop',
-      count: 45,
-      date: '26 Juin 2026',
-    },
-    {
-      id: 3,
-      type: 'Podcast',
-      title: 'Interview exclusive : Le futur de l\'éducation en Afrique',
-      description: 'Notre invité discute des innovations éducatives et des défis à relever.',
-      thumbnail: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=800&h=450&fit=crop',
-      duration: '45:20',
-      date: '25 Juin 2026',
-    },
-  ];
-
-  const latestMedia = [
-    {
-      id: 4,
-      type: 'Vidéo',
-      title: 'Conférence de presse sur la santé publique',
-      duration: '8:15',
-      date: '27 Juin 2026',
-    },
-    {
-      id: 5,
-      type: 'Photo',
-      title: 'Match de football : Équipe nationale vs Sénégal',
-      count: 32,
-      date: '26 Juin 2026',
-    },
-    {
-      id: 6,
-      type: 'Podcast',
-      title: 'Analyse économique : Les marchés africains',
-      duration: '32:10',
-      date: '26 Juin 2026',
-    },
-    {
-      id: 7,
-      type: 'Live',
-      title: 'Direct : Session parlementaire spéciale',
-      status: 'En cours',
-      date: '27 Juin 2026',
-    },
-  ];
+  const songs = media.filter((item) => ['SONG', 'MUSIC', 'AUDIO', 'PODCAST'].includes(String(item.type).toUpperCase()));
+  const visualMedia = media.filter((item) => !songs.includes(item));
 
   return (
-    <div className="flex flex-col">
-      <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="font-heading text-4xl font-bold mb-4">Médias</h1>
-          <p className="text-xl text-gray-200">
-            Photos, vidéos, podcasts et directs : explorez notre contenu multimédia
-          </p>
+    <div className="min-h-screen bg-[#f8f9fb]">
+      <section className="bg-[#081c3d] text-white">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+          <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#d4af37]">MalakInfo Media</p>
+          <h1 className="font-heading text-4xl font-black tracking-[-0.03em] sm:text-5xl">{isFrench ? 'Médias' : 'Media'}</h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-blue-100 sm:text-lg">{isFrench ? 'Écoutez nos chansons, retrouvez nos programmes audio et suivez les événements diffusés en direct.' : 'Listen to our songs, explore audio programs and follow live events.'}</p>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-3">Le média en images et en direct</h2>
-          <p className="text-base leading-relaxed text-gray-700">
-            Photos, vidéos, podcasts et diffusions live pour suivre les grands événements, les portraits, les reportages et les sujets qui donnent le rythme de l’actualité.
-          </p>
-          <Link
-            href={`/${locale}/medias/live`}
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#0b3b8b] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#082a63]"
-          >
-            <Radio className="h-4 w-4" />
-            Voir les diffusions en direct
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+      <main className="mx-auto max-w-7xl space-y-12 px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { label: isFrench ? 'Chansons et audio' : 'Songs and audio', href: `/${locale}/medias#chansons`, icon: Mic },
+            { label: isFrench ? 'Photos' : 'Photos', href: `/${locale}/medias/photos`, icon: ImageIcon },
+            { label: isFrench ? 'Vidéos' : 'Videos', href: `/${locale}/medias/videos`, icon: Play },
+            { label: isFrench ? 'Diffusions en direct' : 'Live broadcasts', href: `/${locale}/medias/live`, icon: Radio },
+          ].map(({ label, href, icon: Icon }) => (
+            <Link key={href} href={href} className="flex items-center gap-3 border border-slate-200 bg-white p-4 font-semibold text-[#081c3d] shadow-sm transition hover:-translate-y-1 hover:border-[#d4af37] hover:shadow-md">
+              <Icon className="h-5 w-5 text-[#0b3b8b]" />{label}<ArrowRight className="ml-auto h-4 w-4 text-[#b88f18]" />
+            </Link>
+          ))}
+        </section>
 
-        <div className="grid grid-cols-1 gap-8">
-          <div>
-            <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {featuredMedia.map((media) => (
-                <article
-                  key={media.id}
-                  className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <div className="relative h-48">
-                    <img
-                      src={media.thumbnail}
-                      alt={media.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute top-4 left-4 px-3 py-1 bg-primary text-white text-xs font-medium rounded-full">
-                      {media.type}
-                    </span>
-                    {media.duration && (
-                      <span className="absolute bottom-4 right-4 px-2 py-1 bg-black/70 text-white text-xs rounded">
-                        {media.duration}
-                      </span>
-                    )}
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                      <Calendar className="w-4 h-4" />
-                      {media.date}
-                    </div>
-                    <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
-                      {media.title}
-                    </h3>
-                    <p className="text-muted-foreground line-clamp-2 mb-4">
-                      {media.description}
-                    </p>
-                    <Link
-                      href={`/medias/${media.id}`}
-                      className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-                    >
-                      Voir
-                      <ArrowRight className="ml-2 w-4 h-4" />
-                    </Link>
-                  </div>
-                </article>
-              ))}
-            </div>
-
-            <h2 className="font-heading text-2xl font-bold mb-6">Derniers ajouts</h2>
-            <div className="space-y-4">
-              {latestMedia.map((media) => (
-                <article
-                  key={media.id}
-                  className="flex items-center gap-4 p-4 bg-card rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                    {media.type === 'Vidéo' && <Play className="w-6 h-6 text-primary" />}
-                    {media.type === 'Photo' && <ImageIcon className="w-6 h-6 text-primary" />}
-                    {media.type === 'Podcast' && <Mic className="w-6 h-6 text-primary" />}
-                    {media.type === 'Live' && <Radio className="w-6 h-6 text-red-500" />}
-                  </div>
-                  <div className="flex-1">
-                    <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded mb-1">
-                      {media.type}
-                    </span>
-                    {media.status === 'En cours' && (
-                      <span className="inline-block ml-2 px-2 py-1 bg-red-500 text-white text-xs font-medium rounded animate-pulse">
-                        {media.status}
-                      </span>
-                    )}
-                    <h3 className="font-heading font-semibold text-foreground mb-1">
-                      {media.title}
-                    </h3>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {media.date}
-                      </span>
-                      {media.duration && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {media.duration}
-                        </span>
-                      )}
-                      {media.count && (
-                        <span>{media.count} photos</span>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+        <section id="chansons">
+          <div className="mb-6 flex items-end justify-between border-b border-slate-200 pb-4">
+            <div><p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#b88f18]">Audio</p><h2 className="mt-2 font-heading text-2xl font-black text-[#081c3d] sm:text-3xl">{isFrench ? 'Chansons à écouter' : 'Songs to listen to'}</h2></div>
+            <span className="text-xs text-slate-500">{songs.length} {isFrench ? 'publiés' : 'published'}</span>
           </div>
-        </div>
-      </div>
+          {songs.length === 0 ? <div className="border border-dashed border-slate-300 bg-white px-6 py-16 text-center text-slate-600">{isFrench ? 'Aucune chanson publiée pour le moment.' : 'No songs published yet.'}</div> : <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{songs.map((song) => <article key={song.id} className="overflow-hidden border border-slate-200 bg-white shadow-sm"><div className="relative h-40 bg-[#0b315e]">{song.thumbnailUrl ? <img src={song.thumbnailUrl} alt={song.title} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center"><Mic className="h-12 w-12 text-[#d4af37]" /></div>}</div><div className="space-y-4 p-5"><div><h3 className="font-heading text-xl font-bold text-[#081c3d]">{song.title}</h3>{song.description && <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{song.description}</p>}</div><audio controls preload="none" className="w-full" src={song.url}>Votre navigateur ne prend pas en charge le lecteur audio.</audio><div className="flex items-center justify-between text-xs text-slate-500"><span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />{new Date(song.publishedAt).toLocaleDateString(isFrench ? 'fr-FR' : 'en-US')}</span><a href={song.url} download className="inline-flex items-center gap-1 font-bold text-[#0b3b8b] hover:text-[#b88f18]"><ArrowDownToLine className="h-4 w-4" />{isFrench ? 'Télécharger' : 'Download'}</a></div></div></article>)}</div>}
+        </section>
+
+        <section>
+          <div className="mb-6 flex items-end justify-between border-b border-slate-200 pb-4"><div><p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#b88f18]">Live</p><h2 className="mt-2 font-heading text-2xl font-black text-[#081c3d]">{isFrench ? 'Événements en direct' : 'Live events'}</h2></div><Link href={`/${locale}/medias/live`} className="text-sm font-bold text-[#0b3b8b]">{isFrench ? 'Tout voir' : 'View all'} <ArrowRight className="inline h-4 w-4" /></Link></div>
+          {liveEvents.length === 0 ? <p className="border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">{isFrench ? 'Aucun événement programmé.' : 'No scheduled events.'}</p> : <div className="grid gap-4 md:grid-cols-2">{liveEvents.map((event) => <Link key={event.id} href={`/${locale}/medias/live/${event.id}`} className="border border-slate-200 bg-white p-5 shadow-sm hover:border-[#d4af37]"><span className="text-xs font-bold uppercase tracking-[0.12em] text-red-600">{event.status === 'LIVE' ? '● EN DIRECT' : 'À VENIR'}</span><h3 className="mt-2 font-heading text-xl font-bold text-[#081c3d]">{event.title}</h3><p className="mt-2 text-sm text-slate-500">{new Date(event.startTime).toLocaleString(isFrench ? 'fr-FR' : 'en-US')}</p></Link>)}</div>}
+        </section>
+
+        {radioPrograms.length > 0 && <section><div className="mb-6 border-b border-slate-200 pb-4"><p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#b88f18]">Radio</p><h2 className="mt-2 font-heading text-2xl font-black text-[#081c3d]">{isFrench ? 'Programmes audio' : 'Audio programs'}</h2></div><div className="grid gap-4 md:grid-cols-2">{radioPrograms.map((program) => <div key={program.id} className="border border-slate-200 bg-white p-5"><h3 className="font-heading text-xl font-bold text-[#081c3d]">{program.title}</h3>{program.streamUrl && <audio controls preload="none" className="mt-4 w-full" src={program.streamUrl} />}</div>)}</div></section>}
+
+        {visualMedia.length > 0 && <section><h2 className="mb-5 font-heading text-2xl font-black text-[#081c3d]">{isFrench ? 'Autres médias publiés' : 'Other published media'}</h2><div className="grid gap-4 md:grid-cols-3">{visualMedia.map((item) => <Link key={item.id} href={item.url} className="border border-slate-200 bg-white p-4 hover:border-[#d4af37]"><h3 className="font-semibold text-[#081c3d]">{item.title}</h3><p className="mt-2 text-sm text-slate-600">{item.description}</p></Link>)}</div></section>}
+      </main>
     </div>
   );
 }

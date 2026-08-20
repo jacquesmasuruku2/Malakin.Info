@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Briefcase,
   Radio
+  ,Music
 } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 
@@ -43,6 +44,7 @@ export default function AdminLayout({
     { name: 'Radio', href: '/radio', icon: Radio },
     { name: 'Émissions radio', href: '/radio/programs', icon: Radio },
     { name: 'Lives', href: '/lives', icon: Radio },
+    { name: 'Médias', href: '/media', icon: Music },
     { name: 'Sponsors', href: '/sponsored', icon: Briefcase },
     { name: 'Newsletter', href: '/newsletter', icon: MessageSquare },
     { name: 'Envoyer une newsletter', href: '/newsletter/send', icon: Briefcase },
