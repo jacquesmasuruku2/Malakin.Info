@@ -101,12 +101,12 @@ export default async function Home({
 
   const categoryFilters = [
     { name: locale === 'fr' ? 'Tout' : 'All', slug: 'all', href: `/${locale}` },
-    { name: locale === 'fr' ? 'Actualités' : 'News', slug: 'actualites', href: `/${locale}?category=actualites` },
-    { name: locale === 'fr' ? 'Politique' : 'Politics', slug: 'politique', href: `/${locale}?category=politique` },
-    { name: locale === 'fr' ? 'Économie' : 'Economy', slug: 'economie', href: `/${locale}?category=economie` },
-    { name: locale === 'fr' ? 'Culture' : 'Culture', slug: 'culture', href: `/${locale}?category=culture` },
-    { name: locale === 'fr' ? 'Sport' : 'Sport', slug: 'sport', href: `/${locale}?category=sport` },
-    { name: locale === 'fr' ? 'Science & Tech' : 'Science & Tech', slug: 'science-tech', href: `/${locale}?category=science-tech` },
+    { name: locale === 'fr' ? 'Actualités' : 'News', slug: 'actualites', href: `/${locale}/actualites` },
+    { name: locale === 'fr' ? 'Politique' : 'Politics', slug: 'politique', href: `/${locale}/politique` },
+    { name: locale === 'fr' ? 'Économie' : 'Economy', slug: 'economie', href: `/${locale}/economie` },
+    { name: locale === 'fr' ? 'Culture' : 'Culture', slug: 'culture', href: `/${locale}/culture` },
+    { name: locale === 'fr' ? 'Sport' : 'Sport', slug: 'sport', href: `/${locale}/sport` },
+    { name: locale === 'fr' ? 'Science & Tech' : 'Science & Tech', slug: 'science-tech', href: `/${locale}/science-tech` },
   ];
 
   const filteredFeaturedNews = selectedCategory && selectedCategory !== 'all'
