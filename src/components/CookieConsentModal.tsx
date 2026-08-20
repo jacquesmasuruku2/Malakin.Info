@@ -186,7 +186,8 @@ export default function CookieConsentModal() {
     setPreferences(savedPreferences);
 
     if (!consent) {
-      setIsVisible(true);
+      const timer = window.setTimeout(() => setIsVisible(true), 15_000);
+      return () => window.clearTimeout(timer);
     }
   }, []);
 
@@ -198,13 +199,13 @@ export default function CookieConsentModal() {
 
     const timer = window.setTimeout(() => {
       setIsNewsletterPromptOpen(true);
-    }, 60_000);
+    }, 35_000);
 
     return () => window.clearTimeout(timer);
   }, [isVisible]);
 
   useEffect(() => {
-    if (isVisible || isPreferencesOpen) {
+    if (isPreferencesOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -303,61 +304,58 @@ export default function CookieConsentModal() {
   return (
     <>
       {isVisible && !isPreferencesOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-[28px] border border-white/10 bg-white/95 p-6 shadow-2xl shadow-black/20 transition-all duration-500 ease-out sm:p-8">
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pb-3 sm:inset-x-auto sm:left-3 sm:max-w-[430px] sm:px-0 sm:pb-3">
+          <div className="pointer-events-auto cookie-consent-enter w-full rounded-[3px] border border-slate-700 bg-[#101a21] p-4 text-white shadow-2xl shadow-black/30 sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <img
                   src="/images/logo.png"
                   alt="MalakInfo"
-                  className="h-11 w-auto rounded-lg object-contain"
+                  className="h-8 w-auto rounded object-contain brightness-0 invert"
                   loading="eager"
                 />
                 <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500">MalakInfo</p>
-                  <h2 className="text-xl font-semibold text-slate-950 sm:text-2xl">Bienvenue sur MalakInfo</h2>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-white">Cookie Consent</p>
+                  <h2 className="sr-only">Gestion du consentement sur MalakInfo</h2>
                 </div>
               </div>
               <button
                 type="button"
                 aria-label="Fermer la fenêtre de consentement"
-                className="rounded-full bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
+                className="rounded-full bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20"
                 onClick={() => handleConsent('false')}
               >
                 ×
               </button>
             </div>
 
-            <div className="mt-6 space-y-4 text-sm leading-6 text-slate-700 sm:text-base">
+            <div className="mt-4 space-y-3 text-xs leading-5 text-slate-200 sm:text-sm">
               <p>
-                Nous utilisons des cookies pour améliorer votre expérience, analyser le trafic et personnaliser le contenu. En continuant, vous acceptez notre utilisation des cookies.
-              </p>
-              <p className="text-sm text-slate-500">
-                Vous pouvez vérifier vos choix à tout moment dans la politique de confidentialité.
+                Nous partageons les informations que vous nous communiquez et des données sur votre utilisation du site avec nos partenaires, notamment pour la publicité et l&apos;analyse.
               </p>
             </div>
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-[1fr_auto_auto]">
+            <div className="mt-4 grid gap-2">
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:border-slate-400 hover:bg-slate-50"
-                onClick={() => setIsPreferencesOpen(true)}
-              >
-                En savoir plus →
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-200"
-                onClick={() => handleConsent('false')}
-              >
-                Refuser
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="inline-flex items-center justify-center rounded-[2px] bg-[#6846ff] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#5634ef]"
                 onClick={() => handleConsent('true')}
               >
-                Accepter & Fermer
+                Accepter tous les cookies
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-[2px] bg-[#6846ff] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#5634ef]"
+                onClick={() => handleConsent('false')}
+              >
+                Refuser tout
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-[2px] bg-white px-4 py-3 text-sm font-bold text-[#6846ff] transition hover:bg-slate-100"
+                onClick={() => setIsPreferencesOpen(true)}
+              >
+                Paramètres des cookies
               </button>
             </div>
           </div>

@@ -145,6 +145,15 @@
 }
 
 @layer utilities {
+  @keyframes cookie-consent-rise {
+    from { opacity: 0; transform: translateY(110%); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .cookie-consent-enter {
+    animation: cookie-consent-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
   .readable-content {
     max-width: 75ch;
     line-height: 1.8;
