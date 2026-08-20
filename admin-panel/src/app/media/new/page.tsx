@@ -17,7 +17,13 @@ export default function NewMediaPage() {
     event.preventDefault(); setSaving(true); setError('');
     try {
       const response = await fetch(getApiUrl('/api/media'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
-      const data = await response.json();
+      const responseText = await response.text();
+      let data: { error?: string } = {};
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        throw new Error(`Le serveur a répondu avec une page non valide (${response.status}).`);
+      }
       if (!response.ok) throw new Error(data.error || 'Publication impossible.');
       router.push('/media');
     } catch (submitError) { setError(submitError instanceof Error ? submitError.message : 'Publication impossible.'); } finally { setSaving(false); }

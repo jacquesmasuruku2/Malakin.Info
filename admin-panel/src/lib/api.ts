@@ -7,14 +7,14 @@ export function getApiUrl(path: string): string {
 
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin}${normalizedPath}`;
-  }
-
   const configuredBaseUrl = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.NEXT_PUBLIC_MAIN_SITE_URL;
 
   if (configuredBaseUrl) {
     return `${configuredBaseUrl.replace(/\/$/, '')}${normalizedPath}`;
+  }
+
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}${normalizedPath}`;
   }
 
   return normalizedPath;
