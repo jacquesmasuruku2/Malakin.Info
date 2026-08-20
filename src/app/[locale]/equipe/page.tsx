@@ -1,122 +1,63 @@
 import Link from 'next/link';
-import { Users, ArrowRight } from 'lucide-react';
+import { ArrowRight, Award, Mail, PenLine, Users } from 'lucide-react';
+import { prisma } from '@/lib/prisma';
 
-export default function EquipePage() {
-  const team = [
-    {
-      id: 1,
-      name: 'Bernard Bwema',
-      role: 'Rédacteur en chef',
-      background: 'ex-RFI',
-      bio: 'Plus de 20 ans d\'expérience dans le journalisme international. Ancien correspondant de Radio France Internationale pour l\'Afrique centrale.',
-      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
-      email: 'bernardbwema@malakinfo.com',
-    },
-    {
-      id: 2,
-      name: 'Marie Koffi',
-      role: 'Journaliste politique',
-      background: 'ex-Jeune Afrique',
-      bio: 'Spécialiste des questions politiques et géopolitiques africaines. Anciennement rédactrice en chef du pôle politique de Jeune Afrique.',
-      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face',
-      email: 'marie.koffi@malakinfo.com',
-    },
-    {
-      id: 3,
-      name: 'Ahmed Benali',
-      role: 'Correspondant Maghreb',
-      background: 'Journaliste indépendant',
-      bio: 'Expert de la région du Maghreb avec une couverture approfondie des questions sociopolitiques nord-africaines.',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-      email: 'ahmed.benali@malakinfo.com',
-    },
-    {
-      id: 4,
-      name: 'Grace Okafor',
-      role: 'Rédactrice culture',
-      background: 'Ex-Le Monde Afrique',
-      bio: 'Passionnée par les arts et la culture africaine. Ancienne responsable culturelle du Monde Afrique.',
-      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-      email: 'grace.okafor@malakinfo.com',
-    },
-    {
-      id: 5,
-      name: 'Pierre Mwamba',
-      role: 'Responsable Sport',
-      background: 'Ex-ESPN Afrique',
-      bio: 'Ancien journaliste sportif chez ESPN Afrique, spécialiste du football africain et international.',
-      image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
-      email: 'pierre.mwamba@malakinfo.com',
-    },
-    {
-      id: 6,
-      name: 'Sr. Véronique Nzambi',
-      role: 'Coordinatrice Religieux',
-      background: 'Journaliste spécialisée',
-      bio: 'Journaliste spécialisée dans les questions religieuses et spirituelles en Afrique.',
-      image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face',
-      email: 'veronique.nzambi@malakinfo.com',
-    },
-  ];
+export const dynamic = 'force-dynamic';
 
-  return (
-    <div className="flex flex-col">
-      <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/a-propos" className="text-gray-300 hover:text-white mb-4 inline-block">
-            ← Retour à À Propos
-          </Link>
-          <h1 className="font-heading text-4xl font-bold mb-4">Notre Équipe</h1>
-          <p className="text-xl text-gray-200">
-            Les professionnels qui font de Malakinfo.com une référence
-          </p>
-        </div>
-      </section>
+export default async function TeamPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isFrench = locale === 'fr';
+  let authors: any[] = [];
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {team.map((member) => (
-            <article
-              key={member.id}
-              className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="h-64 overflow-hidden">
-                <img
-                  src={member.image}
-                  alt={member.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="font-heading text-xl font-semibold text-foreground mb-1">
-                  {member.name}
-                </h3>
-                <p className="text-primary font-medium mb-2">{member.role}</p>
-                <p className="text-sm text-muted-foreground mb-3">{member.background}</p>
-                <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
-                  {member.bio}
-                </p>
-                <a
-                  href={`mailto:${member.email}`}
-                  className="text-sm text-primary hover:text-primary/80"
-                >
-                  {member.email}
-                </a>
-              </div>
-            </article>
-          ))}
-        </div>
+  try {
+    authors = await prisma.author.findMany({
+      include: { _count: { select: { articles: true, media: true } } },
+      orderBy: { name: 'asc' },
+    });
+  } catch (error) {
+    console.error('Team page database error:', error);
+  }
 
-        <div className="mt-12 text-center">
-          <Link
-            href="/contact"
-            className="inline-flex items-center px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
-          >
-            Rejoindre notre équipe
-            <ArrowRight className="ml-2 w-4 h-4" />
-          </Link>
+  const copy = {
+    title: isFrench ? 'Équipe & contributeurs' : 'Team & contributors',
+    intro: isFrench ? 'Derrière chaque publication, il y a des regards, des voix et un engagement pour une information qui traverse les frontières.' : 'Behind every publication are people, voices and a commitment to information that crosses borders.',
+    teamTitle: isFrench ? 'L’équipe éditoriale' : 'The editorial team',
+    contributorsTitle: isFrench ? 'Contributeurs honorables' : 'Honorable contributors',
+    contributorsText: isFrench ? 'Nous saluons toutes les personnes qui apportent leur expertise, leur témoignage et leur regard à la vie de MalakInfo.' : 'We honor everyone who brings expertise, testimony and perspective to MalakInfo.',
+    contact: isFrench ? 'Proposer une contribution' : 'Propose a contribution',
+    noAuthors: isFrench ? 'Les profils de l’équipe seront bientôt publiés.' : 'Team profiles will be published soon.',
+  };
+
+  const activeAuthors = authors.filter((author) => (author._count?.articles ?? 0) > 0);
+  const teamAuthors = authors.filter((author) => /rédact|editor/i.test(author.role || ''));
+  const contributorAuthors = activeAuthors.filter((author) => !teamAuthors.some((member) => member.id === author.id));
+
+  const AuthorCard = ({ author, honorable = false }: { author: any; honorable?: boolean }) => (
+    <article className="group overflow-hidden border border-[#dfe4ea] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#d4af37] hover:shadow-[0_18px_36px_rgba(8,28,61,0.1)]">
+      <div className="relative h-56 overflow-hidden bg-[#e9eef4]">
+        {author.imageUrl ? <img src={author.imageUrl} alt={author.imageAlt || author.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center text-5xl font-heading font-black text-[#0b3b8b]/30">{author.name.charAt(0).toUpperCase()}</div>}
+        {honorable && <span className="absolute left-4 top-4 inline-flex items-center gap-1 bg-[#d4af37] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#081c3d]"><Award className="h-3.5 w-3.5" />{isFrench ? 'Contributeur' : 'Contributor'}</span>}
+      </div>
+      <div className="p-6">
+        <h3 className="font-heading text-2xl font-black text-[#081c3d]">{author.name}</h3>
+        <p className="mt-1 text-sm font-bold uppercase tracking-[0.12em] text-[#b88f18]">{author.role || (isFrench ? 'Contributeur éditorial' : 'Editorial contributor')}</p>
+        {author.bio && <p className="mt-4 line-clamp-4 text-sm leading-6 text-slate-600">{author.bio}</p>}
+        <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 text-xs text-slate-500">
+          <span className="inline-flex items-center gap-1"><PenLine className="h-3.5 w-3.5" />{author._count?.articles ?? 0} article(s)</span>
+          {author.email && <a href={`mailto:${author.email}`} aria-label={`Contacter ${author.name}`} className="text-[#0b3b8b] hover:text-[#b88f18]"><Mail className="h-4 w-4" /></a>}
         </div>
       </div>
+    </article>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#f8f9fb]">
+      <section className="bg-[#081c3d] text-white"><div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20"><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.3em] text-[#d4af37]">MalakInfo</p><h1 className="max-w-4xl font-heading text-5xl font-black leading-[0.98] tracking-[-0.04em] sm:text-6xl lg:text-7xl">{copy.title}</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-blue-100">{copy.intro}</p></div></section>
+      <main className="mx-auto max-w-7xl space-y-16 px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+        <section><div className="mb-8 flex items-end gap-4 border-b border-slate-200 pb-4"><Users className="h-7 w-7 text-[#0b3b8b]" /><div><p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#b88f18]">MalakInfo</p><h2 className="mt-1 font-heading text-3xl font-black text-[#081c3d]">{copy.teamTitle}</h2></div></div>{teamAuthors.length > 0 ? <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">{teamAuthors.map((author) => <AuthorCard key={author.id} author={author} />)}</div> : <div className="border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600">{copy.noAuthors}</div>}</section>
+        <section className="border border-[#d9e1ee] bg-white p-6 sm:p-10"><div className="max-w-3xl"><p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#b88f18]">Reconnaissance</p><h2 className="mt-2 font-heading text-3xl font-black text-[#081c3d]">{copy.contributorsTitle}</h2><p className="mt-4 leading-7 text-slate-600">{copy.contributorsText}</p></div>{contributorAuthors.length > 0 ? <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">{contributorAuthors.map((author) => <AuthorCard key={author.id} author={author} honorable />)}</div> : <div className="mt-8 border border-dashed border-slate-300 bg-[#f8f9fb] p-8 text-center text-slate-600">{copy.noAuthors}</div>}</section>
+        <div className="text-center"><Link href={`/${locale}/contact`} className="inline-flex items-center gap-2 bg-[#0b3b8b] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#082a63]">{copy.contact}<ArrowRight className="h-4 w-4" /></Link></div>
+      </main>
     </div>
   );
 }
