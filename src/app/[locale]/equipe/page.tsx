@@ -33,7 +33,7 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
   const contributorAuthors = activeAuthors.filter((author) => !teamAuthors.some((member) => member.id === author.id));
 
   const AuthorCard = ({ author, honorable = false }: { author: any; honorable?: boolean }) => (
-    <article className="group overflow-hidden border border-[#dfe4ea] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#d4af37] hover:shadow-[0_18px_36px_rgba(8,28,61,0.1)]">
+    <Link href={`/${locale}/equipe/${author.slug}`} className="group block overflow-hidden border border-[#dfe4ea] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#d4af37] hover:shadow-[0_18px_36px_rgba(8,28,61,0.1)]">
       <div className="relative h-56 overflow-hidden bg-[#e9eef4]">
         {author.imageUrl ? <img src={author.imageUrl} alt={author.imageAlt || author.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center text-5xl font-heading font-black text-[#0b3b8b]/30">{author.name.charAt(0).toUpperCase()}</div>}
         {honorable && <span className="absolute left-4 top-4 inline-flex items-center gap-1 bg-[#d4af37] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#081c3d]"><Award className="h-3.5 w-3.5" />{isFrench ? 'Contributeur' : 'Contributor'}</span>}
@@ -44,10 +44,10 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
         {author.bio && <p className="mt-4 line-clamp-4 text-sm leading-6 text-slate-600">{author.bio}</p>}
         <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 text-xs text-slate-500">
           <span className="inline-flex items-center gap-1"><PenLine className="h-3.5 w-3.5" />{author._count?.articles ?? 0} article(s)</span>
-          {author.email && <a href={`mailto:${author.email}`} aria-label={`Contacter ${author.name}`} className="text-[#0b3b8b] hover:text-[#b88f18]"><Mail className="h-4 w-4" /></a>}
+          {author.email && <span aria-label={`Contacter ${author.name}`} className="text-[#0b3b8b] hover:text-[#b88f18]"><Mail className="h-4 w-4" /></span>}
         </div>
       </div>
-    </article>
+    </Link>
   );
 
   return (
