@@ -176,7 +176,7 @@ export default async function ActualitesPage({
                       className="group overflow-hidden border border-gray-200 bg-white transition-all duration-200 hover:-translate-y-1 hover:border-[#D4AF37] hover:shadow-[0_16px_32px_rgba(8,28,61,0.08)]"
                     >
                       {item.image && (
-                        <div className="relative h-52 overflow-hidden">
+                        <Link href={`/${locale}/${item.slug}`} className="relative block h-52 overflow-hidden">
                           <img
                             src={item.image}
                             alt={item.title}
@@ -185,7 +185,7 @@ export default async function ActualitesPage({
                           <span className="absolute bottom-3 left-3 inline-flex items-center bg-[#081C3D] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">
                             {item.category}
                           </span>
-                        </div>
+                        </Link>
                       )}
                       <div className="p-5">
                         <div className="mb-3 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
