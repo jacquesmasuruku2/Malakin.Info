@@ -1,12 +1,18 @@
 import Link from 'next/link';
 import { Calendar, Clock, ArrowRight, Play, Image as ImageIcon, Mic, Radio } from 'lucide-react';
 
-export default function MediasPage() {
+export default async function MediasPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+
   const categories = [
-    { name: 'Photos', href: '/medias/photos', icon: ImageIcon, count: 156 },
-    { name: 'Vidéos', href: '/medias/videos', icon: Play, count: 89 },
-    { name: 'Podcasts', href: '/medias/podcasts', icon: Mic, count: 45 },
-    { name: 'Live', href: '/medias/live', icon: Radio, count: 12 },
+    { name: 'Photos', href: `/${locale}/medias/photos`, icon: ImageIcon, count: 156 },
+    { name: 'Vidéos', href: `/${locale}/medias/videos`, icon: Play, count: 89 },
+    { name: 'Podcasts', href: `/${locale}/medias/podcasts`, icon: Mic, count: 45 },
+    { name: 'Live', href: `/${locale}/medias/live`, icon: Radio, count: 12 },
   ];
 
   const featuredMedia = [
@@ -87,6 +93,14 @@ export default function MediasPage() {
           <p className="text-base leading-relaxed text-gray-700">
             Photos, vidéos, podcasts et diffusions live pour suivre les grands événements, les portraits, les reportages et les sujets qui donnent le rythme de l’actualité.
           </p>
+          <Link
+            href={`/${locale}/medias/live`}
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#0b3b8b] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#082a63]"
+          >
+            <Radio className="h-4 w-4" />
+            Voir les diffusions en direct
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 gap-8">
