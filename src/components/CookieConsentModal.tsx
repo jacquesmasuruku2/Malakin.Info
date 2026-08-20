@@ -375,43 +375,43 @@ export default function CookieConsentModal() {
       )}
 
       {isNewsletterPromptOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#07111c]/80 px-4 py-6 backdrop-blur-sm">
-          <div className="relative max-h-[calc(100svh-1rem)] w-full max-w-4xl overflow-y-auto border border-[#d7cdbb] bg-[#f7f3eb] shadow-2xl">
+        <div className="newsletter-backdrop fixed inset-0 z-[60] flex items-center justify-center bg-[#07111c]/80 px-4 py-6 backdrop-blur-sm">
+          <div className="newsletter-card-enter relative max-h-[calc(100svh-1rem)] w-full max-w-4xl overflow-y-auto border border-[#d7cdbb] bg-[#f7f3eb] shadow-2xl">
             <button
               type="button"
               onClick={closeNewsletterPrompt}
               aria-label="Fermer l'inscription à la newsletter"
-              className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#081c3d] bg-white/90 text-[#081c3d] transition hover:bg-[#081c3d] hover:text-white"
+              className="newsletter-close absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#081c3d] bg-white/90 text-[#081c3d] transition hover:bg-[#081c3d] hover:text-white"
             >
               <X className="h-5 w-5" />
             </button>
 
             <div className="grid md:grid-cols-[1fr_0.85fr]">
-              <div className="order-2 p-4 sm:p-10 md:order-1 md:p-12">
-                <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#c56b36]">La lettre MalakInfo</p>
-                <h2 className="mt-2 font-heading text-2xl font-bold leading-[1.05] text-[#081c3d] sm:mt-4 sm:text-5xl">
+              <div className="newsletter-copy order-2 p-4 sm:p-10 md:order-1 md:p-12">
+                <p className="newsletter-stagger text-[11px] font-bold uppercase tracking-[0.28em] text-[#c56b36]">La lettre MalakInfo</p>
+                <h2 className="newsletter-stagger mt-2 font-heading text-2xl font-bold leading-[1.05] text-[#081c3d] sm:mt-4 sm:text-5xl">
                   L&apos;essentiel de l&apos;actualité africaine.
                 </h2>
-                <div className="mt-3 h-px w-14 bg-[#c56b36] sm:mt-5" />
-                <p className="mt-3 max-w-xl text-sm leading-5 text-[#53606b] sm:mt-5 sm:text-lg sm:leading-7">
+                <div className="newsletter-rule mt-3 h-px w-14 bg-[#c56b36] sm:mt-5" />
+                <p className="newsletter-stagger mt-3 max-w-xl text-sm leading-5 text-[#53606b] sm:mt-5 sm:text-lg sm:leading-7">
                   Recevez nos informations les plus importantes, nos analyses et nos dossiers directement dans votre boîte mail.
                 </p>
-                <p className="mt-2 text-xs font-medium text-[#081c3d] sm:mt-4 sm:text-sm">
+                <p className="newsletter-stagger mt-2 text-xs font-medium text-[#081c3d] sm:mt-4 sm:text-sm">
                   Une lecture claire, fiable et indépendante. Sans bruit inutile.
                 </p>
               </div>
 
-              <div className="relative order-1 flex min-h-0 items-end overflow-hidden bg-[#0b315e] p-4 sm:p-10 md:order-2 md:min-h-0">
-                <img src="/images/logo.png" alt="MalakInfo" className="absolute left-1/2 top-1/2 w-[80%] -translate-x-1/2 -translate-y-1/2 opacity-10 grayscale brightness-0 invert" />
+              <div className="newsletter-form-panel relative order-1 flex min-h-0 items-end overflow-hidden bg-[#0b315e] p-4 sm:p-10 md:order-2 md:min-h-0">
+                <img src="/images/logo.png" alt="MalakInfo" className="newsletter-logo absolute left-1/2 top-1/2 w-[80%] -translate-x-1/2 -translate-y-1/2 opacity-10 grayscale brightness-0 invert" />
                 <div className="relative z-10 w-full">
-                  <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-[#d4af37] text-[#081c3d] sm:mb-5 sm:h-11 sm:w-11"><Mail className="h-4 w-4 sm:h-5 sm:w-5" /></div>
-                  <h3 className="text-lg font-bold leading-6 text-white sm:text-xl">Restez au cœur de l&apos;information.</h3>
-                  <p className="mt-1 text-xs leading-4 text-blue-100 sm:mt-2 sm:text-sm sm:leading-6">Inscription gratuite. Vous pouvez vous désabonner à tout moment.</p>
+                  <div className="newsletter-icon newsletter-stagger mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-[#d4af37] text-[#081c3d] sm:mb-5 sm:h-11 sm:w-11"><Mail className="h-4 w-4 sm:h-5 sm:w-5" /></div>
+                  <h3 className="newsletter-stagger text-lg font-bold leading-6 text-white sm:text-xl">Restez au cœur de l&apos;information.</h3>
+                  <p className="newsletter-stagger mt-1 text-xs leading-4 text-blue-100 sm:mt-2 sm:text-sm sm:leading-6">Inscription gratuite. Vous pouvez vous désabonner à tout moment.</p>
 
-                  <form onSubmit={handleNewsletterSubmit} className="mt-4 space-y-2 sm:mt-6 sm:space-y-3">
-                    <input type="text" value={newsletterName} onChange={(event) => setNewsletterName(event.target.value)} placeholder="Votre nom (optionnel)" className="w-full border border-white/20 bg-white px-3 py-2 text-xs text-[#081c3d] outline-none placeholder:text-slate-400 focus:border-[#d4af37] sm:px-4 sm:py-3 sm:text-sm" />
-                    <input type="email" value={newsletterEmail} onChange={(event) => setNewsletterEmail(event.target.value)} placeholder="Votre adresse e-mail" required className="w-full border border-white/20 bg-white px-3 py-2 text-xs text-[#081c3d] outline-none placeholder:text-slate-400 focus:border-[#d4af37] sm:px-4 sm:py-3 sm:text-sm" />
-                    <button type="submit" disabled={isNewsletterSubmitting} className="w-full bg-[#d4af37] px-3 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-[#081c3d] transition hover:bg-[#e4c65c] disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-3 sm:text-sm sm:tracking-[0.12em]">
+                  <form onSubmit={handleNewsletterSubmit} className="newsletter-stagger mt-4 space-y-2 sm:mt-6 sm:space-y-3">
+                    <input type="text" value={newsletterName} onChange={(event) => setNewsletterName(event.target.value)} placeholder="Votre nom (optionnel)" className="newsletter-input w-full border border-white/20 bg-white px-3 py-2 text-xs text-[#081c3d] outline-none placeholder:text-slate-400 focus:border-[#d4af37] sm:px-4 sm:py-3 sm:text-sm" />
+                    <input type="email" value={newsletterEmail} onChange={(event) => setNewsletterEmail(event.target.value)} placeholder="Votre adresse e-mail" required className="newsletter-input w-full border border-white/20 bg-white px-3 py-2 text-xs text-[#081c3d] outline-none placeholder:text-slate-400 focus:border-[#d4af37] sm:px-4 sm:py-3 sm:text-sm" />
+                    <button type="submit" disabled={isNewsletterSubmitting} className="newsletter-submit w-full bg-[#d4af37] px-3 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-[#081c3d] transition hover:bg-[#e4c65c] disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-3 sm:text-sm sm:tracking-[0.12em]">
                       {isNewsletterSubmitting ? 'Inscription...' : 'Recevoir la newsletter'}
                     </button>
                   </form>
