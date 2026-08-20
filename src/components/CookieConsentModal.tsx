@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { Mail, X } from 'lucide-react';
 
 const STORAGE_KEY = 'malakinfo_cookie_consent';
 const PREFERENCES_KEY = 'malakinfo_cookie_preferences';
+const NEWSLETTER_PROMPT_KEY = 'malakinfo_newsletter_prompt_dismissed';
 
 const PREFERENCE_CATEGORIES = [
   { key: 'improveServices', label: 'Développer et améliorer les services', required: false },
@@ -171,6 +173,11 @@ export default function CookieConsentModal() {
   const [isVisible, setIsVisible] = useState(false);
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
   const [preferences, setPreferences] = useState<Record<string, boolean>>(defaultPreferences);
+  const [isNewsletterPromptOpen, setIsNewsletterPromptOpen] = useState(false);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterName, setNewsletterName] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isNewsletterSubmitting, setIsNewsletterSubmitting] = useState(false);
 
   useEffect(() => {
     const consent = window.localStorage.getItem(STORAGE_KEY);
@@ -182,6 +189,19 @@ export default function CookieConsentModal() {
       setIsVisible(true);
     }
   }, []);
+
+  useEffect(() => {
+    const consent = window.localStorage.getItem(STORAGE_KEY);
+    const dismissed = window.localStorage.getItem(NEWSLETTER_PROMPT_KEY);
+
+    if (!consent || dismissed) return;
+
+    const timer = window.setTimeout(() => {
+      setIsNewsletterPromptOpen(true);
+    }, 60_000);
+
+    return () => window.clearTimeout(timer);
+  }, [isVisible]);
 
   useEffect(() => {
     if (isVisible || isPreferencesOpen) {
@@ -201,6 +221,44 @@ export default function CookieConsentModal() {
     setPreferences(nextPreferences);
     setIsVisible(false);
     setIsPreferencesOpen(false);
+  };
+
+  const closeNewsletterPrompt = () => {
+    window.localStorage.setItem(NEWSLETTER_PROMPT_KEY, 'true');
+    setIsNewsletterPromptOpen(false);
+  };
+
+  const handleNewsletterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsNewsletterSubmitting(true);
+    setNewsletterStatus(null);
+
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: newsletterEmail.trim(),
+          name: newsletterName.trim() || null,
+          consent: true,
+          interests: ['actualites', 'economie', 'culture', 'sport', 'tech'],
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) throw new Error(data?.error || 'Une erreur est survenue.');
+
+      window.localStorage.setItem(NEWSLETTER_PROMPT_KEY, 'true');
+      setNewsletterStatus({ type: 'success', text: 'Merci, vous êtes inscrit à la newsletter MalakInfo.' });
+      window.setTimeout(() => setIsNewsletterPromptOpen(false), 1400);
+    } catch (error) {
+      setNewsletterStatus({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Une erreur est survenue. Veuillez réessayer.',
+      });
+    } finally {
+      setIsNewsletterSubmitting(false);
+    }
   };
 
   const handleConsent = (value: 'true' | 'false') => {
@@ -238,7 +296,7 @@ export default function CookieConsentModal() {
     setPreferences((current) => ({ ...current, [key]: value }));
   };
 
-  if (!isVisible && !isPreferencesOpen) {
+  if (!isVisible && !isPreferencesOpen && !isNewsletterPromptOpen) {
     return null;
   }
 
@@ -316,6 +374,55 @@ export default function CookieConsentModal() {
           onRejectAll={handleRejectAll}
           onClose={() => setIsPreferencesOpen(false)}
         />
+      )}
+
+      {isNewsletterPromptOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#07111c]/80 px-4 py-6 backdrop-blur-sm">
+          <div className="relative w-full max-w-4xl overflow-hidden border border-[#d7cdbb] bg-[#f7f3eb] shadow-2xl">
+            <button
+              type="button"
+              onClick={closeNewsletterPrompt}
+              aria-label="Fermer l'inscription à la newsletter"
+              className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#081c3d] bg-white/90 text-[#081c3d] transition hover:bg-[#081c3d] hover:text-white"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="grid md:grid-cols-[1fr_0.85fr]">
+              <div className="p-7 sm:p-10 md:p-12">
+                <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#c56b36]">La lettre MalakInfo</p>
+                <h2 className="mt-4 font-heading text-4xl font-bold leading-[1.02] text-[#081c3d] sm:text-5xl">
+                  L&apos;essentiel de l&apos;actualité africaine.
+                </h2>
+                <div className="mt-5 h-px w-14 bg-[#c56b36]" />
+                <p className="mt-5 max-w-xl text-base leading-7 text-[#53606b] sm:text-lg">
+                  Recevez nos informations les plus importantes, nos analyses et nos dossiers directement dans votre boîte mail.
+                </p>
+                <p className="mt-4 text-sm font-medium text-[#081c3d]">
+                  Une lecture claire, fiable et indépendante. Sans bruit inutile.
+                </p>
+              </div>
+
+              <div className="relative flex min-h-[230px] items-end overflow-hidden bg-[#0b315e] p-7 sm:p-10 md:min-h-0">
+                <img src="/images/logo.png" alt="MalakInfo" className="absolute left-1/2 top-1/2 w-[80%] -translate-x-1/2 -translate-y-1/2 opacity-10 grayscale brightness-0 invert" />
+                <div className="relative z-10 w-full">
+                  <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-full bg-[#d4af37] text-[#081c3d]"><Mail className="h-5 w-5" /></div>
+                  <h3 className="text-xl font-bold text-white">Restez au cœur de l&apos;information.</h3>
+                  <p className="mt-2 text-sm leading-6 text-blue-100">Inscription gratuite. Vous pouvez vous désabonner à tout moment.</p>
+
+                  <form onSubmit={handleNewsletterSubmit} className="mt-6 space-y-3">
+                    <input type="text" value={newsletterName} onChange={(event) => setNewsletterName(event.target.value)} placeholder="Votre nom (optionnel)" className="w-full border border-white/20 bg-white px-4 py-3 text-sm text-[#081c3d] outline-none placeholder:text-slate-400 focus:border-[#d4af37]" />
+                    <input type="email" value={newsletterEmail} onChange={(event) => setNewsletterEmail(event.target.value)} placeholder="Votre adresse e-mail" required className="w-full border border-white/20 bg-white px-4 py-3 text-sm text-[#081c3d] outline-none placeholder:text-slate-400 focus:border-[#d4af37]" />
+                    <button type="submit" disabled={isNewsletterSubmitting} className="w-full bg-[#d4af37] px-4 py-3 text-sm font-bold uppercase tracking-[0.12em] text-[#081c3d] transition hover:bg-[#e4c65c] disabled:cursor-not-allowed disabled:opacity-60">
+                      {isNewsletterSubmitting ? 'Inscription...' : 'Recevoir la newsletter'}
+                    </button>
+                  </form>
+                  {newsletterStatus && <p className={`mt-3 text-sm ${newsletterStatus.type === 'success' ? 'text-emerald-200' : 'text-red-200'}`}>{newsletterStatus.text}</p>}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
