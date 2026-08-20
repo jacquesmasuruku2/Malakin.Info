@@ -1,93 +1,37 @@
 import Link from 'next/link';
-import { Calendar, Play, ArrowRight } from 'lucide-react';
+import { ArrowRight, Calendar, Play } from 'lucide-react';
+import { prisma } from '@/lib/prisma';
 
-export default function VideosPage() {
-  const videos = [
-    {
-      id: 1,
-      title: 'Reportage exclusif : Le quotidien des entrepreneurs africains',
-      description: 'Découvrez les défis et les succès des startups qui transforment le continent.',
-      thumbnail: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&h=400&fit=crop',
-      duration: '12:34',
-      date: '27 Juin 2026',
-    },
-    {
-      id: 2,
-      title: 'Documentaire : L\'histoire de la musique africaine',
-      description: 'Un voyage à travers les époques et les styles musicaux qui ont façonné l\'Afrique.',
-      thumbnail: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=400&fit=crop',
-      duration: '45:20',
-      date: '26 Juin 2026',
-    },
-    {
-      id: 3,
-      title: 'Interview exclusive : Le Président sur l\'avenir du continent',
-      description: 'Entretien avec le président sur les défis et les opportunités de l\'Afrique.',
-      thumbnail: 'https://images.unsplash.com/photo-1541872703-74c5963631df?w=800&h=400&fit=crop',
-      duration: '28:15',
-      date: '25 Juin 2026',
-    },
-  ];
+export const dynamic = 'force-dynamic';
 
+export default async function VideosPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  let videos: any[] = [];
+
+  try {
+    videos = await prisma.media.findMany({
+      where: { type: { in: ['VIDEO', 'video', 'VIDÉO', 'vidéo'] } },
+      orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
+      take: 24,
+    });
+  } catch (error) {
+    console.error('Videos page database error:', error);
+  }
+
+  const isFrench = locale === 'fr';
   return (
-    <div className="flex flex-col">
-      <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/medias" className="text-gray-300 hover:text-white mb-4 inline-block">
-            ← Retour aux Médias
-          </Link>
-          <h1 className="font-heading text-4xl font-bold mb-4">Vidéos</h1>
-          <p className="text-xl text-gray-200">
-            Reportages, documentaires et interviews en vidéo
-          </p>
+    <div className="min-h-screen bg-[#f8f9fb]">
+      <section className="bg-[#081c3d] text-white">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+          <Link href={`/${locale}/medias`} className="mb-6 inline-flex text-xs font-bold uppercase tracking-[0.16em] text-[#d4af37] hover:text-white">← {isFrench ? 'Retour aux médias' : 'Back to media'}</Link>
+          <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#d4af37]">MalakInfo Media</p>
+          <h1 className="font-heading text-4xl font-black sm:text-5xl">{isFrench ? 'Vidéos' : 'Videos'}</h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-blue-100 sm:text-lg">{isFrench ? 'Reportages, documentaires et interviews publiés par notre équipe.' : 'Reports, documentaries and interviews published by our team.'}</p>
         </div>
       </section>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {videos.map((video) => (
-            <article
-              key={video.id}
-              className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="relative h-48">
-                <img
-                  src={video.thumbnail}
-                  alt={video.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors">
-                  <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
-                    <Play className="w-8 h-8 text-white ml-1" />
-                  </div>
-                </div>
-                <div className="absolute bottom-4 right-4 px-2 py-1 bg-black/70 text-white text-xs rounded">
-                  {video.duration}
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                  <Calendar className="w-4 h-4" />
-                  {video.date}
-                </div>
-                <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                  {video.title}
-                </h3>
-                <p className="text-muted-foreground line-clamp-2 mb-4">
-                  {video.description}
-                </p>
-                <Link
-                  href={`/medias/videos/${video.id}`}
-                  className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-                >
-                  Regarder
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
+      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+        {videos.length === 0 ? <div className="border border-dashed border-slate-300 bg-white px-6 py-20 text-center text-slate-600">{isFrench ? 'Aucune vidéo publiée pour le moment.' : 'No videos have been published yet.'}</div> : <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">{videos.map((video) => <article key={video.id} className="overflow-hidden border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-[#d4af37] hover:shadow-lg"><div className="relative h-56 bg-[#081c3d]">{video.thumbnailUrl ? <img src={video.thumbnailUrl} alt={video.title} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center"><Play className="h-14 w-14 text-[#d4af37]" /></div>}<span className="absolute left-3 top-3 bg-[#0b3b8b] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white">{isFrench ? 'Vidéo' : 'Video'}</span></div><div className="p-5"><div className="flex items-center gap-2 text-xs text-slate-500"><Calendar className="h-4 w-4" />{new Date(video.publishedAt).toLocaleDateString(isFrench ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</div><h2 className="mt-3 font-heading text-2xl font-bold leading-tight text-[#081c3d]">{video.title}</h2>{video.description && <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">{video.description}</p>}<video controls preload="metadata" poster={video.thumbnailUrl || undefined} src={video.url} className="mt-5 w-full bg-black">{isFrench ? 'Votre navigateur ne prend pas en charge la vidéo.' : 'Your browser does not support video playback.'}</video><a href={video.url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center text-[11px] font-bold uppercase tracking-[0.14em] text-[#0b3b8b] hover:text-[#b88f18]">{isFrench ? 'Ouvrir la vidéo' : 'Open video'}<ArrowRight className="ml-2 h-4 w-4" /></a></div></article>)}</div>}
+      </main>
     </div>
   );
 }
