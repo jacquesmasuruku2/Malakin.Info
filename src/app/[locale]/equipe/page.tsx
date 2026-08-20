@@ -26,11 +26,20 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
     contributorsText: isFrench ? 'Nous saluons toutes les personnes qui apportent leur expertise, leur témoignage et leur regard à la vie de MalakInfo.' : 'We honor everyone who brings expertise, testimony and perspective to MalakInfo.',
     contact: isFrench ? 'Proposer une contribution' : 'Propose a contribution',
     noAuthors: isFrench ? 'Les profils de l’équipe seront bientôt publiés.' : 'Team profiles will be published soon.',
+    leadershipTitle: isFrench ? 'Direction générale à la rédaction' : 'General editorial management',
+    operationsTitle: isFrench ? 'Développement & gestion de la base de données' : 'Development & database management',
+    editorialTitle: isFrench ? 'Rédacteurs et journalistes' : 'Editors and journalists',
+    rolePending: isFrench ? 'Aucun profil n’est encore associé à cette fonction. Le rôle pourra être renseigné depuis le panel admin.' : 'No profile is assigned to this function yet. The role can be added from the admin panel.',
   };
 
-  const activeAuthors = authors.filter((author) => (author._count?.articles ?? 0) > 0);
-  const teamAuthors = authors.filter((author) => /rédact|editor/i.test(author.role || ''));
-  const contributorAuthors = activeAuthors.filter((author) => !teamAuthors.some((member) => member.id === author.id));
+  const normalizeRole = (role: string | null | undefined) =>
+    (role || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const hasRole = (author: any, pattern: RegExp) => pattern.test(normalizeRole(author.role));
+  const leadershipAuthors = authors.filter((author) => hasRole(author, /directeur general|direction generale|directeur de la redaction/));
+  const operationsAuthors = authors.filter((author) => hasRole(author, /developp|base de donnees|database|technique|developer|developpeur/));
+  const editorialAuthors = authors.filter((author) => hasRole(author, /redact|journaliste|editor/));
+  const assignedAuthors = new Set([...leadershipAuthors, ...operationsAuthors, ...editorialAuthors].map((author) => author.id));
+  const contributorAuthors = authors.filter((author) => (author._count?.articles ?? 0) > 0 && !assignedAuthors.has(author.id));
 
   const AuthorCard = ({ author, honorable = false }: { author: any; honorable?: boolean }) => (
     <Link href={`/${locale}/equipe/${author.slug}`} className="group block overflow-hidden border border-[#dfe4ea] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#d4af37] hover:shadow-[0_18px_36px_rgba(8,28,61,0.1)]">
@@ -50,11 +59,29 @@ export default async function TeamPage({ params }: { params: Promise<{ locale: s
     </Link>
   );
 
+  const RoleSection = ({ title, authors: sectionAuthors, emptyText }: { title: string; authors: any[]; emptyText?: string }) => (
+    <section>
+      <div className="mb-8 flex items-end gap-4 border-b border-slate-200 pb-4">
+        <Users className="h-7 w-7 text-[#0b3b8b]" />
+        <h2 className="font-heading text-3xl font-black text-[#081c3d]">{title}</h2>
+      </div>
+      {sectionAuthors.length > 0 ? (
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {sectionAuthors.map((author) => <AuthorCard key={author.id} author={author} />)}
+        </div>
+      ) : (
+        <div className="border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600">{emptyText || copy.rolePending}</div>
+      )}
+    </section>
+  );
+
   return (
     <div className="min-h-screen bg-[#f8f9fb]">
       <section className="bg-[#081c3d] text-white"><div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20"><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.3em] text-[#d4af37]">MalakInfo</p><h1 className="max-w-4xl font-heading text-5xl font-black leading-[0.98] tracking-[-0.04em] sm:text-6xl lg:text-7xl">{copy.title}</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-blue-100">{copy.intro}</p></div></section>
       <main className="mx-auto max-w-7xl space-y-16 px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-        <section><div className="mb-8 flex items-end gap-4 border-b border-slate-200 pb-4"><Users className="h-7 w-7 text-[#0b3b8b]" /><div><p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#b88f18]">MalakInfo</p><h2 className="mt-1 font-heading text-3xl font-black text-[#081c3d]">{copy.teamTitle}</h2></div></div>{teamAuthors.length > 0 ? <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">{teamAuthors.map((author) => <AuthorCard key={author.id} author={author} />)}</div> : <div className="border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600">{copy.noAuthors}</div>}</section>
+        <RoleSection title={copy.leadershipTitle} authors={leadershipAuthors} />
+        <RoleSection title={copy.operationsTitle} authors={operationsAuthors} />
+        <RoleSection title={copy.editorialTitle} authors={editorialAuthors} />
         <section className="border border-[#d9e1ee] bg-white p-6 sm:p-10"><div className="max-w-3xl"><p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#b88f18]">Reconnaissance</p><h2 className="mt-2 font-heading text-3xl font-black text-[#081c3d]">{copy.contributorsTitle}</h2><p className="mt-4 leading-7 text-slate-600">{copy.contributorsText}</p></div>{contributorAuthors.length > 0 ? <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">{contributorAuthors.map((author) => <AuthorCard key={author.id} author={author} honorable />)}</div> : <div className="mt-8 border border-dashed border-slate-300 bg-[#f8f9fb] p-8 text-center text-slate-600">{copy.noAuthors}</div>}</section>
         <div className="text-center"><Link href={`/${locale}/contact`} className="inline-flex items-center gap-2 bg-[#0b3b8b] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#082a63]">{copy.contact}<ArrowRight className="h-4 w-4" /></Link></div>
       </main>
