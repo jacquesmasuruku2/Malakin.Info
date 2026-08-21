@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { ArrowDownToLine, ArrowRight, Calendar, Image as ImageIcon, Mic, Play, Radio } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
-import RadioPlayer from '@/components/RadioPlayer';
 import RadioPageButton from '@/components/RadioPageButton';
 
 export const dynamic = 'force-dynamic';
@@ -72,7 +71,6 @@ export default async function MediasPage({ params }: { params: Promise<{ locale:
         {visualMedia.length > 0 && <section><h2 className="mb-5 font-heading text-2xl font-black text-[#081c3d]">{isFrench ? 'Autres médias publiés' : 'Other published media'}</h2><div className="grid gap-4 md:grid-cols-3">{visualMedia.map((item) => <Link key={item.id} href={item.url} className="border border-slate-200 bg-white p-4 hover:border-[#d4af37]"><h3 className="font-semibold text-[#081c3d]">{item.title}</h3><p className="mt-2 text-sm text-slate-600">{item.description}</p></Link>)}</div></section>}
       </main>
       </div>
-      <RadioPlayer />
     </>
   );
 }

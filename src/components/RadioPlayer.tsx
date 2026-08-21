@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Volume2, VolumeX, Play, Pause, Radio, Loader2, WifiOff } from 'lucide-react';
 import Hls from 'hls.js';
 
@@ -28,6 +29,8 @@ const DEFAULT_STATION: RadioStation = {
 };
 
 export default function RadioPlayer() {
+  const pathname = usePathname();
+  const isMediaPage = pathname?.includes('/medias') ?? false;
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [station, setStation] = useState<RadioStation>(DEFAULT_STATION);
@@ -269,7 +272,7 @@ export default function RadioPlayer() {
       />
 
       <div
-        className={`fixed z-[60] border border-white/10 bg-slate-950/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out ${
+        className={`${isMobile || isMediaPage ? 'fixed' : 'hidden'} z-[60] border border-white/10 bg-slate-950/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out ${
           isMobile ? 'inset-x-0 bottom-0 rounded-t-2xl border-b-0' : 'right-[max(1rem,calc((100vw-80rem)/2+1rem))] top-[5.5rem] w-[min(300px,calc(100vw-2rem))] rounded-full'
         } ${!isMobile && isHidden ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'}`}
       >

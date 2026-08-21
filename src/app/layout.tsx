@@ -3,6 +3,7 @@ import Script from "next/script";
 import { cn } from "@/lib/utils";
 import Providers from "@/components/Providers";
 import ServicesModal from "@/components/ServicesModal";
+import RadioPlayer from "@/components/RadioPlayer";
 import SplashScreen from "@/components/SplashScreen";
 import "./globals.css";
 
@@ -128,6 +129,7 @@ gtag('config', 'G-8V0GJZF6WD');`}
             {children}
           </main>
           <ServicesModal />
+          <RadioPlayer />
         </Providers>
       </body>
     </html>
