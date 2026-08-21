@@ -6,7 +6,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grip, LogOut, Settings, Heart, MessageSquare, Bookmark, Menu } from 'lucide-react';
 import SearchBar from './SearchBar';
-import LanguageSwitcher from './LanguageSwitcher';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 
@@ -290,7 +289,7 @@ export default function Navigation() {
               </Link>
             </div>
 
-            <div className="hidden flex-1 items-center justify-end gap-4 md:flex">
+            <div className="relative z-[70] hidden flex-1 items-center justify-end gap-4 md:flex">
               {activeUser ? (
                 <div className="relative">
                   <button
@@ -360,11 +359,9 @@ export default function Navigation() {
                 {t.subscribe}
               </Link>
 
-              <LanguageSwitcher />
             </div>
 
             <div className="md:hidden flex items-center space-x-2">
-              <LanguageSwitcher />
               {activeUser ? (
                 <button className="p-2 text-[#111827] transition-colors hover:text-[#0b3b8b]" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>
                   {activeUser.avatarUrl ? (

@@ -171,6 +171,7 @@ export default function CookieConsentModal() {
   const pathname = usePathname();
   const locale = pathname?.split('/')[1] || 'fr';
   const [isVisible, setIsVisible] = useState(false);
+  const [hasConsent, setHasConsent] = useState(false);
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
   const [preferences, setPreferences] = useState<Record<string, boolean>>(defaultPreferences);
   const [isNewsletterPromptOpen, setIsNewsletterPromptOpen] = useState(false);
@@ -189,20 +190,21 @@ export default function CookieConsentModal() {
       const timer = window.setTimeout(() => setIsVisible(true), 15_000);
       return () => window.clearTimeout(timer);
     }
+
+    setHasConsent(true);
   }, []);
 
   useEffect(() => {
-    const consent = window.localStorage.getItem(STORAGE_KEY);
     const dismissed = window.localStorage.getItem(NEWSLETTER_PROMPT_KEY);
 
-    if (!consent || dismissed) return;
+    if (!hasConsent || dismissed) return;
 
     const timer = window.setTimeout(() => {
       setIsNewsletterPromptOpen(true);
-    }, 35_000);
+    }, 15_000);
 
     return () => window.clearTimeout(timer);
-  }, [isVisible]);
+  }, [hasConsent]);
 
   useEffect(() => {
     if (isPreferencesOpen) {
@@ -219,6 +221,7 @@ export default function CookieConsentModal() {
   const savePreferences = (nextPreferences: Record<string, boolean>) => {
     window.localStorage.setItem(STORAGE_KEY, 'configured');
     window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(nextPreferences));
+    setHasConsent(true);
     setPreferences(nextPreferences);
     setIsVisible(false);
     setIsPreferencesOpen(false);

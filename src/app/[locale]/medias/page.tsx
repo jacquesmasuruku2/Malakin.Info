@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { ArrowDownToLine, ArrowRight, Calendar, Image as ImageIcon, Mic, Play, Radio } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
+import RadioPlayer from '@/components/RadioPlayer';
+import RadioPageButton from '@/components/RadioPageButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,12 +27,16 @@ export default async function MediasPage({ params }: { params: Promise<{ locale:
   const visualMedia = media.filter((item) => !songs.includes(item));
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb]">
+    <>
+      <div className="min-h-screen bg-[#f8f9fb]">
       <section className="bg-[#081c3d] text-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#d4af37]">MalakInfo Media</p>
           <h1 className="font-heading text-4xl font-black tracking-[-0.03em] sm:text-5xl">{isFrench ? 'Médias' : 'Media'}</h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-blue-100 sm:text-lg">{isFrench ? 'Écoutez nos chansons, retrouvez nos programmes audio et suivez les événements diffusés en direct.' : 'Listen to our songs, explore audio programs and follow live events.'}</p>
+          <div className="mt-6">
+            <RadioPageButton />
+          </div>
         </div>
       </section>
 
@@ -65,6 +71,8 @@ export default async function MediasPage({ params }: { params: Promise<{ locale:
 
         {visualMedia.length > 0 && <section><h2 className="mb-5 font-heading text-2xl font-black text-[#081c3d]">{isFrench ? 'Autres médias publiés' : 'Other published media'}</h2><div className="grid gap-4 md:grid-cols-3">{visualMedia.map((item) => <Link key={item.id} href={item.url} className="border border-slate-200 bg-white p-4 hover:border-[#d4af37]"><h3 className="font-semibold text-[#081c3d]">{item.title}</h3><p className="mt-2 text-sm text-slate-600">{item.description}</p></Link>)}</div></section>}
       </main>
-    </div>
+      </div>
+      <RadioPlayer />
+    </>
   );
 }

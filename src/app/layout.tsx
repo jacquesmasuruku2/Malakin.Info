@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { cn } from "@/lib/utils";
 import Providers from "@/components/Providers";
-import RadioPlayer from "@/components/RadioPlayer";
 import ServicesModal from "@/components/ServicesModal";
 import SplashScreen from "@/components/SplashScreen";
 import "./globals.css";
@@ -12,7 +11,7 @@ const GOOGLE_SITE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATIO
 
 export const metadata: Metadata = {
   title: {
-    default: "Malakinfo.com - L'info qui traverse les frontières",
+    default: "Malakinfo.com | L'info qui traverse les frontières",
     template: "%s | Malakinfo.com"
   },
   description: "Informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel. Actualités, culture, économie, politique et plus encore.",
@@ -42,7 +41,7 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'fr_FR',
     url: 'https://malakinfo.com',
-    title: 'Malakinfo.com - L\'info qui traverse les frontières',
+    title: 'Malakinfo.com | L\'info qui traverse les frontières',
     description: 'Informer, éduquer et connecter l\'Afrique à travers un journalisme indépendant, fiable et multiculturel.',
     siteName: 'Malakinfo',
     images: [
@@ -56,7 +55,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Malakinfo.com - L\'info qui traverse les frontières',
+    title: 'Malakinfo.com | L\'info qui traverse les frontières',
     description: 'Informer, éduquer et connecter l\'Afrique à travers un journalisme indépendant, fiable et multiculturel.',
     images: ['/images/logo.png'],
     creator: '@malakinfo',
@@ -128,7 +127,6 @@ gtag('config', 'G-8V0GJZF6WD');`}
           <main className="flex-1 pb-20 md:pb-0">
             {children}
           </main>
-          <RadioPlayer />
           <ServicesModal />
         </Providers>
       </body>

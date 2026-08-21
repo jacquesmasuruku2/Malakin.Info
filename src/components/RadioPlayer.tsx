@@ -14,6 +14,9 @@ type RadioStation = {
   isActive: boolean;
 };
 
+export const RADIO_TOGGLE_EVENT = 'malakinfo:radio-toggle';
+export const RADIO_STATE_EVENT = 'malakinfo:radio-state';
+
 const DEFAULT_STATION: RadioStation = {
   id: 'default-radio',
   name: 'BBC World Service',
@@ -231,6 +234,19 @@ export default function RadioPlayer() {
     }
   };
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent(RADIO_STATE_EVENT, { detail: { isPlaying } }));
+  }, [isPlaying]);
+
+  useEffect(() => {
+    const handleRadioToggle = () => {
+      void togglePlayback();
+    };
+
+    window.addEventListener(RADIO_TOGGLE_EVENT, handleRadioToggle);
+    return () => window.removeEventListener(RADIO_TOGGLE_EVENT, handleRadioToggle);
+  }, [isPlaying]);
+
   const toggleMute = () => {
     setIsMuted((prev) => !prev);
   };
@@ -253,16 +269,16 @@ export default function RadioPlayer() {
       />
 
       <div
-        className={`fixed inset-x-0 z-50 border-b border-white/10 bg-slate-950/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out ${
-          isMobile ? 'bottom-0 md:top-0 md:bottom-auto' : 'top-0'
+        className={`fixed z-[60] border border-white/10 bg-slate-950/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out ${
+          isMobile ? 'inset-x-0 bottom-0 rounded-t-2xl border-b-0' : 'right-[max(1rem,calc((100vw-80rem)/2+1rem))] top-[5.5rem] w-[min(300px,calc(100vw-2rem))] rounded-full'
         } ${
           isHidden ? (isMobile ? 'translate-y-full opacity-0' : '-translate-y-full opacity-0') : 'translate-y-0 opacity-100'
         } ${isHidden ? 'pointer-events-none' : 'pointer-events-auto'}`}
       >
-        <div className={`mx-auto flex max-w-7xl items-center gap-3 px-3 py-2 sm:px-5 ${station.showLabel === false ? 'justify-end' : ''}`}>
+        <div className={`mx-auto flex items-center gap-2 px-2 py-1.5 sm:gap-3 sm:px-5 sm:py-2 ${isMobile ? 'max-w-7xl' : 'w-full'} ${station.showLabel === false ? 'justify-end' : ''}`}>
           {station.showLabel !== false && (
             <div className="flex min-w-0 flex-1 items-center gap-3">
-              <div className="relative h-12 w-12 overflow-hidden rounded-full border border-white/10 bg-slate-800">
+              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/10 bg-slate-800 sm:h-12 sm:w-12">
                 {station.logoUrl ? (
                   <img
                     src={station.logoUrl}
@@ -290,7 +306,7 @@ export default function RadioPlayer() {
               type="button"
               onClick={togglePlayback}
               disabled={!station.streamUrl || !isMounted}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-slate-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-slate-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:w-10"
               aria-label={isPlaying ? 'Pause' : 'Play'}
             >
               {isBuffering ? (
@@ -305,7 +321,7 @@ export default function RadioPlayer() {
             <button
               type="button"
               onClick={toggleMute}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-slate-800 text-slate-200 transition hover:bg-slate-700"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-slate-800 text-slate-200 transition hover:bg-slate-700 sm:h-9 sm:w-9"
               aria-label={isMuted ? 'Réactiver le son' : 'Couper le son'}
             >
               {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
