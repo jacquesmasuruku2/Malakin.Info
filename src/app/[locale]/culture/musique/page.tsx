@@ -50,17 +50,19 @@ export default function MusiquePage() {
               key={article.id}
               className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
             >
-              <div className="relative h-48">
-                <img
-                  src={article.image}
-                  alt={article.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-4 left-4 px-3 py-1 bg-primary/90 text-white text-xs font-medium rounded-full flex items-center gap-2">
-                  <Music className="w-4 h-4" />
-                  Musique
+              <Link href={`/culture/musique/${article.id}`} className="block">
+                <div className="relative h-48">
+                  <img
+                    src={article.image}
+                    alt={article.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-4 left-4 px-3 py-1 bg-primary/90 text-white text-xs font-medium rounded-full flex items-center gap-2">
+                    <Music className="w-4 h-4" />
+                    Musique
+                  </div>
                 </div>
-              </div>
+              </Link>
               <div className="p-6">
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                   <span className="flex items-center gap-1">
