@@ -46,7 +46,7 @@ export default async function PolitiquePage({ params }: { params: Promise<{ loca
                 className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
               >
                 {item.mainImageUrl && (
-                  <Link href={`/${locale}/politique/${item.slug}`} className="block">
+                  <Link href={`/${locale}/${item.slug}`} className="block">
                     <div className="relative h-48">
                       <img
                         src={item.mainImageUrl}
@@ -80,7 +80,7 @@ export default async function PolitiquePage({ params }: { params: Promise<{ loca
                     {item.excerpt}
                   </p>
                   <Link
-                    href={`/${locale}/politique/${item.slug}`}
+                    href={`/${locale}/${item.slug}`}
                     className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                   >
                     {locale === 'fr' ? 'Lire la suite' : 'Read more'}

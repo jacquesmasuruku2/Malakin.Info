@@ -44,7 +44,7 @@ export default async function PolitiquePage() {
                 className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
               >
                 {item.mainImageUrl && (
-                  <Link href={`/politique/${item.slug}`} className="block">
+                  <Link href={`/${item.slug}`} className="block">
                     <div className="relative h-48">
                       <img
                         src={item.mainImageUrl}
@@ -78,7 +78,7 @@ export default async function PolitiquePage() {
                     {item.excerpt}
                   </p>
                   <Link
-                    href={`/politique/${item.slug}`}
+                    href={`/${item.slug}`}
                     className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                   >
                     Lire la suite
