@@ -164,7 +164,7 @@ export default function Footer() {
         {showScrollTop && (
           <button
             onClick={scrollToTop}
-            className="fixed bottom-20 right-4 z-[60] bg-red-600 hover:bg-red-700 text-white p-3 rounded-full shadow-2xl hover:shadow-red-500/50 transition-all duration-300 transform hover:scale-110 group sm:bottom-8 sm:right-8"
+            className="fixed bottom-28 right-4 z-[60] bg-red-600 hover:bg-red-700 text-white p-3 rounded-full shadow-2xl hover:shadow-red-500/50 transition-all duration-300 transform hover:scale-110 group sm:bottom-8 sm:right-8"
           >
             <ArrowUp className="w-6 h-6 group-hover:animate-bounce" />
           </button>
