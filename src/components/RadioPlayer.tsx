@@ -271,9 +271,7 @@ export default function RadioPlayer() {
       <div
         className={`fixed z-[60] border border-white/10 bg-slate-950/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out ${
           isMobile ? 'inset-x-0 bottom-0 rounded-t-2xl border-b-0' : 'right-[max(1rem,calc((100vw-80rem)/2+1rem))] top-[5.5rem] w-[min(300px,calc(100vw-2rem))] rounded-full'
-        } ${
-          isHidden ? (isMobile ? 'translate-y-full opacity-0' : '-translate-y-full opacity-0') : 'translate-y-0 opacity-100'
-        } ${isHidden ? 'pointer-events-none' : 'pointer-events-auto'}`}
+        } ${!isMobile && isHidden ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'}`}
       >
         <div className={`mx-auto flex items-center gap-2 px-2 py-1.5 sm:gap-3 sm:px-5 sm:py-2 ${isMobile ? 'max-w-7xl' : 'w-full'} ${station.showLabel === false ? 'justify-end' : ''}`}>
           {station.showLabel !== false && (
