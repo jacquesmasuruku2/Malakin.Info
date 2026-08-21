@@ -361,18 +361,28 @@ export default function Navigation() {
 
             </div>
 
-            <div className="md:hidden flex items-center space-x-2">
+            <div className="relative z-[70] flex items-center space-x-2 md:hidden">
               {activeUser ? (
-                <button className="p-2 text-[#111827] transition-colors hover:text-[#0b3b8b]" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>
+                <Link
+                  href={`/${locale}/compte/profil`}
+                  aria-label="Ouvrir mon profil"
+                  className="inline-flex min-h-10 items-center gap-2 px-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#111827] transition-colors hover:text-[#0b3b8b]"
+                >
                   {activeUser.avatarUrl ? (
                     <img src={activeUser.avatarUrl} alt={activeUser.name} className="h-7 w-7 rounded-full object-cover" />
                   ) : (
                     <User className="h-5 w-5" />
                   )}
-                </button>
+                  <span>Profil</span>
+                </Link>
               ) : (
-                <Link href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(pathname)}`} className="p-2 text-[#111827] transition-colors hover:text-[#0b3b8b]">
+                <Link
+                  href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(pathname)}`}
+                  aria-label={t.login}
+                  className="inline-flex min-h-10 items-center gap-2 px-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#111827] transition-colors hover:text-[#0b3b8b]"
+                >
                   <User className="h-5 w-5" />
+                  <span>{t.login}</span>
                 </Link>
               )}
             </div>
