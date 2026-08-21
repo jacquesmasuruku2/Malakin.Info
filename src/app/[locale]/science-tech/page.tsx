@@ -90,16 +90,18 @@ export default async function ScienceTechPage({
                         className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                       >
                         {item.image && (
-                          <div className="relative h-48">
-                            <img
-                              src={item.image}
-                              alt={item.title}
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute top-4 left-4 px-3 py-1 bg-primary/90 text-white text-xs font-medium rounded">
-                              {item.category}
+                          <Link href={`/${locale}/${item.slug}`} className="block">
+                            <div className="relative h-48">
+                              <img
+                                src={item.image}
+                                alt={item.title}
+                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                              />
+                              <div className="absolute top-4 left-4 px-3 py-1 bg-primary/90 text-white text-xs font-medium rounded">
+                                {item.category}
+                              </div>
                             </div>
-                          </div>
+                          </Link>
                         )}
                         <div className="p-6">
                           <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
