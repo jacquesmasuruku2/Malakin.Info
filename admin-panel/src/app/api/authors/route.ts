@@ -17,16 +17,13 @@ export async function OPTIONS() {
 
 export async function GET() {
   try {
+    console.log('Fetching authors from database...');
     const authors = await prisma.author.findMany({
-      include: {
-        _count: {
-          select: { articles: true },
-        },
-      },
       orderBy: {
         name: 'asc',
       },
     });
+    console.log('Authors fetched:', authors.length);
     return cors(NextResponse.json(authors));
   } catch (error) {
     console.error('Error fetching authors:', error);
