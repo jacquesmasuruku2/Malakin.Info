@@ -43,9 +43,12 @@ export async function POST(request: NextRequest) {
         defaultLocale: body.defaultLocale || 'fr',
         publishedAt: body.publishedAt ? new Date(body.publishedAt) : new Date(),
         featured: body.featured || false,
+        isPremium: body.isPremium || false,
+        premiumPrice: body.premiumPrice ? parseFloat(body.premiumPrice) : null,
         readTime: body.readTime,
         mainImageUrl: body.mainImageUrl,
         externalLink: body.externalLink || null,
+        additionalImages: body.additionalImages || [],
       },
       include: {
         category: true,

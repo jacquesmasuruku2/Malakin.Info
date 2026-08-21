@@ -246,6 +246,22 @@ export default async function ArticlePage({
                 </div>
               )}
 
+              {article.additionalImages && Array.isArray(article.additionalImages) && article.additionalImages.length > 0 && (
+                <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {article.additionalImages.map((imageUrl: string, index: number) => (
+                    imageUrl && (
+                      <div key={index} className="overflow-hidden bg-white">
+                        <img
+                          src={imageUrl}
+                          alt={`${displayTitle} - Image ${index + 1}`}
+                          className="block h-auto w-full object-cover"
+                        />
+                      </div>
+                    )
+                  ))}
+                </div>
+              )}
+
               <div className="xl:hidden">
                 <ShareButtons
                   title={displayTitle}

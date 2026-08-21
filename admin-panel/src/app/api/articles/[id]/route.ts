@@ -42,9 +42,12 @@ export async function PUT(
         defaultLocale: body.defaultLocale || 'fr',
         publishedAt: body.publishedAt ? new Date(body.publishedAt) : new Date(),
         featured: body.featured,
+        isPremium: body.isPremium,
+        premiumPrice: body.premiumPrice ? parseFloat(body.premiumPrice) : null,
         readTime: body.readTime ? String(body.readTime) : null,
         mainImageUrl: body.mainImageUrl || null,
         externalLink: body.externalLink || null,
+        additionalImages: body.additionalImages || [],
       },
       include: {
         category: true,

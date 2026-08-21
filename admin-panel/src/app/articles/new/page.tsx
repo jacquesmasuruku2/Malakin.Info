@@ -31,6 +31,7 @@ export default function NewArticlePage() {
     readTime: '',
     mainImageUrl: '',
     externalLink: '',
+    additionalImages: [] as string[],
   });
 
   // Load draft from localStorage on mount
@@ -155,6 +156,7 @@ export default function NewArticlePage() {
       readTime: '',
       mainImageUrl: '',
       externalLink: '',
+      additionalImages: [] as string[],
     });
   };
 
@@ -393,6 +395,51 @@ export default function NewArticlePage() {
                   <p className="text-sm text-gray-500 mt-2">
                     Collez l'URL de votre image hébergée sur Cloudinary, Imgur, ImgBB ou tout autre service d'hébergement d'images.
                   </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Images supplémentaires (jusqu'à 4)
+                  </label>
+                  <p className="text-sm text-gray-500 mb-3">
+                    Ajoutez jusqu'à 4 images supplémentaires pour illustrer votre article (captures d'écran, etc.).
+                  </p>
+                  <div className="space-y-2">
+                    {formData.additionalImages.map((url, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="url"
+                          value={url}
+                          onChange={(e) => {
+                            const newImages = [...formData.additionalImages];
+                            newImages[index] = e.target.value;
+                            setFormData({ ...formData, additionalImages: newImages });
+                          }}
+                          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          placeholder={`URL de l'image ${index + 1}`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newImages = formData.additionalImages.filter((_, i) => i !== index);
+                            setFormData({ ...formData, additionalImages: newImages });
+                          }}
+                          className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    ))}
+                    {formData.additionalImages.length < 4 && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, additionalImages: [...formData.additionalImages, ''] })}
+                        className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                      >
+                        + Ajouter une image
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div>
