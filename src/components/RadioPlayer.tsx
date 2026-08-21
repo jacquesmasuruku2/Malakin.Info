@@ -28,6 +28,28 @@ const DEFAULT_STATION: RadioStation = {
   isActive: true,
 };
 
+const RADIO_STORAGE_KEY = 'malakinfo-radio-state';
+
+const saveRadioState = (state: { isPlaying: boolean; volume: number; isMuted: boolean; station: RadioStation }) => {
+  try {
+    localStorage.setItem(RADIO_STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.error('Failed to save radio state:', error);
+  }
+};
+
+const loadRadioState = () => {
+  try {
+    const saved = localStorage.getItem(RADIO_STORAGE_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (error) {
+    console.error('Failed to load radio state:', error);
+  }
+  return null;
+};
+
 export default function RadioPlayer() {
   const pathname = usePathname();
   const isMediaPage = pathname?.includes('/medias') ?? false;
@@ -43,6 +65,34 @@ export default function RadioPlayer() {
   const [isHidden, setIsHidden] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const lastScrollYRef = useRef(0);
+
+  // Load saved state on mount
+  useEffect(() => {
+    const savedState = loadRadioState();
+    if (savedState) {
+      setStation(savedState.station || DEFAULT_STATION);
+      setVolume(savedState.volume || 0.7);
+      setIsMuted(savedState.isMuted || false);
+      
+      // Auto-resume if it was playing before
+      if (savedState.isPlaying && audioRef.current) {
+        // Small delay to ensure audio element is ready
+        setTimeout(() => {
+          if (audioRef.current) {
+            audioRef.current.play().catch(() => {
+              // Auto-play might be blocked, user needs to interact first
+              console.log('Auto-play blocked, waiting for user interaction');
+            });
+          }
+        }, 500);
+      }
+    }
+  }, []);
+
+  // Save state whenever it changes
+  useEffect(() => {
+    saveRadioState({ isPlaying, volume, isMuted, station });
+  }, [isPlaying, volume, isMuted, station]);
 
   useEffect(() => {
     const updateViewport = () => setIsMobile(window.innerWidth < 768);
@@ -217,6 +267,59 @@ export default function RadioPlayer() {
       audio.removeEventListener('error', handleError);
     };
   }, []);
+
+  // Media Session API for system controls (notification center, lock screen)
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !audioRef.current) return;
+
+    const audio = audioRef.current;
+
+    // Set metadata
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: station.name,
+      artist: station.description || 'Radio en direct',
+      album: 'Malakin Info',
+      artwork: station.logoUrl ? [
+        { src: station.logoUrl, sizes: '96x96', type: 'image/png' },
+        { src: station.logoUrl, sizes: '128x128', type: 'image/png' },
+        { src: station.logoUrl, sizes: '192x192', type: 'image/png' },
+        { src: station.logoUrl, sizes: '256x256', type: 'image/png' },
+        { src: station.logoUrl, sizes: '384x384', type: 'image/png' },
+        { src: station.logoUrl, sizes: '512x512', type: 'image/png' },
+      ] : [],
+    });
+
+    // Set action handlers
+    const handlePlay = async () => {
+      await audio.play();
+    };
+
+    const handlePause = () => {
+      audio.pause();
+    };
+
+    const handleStop = () => {
+      audio.pause();
+      setIsPlaying(false);
+    };
+
+    navigator.mediaSession.setActionHandler('play', handlePlay);
+    navigator.mediaSession.setActionHandler('pause', handlePause);
+    navigator.mediaSession.setActionHandler('stop', handleStop);
+
+    // Update playback state
+    if (isPlaying) {
+      navigator.mediaSession.playbackState = 'playing';
+    } else {
+      navigator.mediaSession.playbackState = 'paused';
+    }
+
+    return () => {
+      navigator.mediaSession.setActionHandler('play', null);
+      navigator.mediaSession.setActionHandler('pause', null);
+      navigator.mediaSession.setActionHandler('stop', null);
+    };
+  }, [station, isPlaying]);
 
   const togglePlayback = async () => {
     if (!audioRef.current) return;
