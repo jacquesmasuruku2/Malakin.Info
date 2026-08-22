@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Calendar, ArrowRight, Briefcase, GraduationCap, Heart, Building, FileText } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
+import { withRetry } from '@/lib/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +13,7 @@ export default async function EmploiPage({
   const { locale } = await params;
 
   // Fetch job offers from database
-  const jobOffers = await prisma.jobOffer.findMany({
+  const jobOffers = await withRetry(() => prisma.jobOffer.findMany({
     where: {
       publishedAt: {
         lte: new Date(),
@@ -22,7 +23,7 @@ export default async function EmploiPage({
       publishedAt: 'desc',
     },
     take: 20,
-  });
+  })) || [];
 
   const categories = [
     { name: 'Santé', href: `/${locale}/emploi/offres/sante`, icon: Heart, count: jobOffers.filter((j: any) => j.type?.toLowerCase().includes('santé') || j.title?.toLowerCase().includes('santé')).length },
