@@ -100,14 +100,14 @@ export default function ChartePage() {
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
-                href="/a-propos/mission"
+                href="/mission"
                 className="inline-flex items-center text-primary hover:text-primary/80 font-medium"
               >
                 Notre mission
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Link>
               <Link
-                href="/a-propos/equipe"
+                href="/equipe"
                 className="inline-flex items-center text-primary hover:text-primary/80 font-medium"
               >
                 Notre équipe

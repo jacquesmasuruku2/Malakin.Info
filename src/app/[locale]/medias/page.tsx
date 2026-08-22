@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowDownToLine, ArrowRight, Calendar, Image as ImageIcon, Mic, Play, Radio } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import RadioPageButton from '@/components/RadioPageButton';
+import { withRetry } from '@/lib/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,11 +14,14 @@ export default async function MediasPage({ params }: { params: Promise<{ locale:
   let radioPrograms: any[] = [];
 
   try {
-    [media, liveEvents, radioPrograms] = await Promise.all([
-      prisma.media.findMany({ orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }], take: 24 }),
-      prisma.liveEvent.findMany({ where: { OR: [{ status: 'LIVE' }, { status: 'SCHEDULED' }] }, orderBy: { startTime: 'asc' }, take: 6 }),
-      prisma.radioProgram.findMany({ where: { OR: [{ isLive: true }, { endTime: { gte: new Date() } }] }, orderBy: [{ isLive: 'desc' }, { startTime: 'asc' }], take: 6 }),
+    const [mediaResult, liveEventsResult, radioProgramsResult] = await Promise.all([
+      withRetry(() => prisma.media.findMany({ orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }], take: 24 })),
+      withRetry(() => prisma.liveEvent.findMany({ where: { OR: [{ status: 'LIVE' }, { status: 'SCHEDULED' }] }, orderBy: { startTime: 'asc' }, take: 6 })),
+      withRetry(() => prisma.radioProgram.findMany({ where: { OR: [{ isLive: true }, { endTime: { gte: new Date() } }] }, orderBy: [{ isLive: 'desc' }, { startTime: 'asc' }], take: 6 })),
     ]);
+    media = mediaResult || [];
+    liveEvents = liveEventsResult || [];
+    radioPrograms = radioProgramsResult || [];
   } catch (error) {
     console.error('Media page database error:', error);
   }

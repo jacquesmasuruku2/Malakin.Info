@@ -68,7 +68,7 @@ export default function MissionPage() {
 
           <div className="mt-12 pt-8 border-t border-border">
             <Link
-              href="/a-propos/charte"
+              href="/charte"
               className="inline-flex items-center text-primary hover:text-primary/80 font-medium"
             >
               Découvrir notre charte éthique

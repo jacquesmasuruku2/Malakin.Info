@@ -16,6 +16,7 @@ import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation
 import ScrollToComments from '@/components/ScrollToComments';
 import Paywall from '@/components/Paywall';
 import { getPremiumPreviewContent, hasPremiumAccess } from '@/lib/premium-access';
+import { withRetry } from '@/lib/database';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -28,13 +29,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale, category, slug } = await params;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com';
 
-  const article = await prisma.article.findUnique({
+  const article = await withRetry(() => prisma.article.findUnique({
     where: { slug },
     include: {
       category: true,
       author: true,
     },
-  } as any) as any;
+  } as any)) as any;
 
   if (!article) {
     return {
@@ -101,13 +102,13 @@ export default async function ArticlePage({
   };
 
   try {
-    const article = await prisma.article.findUnique({
+    const article = await withRetry(() => prisma.article.findUnique({
       where: { slug },
       include: {
         category: true,
         author: true,
       },
-    } as any) as any;
+    } as any)) as any;
 
     if (!article) {
       notFound();
@@ -129,7 +130,7 @@ export default async function ArticlePage({
     const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
     const premiumAccess = article.isPremium ? await hasPremiumAccess(article.id) : true;
 
-    const relatedArticles: any[] = await prisma.article.findMany({
+    const relatedArticles: any[] = await withRetry(() => prisma.article.findMany({
       where: {
         categoryId: article.categoryId,
         id: { not: article.id },
@@ -142,44 +143,60 @@ export default async function ArticlePage({
       orderBy: {
         publishedAt: 'desc',
       },
-    } as any);
+    } as any)) || [];
 
-    const sponsoredFromDb = await prisma.sponsoredArticle.findMany({
+    const sponsoredFromDb = await withRetry(() => prisma.sponsoredArticle.findMany({
       where: {
         articleId: article.id,
         isActive: true,
       },
-      orderBy: {
-        sortOrder: 'asc',
+      include: {
+        article: {
+          include: {
+            category: true,
+            author: true,
+          },
+        },
       },
-    });
+      orderBy: {
+        position: 'asc',
+      },
+    } as any)) || [];
 
-    const sponsoredArticles: ArticleSidebarSponsor[] = sponsoredFromDb.map((item: any) => ({
-      id: item.id,
-      title: item.title,
-      imageUrl: item.imageUrl,
-      targetUrl: item.targetUrl,
-      sponsorName: item.sponsorName,
+    const sponsoredArticles = sponsoredFromDb.map((item: any) => ({
+      id: item.article.id,
+      title: item.article.title,
+      imageUrl: item.article.mainImageUrl || '',
+      targetUrl: `/${locale}/${item.article.category?.slug || 'actualites'}/${item.article.slug}`,
+      sponsorName: item.categoryBadge || 'Sponsor',
       categoryBadge: item.categoryBadge || 'Publicité',
     }));
 
-    const otherSponsoredFromDb = await prisma.sponsoredArticle.findMany({
+    const otherSponsoredFromDb = await withRetry(() => prisma.sponsoredArticle.findMany({
       where: {
         isActive: true,
         articleId: { not: article.id },
       },
-      orderBy: {
-        sortOrder: 'asc',
+      include: {
+        article: {
+          include: {
+            category: true,
+            author: true,
+          },
+        },
       },
-      take: 4,
-    });
+      orderBy: {
+        position: 'asc',
+      },
+      take: 2,
+    } as any)) || [];
 
     const otherSponsoredArticles = otherSponsoredFromDb.map((item: any) => ({
-      id: item.id,
-      title: item.title,
-      imageUrl: item.imageUrl,
-      targetUrl: item.targetUrl,
-      sponsorName: item.sponsorName,
+      id: item.article.id,
+      title: item.article.title,
+      imageUrl: item.article.mainImageUrl || '',
+      targetUrl: `/${locale}/${item.article.category?.slug || 'actualites'}/${item.article.slug}`,
+      sponsorName: item.categoryBadge || 'Sponsor',
       categoryBadge: item.categoryBadge || 'Publicité',
     }));
 

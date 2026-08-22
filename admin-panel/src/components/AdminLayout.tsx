@@ -49,6 +49,7 @@ export default function AdminLayout({
     { name: 'Newsletter', href: '/newsletter', icon: MessageSquare },
     { name: 'Envoyer une newsletter', href: '/newsletter/send', icon: Briefcase },
     { name: 'Soumissions', href: '/form-submissions', icon: MessageSquare },
+    { name: 'Offres d\'emploi', href: '/job-offers', icon: Briefcase },
     { name: 'Candidatures', href: '/job-applications', icon: Briefcase },
     { name: 'Paramètres', href: '/settings', icon: Settings },
   ];

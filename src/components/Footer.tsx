@@ -278,9 +278,9 @@ export default function Footer() {
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="space-y-2">
                 {[t.whoAreWe, t.ourMission, t.ourTeam].map((item, index) => (
-                  <Link 
+                  <Link
                     key={index}
-                    href={`/${locale}/a-propos/${['', 'mission', 'equipe'][index]}`} 
+                    href={`/${locale}/${['a-propos', 'mission', 'equipe'][index]}`}
                     className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:translate-x-2 flex items-center gap-1 group"
                   >
                     <div className="w-1 h-1 bg-red-500 rounded-full group-hover:scale-150 transition-transform" />

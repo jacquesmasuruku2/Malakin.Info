@@ -217,9 +217,9 @@ export default function Navigation() {
       title: t.about,
       icon: Info,
       items: [
-        { name: t.mission, href: `/${locale}/a-propos/mission` },
-        { name: t.team, href: `/${locale}/a-propos/equipe` },
-        { name: t.charter, href: `/${locale}/a-propos/charte` },
+        { name: t.mission, href: `/${locale}/mission` },
+        { name: t.team, href: `/${locale}/equipe` },
+        { name: t.charter, href: `/${locale}/charte` },
       ],
     },
   ];

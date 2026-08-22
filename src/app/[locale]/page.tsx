@@ -4,6 +4,7 @@ import { ArrowRight, Calendar, Clock, TrendingUp, Radio } from 'lucide-react';
 import AdSenseAd from '@/components/AdSenseAd';
 import NewsletterSignupInline from '@/components/NewsletterSignupInline';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
+import { withRetry } from '@/lib/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +28,7 @@ export default async function Home({
   let activeRadio: any = null;
 
   try {
-    featuredArticles = await prisma.article.findMany({
+    featuredArticles = await withRetry(() => prisma.article.findMany({
       where: {
         featured: true,
       },
@@ -39,9 +40,9 @@ export default async function Home({
       orderBy: {
         publishedAt: 'desc',
       },
-    } as any);
+    } as any)) || [];
 
-    latestArticles = await prisma.article.findMany({
+    latestArticles = await withRetry(() => prisma.article.findMany({
       include: {
         category: true,
         author: true,
@@ -50,10 +51,10 @@ export default async function Home({
       orderBy: {
         publishedAt: 'desc',
       },
-    } as any);
+    } as any)) || [];
 
     const now = new Date();
-    currentLive = await prisma.liveEvent.findFirst({
+    currentLive = await withRetry(() => prisma.liveEvent.findFirst({
       where: {
         streamType: 'VIDEO',
         startTime: { lte: now },
@@ -65,12 +66,12 @@ export default async function Home({
       orderBy: {
         startTime: 'desc'
       }
-    });
+    }));
 
-    activeRadio = await prisma.radioStation.findFirst({
+    activeRadio = await withRetry(() => prisma.radioStation.findFirst({
       where: { isActive: true },
       orderBy: { createdAt: 'desc' },
-    });
+    }));
   } catch (error) {
     console.error('Database connection error:', error);
   }

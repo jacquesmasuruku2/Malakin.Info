@@ -2,9 +2,10 @@ import Link from 'next/link';
 import { Calendar, Clock, ArrowRight, User, BookOpen } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
+import { withRetry } from '@/lib/database';
 
 async function getAuthorBySlug(slug: string) {
-  try {
+  const fetchAuthor = async () => {
     console.log('Fetching author with slug:', slug);
     const author = await prisma.author.findUnique({
       where: { slug },
@@ -25,17 +26,22 @@ async function getAuthorBySlug(slug: string) {
       },
     });
 
-    console.log('Author found:', author.name);
+    console.log('Author found:', author.name, 'with', articles.length, 'articles');
     return { ...author, articles };
-  } catch (error) {
-    console.error('Error fetching author:', error);
-    console.error('DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
-    return null;
+  };
+
+  const result = await withRetry(fetchAuthor, { maxRetries: 3, delay: 500 });
+
+  if (!result) {
+    console.error('Failed to fetch author after retries');
   }
+
+  return result;
 }
 
-export default async function AuthorPage({ params }: { params: { slug: string } }) {
-  const author = await getAuthorBySlug(params.slug);
+export default async function AuthorPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+  const { locale, slug } = await params;
+  const author = await getAuthorBySlug(slug);
 
   if (!author) {
     notFound();
@@ -45,7 +51,7 @@ export default async function AuthorPage({ params }: { params: { slug: string } 
     <div className="flex flex-col">
       <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="text-gray-300 hover:text-white mb-4 inline-block">
+          <Link href={`/${locale}`} className="text-gray-300 hover:text-white mb-4 inline-block">
             ← Retour à l'accueil
           </Link>
           <div className="flex items-center gap-6 mt-4">
@@ -116,7 +122,7 @@ export default async function AuthorPage({ params }: { params: { slug: string } 
                       )}
                     </div>
                     <h3 className="font-heading text-xl font-semibold text-foreground mb-2 hover:text-primary transition-colors">
-                      <Link href={`/${article.slug}`}>
+                      <Link href={`/${locale}/${article.category.slug}/${article.slug}`}>
                         {article.title}
                       </Link>
                     </h3>
@@ -144,7 +150,7 @@ export default async function AuthorPage({ params }: { params: { slug: string } 
                       </span>
                     </div>
                     <Link
-                      href={`/${article.slug}`}
+                      href={`/${locale}/${article.category.slug}/${article.slug}`}
                       className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm mt-4"
                     >
                       Lire l'article

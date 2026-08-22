@@ -1,18 +1,19 @@
 import Link from 'next/link';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
+import { withRetry } from '@/lib/database';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ActualitesPage({ 
-  params 
-}: { 
-  params: Promise<{ locale: string }> 
+export default async function ActualitesPage({
+  params
+}: {
+  params: Promise<{ locale: string }>
 }) {
   const { locale } = await params;
 
   // Fetch all articles with their categories
-  const articles = await prisma.article.findMany({
+  const articles = await withRetry(() => prisma.article.findMany({
     include: {
       category: true,
       author: true,
@@ -21,26 +22,26 @@ export default async function ActualitesPage({
       publishedAt: 'desc',
     },
     take: 12,
-  } as any);
+  } as any)) || [];
 
   // Fetch all categories and compute article counts without a non-existent relation field
-  const categories = await prisma.category.findMany();
-  const articleCounts = await prisma.article.groupBy({
+  const categories = await withRetry(() => prisma.category.findMany()) || [];
+  const articleCounts = await withRetry(() => prisma.article.groupBy({
     by: ['categoryId'],
     _count: {
       categoryId: true,
     },
-  });
+  })) || [];
   const articleCountMap = new Map(
     articleCounts.map((item) => [item.categoryId, item._count.categoryId])
   );
 
   // Fetch live events for this category
-  const actualitesCategory = await prisma.category.findUnique({
+  const actualitesCategory = await withRetry(() => prisma.category.findUnique({
     where: { slug: 'actualites' }
-  });
+  }));
 
-  const liveEvents = actualitesCategory ? await prisma.liveEvent.findMany({
+  const liveEvents = actualitesCategory ? await withRetry(() => prisma.liveEvent.findMany({
     where: {
       categoryId: actualitesCategory.id,
       OR: [
@@ -51,7 +52,7 @@ export default async function ActualitesPage({
     orderBy: {
       startTime: 'desc'
     },
-  }) : [];
+  })) || [] : [];
 
   // Format categories for display
   const categoryList: { name: string; href: string; count: number }[] = categories.map((cat: any) => ({
