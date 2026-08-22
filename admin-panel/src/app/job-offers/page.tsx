@@ -117,7 +117,7 @@ export default function JobOffersPage() {
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Offres d'emploi</h1>
             <Link
-              href="/job-offers/new"
+              href="/job-offers/edit/new"
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Plus className="w-5 h-5" />
@@ -256,7 +256,7 @@ export default function JobOffersPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-2">
                             <Link
-                              href={`/job-offers/${offer.id}`}
+                              href={`/job-offers/edit/${offer.id}`}
                               className="text-blue-600 hover:text-blue-900"
                               title="Modifier"
                             >
