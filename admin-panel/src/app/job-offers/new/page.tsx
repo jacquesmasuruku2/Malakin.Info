@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save } from 'lucide-react';
 import { getApiUrl } from '@/lib/api';
+import WordEditor from '@/components/WordEditor';
 
 export default function NewJobOfferPage() {
   const router = useRouter();
@@ -15,6 +16,13 @@ export default function NewJobOfferPage() {
     slug: '',
     description: '',
     requirements: '',
+    missions: '',
+    profile: '',
+    qualities: '',
+    editorialLine: '',
+    collaborationConditions: '',
+    applicationDocuments: '',
+    selectionProcess: '',
     location: '',
     type: 'Temps plein',
     salary: '',
@@ -27,13 +35,37 @@ export default function NewJobOfferPage() {
     e.preventDefault();
     setLoading(true);
 
+    // Combiner les rubriques détaillées dans un objet JSON
+    const details = {
+      missions: formData.missions,
+      profile: formData.profile,
+      qualities: formData.qualities,
+      editorialLine: formData.editorialLine,
+      collaborationConditions: formData.collaborationConditions,
+      applicationDocuments: formData.applicationDocuments,
+      selectionProcess: formData.selectionProcess,
+    };
+
+    const submissionData = {
+      ...formData,
+      details,
+      // Retirer les champs individuels car ils sont dans details
+      missions: undefined,
+      profile: undefined,
+      qualities: undefined,
+      editorialLine: undefined,
+      collaborationConditions: undefined,
+      applicationDocuments: undefined,
+      selectionProcess: undefined,
+    };
+
     try {
       const response = await fetch(getApiUrl('/api/job-offers'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submissionData),
       });
 
       if (!response.ok) {
@@ -179,30 +211,91 @@ export default function NewJobOfferPage() {
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description *
+                  Description du poste *
                 </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  required
-                  rows={6}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  placeholder="Décrivez le poste, les responsabilités..."
+                <WordEditor
+                  content={formData.description}
+                  onChange={(content) => setFormData({ ...formData, description: content })}
                 />
               </div>
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Exigences
+                  Missions principales
                 </label>
-                <textarea
-                  name="requirements"
-                  value={formData.requirements}
-                  onChange={handleChange}
-                  rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  placeholder="Compétences requises, qualifications, expérience..."
+                <WordEditor
+                  content={formData.missions}
+                  onChange={(content) => setFormData({ ...formData, missions: content })}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Profil recherché
+                </label>
+                <WordEditor
+                  content={formData.profile}
+                  onChange={(content) => setFormData({ ...formData, profile: content })}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Qualités recherchées
+                </label>
+                <WordEditor
+                  content={formData.qualities}
+                  onChange={(content) => setFormData({ ...formData, qualities: content })}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ligne éditoriale
+                </label>
+                <WordEditor
+                  content={formData.editorialLine}
+                  onChange={(content) => setFormData({ ...formData, editorialLine: content })}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Conditions de collaboration
+                </label>
+                <WordEditor
+                  content={formData.collaborationConditions}
+                  onChange={(content) => setFormData({ ...formData, collaborationConditions: content })}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Dossier de candidature
+                </label>
+                <WordEditor
+                  content={formData.applicationDocuments}
+                  onChange={(content) => setFormData({ ...formData, applicationDocuments: content })}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Processus de sélection
+                </label>
+                <WordEditor
+                  content={formData.selectionProcess}
+                  onChange={(content) => setFormData({ ...formData, selectionProcess: content })}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Exigences (optionnel - peut être inclus dans les rubriques ci-dessus)
+                </label>
+                <WordEditor
+                  content={formData.requirements}
+                  onChange={(content) => setFormData({ ...formData, requirements: content })}
                 />
               </div>
 

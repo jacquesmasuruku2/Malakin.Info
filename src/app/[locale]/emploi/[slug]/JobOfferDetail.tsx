@@ -16,6 +16,7 @@ interface JobOffer {
   publishedAt: Date | string;
   deadline: Date | string | null;
   featured: boolean;
+  details?: any;
 }
 
 export default function JobOfferDetail({ 
@@ -38,6 +39,7 @@ export default function JobOfferDetail({
   const [error, setError] = useState('');
 
   const isExpired = jobOffer.deadline && new Date(jobOffer.deadline) < new Date();
+  const details = jobOffer.details || {};
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,6 +135,55 @@ export default function JobOfferDetail({
             <div className="prose prose-lg max-w-none text-gray-700 whitespace-pre-line">
               {jobOffer.requirements}
             </div>
+          </div>
+        )}
+
+        {details.missions && (
+          <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
+            <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-6">Missions principales</h2>
+            <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: details.missions }} />
+          </div>
+        )}
+
+        {details.profile && (
+          <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
+            <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-6">Profil recherché</h2>
+            <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: details.profile }} />
+          </div>
+        )}
+
+        {details.qualities && (
+          <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
+            <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-6">Qualités recherchées</h2>
+            <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: details.qualities }} />
+          </div>
+        )}
+
+        {details.editorialLine && (
+          <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
+            <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-6">Ligne éditoriale</h2>
+            <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: details.editorialLine }} />
+          </div>
+        )}
+
+        {details.collaborationConditions && (
+          <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
+            <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-6">Conditions de collaboration</h2>
+            <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: details.collaborationConditions }} />
+          </div>
+        )}
+
+        {details.applicationDocuments && (
+          <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
+            <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-6">Dossier de candidature</h2>
+            <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: details.applicationDocuments }} />
+          </div>
+        )}
+
+        {details.selectionProcess && (
+          <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
+            <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-6">Processus de sélection</h2>
+            <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: details.selectionProcess }} />
           </div>
         )}
 

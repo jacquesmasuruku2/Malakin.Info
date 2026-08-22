@@ -366,15 +366,16 @@ model JobOffer {
   slug         String           @unique
   description  String
   requirements String?
-  location     String?
-  type         String
-  salary       String?
-  companyId    String?
-  publishedAt  DateTime
-  deadline     DateTime?
-  featured     Boolean          @default(false)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  details     Json? @default("{}")
+  location    String?
+  type        String
+  salary      String?
+  companyId   String?
+  publishedAt DateTime
+  deadline    DateTime?
+  featured    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   applications JobApplication[]
 
   @@index([type])

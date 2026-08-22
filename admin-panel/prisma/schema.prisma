@@ -379,6 +379,7 @@ model JobOffer {
   slug        String    @unique
   description String
   requirements String?
+  details Json? @default("{}")
   location    String?
   type        String
   salary      String?
