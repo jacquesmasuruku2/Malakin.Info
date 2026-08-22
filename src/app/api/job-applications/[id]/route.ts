@@ -1,22 +1,18 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// Helper function to add CORS headers
-function cors(response: NextResponse) {
-  response.headers.set('Access-Control-Allow-Origin', '*');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  return response;
-}
+const corsHeaders = {
+  'Access-Control-Allow-Origin': 'https://dashboard.malakinfo.com',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
 
-// Handle OPTIONS request for CORS preflight
-export async function OPTIONS() {
-  const response = new NextResponse(null, { status: 200 });
-  return cors(response);
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, { headers: corsHeaders });
 }
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -27,35 +23,32 @@ export async function GET(
         jobOffer: {
           select: {
             title: true,
-            description: true,
-            requirements: true,
             location: true,
             type: true,
-            salary: true,
           },
         },
       },
     });
 
     if (!application) {
-      return cors(NextResponse.json(
+      return NextResponse.json(
         { error: 'Application not found' },
-        { status: 404 }
-      ));
+        { status: 404, headers: corsHeaders }
+      );
     }
 
-    return cors(NextResponse.json(application));
+    return NextResponse.json(application, { headers: corsHeaders });
   } catch (error) {
     console.error('Error fetching job application:', error);
-    return cors(NextResponse.json(
+    return NextResponse.json(
       { error: 'Failed to fetch job application' },
-      { status: 500 }
-    ));
+      { status: 500, headers: corsHeaders }
+    );
   }
 }
 
 export async function PATCH(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -77,32 +70,33 @@ export async function PATCH(
       },
     });
 
-    return cors(NextResponse.json(application));
+    return NextResponse.json(application, { headers: corsHeaders });
   } catch (error) {
     console.error('Error updating job application:', error);
-    return cors(NextResponse.json(
+    return NextResponse.json(
       { error: 'Failed to update job application' },
-      { status: 500 }
-    ));
+      { status: 500, headers: corsHeaders }
+    );
   }
 }
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+
     await prisma.jobApplication.delete({
       where: { id },
     });
 
-    return cors(NextResponse.json({ success: true }));
+    return NextResponse.json({ success: true }, { headers: corsHeaders });
   } catch (error) {
     console.error('Error deleting job application:', error);
-    return cors(NextResponse.json(
+    return NextResponse.json(
       { error: 'Failed to delete job application' },
-      { status: 500 }
-    ));
+      { status: 500, headers: corsHeaders }
+    );
   }
 }
