@@ -17,6 +17,7 @@ interface JobOffer {
   deadline: Date | string | null;
   featured: boolean;
   details?: any;
+  imageUrl?: string | null;
 }
 
 export default function JobOfferDetail({ 
@@ -80,7 +81,17 @@ export default function JobOfferDetail({
 
   return (
     <div className="flex flex-col">
-      <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
+      {jobOffer.imageUrl && (
+        <div className="w-full h-64 md:h-80 relative">
+          <img
+            src={jobOffer.imageUrl}
+            alt={jobOffer.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+        </div>
+      )}
+      <section className={`bg-gradient-to-r from-secondary to-secondary/80 text-white py-12 ${jobOffer.imageUrl ? 'mt-0' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
             href={`/${locale}/emploi`}

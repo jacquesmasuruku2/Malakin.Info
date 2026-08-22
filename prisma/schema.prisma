@@ -367,6 +367,7 @@ model JobOffer {
   description  String
   requirements String?
   details     Json? @default("{}")
+  imageUrl    String?
   location    String?
   type        String
   salary      String?

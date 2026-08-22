@@ -4,7 +4,7 @@ import AdminLayout from '@/components/AdminLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Image as ImageIcon, Eye, Edit } from 'lucide-react';
 import { getApiUrl } from '@/lib/api';
 import WordEditor from '@/components/WordEditor';
 
@@ -26,10 +26,12 @@ export default function NewJobOfferPage() {
     location: '',
     type: 'Temps plein',
     salary: '',
+    imageUrl: '',
     publishedAt: new Date().toISOString().split('T')[0],
     deadline: '',
     featured: false,
   });
+  const [previewMode, setPreviewMode] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,18 +95,156 @@ export default function NewJobOfferPage() {
     <ProtectedRoute>
       <AdminLayout>
         <div className="p-6">
-          <div className="mb-6">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <button
+                onClick={() => router.push('/job-offers')}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                Retour aux offres
+              </button>
+              <h1 className="text-2xl font-bold text-gray-900">Nouvelle offre d'emploi</h1>
+            </div>
             <button
-              onClick={() => router.push('/job-offers')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+              type="button"
+              onClick={() => setPreviewMode(!previewMode)}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              <ArrowLeft className="w-5 h-5" />
-              Retour aux offres
+              {previewMode ? <Edit className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              {previewMode ? 'Modifier' : 'Prévisualiser'}
             </button>
-            <h1 className="text-2xl font-bold text-gray-900">Nouvelle offre d'emploi</h1>
           </div>
 
-          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm p-6">
+          {previewMode ? (
+            <div className="bg-white rounded-lg shadow-sm p-8">
+              <div className="max-w-4xl mx-auto">
+                {/* Bannière */}
+                {formData.imageUrl && (
+                  <div className="mb-8">
+                    <img
+                      src={formData.imageUrl}
+                      alt="Bannière"
+                      className="w-full h-64 object-cover rounded-lg"
+                    />
+                  </div>
+                )}
+
+                {/* En-tête */}
+                <div className="mb-6">
+                  <h1 className="text-4xl font-bold text-gray-900 mb-4">{formData.title || 'Titre de l\'offre'}</h1>
+                  <div className="flex flex-wrap gap-4 text-gray-600">
+                    {formData.type && (
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium">Type:</span> {formData.type}
+                      </span>
+                    )}
+                    {formData.location && (
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium">Lieu:</span> {formData.location}
+                      </span>
+                    )}
+                    {formData.salary && (
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium">Salaire:</span> {formData.salary}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Description */}
+                {formData.description && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Description du poste</h2>
+                    <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: formData.description }} />
+                  </div>
+                )}
+
+                {/* Missions */}
+                {formData.missions && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Missions principales</h2>
+                    <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: formData.missions }} />
+                  </div>
+                )}
+
+                {/* Profil */}
+                {formData.profile && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Profil recherché</h2>
+                    <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: formData.profile }} />
+                  </div>
+                )}
+
+                {/* Qualités */}
+                {formData.qualities && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Qualités recherchées</h2>
+                    <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: formData.qualities }} />
+                  </div>
+                )}
+
+                {/* Ligne éditoriale */}
+                {formData.editorialLine && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Ligne éditoriale</h2>
+                    <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: formData.editorialLine }} />
+                  </div>
+                )}
+
+                {/* Conditions de collaboration */}
+                {formData.collaborationConditions && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Conditions de collaboration</h2>
+                    <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: formData.collaborationConditions }} />
+                  </div>
+                )}
+
+                {/* Dossier de candidature */}
+                {formData.applicationDocuments && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Dossier de candidature</h2>
+                    <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: formData.applicationDocuments }} />
+                  </div>
+                )}
+
+                {/* Processus de sélection */}
+                {formData.selectionProcess && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Processus de sélection</h2>
+                    <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: formData.selectionProcess }} />
+                  </div>
+                )}
+
+                {/* Exigences */}
+                {formData.requirements && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Exigences</h2>
+                    <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: formData.requirements }} />
+                  </div>
+                )}
+
+                {/* Dates */}
+                <div className="mt-8 pt-8 border-t border-gray-200">
+                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                    {formData.publishedAt && (
+                      <div>
+                        <span className="font-medium">Date de publication:</span>{' '}
+                        {new Date(formData.publishedAt).toLocaleDateString('fr-FR')}
+                      </div>
+                    )}
+                    {formData.deadline && (
+                      <div>
+                        <span className="font-medium">Date limite:</span>{' '}
+                        {new Date(formData.deadline).toLocaleDateString('fr-FR')}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -119,6 +259,31 @@ export default function NewJobOfferPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Ex: Développeur Full Stack"
                 />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Image de bannière (URL)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    name="imageUrl"
+                    value={formData.imageUrl}
+                    onChange={handleChange}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="https://..."
+                  />
+                  {formData.imageUrl && (
+                    <div className="w-20 h-20 rounded-lg overflow-hidden border border-gray-300">
+                      <img
+                        src={formData.imageUrl}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -333,6 +498,7 @@ export default function NewJobOfferPage() {
               </button>
             </div>
           </form>
+          )}
         </div>
       </AdminLayout>
     </ProtectedRoute>
