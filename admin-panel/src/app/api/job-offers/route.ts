@@ -65,29 +65,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const data: any = {
+      title,
+      slug: slug || title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
+      description,
+      details: details || {},
+      imageUrl,
+      location,
+      type,
+      salary,
+      publishedAt: publishedAt ? new Date(publishedAt) : new Date(),
+      deadline: deadline ? new Date(deadline) : null,
+      featured: featured || false,
+    };
+
+    if (requirements !== undefined) data.requirements = requirements;
+    if (companyId !== undefined) data.companyId = companyId;
+
     const jobOffer = await prisma.jobOffer.create({
-      data: {
-        title,
-        slug: slug || title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-        description,
-        requirements,
-        details: details || {},
-        imageUrl,
-        location,
-        type,
-        salary,
-        companyId,
-        publishedAt: publishedAt ? new Date(publishedAt) : new Date(),
-        deadline: deadline ? new Date(deadline) : null,
-        featured: featured || false,
-      },
+      data,
     });
 
     return NextResponse.json(jobOffer, { status: 201 });
   } catch (error) {
     console.error('Error creating job offer:', error);
     return NextResponse.json(
-      { error: 'Failed to create job offer' },
+      { error: 'Failed to create job offer', details: String(error) },
       { status: 500 }
     );
   }

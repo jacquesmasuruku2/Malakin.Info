@@ -56,30 +56,33 @@ export async function PUT(
       featured,
     } = body;
 
+    const data: any = {
+      title,
+      slug: slug || title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
+      description,
+      location,
+      type,
+      salary,
+      deadline: deadline ? new Date(deadline) : null,
+    };
+
+    if (requirements !== undefined) data.requirements = requirements;
+    if (details !== undefined) data.details = details;
+    if (imageUrl !== undefined) data.imageUrl = imageUrl;
+    if (companyId !== undefined) data.companyId = companyId;
+    if (publishedAt) data.publishedAt = new Date(publishedAt);
+    if (featured !== undefined) data.featured = featured;
+
     const jobOffer = await prisma.jobOffer.update({
       where: { id },
-      data: {
-        title,
-        slug: slug || title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-        description,
-        requirements,
-        details: details !== undefined ? details : undefined,
-        imageUrl: imageUrl !== undefined ? imageUrl : undefined,
-        location,
-        type,
-        salary,
-        companyId,
-        publishedAt: publishedAt ? new Date(publishedAt) : undefined,
-        deadline: deadline ? new Date(deadline) : null,
-        featured: featured !== undefined ? featured : undefined,
-      },
+      data,
     });
 
     return NextResponse.json(jobOffer);
   } catch (error) {
     console.error('Error updating job offer:', error);
     return NextResponse.json(
-      { error: 'Failed to update job offer' },
+      { error: 'Failed to update job offer', details: String(error) },
       { status: 500 }
     );
   }
