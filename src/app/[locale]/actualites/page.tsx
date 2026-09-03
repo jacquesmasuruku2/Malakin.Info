@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
+import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,7 +63,7 @@ export default async function ActualitesPage({
   }));
 
   // Format articles for display
-  const news: { id: string; category: string; categorySlug: string; title: string; excerpt: string; image: string | null; date: string; readTime: string; slug: string }[] = articles.map((article: any) => ({
+  const news: { id: string; category: string; categorySlug: string; title: string; excerpt: string; image: string | null; date: string; readTime: string; slug: string; author: any }[] = articles.map((article: any) => ({
     id: article.id,
     category: article.category?.title || 'Actualités',
     categorySlug: article.category?.slug || 'actualites',
@@ -72,6 +73,7 @@ export default async function ActualitesPage({
     date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
     readTime: article.readTime || '5 min',
     slug: article.slug,
+    author: article.author,
   }));
 
   return (
@@ -194,6 +196,7 @@ export default async function ActualitesPage({
                           <span className="text-[#D4AF37]">•</span>
                           <span>{item.readTime}</span>
                         </div>
+                        <ArticleAuthorLink author={item.author} locale={locale} className="text-xs text-gray-500" />
                         <h3 className="font-heading text-[1.5rem] font-black leading-tight tracking-[-0.03em] text-[#081C3D] transition-colors group-hover:text-[#D4AF37] line-clamp-3">
                           {item.title}
                         </h3>

@@ -5,6 +5,7 @@ import AdSenseAd from '@/components/AdSenseAd';
 import NewsletterSignupInline from '@/components/NewsletterSignupInline';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 import { withRetry } from '@/lib/database';
+import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,6 +87,7 @@ export default async function Home({
     image: article.mainImageUrl || 'https://images.unsplash.com/photo-1541872703-74c5963631df?w=800&h=400&fit=crop',
     date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
     readTime: article.readTime ? `${article.readTime} min` : '5 min',
+    author: article.author,
   }));
 
   const latestNews = latestArticles.map(article => ({
@@ -97,6 +99,7 @@ export default async function Home({
     excerpt: article.excerpt,
     date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
     readTime: article.readTime ? `${article.readTime} min` : '3 min',
+    author: article.author,
     image: article.mainImageUrl || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=300&fit=crop',
   }));
 
@@ -292,6 +295,7 @@ export default async function Home({
                         <p className="mt-3 text-sm leading-relaxed text-gray-600 line-clamp-3">
                           {(news as any).excerpt || ''}
                         </p>
+                        <ArticleAuthorLink author={news.author} locale={locale} className="mt-4 text-xs text-gray-500" />
                       </div>
                     </article>
                   ))}

@@ -14,6 +14,7 @@ import ViewIncrementer from '@/components/ViewIncrementer';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 import { getPremiumPreviewContent, hasPremiumAccess } from '@/lib/premium-access';
 import Paywall from '@/components/Paywall';
+import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 
 export const dynamic = 'force-dynamic';
 
@@ -306,6 +307,7 @@ export default async function CatchAllArticlePage({
                     <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                     {readTime}
                   </span>
+                  <ArticleAuthorLink author={article.author} locale={locale} />
                 </div>
               </div>
 
