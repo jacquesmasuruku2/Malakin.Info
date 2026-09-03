@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
 import AdminLayout from '@/components/AdminLayout';
 import { Mail, Search, Trash2, Plus, UserCircle2, Download, Upload } from 'lucide-react';
-import { getApiUrl } from '@/lib/api';
 
 const interestOptions = [
   { value: 'actualites', label: 'Actualités' },
@@ -37,7 +36,7 @@ export default function NewsletterSubscribersPage() {
   const fetchSubscribers = async () => {
     setLoading(true);
     try {
-      const res = await fetch(getApiUrl('/api/newsletter'));
+      const res = await fetch('/api/newsletter');
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setSubs(Array.isArray(data) ? data : []);
@@ -179,7 +178,7 @@ export default function NewsletterSubscribersPage() {
       if (!parsedRows.length) throw new Error('Aucune adresse email valide trouvée dans le fichier Excel.');
 
       for (const subscriber of parsedRows) {
-        const response = await fetch(getApiUrl('/api/newsletter'), {
+        const response = await fetch('/api/newsletter', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -225,7 +224,7 @@ export default function NewsletterSubscribersPage() {
     setMessage(null);
 
     try {
-      const response = await fetch(getApiUrl('/api/newsletter'), {
+      const response = await fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -259,7 +258,7 @@ export default function NewsletterSubscribersPage() {
     if (!confirm('Voulez-vous vraiment supprimer cet abonné ?')) return;
 
     try {
-      const response = await fetch(getApiUrl('/api/newsletter'), {
+      const response = await fetch('/api/newsletter', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
