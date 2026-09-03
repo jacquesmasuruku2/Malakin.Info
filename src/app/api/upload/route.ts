@@ -32,16 +32,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('Uploading image:', file.name, file.type, file.size);
     const imageUrl = await uploadImageToR2(file, folder);
+    console.log('Upload successful, URL:', imageUrl);
 
     return NextResponse.json({ 
       success: true, 
-      url: imageUrl 
+      url: imageUrl,
+      method: imageUrl.startsWith('data:') ? 'base64' : 'r2'
     });
   } catch (error) {
     console.error('Error uploading image:', error);
     return NextResponse.json(
-      { error: 'Failed to upload image' },
+      { error: 'Failed to upload image', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
