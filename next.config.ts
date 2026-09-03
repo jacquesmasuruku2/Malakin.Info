@@ -19,6 +19,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'dd0632138e3f2df4d45a622c44fdea7c.r2.cloudflarestorage.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
     unoptimized: false,
     formats: ['image/avif', 'image/webp'],
