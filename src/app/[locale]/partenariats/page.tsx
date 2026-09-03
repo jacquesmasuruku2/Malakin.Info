@@ -23,6 +23,7 @@ export default function PartenariatsPage({
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [locale, setLocale] = useState('fr');
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     params.then((resolvedParams) => {
@@ -343,8 +344,27 @@ export default function PartenariatsPage({
         </div>
       </section>
 
+      {/* CTA Button Section */}
+      {!showForm && (
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+          <div className="mx-auto max-w-3xl text-center">
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center gap-2 rounded-full bg-[#0b3b8b] px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#082a63] shadow-lg hover:shadow-xl"
+            >
+              {content.form.title}
+              <ArrowRight className="h-4 w-4" />
+            </button>
+            <p className="mt-4 text-sm text-slate-600">
+              {content.form.subtitle}
+            </p>
+          </div>
+        </section>
+      )}
+
       {/* Form Section */}
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+      {showForm && (
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
         <div className="mx-auto max-w-3xl">
           <div className="rounded-3xl border border-[#e1e4e8] bg-white p-8 sm:p-12 shadow-lg">
             <div className="text-center mb-8">
@@ -553,6 +573,7 @@ export default function PartenariatsPage({
           </div>
         </div>
       </section>
+      )}
     </div>
   );
 }
