@@ -44,9 +44,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Uploading image from origin:', origin, file.name, file.type, file.size);
+    console.log('[Upload API] Uploading image from origin:', origin);
+    console.log('[Upload API] File details:', { name: file.name, type: file.type, size: file.size });
+    console.log('[Upload API] Folder:', folder);
     const imageUrl = await uploadImageToR2(file, folder);
-    console.log('Upload successful, URL:', imageUrl);
+    console.log('[Upload API] Upload successful, URL:', imageUrl);
 
     const response = NextResponse.json({ 
       success: true, 
@@ -63,7 +65,12 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Error uploading image:', error);
+    console.error('[Upload API] Error uploading image:', error);
+    console.error('[Upload API] Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
       { error: 'Failed to upload image', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
