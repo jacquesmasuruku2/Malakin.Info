@@ -286,7 +286,7 @@ export default function Navigation() {
                 <img
                   src="/images/logo.png"
                   alt="MalakInfo"
-                  className="h-9 w-auto max-w-[110px] object-contain sm:h-12 sm:max-w-[180px] md:h-16 md:max-w-[260px] lg:h-20 lg:max-w-[300px]"
+                  className="h-7 w-auto max-w-[90px] object-contain sm:h-10 sm:max-w-[160px] md:h-16 md:max-w-[260px] lg:h-20 lg:max-w-[300px]"
                   loading="eager"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
@@ -380,23 +380,22 @@ export default function Navigation() {
                 <Link
                   href={`/${locale}/compte/profil`}
                   aria-label="Ouvrir mon profil"
-                  className="inline-flex min-h-10 items-center gap-2 px-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#111827] transition-colors hover:text-[#0b3b8b]"
+                  className="inline-flex min-h-10 min-w-10 items-center justify-center px-2 text-[#111827] transition-colors hover:text-[#0b3b8b]"
                 >
                   {activeUser.avatarUrl ? (
                     <img src={activeUser.avatarUrl} alt={activeUser.name} className="h-7 w-7 rounded-full object-cover" />
                   ) : (
                     <User className="h-5 w-5" />
                   )}
-                  <span>Profil</span>
                 </Link>
               ) : (
                 <Link
                   href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(pathname)}`}
                   aria-label={t.login}
-                  className="inline-flex min-h-10 items-center gap-2 px-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#111827] transition-colors hover:text-[#0b3b8b]"
+                  title={t.login}
+                  className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-full border border-[#d4af37] bg-[#f8f8f5] px-2 text-[#111827] transition-colors hover:bg-[#d4af37] hover:text-[#081c3d]"
                 >
                   <User className="h-5 w-5" />
-                  <span>{t.login}</span>
                 </Link>
               )}
             </div>
