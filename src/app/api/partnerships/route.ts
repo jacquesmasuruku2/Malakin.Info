@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendPartnershipConfirmationEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,6 +46,19 @@ export async function POST(request: NextRequest) {
         status: 'pending'
       }
     });
+
+    // Send confirmation email
+    try {
+      await sendPartnershipConfirmationEmail({
+        to: email,
+        name: contactName,
+        companyName,
+        partnershipType
+      });
+    } catch (emailError) {
+      console.error('Error sending confirmation email:', emailError);
+      // Don't fail the request if email fails, just log it
+    }
 
     return NextResponse.json(
       { 

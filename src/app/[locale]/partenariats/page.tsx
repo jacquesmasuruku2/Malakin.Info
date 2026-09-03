@@ -183,8 +183,8 @@ export default function PartenariatsPage({
       },
       submit: isFrench ? 'Envoyer la demande' : 'Submit request',
       success: isFrench 
-        ? 'Votre demande a été envoyée avec succès ! Nous vous contacterons sous 48h.' 
-        : 'Your request has been sent successfully! We will contact you within 48 hours.',
+        ? 'Votre demande a été envoyée avec succès ! Un email de confirmation vous a été envoyé. Notre équipe vous contactera dans un délai de 48 à 72 heures.' 
+        : 'Your request has been sent successfully! A confirmation email has been sent to you. Our team will contact you within 48 to 72 hours.',
       error: isFrench 
         ? 'Une erreur est survenue. Veuillez réessayer.' 
         : 'An error occurred. Please try again.'
