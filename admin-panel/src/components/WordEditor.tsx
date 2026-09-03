@@ -182,8 +182,8 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
   }
 
   return (
-    <div className="bg-[#f3f3f1] rounded-xl overflow-visible border border-[#d9d9d7] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">
-      <div className="sticky top-0 z-40 bg-[#f7f6f4] border-b border-[#d5d2ce] shadow-[0_1px_0_rgba(15,23,42,0.06)] backdrop-blur-sm">
+    <div className="relative isolate bg-[#f3f3f1] rounded-xl overflow-visible border border-[#d9d9d7] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">
+      <div className="sticky top-0 z-50 max-w-full bg-[#f7f6f4] border-b border-[#d5d2ce] shadow-[0_1px_0_rgba(15,23,42,0.06)]">
         <div className="flex border-b border-[#e6e2dd] bg-[#f3f1ee]">
           {['home', 'insert', 'layout'].map((tab) => (
             <button
