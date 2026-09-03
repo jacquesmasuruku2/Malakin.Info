@@ -5,7 +5,6 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Save, Image as ImageIcon, Eye, Edit } from 'lucide-react';
-import { getApiUrl } from '@/lib/api';
 import WordEditor from '@/components/WordEditor';
 
 interface JobOffer {
@@ -62,7 +61,7 @@ export default function JobOfferEditPage() {
 
   const fetchJobOffer = async () => {
     try {
-      const response = await fetch(getApiUrl(`/api/job-offers/${id}`));
+      const response = await fetch(`/api/job-offers/${id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch job offer');
       }
@@ -127,7 +126,7 @@ export default function JobOfferEditPage() {
     };
 
     try {
-      const url = isNew ? getApiUrl('/api/job-offers') : getApiUrl(`/api/job-offers/${id}`);
+      const url = isNew ? '/api/job-offers' : `/api/job-offers/${id}`;
       const method = isNew ? 'POST' : 'PUT';
 
       const response = await fetch(url, {
@@ -338,8 +337,9 @@ export default function JobOfferEditPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
+              <div className="grid items-start gap-8 lg:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.6fr)]">
+                <div className="space-y-6 lg:sticky lg:top-4">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Titre de l'offre *
                   </label>
@@ -467,7 +467,22 @@ export default function JobOfferEditPage() {
                   />
                 </div>
 
-                <div className="md:col-span-2">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="featured"
+                    checked={formData.featured}
+                    onChange={handleChange}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Mettre en vedette (Featured)
+                  </span>
+                </label>
+
+                </div>
+                <div className="min-w-0 space-y-6">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Description du poste *
                   </label>
@@ -557,19 +572,6 @@ export default function JobOfferEditPage() {
                   />
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      name="featured"
-                      checked={formData.featured}
-                      onChange={handleChange}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <span className="text-sm font-medium text-gray-700">
-                      Mettre en vedette (Featured)
-                    </span>
-                  </label>
                 </div>
               </div>
 
