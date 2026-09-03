@@ -60,21 +60,21 @@ function CookiePreferencesModal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-4xl max-h-[calc(100vh-4rem)] overflow-y-auto rounded-[28px] bg-white p-6 shadow-2xl shadow-black/15 sm:p-8">
+      <div className="w-full max-w-4xl max-h-[calc(100vh-4rem)] overflow-y-auto rounded-[28px] border border-[#d4af37]/40 bg-[#f7f3eb] p-6 shadow-2xl shadow-[#081c3d]/30 sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div className="max-w-[calc(100%-3rem)]">
-            <p className="text-xs uppercase tracking-[0.3em] text-gray-500">MalakInfo</p>
-            <h2 className="mt-3 text-2xl font-semibold text-slate-950 sm:text-3xl">
+            <p className="text-xs uppercase tracking-[0.3em] text-[#0b3b8b]">MalakInfo</p>
+            <h2 className="mt-3 text-2xl font-semibold text-[#081c3d] sm:text-3xl">
               Bienvenue chez MalakInfo - Gestion du consentement
             </h2>
-            <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
+            <p className="mt-4 text-sm leading-7 text-[#53606b] sm:text-base">
               Nos partenaires et nous déposons des cookies et utilisons des informations non sensibles de votre appareil pour améliorer nos services, analyser notre audience et afficher du contenu adapté. Vous pouvez personnaliser vos choix ci-dessous.
             </p>
             <a
               href="https://malakinfo.com/fr/politique-confidentialite"
               target="_blank"
               rel="noreferrer"
-              className="mt-4 inline-flex text-sm font-medium text-slate-950 underline underline-offset-4 transition hover:text-slate-700"
+              className="mt-4 inline-flex text-sm font-medium text-[#0b3b8b] underline underline-offset-4 transition hover:text-[#d4af37]"
             >
               Voir la politique de confidentialité
             </a>
@@ -82,7 +82,7 @@ function CookiePreferencesModal({
           <button
             type="button"
             aria-label="Fermer la gestion du consentement"
-            className="rounded-full bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
+            className="rounded-full bg-[#081c3d] px-3 py-2 text-sm font-medium text-white transition hover:bg-[#0b3b8b]"
             onClick={onClose}
           >
             ×
@@ -93,13 +93,13 @@ function CookiePreferencesModal({
           {PREFERENCE_CATEGORIES.map((category) => (
             <div
               key={category.key}
-              className="rounded-[22px] border border-slate-200 bg-slate-50 p-4 sm:p-5"
+              className="rounded-[22px] border border-[#d4af37]/30 bg-white/80 p-4 sm:p-5"
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-base font-semibold text-slate-950">{category.label}</p>
+                  <p className="text-base font-semibold text-[#081c3d]">{category.label}</p>
                   {category.required && (
-                    <span className="mt-2 inline-flex rounded-full bg-slate-900 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-white">
+                    <span className="mt-2 inline-flex rounded-full bg-[#d4af37] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#081c3d]">
                       REQUIS
                     </span>
                   )}
@@ -110,8 +110,8 @@ function CookiePreferencesModal({
                       type="button"
                       className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
                         preferences[category.key]
-                          ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
-                          : 'border-slate-900 bg-slate-950 text-white hover:bg-slate-800'
+                          ? 'border-[#b9c2ce] bg-white text-[#53606b] hover:bg-[#f7f3eb]'
+                          : 'border-[#081c3d] bg-[#081c3d] text-white hover:bg-[#0b3b8b]'
                       }`}
                       onClick={() => onSetPreference(category.key, false)}
                     >
@@ -121,8 +121,8 @@ function CookiePreferencesModal({
                       type="button"
                       className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
                         preferences[category.key]
-                          ? 'border-slate-900 bg-slate-950 text-white hover:bg-slate-800'
-                          : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+                          ? 'border-[#081c3d] bg-[#081c3d] text-white hover:bg-[#0b3b8b]'
+                          : 'border-[#b9c2ce] bg-white text-[#53606b] hover:bg-[#f7f3eb]'
                       }`}
                       onClick={() => onSetPreference(category.key, true)}
                     >
@@ -130,7 +130,7 @@ function CookiePreferencesModal({
                     </button>
                   </div>
                 ) : (
-                  <span className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
+                  <span className="rounded-full border border-[#d4af37] bg-[#fff8dc] px-4 py-2 text-sm font-semibold text-[#081c3d]">
                     Requis
                   </span>
                 )}
@@ -142,21 +142,21 @@ function CookiePreferencesModal({
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+            className="inline-flex items-center justify-center rounded-full border border-[#081c3d] bg-white px-5 py-3 text-sm font-semibold text-[#081c3d] transition hover:bg-[#eaf0f8]"
             onClick={onRejectAll}
           >
             Refuser tout
           </button>
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
+            className="inline-flex items-center justify-center rounded-full border border-[#d4af37] bg-[#d4af37] px-5 py-3 text-sm font-semibold text-[#081c3d] transition hover:bg-[#e4c65c]"
             onClick={onAcceptAll}
           >
             Accepter tout
           </button>
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+            className="inline-flex items-center justify-center rounded-full bg-[#081c3d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b3b8b]"
             onClick={onSave}
           >
             Enregistrer mes préférences
@@ -312,7 +312,7 @@ export default function CookieConsentModal() {
     <>
       {isVisible && !isPreferencesOpen && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pb-3 sm:inset-x-auto sm:left-3 sm:max-w-[430px] sm:px-0 sm:pb-3">
-          <div className="pointer-events-auto cookie-consent-enter w-full rounded-[3px] border border-slate-700 bg-[#101a21] p-4 text-white shadow-2xl shadow-black/30 sm:p-5">
+          <div className="pointer-events-auto cookie-consent-enter w-full rounded-[3px] border border-[#d4af37] bg-[#081c3d] p-4 text-white shadow-2xl shadow-[#081c3d]/40 sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <img
@@ -322,21 +322,21 @@ export default function CookieConsentModal() {
                   loading="eager"
                 />
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-white">Cookie Consent</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d4af37]">Cookie Consent</p>
                   <h2 className="sr-only">Gestion du consentement sur MalakInfo</h2>
                 </div>
               </div>
               <button
                 type="button"
                 aria-label="Fermer la fenêtre de consentement"
-                className="rounded-full bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20"
+                className="rounded-full bg-[#d4af37] px-3 py-2 text-sm font-medium text-[#081c3d] transition hover:bg-[#e4c65c]"
                 onClick={() => handleConsent('false')}
               >
                 ×
               </button>
             </div>
 
-            <div className="mt-4 space-y-3 text-xs leading-5 text-slate-200 sm:text-sm">
+            <div className="mt-4 space-y-3 text-xs leading-5 text-blue-100 sm:text-sm">
               <p>
                 Nous partageons les informations que vous nous communiquez et des données sur votre utilisation du site avec nos partenaires, notamment pour la publicité et l&apos;analyse.
               </p>
@@ -345,21 +345,21 @@ export default function CookieConsentModal() {
             <div className="mt-4 grid gap-2">
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-[2px] bg-[#6846ff] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#5634ef]"
+                className="inline-flex items-center justify-center rounded-[2px] bg-[#d4af37] px-4 py-3 text-sm font-bold text-[#081c3d] transition hover:bg-[#e4c65c]"
                 onClick={() => handleConsent('true')}
               >
                 Accepter tous les cookies
               </button>
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-[2px] bg-[#6846ff] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#5634ef]"
+                className="inline-flex items-center justify-center rounded-[2px] border border-[#d4af37] bg-transparent px-4 py-3 text-sm font-bold text-[#d4af37] transition hover:bg-[#d4af37] hover:text-[#081c3d]"
                 onClick={() => handleConsent('false')}
               >
                 Refuser tout
               </button>
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-[2px] bg-white px-4 py-3 text-sm font-bold text-[#6846ff] transition hover:bg-slate-100"
+                className="inline-flex items-center justify-center rounded-[2px] bg-white px-4 py-3 text-sm font-bold text-[#081c3d] transition hover:bg-[#f7f3eb]"
                 onClick={() => setIsPreferencesOpen(true)}
               >
                 Paramètres des cookies
