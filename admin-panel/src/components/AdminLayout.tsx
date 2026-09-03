@@ -65,7 +65,7 @@ export default function AdminLayout({
   ];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-color)' }}>
+    <div className="admin-shell min-h-screen" style={{ backgroundColor: 'var(--bg-color)' }}>
       {/* Mobile header */}
       <div className={`sticky top-0 z-40 lg:hidden bg-white border-b border-gray-200 px-4 py-3 transition-transform duration-200 ${isEditorToolbarActive ? '-translate-y-full' : 'translate-y-0'}`}>
         <div className="flex items-center justify-between">
@@ -83,7 +83,7 @@ export default function AdminLayout({
       <div className="flex min-w-0">
         {/* Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-50 w-[min(82vw,16rem)] transform transition-transform duration-300 ease-in-out lg:w-64 lg:translate-x-0 ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
           style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}

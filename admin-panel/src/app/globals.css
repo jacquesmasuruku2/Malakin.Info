@@ -222,3 +222,29 @@ textarea {
 .text-muted {
   color: var(--text-muted);
 }
+
+@media (max-width: 639px) {
+  .admin-shell {
+    font-size: 0.9375rem;
+  }
+
+  .admin-shell h1 {
+    font-size: 1.75rem;
+  }
+
+  .admin-shell .gap-6 {
+    gap: 1rem;
+  }
+
+  .admin-shell .gap-8 {
+    gap: 1.25rem;
+  }
+
+  .admin-shell .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1rem;
+  }
+
+  .admin-shell .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1.25rem;
+  }
+}
