@@ -57,7 +57,7 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-color)' }}>
       {/* Mobile header */}
-      <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
+      <div className="sticky top-0 z-40 lg:hidden bg-white border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -70,10 +70,10 @@ export default function AdminLayout({
         </div>
       </div>
 
-      <div className="flex">
+      <div className="flex min-w-0">
         {/* Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+          className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
           style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}
@@ -150,8 +150,8 @@ export default function AdminLayout({
         )}
 
         {/* Main content */}
-        <main className="flex-1 min-h-screen">
-          <div className="p-6 lg:p-8">
+        <main className="min-w-0 flex-1 min-h-screen lg:ml-64">
+          <div className="p-4 sm:p-6 lg:p-8">
             {children}
           </div>
         </main>
