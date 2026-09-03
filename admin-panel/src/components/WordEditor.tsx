@@ -188,6 +188,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
           {['home', 'insert', 'layout'].map((tab) => (
             <button
               key={tab}
+              type="button"
               onClick={() => setActiveTab(tab)}
               className={`px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] transition-colors ${
                 activeTab === tab
@@ -539,6 +540,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
         {activeTab === 'insert' && (
           <div className="p-2 flex gap-2 items-center bg-gradient-to-b from-gray-50 to-white">
             <button 
+              type="button"
               onClick={() => setIsReadAlsoModalOpen(true)}
               className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2" 
               title="Insérer un article recommandé"
@@ -546,10 +548,10 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
               <ExternalLink className="w-4 h-4" />
               <span className="text-sm">À lire aussi</span>
             </button>
-            <button className="p-2 hover:bg-blue-100 rounded transition-colors" title="Insérer une image">
+            <button type="button" className="p-2 hover:bg-blue-100 rounded transition-colors" title="Insérer une image">
               <FileText className="w-4 h-4" />
             </button>
-            <button className="p-2 hover:bg-blue-100 rounded transition-colors" title="Insérer un lien">
+            <button type="button" className="p-2 hover:bg-blue-100 rounded transition-colors" title="Insérer un lien">
               <Search className="w-4 h-4" />
             </button>
           </div>

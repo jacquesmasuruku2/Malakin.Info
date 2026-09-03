@@ -79,6 +79,7 @@ export default function ReadAlsoModal({ isOpen, onClose, onInsert }: ReadAlsoMod
             Insérer un article recommandé
           </h2>
           <button
+            type="button"
             onClick={handleClose}
             className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
           >
@@ -89,6 +90,7 @@ export default function ReadAlsoModal({ isOpen, onClose, onInsert }: ReadAlsoMod
         {/* Mode Toggle */}
         <div className="flex border-b border-gray-200">
           <button
+            type="button"
             onClick={() => setMode('select')}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
               mode === 'select'
@@ -99,6 +101,7 @@ export default function ReadAlsoModal({ isOpen, onClose, onInsert }: ReadAlsoMod
             Sélectionner un article
           </button>
           <button
+            type="button"
             onClick={() => setMode('custom')}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
               mode === 'custom'
@@ -141,6 +144,7 @@ export default function ReadAlsoModal({ isOpen, onClose, onInsert }: ReadAlsoMod
                     filteredArticles.map((article) => (
                       <button
                         key={article.id}
+                        type="button"
                         onClick={() => setSelectedArticle(article)}
                         className={`w-full text-left p-3 rounded-lg border transition-colors ${
                           selectedArticle?.id === article.id
@@ -212,6 +216,7 @@ export default function ReadAlsoModal({ isOpen, onClose, onInsert }: ReadAlsoMod
                 {['#2563eb', '#dc2626', '#16a34a', '#ca8a04', '#9333ea'].map((color) => (
                   <button
                     key={color}
+                    type="button"
                     onClick={() => setAccentColor(color)}
                     className={`w-8 h-8 rounded border-2 ${
                       accentColor === color ? 'border-gray-900' : 'border-gray-300'
@@ -227,12 +232,14 @@ export default function ReadAlsoModal({ isOpen, onClose, onInsert }: ReadAlsoMod
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200">
           <button
+            type="button"
             onClick={handleClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
           >
             Annuler
           </button>
           <button
+            type="button"
             onClick={handleInsert}
             disabled={
               (mode === 'select' && !selectedArticle) ||
