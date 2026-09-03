@@ -6,9 +6,21 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['127.0.0.1'],
   images: {
-    remotePatterns: [],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'media.malakinfo.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+    ],
     unoptimized: false,
-    domains: ['localhost'],
     formats: ['image/avif', 'image/webp'],
   },
   compress: true,
