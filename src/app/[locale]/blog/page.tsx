@@ -1,11 +1,12 @@
 import Link from 'next/link';
-import { Calendar, ArrowRight, PenTool, FileText, Search, BarChart3 } from 'lucide-react';
+import { Calendar, ArrowRight, PenTool, FileText, Search, BarChart3, User } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 
 interface Post {
   id: string;
   category: string;
   author: string;
+  authorSlug?: string;
   title: string;
   excerpt?: string;
   image: string;
@@ -16,7 +17,8 @@ interface Post {
 
 export const dynamic = 'force-dynamic';
 
-export default async function BlogPage() {
+export default async function BlogPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   let posts: any[] = [];
   
   try {
@@ -54,6 +56,7 @@ export default async function BlogPage() {
     id: post.id,
     category: post.category?.title || 'Article',
     author: post.author?.name || 'Anonyme',
+    authorSlug: post.author?.slug,
     title: post.title,
     excerpt: post.excerpt || post.content?.substring(0, 150) + '...' || '',
     image: post.mainImageUrl || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop',
@@ -66,6 +69,7 @@ export default async function BlogPage() {
     id: post.id,
     category: post.category?.title || 'Article',
     author: post.author?.name || 'Anonyme',
+    authorSlug: post.author?.slug,
     title: post.title,
     date: formatDate(post.publishedAt),
     readTime: post.readTime ? `${post.readTime} min` : '5 min',
@@ -79,6 +83,7 @@ export default async function BlogPage() {
       id: 1,
       category: 'Tribune',
       author: 'Jean Dupont',
+      authorSlug: undefined,
       title: 'L\'avenir du journalisme en Afrique à l\'ère numérique',
       excerpt: 'Analyse des défis et des opportunités pour la presse africaine face à la transformation numérique.',
       image: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop',
@@ -90,6 +95,7 @@ export default async function BlogPage() {
       id: 2,
       category: 'Enquête',
       author: 'Marie Koffi',
+      authorSlug: undefined,
       title: 'Enquête exclusive : Les coulisses du marché informel à Kinshasa',
       excerpt: 'Une plongée dans l\'économie informelle qui fait vivre des millions de Congolais.',
       image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800&h=400&fit=crop',
@@ -101,6 +107,7 @@ export default async function BlogPage() {
       id: 3,
       category: 'Chronique',
       author: 'Ahmed Benali',
+      authorSlug: undefined,
       title: 'Chronique : La jeunesse africaine, moteur du changement',
       excerpt: 'Comment la nouvelle génération redéfinit le futur du continent.',
       image: 'https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=800&h=400&fit=crop',
@@ -115,6 +122,7 @@ export default async function BlogPage() {
       id: 4,
       category: 'Sondage',
       author: 'Équipe Malakin',
+      authorSlug: undefined,
       title: 'Sondage : Les Africains et leur confiance dans les médias',
       date: '27 Juin 2026',
       readTime: '5 min',
@@ -125,6 +133,7 @@ export default async function BlogPage() {
       id: 5,
       category: 'Tribune',
       author: 'Grace Okafor',
+      authorSlug: undefined,
       title: 'La culture africaine comme vecteur d\'unité',
       date: '26 Juin 2026',
       readTime: '7 min',
@@ -135,6 +144,7 @@ export default async function BlogPage() {
       id: 6,
       category: 'Chronique',
       author: 'Pierre Mwamba',
+      authorSlug: undefined,
       title: 'Le sport comme outil de développement social',
       date: '25 Juin 2026',
       readTime: '4 min',
@@ -189,6 +199,20 @@ export default async function BlogPage() {
                           {post.date}
                         </span>
                         <span>{post.readTime}</span>
+                        {post.authorSlug ? (
+                          <Link
+                            href={`/${locale}/equipe/${post.authorSlug}`}
+                            className="flex items-center gap-1 hover:text-primary transition-colors"
+                          >
+                            <User className="w-4 h-4" />
+                            {post.author}
+                          </Link>
+                        ) : (
+                          <span className="flex items-center gap-1">
+                            <User className="w-4 h-4" />
+                            {post.author}
+                          </span>
+                        )}
                       </div>
                       <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
                         {post.title}
@@ -197,7 +221,7 @@ export default async function BlogPage() {
                         {post.excerpt}
                       </p>
                       <Link
-                        href={`/blog/${post.slug}`}
+                        href={`/${locale}/blog/${post.slug}`}
                         className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                       >
                         Lire
@@ -222,7 +246,9 @@ export default async function BlogPage() {
                         {post.category}
                       </span>
                       <h3 className="font-heading font-semibold text-foreground mb-1 line-clamp-2">
-                        {post.title}
+                        <Link href={`/${locale}/blog/${post.slug}`} className="hover:text-primary transition-colors">
+                          {post.title}
+                        </Link>
                       </h3>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
@@ -230,6 +256,20 @@ export default async function BlogPage() {
                           {post.date}
                         </span>
                         <span>{post.readTime}</span>
+                        {post.authorSlug ? (
+                          <Link
+                            href={`/${locale}/equipe/${post.authorSlug}`}
+                            className="flex items-center gap-1 hover:text-primary transition-colors"
+                          >
+                            <User className="w-4 h-4" />
+                            {post.author}
+                          </Link>
+                        ) : (
+                          <span className="flex items-center gap-1">
+                            <User className="w-4 h-4" />
+                            {post.author}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </article>

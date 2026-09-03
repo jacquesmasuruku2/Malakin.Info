@@ -81,10 +81,20 @@ export default async function BlogPostPage({
                 <Clock className="w-4 h-4" />
                 {readTime} de lecture
               </span>
-              <span className="flex items-center gap-1">
-                <User className="w-4 h-4" />
-                {blogPost.author?.name || 'Équipe Malakin'}
-              </span>
+              {blogPost.author?.slug ? (
+                <Link
+                  href={`/${locale}/equipe/${blogPost.author.slug}`}
+                  className="flex items-center gap-1 hover:text-primary transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  {blogPost.author.name}
+                </Link>
+              ) : (
+                <span className="flex items-center gap-1">
+                  <User className="w-4 h-4" />
+                  {blogPost.author?.name || 'Équipe Malakin'}
+                </span>
+              )}
             </div>
           </div>
 
