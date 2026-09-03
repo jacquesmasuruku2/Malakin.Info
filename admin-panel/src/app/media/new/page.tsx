@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { getApiUrl } from '@/lib/api';
 
 export default function NewMediaPage() {
   const router = useRouter();
@@ -16,7 +15,7 @@ export default function NewMediaPage() {
   const submit = async (event: React.FormEvent) => {
     event.preventDefault(); setSaving(true); setError('');
     try {
-      const response = await fetch(getApiUrl('/api/media'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      const response = await fetch('/api/media', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
       const responseText = await response.text();
       let data: { error?: string } = {};
       try { data = responseText ? JSON.parse(responseText) : {}; } catch { throw new Error(`Le serveur a répondu avec une page non valide (${response.status}).`); }
