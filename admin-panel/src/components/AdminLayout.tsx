@@ -56,7 +56,7 @@ export default function AdminLayout({
     { name: 'Lives', href: '/lives', icon: Radio },
     { name: 'Médias', href: '/media', icon: Music },
     { name: 'Sponsors', href: '/sponsored', icon: Briefcase },
-    { name: 'Newsletter', href: '/newsletter', icon: MessageSquare },
+    { name: 'Abonnement', href: '/newsletter', icon: MessageSquare },
     { name: 'Envoyer une newsletter', href: '/newsletter/send', icon: Briefcase },
     { name: 'Soumissions', href: '/form-submissions', icon: MessageSquare },
     { name: 'Offres d\'emploi', href: '/job-offers', icon: Briefcase },
