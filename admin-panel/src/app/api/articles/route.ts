@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         excerpt: body.excerpt,
         content: body.content,
         categoryId: body.categoryId,
-        authorId: body.authorId,
+        authorId: body.authorId || null,
         defaultLocale: body.defaultLocale || 'fr',
         publishedAt: body.publishedAt ? new Date(body.publishedAt) : new Date(),
         featured: body.featured || false,
@@ -55,7 +55,10 @@ export async function POST(request: NextRequest) {
         author: true,
       },
     });
-    return NextResponse.json(article, { status: 201 });
+    return NextResponse.json({
+      ...article,
+      views: Number(article.views),
+    }, { status: 201 });
   } catch (error) {
     console.error('Error creating article:', error);
     return NextResponse.json({ 

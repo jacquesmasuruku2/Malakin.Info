@@ -105,7 +105,7 @@ export default function EditArticlePage() {
 
   const fetchArticle = async () => {
     try {
-      const response = await fetch(getApiUrl(`/api/articles/${articleId}`));
+      const response = await fetch(`/api/articles/${articleId}`);
       const data: Article = await response.json();
       const normalizedContent = normalizeArticleContent(data.content);
 
@@ -202,7 +202,7 @@ export default function EditArticlePage() {
           : JSON.stringify(formData.content ?? ''),
       };
 
-      const response = await fetch(getApiUrl(`/api/articles/${articleId}`), {
+      const response = await fetch(`/api/articles/${articleId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

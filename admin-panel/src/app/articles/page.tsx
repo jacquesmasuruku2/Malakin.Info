@@ -17,7 +17,6 @@ import {
   ExternalLink
 } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
-import { getApiUrl } from '@/lib/api';
 
 interface Article {
   id: string;
@@ -67,7 +66,7 @@ export default function ArticlesPage() {
 
   const fetchArticles = async () => {
     try {
-      const response = await fetch(getApiUrl('/api/articles'));
+      const response = await fetch('/api/articles');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -89,7 +88,7 @@ export default function ArticlesPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(getApiUrl('/api/categories'));
+      const response = await fetch('/api/categories');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -109,7 +108,7 @@ export default function ArticlesPage() {
 
   const deleteArticle = async (id: string) => {
     try {
-      await fetch(getApiUrl(`/api/articles/${id}`), { method: 'DELETE' });
+      await fetch(`/api/articles/${id}`, { method: 'DELETE' });
       fetchArticles();
       setDeleteDialog({ isOpen: false, articleId: null, articleTitle: '' });
     } catch (error) {

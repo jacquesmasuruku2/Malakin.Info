@@ -36,22 +36,9 @@ export default function NewArticlePage() {
     additionalImages: [] as string[],
   });
 
-  // Load draft from localStorage on mount
+  // A new article always starts with a clean form.
   useEffect(() => {
-    const savedDraft = localStorage.getItem('article-draft');
-    if (savedDraft) {
-      try {
-        const draft = JSON.parse(savedDraft);
-        setFormData({
-          ...formData,
-          ...draft,
-          isPremium: draft.isPremium || false,
-          premiumPrice: draft.premiumPrice || '',
-        });
-      } catch (error) {
-        console.error('Error loading draft:', error);
-      }
-    }
+    localStorage.removeItem('article-draft');
   }, []);
 
   // Auto-save to localStorage
@@ -104,7 +91,10 @@ export default function NewArticlePage() {
       });
 
       if (!response.ok) {
-        throw new Error('Erreur lors de la création de l\'article');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.details || errorData.error || 'Erreur lors de la création de l\'article'
+        );
       }
 
       const createdArticle = await response.json();
