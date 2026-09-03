@@ -210,7 +210,7 @@ export default function NewArticlePage() {
   return (
     <ProtectedRoute>
       <AdminLayout>
-        <div className="max-w-5xl mx-auto">
+        <div className="w-full max-w-none">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -243,9 +243,9 @@ export default function NewArticlePage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
+            <div className="grid items-start gap-6 xl:gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
             {/* Main Content Card */}
-            <div className="card rounded-xl shadow-sm border overflow-hidden lg:sticky lg:top-4">
+            <div className="card rounded-xl shadow-sm border overflow-hidden">
               <div className="p-6 space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -303,7 +303,7 @@ export default function NewArticlePage() {
             </div>
 
             {/* Settings Card */}
-            <div className="card rounded-xl shadow-sm border overflow-hidden">
+            <div className="card rounded-xl shadow-sm border overflow-hidden lg:sticky lg:top-4">
               <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
                 <h2 className="text-lg font-semibold text-primary">Paramètres de l'article</h2>
               </div>
