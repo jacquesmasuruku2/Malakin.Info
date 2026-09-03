@@ -282,7 +282,7 @@ export default async function CatchAllArticlePage({
               <div className="sticky top-24">
                 <ShareButtons
                   title={displayTitle}
-                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${article.category?.slug || 'actualites'}/${slug}`}
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${slug}`}
                   locale={locale}
                   orientation="vertical"
                 />
@@ -332,7 +332,7 @@ export default async function CatchAllArticlePage({
               <div className="xl:hidden">
                 <ShareButtons
                   title={displayTitle}
-                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${article.category?.slug || 'actualites'}/${slug}`}
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${slug}`}
                   locale={locale}
                 />
               </div>
