@@ -195,7 +195,14 @@
 }
 
 body {
-  font-family: var(--font-mono), monospace;
+  font-family: Arial, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: Arial, sans-serif;
 }
 
 /* Classe utilitaire pour les cartes */
