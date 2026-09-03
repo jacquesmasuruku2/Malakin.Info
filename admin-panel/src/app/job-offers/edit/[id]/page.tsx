@@ -69,19 +69,30 @@ export default function JobOfferEditPage() {
       
       // Extraire les rubriques détaillées depuis l'objet details
       const details = data.details as any || {};
+      const combinedDescription = [
+        data.description,
+        details.missions && `<h2>Missions principales</h2>${details.missions}`,
+        details.profile && `<h2>Profil recherché</h2>${details.profile}`,
+        details.qualities && `<h2>Qualités recherchées</h2>${details.qualities}`,
+        details.editorialLine && `<h2>Ligne éditoriale</h2>${details.editorialLine}`,
+        details.collaborationConditions && `<h2>Conditions de collaboration</h2>${details.collaborationConditions}`,
+        details.applicationDocuments && `<h2>Dossier de candidature</h2>${details.applicationDocuments}`,
+        details.selectionProcess && `<h2>Processus de sélection</h2>${details.selectionProcess}`,
+        data.requirements && `<h2>Exigences</h2>${data.requirements}`,
+      ].filter(Boolean).join('');
       
       setFormData({
         title: data.title,
         slug: data.slug,
-        description: data.description,
-        requirements: data.requirements || '',
-        missions: details.missions || '',
-        profile: details.profile || '',
-        qualities: details.qualities || '',
-        editorialLine: details.editorialLine || '',
-        collaborationConditions: details.collaborationConditions || '',
-        applicationDocuments: details.applicationDocuments || '',
-        selectionProcess: details.selectionProcess || '',
+        description: combinedDescription,
+        requirements: '',
+        missions: '',
+        profile: '',
+        qualities: '',
+        editorialLine: '',
+        collaborationConditions: '',
+        applicationDocuments: '',
+        selectionProcess: '',
         location: data.location || '',
         type: data.type,
         salary: data.salary || '',
@@ -489,86 +500,6 @@ export default function JobOfferEditPage() {
                   <WordEditor
                     content={formData.description}
                     onChange={(content) => setFormData({ ...formData, description: content })}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Missions principales
-                  </label>
-                  <WordEditor
-                    content={formData.missions}
-                    onChange={(content) => setFormData({ ...formData, missions: content })}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Profil recherché
-                  </label>
-                  <WordEditor
-                    content={formData.profile}
-                    onChange={(content) => setFormData({ ...formData, profile: content })}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Qualités recherchées
-                  </label>
-                  <WordEditor
-                    content={formData.qualities}
-                    onChange={(content) => setFormData({ ...formData, qualities: content })}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ligne éditoriale
-                  </label>
-                  <WordEditor
-                    content={formData.editorialLine}
-                    onChange={(content) => setFormData({ ...formData, editorialLine: content })}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Conditions de collaboration
-                  </label>
-                  <WordEditor
-                    content={formData.collaborationConditions}
-                    onChange={(content) => setFormData({ ...formData, collaborationConditions: content })}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Dossier de candidature
-                  </label>
-                  <WordEditor
-                    content={formData.applicationDocuments}
-                    onChange={(content) => setFormData({ ...formData, applicationDocuments: content })}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Processus de sélection
-                  </label>
-                  <WordEditor
-                    content={formData.selectionProcess}
-                    onChange={(content) => setFormData({ ...formData, selectionProcess: content })}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Exigences (optionnel - peut être inclus dans les rubriques ci-dessus)
-                  </label>
-                  <WordEditor
-                    content={formData.requirements}
-                    onChange={(content) => setFormData({ ...formData, requirements: content })}
                   />
                 </div>
 
