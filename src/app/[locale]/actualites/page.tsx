@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Calendar, Clock, ArrowRight } from 'lucide-react';
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
@@ -7,13 +8,19 @@ import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 export const dynamic = 'force-dynamic';
 
 export default async function ActualitesPage({
-  params
+  params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>
+  searchParams?: Promise<{ page?: string }>
 }) {
   const { locale } = await params;
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const requestedPage = Number.parseInt(resolvedSearchParams.page || '1', 10);
+  const currentPage = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const pageSize = 12;
 
-  // Fetch all articles with their categories
+  // Fetch one page of articles with their categories.
   const articles = await withRetry(() => prisma.article.findMany({
     include: {
       category: true,
@@ -22,8 +29,17 @@ export default async function ActualitesPage({
     orderBy: {
       publishedAt: 'desc',
     },
-    take: 12,
+    skip: (currentPage - 1) * pageSize,
+    take: pageSize,
   } as any)) || [];
+  const totalArticles = await withRetry(() => prisma.article.count()) || 0;
+  const totalPages = Math.max(1, Math.ceil(totalArticles / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  if (currentPage !== safeCurrentPage) {
+    const query = safeCurrentPage === 1 ? '' : `?page=${safeCurrentPage}`;
+    redirect(`/${locale}/actualites${query}`);
+  }
 
   // Fetch all categories and compute article counts without a non-existent relation field
   const categories = await withRetry(() => prisma.category.findMany()) || [];
@@ -216,25 +232,35 @@ export default async function ActualitesPage({
                 </div>
 
                 {/* Pagination */}
-                <div className="flex justify-center mt-8">
-                  <nav className="flex items-center gap-2">
-                    <button className="px-4 py-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                      Précédent
-                    </button>
-                    <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg">
-                      1
-                    </button>
-                    <button className="px-4 py-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                      2
-                    </button>
-                    <button className="px-4 py-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                      3
-                    </button>
-                    <button className="px-4 py-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-                      Suivant
-                    </button>
+                {totalPages > 1 && (
+                  <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="Pagination des actualités">
+                    {safeCurrentPage > 1 ? (
+                      <Link href={`/${locale}/actualites?page=${safeCurrentPage - 1}`} className="rounded-lg bg-muted px-4 py-2 transition-colors hover:bg-muted/80">
+                        Précédent
+                      </Link>
+                    ) : (
+                      <span className="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-muted-foreground/50">Précédent</span>
+                    )}
+
+                    {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                      page === safeCurrentPage ? (
+                        <span key={page} aria-current="page" className="rounded-lg bg-primary px-4 py-2 text-primary-foreground">{page}</span>
+                      ) : (
+                        <Link key={page} href={`/${locale}/actualites?page=${page}`} className="rounded-lg bg-muted px-4 py-2 transition-colors hover:bg-muted/80">
+                          {page}
+                        </Link>
+                      )
+                    ))}
+
+                    {safeCurrentPage < totalPages ? (
+                      <Link href={`/${locale}/actualites?page=${safeCurrentPage + 1}`} className="rounded-lg bg-muted px-4 py-2 transition-colors hover:bg-muted/80">
+                        Suivant
+                      </Link>
+                    ) : (
+                      <span className="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-muted-foreground/50">Suivant</span>
+                    )}
                   </nav>
-                </div>
+                )}
               </>
             ) : (
               <div className="bg-card rounded-lg p-12 text-center">
