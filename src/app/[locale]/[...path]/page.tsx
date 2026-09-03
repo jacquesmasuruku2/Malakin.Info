@@ -325,9 +325,12 @@ export default async function CatchAllArticlePage({
                 <div className="mb-8 rounded-lg overflow-hidden">
                   <img
                     src={article.mainImageUrl}
-                    alt={displayTitle}
+                    alt={article.mainImageAlt || displayTitle}
                     className="w-full h-auto object-cover"
                   />
+                  {article.mainImageAlt && (
+                    <p className="pt-2 text-sm italic text-gray-500">{article.mainImageAlt}</p>
+                  )}
                 </div>
               )}
 

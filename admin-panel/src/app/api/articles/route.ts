@@ -47,8 +47,10 @@ export async function POST(request: NextRequest) {
         premiumPrice: body.premiumPrice ? parseFloat(body.premiumPrice) : null,
         readTime: body.readTime,
         mainImageUrl: body.mainImageUrl,
+        mainImageAlt: body.mainImageAlt || null,
         externalLink: body.externalLink || null,
         additionalImages: body.additionalImages || [],
+        additionalImageDescriptions: body.additionalImageDescriptions || [],
       },
       include: {
         category: true,

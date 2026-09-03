@@ -64,6 +64,7 @@ model Article {
   externalLink      String?
   mainImageAlt      String?
   additionalImages  Json?              @default("[]")
+  additionalImageDescriptions Json?    @default("[]")
   readTime          String?
   featured          Boolean            @default(false)
   isPremium         Boolean            @default(false)

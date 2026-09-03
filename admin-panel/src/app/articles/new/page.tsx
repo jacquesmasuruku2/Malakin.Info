@@ -32,8 +32,10 @@ export default function NewArticlePage() {
     premiumPrice: '',
     readTime: '',
     mainImageUrl: '',
+    mainImageAlt: '',
     externalLink: '',
     additionalImages: [] as string[],
+    additionalImageDescriptions: [] as string[],
   });
 
   // A new article always starts with a clean form.
@@ -147,8 +149,10 @@ export default function NewArticlePage() {
       premiumPrice: '',
       readTime: '',
       mainImageUrl: '',
+      mainImageAlt: '',
       externalLink: '',
       additionalImages: [] as string[],
+      additionalImageDescriptions: [] as string[],
     });
   };
 
@@ -461,6 +465,15 @@ export default function NewArticlePage() {
                         </button>
                       </div>
                     )}
+                    {formData.mainImageUrl && (
+                      <input
+                        type="text"
+                        value={formData.mainImageAlt}
+                        onChange={(e) => setFormData({ ...formData, mainImageAlt: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg italic text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Description de l'image"
+                      />
+                    )}
                     <p className="text-sm text-gray-500">
                       Collez l'URL de votre image ou uploadez-la directement vers Cloudflare R2.
                     </p>
@@ -516,7 +529,8 @@ export default function NewArticlePage() {
                             type="button"
                             onClick={() => {
                               const newImages = formData.additionalImages.filter((_, i) => i !== index);
-                              setFormData({ ...formData, additionalImages: newImages });
+                                const descriptions = formData.additionalImageDescriptions.filter((_, i) => i !== index);
+                                setFormData({ ...formData, additionalImages: newImages, additionalImageDescriptions: descriptions });
                             }}
                             className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                           >
@@ -532,6 +546,17 @@ export default function NewArticlePage() {
                             />
                           </div>
                         )}
+                        <input
+                          type="text"
+                          value={formData.additionalImageDescriptions[index] || ''}
+                          onChange={(e) => {
+                            const descriptions = [...formData.additionalImageDescriptions];
+                            descriptions[index] = e.target.value;
+                            setFormData({ ...formData, additionalImageDescriptions: descriptions });
+                          }}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg italic text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Description de l'image"
+                        />
                       </div>
                     ))}
                     {formData.additionalImages.length < 4 && (

@@ -49,8 +49,10 @@ export async function PUT(
         premiumPrice: body.premiumPrice ? parseFloat(body.premiumPrice) : null,
         readTime: body.readTime ? String(body.readTime) : null,
         mainImageUrl: body.mainImageUrl || null,
+        mainImageAlt: body.mainImageAlt || null,
         externalLink: body.externalLink || null,
         additionalImages: body.additionalImages || [],
+        additionalImageDescriptions: body.additionalImageDescriptions || [],
       },
       include: {
         category: true,

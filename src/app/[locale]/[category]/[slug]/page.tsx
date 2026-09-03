@@ -259,9 +259,12 @@ export default async function ArticlePage({
                 <div className="mb-8 overflow-hidden bg-white">
                   <img
                     src={article.mainImageUrl}
-                    alt={displayTitle}
+                    alt={article.mainImageAlt || displayTitle}
                     className="block h-auto w-full object-cover"
                   />
+                  {article.mainImageAlt && (
+                    <p className="px-2 pt-2 text-sm italic text-gray-500">{article.mainImageAlt}</p>
+                  )}
                 </div>
               )}
 
@@ -275,6 +278,9 @@ export default async function ArticlePage({
                           alt={`${displayTitle} - Image ${index + 1}`}
                           className="block h-auto w-full object-cover"
                         />
+                        {Array.isArray(article.additionalImageDescriptions) && article.additionalImageDescriptions[index] && (
+                          <p className="px-2 pt-2 text-sm italic text-gray-500">{article.additionalImageDescriptions[index]}</p>
+                        )}
                       </div>
                     )
                   ))}
