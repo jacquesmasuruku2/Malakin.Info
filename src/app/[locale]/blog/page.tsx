@@ -22,9 +22,8 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
   let posts: any[] = [];
   
   try {
-    posts = await prisma.article.findMany({
+    posts = await prisma.blogPost.findMany({
       include: {
-        category: true,
         author: true,
       },
       orderBy: {
@@ -54,7 +53,7 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
 
   const featuredPosts = posts.slice(0, 3).map((post: any) => ({
     id: post.id,
-    category: post.category?.title || 'Article',
+    category: post.type || 'Article',
     author: post.author?.name || 'Anonyme',
     authorSlug: post.author?.slug,
     title: post.title,
@@ -67,7 +66,7 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
 
   const latestPosts = posts.slice(3).map((post: any) => ({
     id: post.id,
-    category: post.category?.title || 'Article',
+    category: post.type || 'Article',
     author: post.author?.name || 'Anonyme',
     authorSlug: post.author?.slug,
     title: post.title,

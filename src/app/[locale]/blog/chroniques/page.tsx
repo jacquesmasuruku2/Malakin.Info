@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight, FileText } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, FileText, User } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -64,6 +64,20 @@ export default async function ChroniquesPage({ params }: { params: Promise<{ loc
                   <Clock className="w-4 h-4" />
                   {article.readTime ? `${article.readTime} min` : '5 min'}
                 </span>
+                {article.author?.slug ? (
+                  <Link
+                    href={`/${locale}/equipe/${article.author.slug}`}
+                    className="flex items-center gap-1 hover:text-primary transition-colors"
+                  >
+                    <User className="w-4 h-4" />
+                    {article.author.name}
+                  </Link>
+                ) : article.author?.name ? (
+                  <span className="flex items-center gap-1">
+                    <User className="w-4 h-4" />
+                    {article.author.name}
+                  </span>
+                ) : null}
               </div>
               <Link
                 href={`/${locale}/blog/chroniques/${article.slug}`}
