@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
         country,
         isGift: isGift.toString(),
       },
+      allow_promotion_codes: true,
     });
 
     return NextResponse.json({ url: session.url });
