@@ -6,7 +6,7 @@ interface ReadAlsoRendererProps {
   content: string;
 }
 
-const proseClasses = "prose prose-lg w-full max-w-none !max-w-none text-[1.02rem] leading-[1.9] text-gray-800 md:text-[1.12rem] prose-headings:font-bold prose-headings:text-gray-900 prose-headings:tracking-[-0.02em] prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-5 prose-p:mt-0 prose-p:first-of-type:font-bold prose-p:first-of-type:text-[1.08em] prose-p:first-of-type:leading-[1.8] prose-p:first-of-type:text-gray-900 prose-a:text-red-700 prose-a:no-underline hover:prose-a:underline prose-img:my-6 prose-img:rounded-none prose-img:shadow-none prose-strong:text-gray-900 prose-blockquote:border-l-2 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-1";
+const proseClasses = "prose prose-lg w-full min-w-0 max-w-none !max-w-none break-words text-[1.02rem] leading-[1.9] text-gray-800 md:text-[1.12rem] prose-headings:font-bold prose-headings:text-gray-900 prose-headings:tracking-[-0.02em] prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-5 prose-p:mt-0 prose-p:first-of-type:font-bold prose-p:first-of-type:text-[1.08em] prose-p:first-of-type:leading-[1.8] prose-p:first-of-type:text-gray-900 prose-a:text-red-700 prose-a:no-underline hover:prose-a:underline prose-img:my-6 prose-img:h-auto prose-img:max-w-full prose-img:rounded-none prose-img:shadow-none prose-table:block prose-table:max-w-full prose-table:overflow-x-auto prose-pre:max-w-full prose-pre:overflow-x-auto prose-iframe:max-w-full prose-strong:text-gray-900 prose-blockquote:border-l-2 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-1";
 
 const dropCapStyles = `
   .article-dropcap {

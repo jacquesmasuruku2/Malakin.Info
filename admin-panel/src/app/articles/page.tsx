@@ -154,12 +154,12 @@ export default function ArticlesPage() {
     <ProtectedRoute>
       <AdminLayout>
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-primary">Articles</h1>
               <p className="text-secondary mt-1">Gérer tous vos articles</p>
             </div>
-            <div className="flex items-center gap-3">
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
               <Link 
                 href="/articles/external"
                 className="flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"

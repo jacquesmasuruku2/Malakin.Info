@@ -560,10 +560,10 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
         {/* Layout Tab */}
         {activeTab === 'layout' && (
           <div className="p-2 flex gap-2 items-center bg-gradient-to-b from-gray-50 to-white">
-            <button className="p-2 hover:bg-blue-100 rounded transition-colors" title="Orientation">
+            <button type="button" className="p-2 hover:bg-blue-100 rounded transition-colors" title="Orientation">
               <FileText className="w-4 h-4" />
             </button>
-            <button className="p-2 hover:bg-blue-100 rounded transition-colors" title="Marges">
+            <button type="button" className="p-2 hover:bg-blue-100 rounded transition-colors" title="Marges">
               <FileText className="w-4 h-4" />
             </button>
           </div>
@@ -578,9 +578,9 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
         </div>
       </div>
 
-      <div className="bg-[#f4f4f3] p-6 lg:p-8" style={{ minHeight: '600px' }}>
+      <div className="overflow-x-auto bg-[#f4f4f3] p-3 sm:p-6 lg:p-8" style={{ minHeight: '600px' }}>
         <div 
-          className="bg-white shadow-[0_0_0_1px_rgba(15,23,42,0.06),0_16px_40px_rgba(15,23,42,0.08)] mx-auto min-h-[900px] p-8 lg:p-12"
+          className="mx-auto min-h-[900px] bg-white p-5 shadow-[0_0_0_1px_rgba(15,23,42,0.06),0_16px_40px_rgba(15,23,42,0.08)] sm:p-8 lg:p-12"
           style={{ 
             width: '100%',
             maxWidth: '1500px',
@@ -588,12 +588,12 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
             transformOrigin: 'top center'
           }}
         >
-          <EditorContent editor={editor} className="prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-[760px] leading-relaxed text-[15px]" />
+            <EditorContent editor={editor} className="prose prose-sm min-w-0 max-w-none break-words focus:outline-none min-h-[760px] leading-relaxed text-[15px] sm:prose-base" />
         </div>
       </div>
 
-      <div className="bg-[#1f2937] text-white px-4 py-2 flex items-center justify-between text-xs">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-2 bg-[#1f2937] px-4 py-2 text-xs text-white sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <span className="flex items-center gap-1">
             <FileText className="w-3 h-3" />
             {wordCount} mots
@@ -606,6 +606,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
         </div>
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => handleZoom(-10)}
             className="p-1 hover:bg-gray-700 rounded"
             title="Zoom arrière"
@@ -614,6 +615,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
           </button>
           <span className="w-12 text-center">{zoom}%</span>
           <button
+            type="button"
             onClick={() => handleZoom(10)}
             className="p-1 hover:bg-gray-700 rounded"
             title="Zoom avant"

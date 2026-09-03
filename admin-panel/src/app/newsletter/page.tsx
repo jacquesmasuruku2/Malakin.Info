@@ -469,12 +469,12 @@ export default function NewsletterSubscribersPage() {
             </div>
 
             {filtered.length > 0 && (
-              <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4">
+              <div className="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <p className="text-sm text-gray-700">
                   Affichage de <span className="font-medium">{(safeCurrentPage - 1) * pageSize + 1}</span> à <span className="font-medium">{Math.min(safeCurrentPage * pageSize, filtered.length)}</span> sur <span className="font-medium">{filtered.length}</span> abonnés
                 </p>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
