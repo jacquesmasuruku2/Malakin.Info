@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grip, LogOut, Settings, Heart, MessageSquare, Bookmark, Menu } from 'lucide-react';
+import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grip, LogOut, Settings, Heart, MessageSquare, Bookmark, Menu, Handshake } from 'lucide-react';
 import SearchBar from './SearchBar';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
@@ -98,6 +98,7 @@ export default function Navigation() {
     { name: t.scienceTech, href: `/${locale}/science-tech` },
     { name: t.culture, href: `/${locale}/culture` },
     { name: t.sport, href: `/${locale}/sport` },
+    { name: t.partnerships, href: `/${locale}/partenariats` },
     { name: t.supportUs, href: `/${locale}/nous-soutenir` },
   ];
 
@@ -124,6 +125,7 @@ export default function Navigation() {
         { name: t.society, href: `/${locale}/societe` },
         { name: t.health, href: `/${locale}/sante` },
         { name: t.security, href: `/${locale}/securite` },
+        { name: t.partnerships, href: `/${locale}/partenariats` },
       ],
     },
     {
@@ -213,6 +215,16 @@ export default function Navigation() {
         { name: t.chronicles, href: `/${locale}/blog/chroniques` },
         { name: t.investigations, href: `/${locale}/blog/enquetes` },
         { name: t.polls, href: `/${locale}/blog/sondages` },
+      ],
+    },
+    {
+      title: t.partnerships,
+      icon: Handshake,
+      items: [
+        { name: locale === 'fr' ? 'Publicité & Sponsorship' : 'Advertising & Sponsorship', href: `/${locale}/partenariats` },
+        { name: locale === 'fr' ? 'Partenariats Éditoriaux' : 'Editorial Partnerships', href: `/${locale}/partenariats` },
+        { name: locale === 'fr' ? 'Solutions Digitales' : 'Digital Solutions', href: `/${locale}/partenariats` },
+        { name: locale === 'fr' ? 'Partenariats Institutionnels' : 'Institutional Partnerships', href: `/${locale}/partenariats` },
       ],
     },
     {
@@ -419,6 +431,9 @@ export default function Navigation() {
             </Link>
             <Link href={`/${locale}/sport`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
               {t.sport}
+            </Link>
+            <Link href={`/${locale}/partenariats`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+              {t.partnerships}
             </Link>
             <Link href={`/${locale}/religion`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
               {t.religion}

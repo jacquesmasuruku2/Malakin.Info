@@ -1,286 +1,272 @@
-'use client';
+import Link from 'next/link';
+import { Handshake, Sparkles, Target, Users, Globe, Zap, Mail, ArrowRight, Building2, TrendingUp, Award, CheckCircle2 } from 'lucide-react';
 
-import { useState } from 'react';
-import { Mail, Phone, MapPin, Building, Users, Heart, Send, CheckCircle, AlertCircle } from 'lucide-react';
+export default async function PartenariatsPage({ 
+  params 
+}: { 
+  params: Promise<{ locale: string }> 
+}) {
+  const { locale } = await params;
+  
+  const isFrench = locale === 'fr';
 
-export default function PartenariatsPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    company: '',
-    partnershipType: '',
-    message: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState('');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitStatus('idle');
-    setErrorMessage('');
-
-    try {
-      const response = await fetch('/api/partnerships', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+  const content = {
+    hero: {
+      title: isFrench ? 'Partenariats Stratégiques' : 'Strategic Partnerships',
+      subtitle: isFrench 
+        ? 'Construisons ensemble l\'avenir de l\'information africaine' 
+        : 'Building the future of African information together',
+      badge: isFrench ? 'Opportunités de collaboration' : 'Collaboration opportunities'
+    },
+    whyPartner: {
+      title: isFrench ? 'Pourquoi devenir partenaire ?' : 'Why become a partner?',
+      subtitle: isFrench 
+        ? 'Rejoignez un écosystème média en pleine croissance en Afrique' 
+        : 'Join a growing media ecosystem in Africa',
+      reasons: [
+        {
+          icon: Users,
+          title: isFrench ? 'Audience Qualifiée' : 'Qualified Audience',
+          description: isFrench 
+            ? 'Accès à une audience de plus de 2 millions de lecteurs actifs et engagés' 
+            : 'Access to an audience of over 2 million active and engaged readers'
         },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        setSubmitStatus('success');
-        setFormData({ name: '', email: '', company: '', partnershipType: '', message: '' });
-      } else {
-        const error = await response.json();
-        setSubmitStatus('error');
-        setErrorMessage(error.error || 'Une erreur est survenue');
-      }
-    } catch (error) {
-      setSubmitStatus('error');
-      setErrorMessage('Une erreur est survenue lors de l\'envoi de la demande');
-    } finally {
-      setIsSubmitting(false);
+        {
+          icon: Globe,
+          title: isFrench ? 'Couverture Pan-Africaine' : 'Pan-African Coverage',
+          description: isFrench 
+            ? 'Présence dans plus de 30 pays africains et diaspora mondiale' 
+            : 'Presence in over 30 African countries and global diaspora'
+        },
+        {
+          icon: TrendingUp,
+          title: isFrench ? 'Croissance Rapide' : 'Rapid Growth',
+          description: isFrench 
+            ? 'Taux de croissance annuel de 45% et engagement exceptionnel' 
+            : '45% annual growth rate and exceptional engagement'
+        },
+        {
+          icon: Award,
+          title: isFrench ? 'Crédibilité & Confiance' : 'Credibility & Trust',
+          description: isFrench 
+            ? 'Journalisme de haute qualité reconnu pour son intégrité' 
+            : 'High-quality journalism recognized for its integrity'
+        }
+      ]
+    },
+    partnershipTypes: {
+      title: isFrench ? 'Types de Partenariats' : 'Partnership Types',
+      subtitle: isFrench 
+        ? 'Des solutions adaptées à vos objectifs commerciaux' 
+        : 'Solutions tailored to your business objectives',
+      types: [
+        {
+          icon: Building2,
+          title: isFrench ? 'Publicité & Sponsorship' : 'Advertising & Sponsorship',
+          description: isFrench 
+            ? 'Formats publicitaires premium, sponsoring de contenus et campagnes sur mesure' 
+            : 'Premium ad formats, content sponsorship, and custom campaigns',
+          features: [
+            isFrench ? 'Bannières display et natives' : 'Display and native banners',
+            isFrench ? 'Articles sponsorisés et advertorials' : 'Sponsored articles and advertorials',
+            isFrench ? 'Vidéos publicitaires' : 'Video advertisements',
+            isFrench ? 'Campagnes par email' : 'Email campaigns'
+          ]
+        },
+        {
+          icon: Target,
+          title: isFrench ? 'Partenariats Éditoriaux' : 'Editorial Partnerships',
+          description: isFrench 
+            ? 'Collaborations de fond, dossiers thématiques et événements exclusifs' 
+            : 'Deep collaborations, thematic dossiers, and exclusive events',
+          features: [
+            isFrench ? 'Dossiers spéciaux et enquêtes' : 'Special reports and investigations',
+            isFrench ? 'Conférences et événements' : 'Conferences and events',
+            isFrench ? 'Webinaires et podcasts' : 'Webinars and podcasts',
+            isFrench ? 'Édition de livres blancs' : 'White paper publishing'
+          ]
+        },
+        {
+          icon: Zap,
+          title: isFrench ? 'Solutions Digitales' : 'Digital Solutions',
+          description: isFrench 
+            ? 'Innovation technologique, produits digitaux et expériences immersives' 
+            : 'Technological innovation, digital products, and immersive experiences',
+          features: [
+            isFrench ? 'Applications mobiles' : 'Mobile applications',
+            isFrench ? 'Réalité virtuelle et augmentée' : 'Virtual and augmented reality',
+            isFrench ? 'Plateformes de données' : 'Data platforms',
+            isFrench ? 'Intelligence artificielle' : 'Artificial intelligence'
+          ]
+        },
+        {
+          icon: Handshake,
+          title: isFrench ? 'Partenariats Institutionnels' : 'Institutional Partnerships',
+          description: isFrench 
+            ? 'Collaborations avec ONG, gouvernements et organisations internationales' 
+            : 'Collaborations with NGOs, governments, and international organizations',
+          features: [
+            isFrench ? 'Projets de développement' : 'Development projects',
+            isFrench ? 'Campagnes de sensibilisation' : 'Awareness campaigns',
+            isFrench ? 'Formation et éducation' : 'Training and education',
+            isFrench ? 'Échanges de connaissances' : 'Knowledge exchange'
+          ]
+        }
+      ]
+    },
+    stats: {
+      title: isFrench ? 'Nos chiffres clés' : 'Our key figures',
+      items: [
+        { value: '2M+', label: isFrench ? 'Lecteurs actifs' : 'Active readers' },
+        { value: '30+', label: isFrench ? 'Pays couverts' : 'Countries covered' },
+        { value: '45%', label: isFrench ? 'Croissance annuelle' : 'Annual growth' },
+        { value: '85%', label: isFrench ? 'Taux d\'engagement' : 'Engagement rate' }
+      ]
+    },
+    cta: {
+      title: isFrench ? 'Prêt à collaborer ?' : 'Ready to collaborate?',
+      subtitle: isFrench 
+        ? 'Contactez notre équipe pour discuter de votre projet de partenariat' 
+        : 'Contact our team to discuss your partnership project',
+      buttonText: isFrench ? 'Démarrer la discussion' : 'Start the discussion'
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const partnershipTypes = [
-    {
-      icon: Building,
-      title: 'Partenariat Commercial',
-      description: 'Collaborations publicitaires, sponsoring et placements de marque.',
-      color: 'bg-primary',
-    },
-    {
-      icon: Users,
-      title: 'Partenariat Média',
-      description: 'Échanges de contenu, diffusion croisée et co-production.',
-      color: 'bg-accent',
-    },
-    {
-      icon: Heart,
-      title: 'Partenariat Institutionnel',
-      description: 'Collaborations avec ONG, institutions gouvernementales et organisations internationales.',
-      color: 'bg-secondary',
-    },
-  ];
-
   return (
-    <div className="flex flex-col">
-      <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="font-heading text-5xl font-bold mb-4">Partenariats</h1>
-          <p className="text-xl text-gray-200 max-w-2xl mx-auto">
-            Ensemble, construisons l\'avenir de l\'information africaine. Découvrez nos opportunités de collaboration.
-          </p>
+    <div className="min-h-screen bg-[#fafaf8]">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#081c3d] via-[#0b3b8b] to-[#1e5bb8] text-white">
+        <div className="absolute inset-0 bg-[url('/images/pattern.png')] opacity-10" />
+        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-32">
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d4af37]">
+              <Sparkles className="h-4 w-4" />
+              {content.hero.badge}
+            </div>
+            <h1 className="font-heading text-4xl font-black tracking-[-0.03em] sm:text-5xl lg:text-6xl mb-6">
+              {content.hero.title}
+            </h1>
+            <p className="text-xl text-blue-100 sm:text-2xl">
+              {content.hero.subtitle}
+            </p>
+          </div>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          <div>
-            <h2 className="font-heading text-3xl font-bold mb-8">Nos types de partenariats</h2>
-            <div className="space-y-6">
-              {partnershipTypes.map((type, index) => {
-                const Icon = type.icon;
-                return (
-                  <div
-                    key={index}
-                    className="bg-card rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow border-l-4 border-primary"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 ${type.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                        <Icon className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                          {type.title}
-                        </h3>
-                        <p className="text-muted-foreground">{type.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+      {/* Stats Section */}
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {content.stats.items.map((stat, index) => (
+            <div key={index} className="rounded-2xl border border-[#e1e4e8] bg-white p-6 text-center shadow-sm">
+              <div className="text-3xl font-black text-[#081c3d] sm:text-4xl">{stat.value}</div>
+              <div className="mt-2 text-sm font-medium text-slate-600">{stat.label}</div>
             </div>
+          ))}
+        </div>
+      </section>
 
-            <div className="mt-12 bg-gradient-to-br from-primary/10 to-accent/10 rounded-xl p-8">
-              <h3 className="font-heading text-2xl font-bold mb-4">Pourquoi nous choisir ?</h3>
-              <ul className="space-y-3">
-                {[
-                  'Audience de plus de 2 millions de visiteurs mensuels',
-                  'Couverture de 54 pays africains',
-                  'Contenu de haute qualité et indépendant',
-                  'Engagement fort avec notre communauté',
-                  'Innovation dans le journalisme numérique',
-                ].map((benefit, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                    <span className="text-foreground">{benefit}</span>
+      {/* Why Partner Section */}
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+        <div className="mx-auto max-w-3xl text-center mb-12">
+          <h2 className="font-heading text-3xl font-black text-[#081c3d] sm:text-4xl mb-4">
+            {content.whyPartner.title}
+          </h2>
+          <p className="text-lg text-slate-600">
+            {content.whyPartner.subtitle}
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          {content.whyPartner.reasons.map((reason, index) => (
+            <div key={index} className="rounded-2xl border border-[#e1e4e8] bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-start gap-4">
+                <div className="rounded-xl bg-[#0b3b8b]/10 p-3 text-[#0b3b8b]">
+                  <reason.icon className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-heading text-xl font-bold text-[#081c3d] mb-2">
+                    {reason.title}
+                  </h3>
+                  <p className="text-slate-600">
+                    {reason.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Partnership Types Section */}
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+        <div className="mx-auto max-w-3xl text-center mb-12">
+          <h2 className="font-heading text-3xl font-black text-[#081c3d] sm:text-4xl mb-4">
+            {content.partnershipTypes.title}
+          </h2>
+          <p className="text-lg text-slate-600">
+            {content.partnershipTypes.subtitle}
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          {content.partnershipTypes.types.map((type, index) => (
+            <div key={index} className="rounded-2xl border border-[#e1e4e8] bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="rounded-xl bg-[#d4af37]/10 p-3 text-[#d4af37]">
+                  <type.icon className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-heading text-xl font-bold text-[#081c3d] mb-2">
+                    {type.title}
+                  </h3>
+                  <p className="text-slate-600 text-sm">
+                    {type.description}
+                  </p>
+                </div>
+              </div>
+              
+              <ul className="space-y-2">
+                {type.features.map((feature, featureIndex) => (
+                  <li key={featureIndex} className="flex items-center gap-2 text-sm text-slate-600">
+                    <CheckCircle2 className="h-4 w-4 text-[#0b3b8b] flex-shrink-0" />
+                    {feature}
                   </li>
                 ))}
               </ul>
             </div>
-          </div>
+          ))}
+        </div>
+      </section>
 
-          <div>
-            <h2 className="font-heading text-3xl font-bold mb-8">Contactez-nous</h2>
+      {/* CTA Section */}
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+        <div className="rounded-3xl border border-[#d4af37]/30 bg-gradient-to-br from-[#081c3d] to-[#0b3b8b] p-8 sm:p-12 text-center text-white">
+          <h2 className="font-heading text-3xl font-black sm:text-4xl mb-4">
+            {content.cta.title}
+          </h2>
+          <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
+            {content.cta.subtitle}
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link
+              href={`/${locale}/contact`}
+              className="inline-flex items-center gap-2 rounded-full bg-[#d4af37] px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-[#081c3d] transition-colors hover:bg-[#c4a335]"
+            >
+              {content.cta.buttonText}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
             
-            {submitStatus === 'success' ? (
-              <div className="bg-card rounded-xl p-8 text-center border-2 border-green-500">
-                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <h3 className="font-heading text-2xl font-semibold text-foreground mb-2">
-                  Message envoyé !
-                </h3>
-                <p className="text-muted-foreground">
-                  Nous vous répondrons dans les plus brefs délais.
-                </p>
-              </div>
-            ) : (
-              <>
-                {submitStatus === 'error' && (
-                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-600" />
-                    <p className="text-red-800">{errorMessage}</p>
-                  </div>
-                )}
-                <form onSubmit={handleSubmit} className="bg-card rounded-xl p-8 shadow-sm">
-                <div className="space-y-6">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
-                      Nom complet *
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-                      placeholder="Votre nom"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
-                      Email professionnel *
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-                      placeholder="votre@email.com"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="company" className="block text-sm font-medium text-foreground mb-2">
-                      Entreprise / Organisation *
-                    </label>
-                    <input
-                      type="text"
-                      id="company"
-                      name="company"
-                      value={formData.company}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-                      placeholder="Nom de votre organisation"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="partnershipType" className="block text-sm font-medium text-foreground mb-2">
-                      Type de partenariat souhaité *
-                    </label>
-                    <select
-                      id="partnershipType"
-                      name="partnershipType"
-                      value={formData.partnershipType}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-                    >
-                      <option value="">Sélectionnez un type</option>
-                      <option value="commercial">Partenariat Commercial</option>
-                      <option value="media">Partenariat Média</option>
-                      <option value="institutional">Partenariat Institutionnel</option>
-                      <option value="other">Autre</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-foreground mb-2">
-                      Votre message *
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      required
-                      rows={5}
-                      className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors resize-none"
-                      placeholder="Décrivez votre projet de partenariat..."
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Send className="w-5 h-5" />
-                    {isSubmitting ? 'Envoi en cours...' : 'Envoyer ma demande'}
-                  </button>
-                </div>
-              </form>
-              </>
-            )}
-
-            <div className="mt-8 space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                  <Mail className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium text-foreground">partenariats@malakinfo.com</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                  <Phone className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Téléphone</p>
-                  <p className="font-medium text-foreground">+243 123 456 789</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                  <MapPin className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Adresse</p>
-                  <p className="font-medium text-foreground">Kinshasa, RDC</p>
-                </div>
-              </div>
-            </div>
+            <Link
+              href={`mailto:partnerships@malakinfo.com`}
+              className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-white transition-colors hover:bg-white/20"
+            >
+              <Mail className="h-4 w-4" />
+              partnerships@malakinfo.com
+            </Link>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
