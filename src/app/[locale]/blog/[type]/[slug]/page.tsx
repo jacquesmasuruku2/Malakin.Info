@@ -27,6 +27,12 @@ export default async function BlogPostPage({
       },
     });
 
+    console.log('[Blog Post Page] Blog post found:', blogPost?.title);
+    console.log('[Blog Post Page] AuthorId:', blogPost?.authorId);
+    console.log('[Blog Post Page] Author data:', blogPost?.author);
+    console.log('[Blog Post Page] Author name:', blogPost?.author?.name);
+    console.log('[Blog Post Page] Author slug:', blogPost?.author?.slug);
+
     if (!blogPost) {
       notFound();
     }

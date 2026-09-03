@@ -30,6 +30,15 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
         publishedAt: 'desc',
       },
     } as any);
+    console.log('[Blog Page] Posts retrieved:', posts.length);
+    console.log('[Blog Page] First post authorId:', posts[0]?.authorId);
+    console.log('[Blog Page] First post author object:', posts[0]?.author);
+    console.log('[Blog Page] Sample posts with authorId:', posts.slice(0, 3).map(p => ({
+      title: p.title,
+      authorId: p.authorId,
+      authorName: p.author?.name,
+      authorSlug: p.author?.slug
+    })));
   } catch (error) {
     console.error('Database connection error:', error);
   }
@@ -198,20 +207,22 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
                           {post.date}
                         </span>
                         <span>{post.readTime}</span>
-                        {post.authorSlug ? (
-                          <Link
-                            href={`/${locale}/equipe/${post.authorSlug}`}
-                            className="flex items-center gap-1 hover:text-primary transition-colors"
-                          >
-                            <User className="w-4 h-4" />
-                            {post.author}
-                          </Link>
-                        ) : (
-                          <span className="flex items-center gap-1">
-                            <User className="w-4 h-4" />
-                            {post.author}
-                          </span>
-                        )}
+                        {post.author ? (
+                          post.authorSlug ? (
+                            <Link
+                              href={`/${locale}/equipe/${post.authorSlug}`}
+                              className="flex items-center gap-1 hover:text-primary transition-colors"
+                            >
+                              <User className="w-4 h-4" />
+                              {post.author}
+                            </Link>
+                          ) : (
+                            <span className="flex items-center gap-1">
+                              <User className="w-4 h-4" />
+                              {post.author}
+                            </span>
+                          )
+                        ) : null}
                       </div>
                       <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
                         {post.title}
@@ -255,20 +266,22 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
                           {post.date}
                         </span>
                         <span>{post.readTime}</span>
-                        {post.authorSlug ? (
-                          <Link
-                            href={`/${locale}/equipe/${post.authorSlug}`}
-                            className="flex items-center gap-1 hover:text-primary transition-colors"
-                          >
-                            <User className="w-4 h-4" />
-                            {post.author}
-                          </Link>
-                        ) : (
-                          <span className="flex items-center gap-1">
-                            <User className="w-4 h-4" />
-                            {post.author}
-                          </span>
-                        )}
+                        {post.author ? (
+                          post.authorSlug ? (
+                            <Link
+                              href={`/${locale}/equipe/${post.authorSlug}`}
+                              className="flex items-center gap-1 hover:text-primary transition-colors"
+                            >
+                              <User className="w-4 h-4" />
+                              {post.author}
+                            </Link>
+                          ) : (
+                            <span className="flex items-center gap-1">
+                              <User className="w-4 h-4" />
+                              {post.author}
+                            </span>
+                          )
+                        ) : null}
                       </div>
                     </div>
                   </article>

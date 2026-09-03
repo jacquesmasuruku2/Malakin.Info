@@ -21,6 +21,15 @@ export default async function ChroniquesPage({ params }: { params: Promise<{ loc
         publishedAt: 'desc',
       },
     });
+    console.log('[Chroniques Page] Articles retrieved:', articles.length);
+    console.log('[Chroniques Page] First article authorId:', articles[0]?.authorId);
+    console.log('[Chroniques Page] First article author:', articles[0]?.author);
+    console.log('[Chroniques Page] Sample articles:', articles.slice(0, 3).map(a => ({
+      title: a.title,
+      authorId: a.authorId,
+      authorName: a.author?.name,
+      authorSlug: a.author?.slug
+    })));
   } catch (error) {
     console.error('Database connection error:', error);
   }
@@ -64,19 +73,21 @@ export default async function ChroniquesPage({ params }: { params: Promise<{ loc
                   <Clock className="w-4 h-4" />
                   {article.readTime ? `${article.readTime} min` : '5 min'}
                 </span>
-                {article.author?.slug ? (
-                  <Link
-                    href={`/${locale}/equipe/${article.author.slug}`}
-                    className="flex items-center gap-1 hover:text-primary transition-colors"
-                  >
-                    <User className="w-4 h-4" />
-                    {article.author.name}
-                  </Link>
-                ) : article.author?.name ? (
-                  <span className="flex items-center gap-1">
-                    <User className="w-4 h-4" />
-                    {article.author.name}
-                  </span>
+                {article.author ? (
+                  article.author.slug ? (
+                    <Link
+                      href={`/${locale}/equipe/${article.author.slug}`}
+                      className="flex items-center gap-1 hover:text-primary transition-colors"
+                    >
+                      <User className="w-4 h-4" />
+                      {article.author.name}
+                    </Link>
+                  ) : (
+                    <span className="flex items-center gap-1">
+                      <User className="w-4 h-4" />
+                      {article.author.name}
+                    </span>
+                  )
                 ) : null}
               </div>
               <Link
