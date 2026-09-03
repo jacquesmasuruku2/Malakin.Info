@@ -7,7 +7,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import Link from '@tiptap/extension-link';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Scissors, 
   Copy, 
@@ -64,6 +64,8 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
   const [isHighlightColorPickerOpen, setIsHighlightColorPickerOpen] = useState(false);
   const [textColor, setTextColor] = useState('#000000');
   const [highlightColor, setHighlightColor] = useState('#ffff00');
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const previousScrollY = useRef(0);
 
   const editor = useEditor({
     extensions: [
@@ -120,6 +122,30 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
 
     updateCounts(editor.getText());
   }, [editor, content]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerWidth >= 1024 || !toolbarRef.current) return;
+
+      const currentScrollY = window.scrollY;
+      const scrollingUp = currentScrollY < previousScrollY.current;
+      const toolbarReachedTop = toolbarRef.current.getBoundingClientRect().top <= 1;
+
+      window.dispatchEvent(new CustomEvent('editor-toolbar-visibility', {
+        detail: scrollingUp && toolbarReachedTop,
+      }));
+      previousScrollY.current = currentScrollY;
+    };
+
+    previousScrollY.current = window.scrollY;
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+      window.dispatchEvent(new CustomEvent('editor-toolbar-visibility', { detail: false }));
+    };
+  }, []);
 
   const updateCounts = (text: string) => {
     const words = text.trim().split(/\s+/).filter(word => word.length > 0);
@@ -183,7 +209,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
 
   return (
     <div className="relative isolate bg-[#f3f3f1] rounded-xl overflow-visible border border-[#d9d9d7] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">
-      <div className="sticky top-0 z-50 max-w-full bg-[#f7f6f4] border-b border-[#d5d2ce] shadow-[0_1px_0_rgba(15,23,42,0.06)]">
+      <div ref={toolbarRef} className="sticky top-0 z-50 max-w-full bg-[#f7f6f4] border-b border-[#d5d2ce] shadow-[0_1px_0_rgba(15,23,42,0.06)]">
         <div className="flex border-b border-[#e6e2dd] bg-[#f3f1ee]">
           {['home', 'insert', 'layout'].map((tab) => (
             <button

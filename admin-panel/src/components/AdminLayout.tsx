@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
@@ -29,6 +29,16 @@ export default function AdminLayout({
   const router = useRouter();
   const { logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isEditorToolbarActive, setIsEditorToolbarActive] = useState(false);
+
+  useEffect(() => {
+    const handleEditorToolbarVisibility = (event: Event) => {
+      setIsEditorToolbarActive((event as CustomEvent<boolean>).detail);
+    };
+
+    window.addEventListener('editor-toolbar-visibility', handleEditorToolbarVisibility);
+    return () => window.removeEventListener('editor-toolbar-visibility', handleEditorToolbarVisibility);
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -57,7 +67,7 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-color)' }}>
       {/* Mobile header */}
-      <div className="sticky top-0 z-40 lg:hidden bg-white border-b border-gray-200 px-4 py-3">
+      <div className={`sticky top-0 z-40 lg:hidden bg-white border-b border-gray-200 px-4 py-3 transition-transform duration-200 ${isEditorToolbarActive ? '-translate-y-full' : 'translate-y-0'}`}>
         <div className="flex items-center justify-between">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
