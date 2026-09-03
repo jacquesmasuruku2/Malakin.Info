@@ -1,13 +1,35 @@
-import Link from 'next/link';
-import { Handshake, Sparkles, Target, Users, Globe, Zap, Mail, ArrowRight, Building2, TrendingUp, Award, CheckCircle2 } from 'lucide-react';
+'use client';
 
-export default async function PartenariatsPage({ 
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Handshake, Sparkles, Target, Users, Globe, Zap, Mail, ArrowRight, Building2, TrendingUp, Award, CheckCircle2, Send, CheckCircle, AlertCircle, Phone, MapPin } from 'lucide-react';
+
+export default function PartenariatsPage({ 
   params 
 }: { 
   params: Promise<{ locale: string }> 
 }) {
-  const { locale } = await params;
-  
+  const [formData, setFormData] = useState({
+    companyName: '',
+    contactName: '',
+    email: '',
+    phone: '',
+    partnershipType: '',
+    message: '',
+    budget: '',
+    timeline: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [locale, setLocale] = useState('fr');
+
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      setLocale(resolvedParams.locale);
+    });
+  }, [params]);
+
   const isFrench = locale === 'fr';
 
   const content = {
@@ -123,12 +145,95 @@ export default async function PartenariatsPage({
         { value: '85%', label: isFrench ? 'Taux d\'engagement' : 'Engagement rate' }
       ]
     },
-    cta: {
-      title: isFrench ? 'Prêt à collaborer ?' : 'Ready to collaborate?',
+    form: {
+      title: isFrench ? 'Démarrer votre partenariat' : 'Start your partnership',
       subtitle: isFrench 
-        ? 'Contactez notre équipe pour discuter de votre projet de partenariat' 
-        : 'Contact our team to discuss your partnership project',
-      buttonText: isFrench ? 'Démarrer la discussion' : 'Start the discussion'
+        ? 'Remplissez ce formulaire et notre équipe vous contactera sous 48h' 
+        : 'Fill out this form and our team will contact you within 48 hours',
+      fields: {
+        companyName: isFrench ? 'Nom de l\'entreprise' : 'Company name',
+        contactName: isFrench ? 'Nom du contact' : 'Contact name',
+        email: isFrench ? 'Email professionnel' : 'Professional email',
+        phone: isFrench ? 'Téléphone' : 'Phone',
+        partnershipType: isFrench ? 'Type de partenariat' : 'Partnership type',
+        budget: isFrench ? 'Budget estimé' : 'Estimated budget',
+        timeline: isFrench ? 'Délai souhaité' : 'Desired timeline',
+        message: isFrench ? 'Votre message' : 'Your message'
+      },
+      options: {
+        partnershipType: [
+          { value: 'advertising', label: isFrench ? 'Publicité & Sponsorship' : 'Advertising & Sponsorship' },
+          { value: 'editorial', label: isFrench ? 'Partenariats Éditoriaux' : 'Editorial Partnerships' },
+          { value: 'digital', label: isFrench ? 'Solutions Digitales' : 'Digital Solutions' },
+          { value: 'institutional', label: isFrench ? 'Partenariats Institutionnels' : 'Institutional Partnerships' }
+        ],
+        budget: [
+          { value: '1000-5000', label: '$1,000 - $5,000' },
+          { value: '5000-10000', label: '$5,000 - $10,000' },
+          { value: '10000-25000', label: '$10,000 - $25,000' },
+          { value: '25000+', label: isFrench ? '$25,000+' : '$25,000+' }
+        ],
+        timeline: [
+          { value: 'immediate', label: isFrench ? 'Immédiat' : 'Immediate' },
+          { value: '1-3months', label: isFrench ? '1-3 mois' : '1-3 months' },
+          { value: '3-6months', label: isFrench ? '3-6 mois' : '3-6 months' },
+          { value: '6months+', label: isFrench ? '6+ mois' : '6+ months' }
+        ]
+      },
+      submit: isFrench ? 'Envoyer la demande' : 'Submit request',
+      success: isFrench 
+        ? 'Votre demande a été envoyée avec succès ! Nous vous contacterons sous 48h.' 
+        : 'Your request has been sent successfully! We will contact you within 48 hours.',
+      error: isFrench 
+        ? 'Une erreur est survenue. Veuillez réessayer.' 
+        : 'An error occurred. Please try again.'
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+    setErrorMessage('');
+
+    try {
+      const response = await fetch('/api/partnerships', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({
+          companyName: '',
+          contactName: '',
+          email: '',
+          phone: '',
+          partnershipType: '',
+          message: '',
+          budget: '',
+          timeline: ''
+        });
+      } else {
+        const errorData = await response.json();
+        setSubmitStatus('error');
+        setErrorMessage(errorData.message || content.form.error);
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+      setErrorMessage(content.form.error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -238,32 +343,213 @@ export default async function PartenariatsPage({
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Form Section */}
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-        <div className="rounded-3xl border border-[#d4af37]/30 bg-gradient-to-br from-[#081c3d] to-[#0b3b8b] p-8 sm:p-12 text-center text-white">
-          <h2 className="font-heading text-3xl font-black sm:text-4xl mb-4">
-            {content.cta.title}
-          </h2>
-          <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
-            {content.cta.subtitle}
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link
-              href={`/${locale}/contact`}
-              className="inline-flex items-center gap-2 rounded-full bg-[#d4af37] px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-[#081c3d] transition-colors hover:bg-[#c4a335]"
-            >
-              {content.cta.buttonText}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            
-            <Link
-              href={`mailto:partnerships@malakinfo.com`}
-              className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-white transition-colors hover:bg-white/20"
-            >
-              <Mail className="h-4 w-4" />
-              partnerships@malakinfo.com
-            </Link>
+        <div className="mx-auto max-w-3xl">
+          <div className="rounded-3xl border border-[#e1e4e8] bg-white p-8 sm:p-12 shadow-lg">
+            <div className="text-center mb-8">
+              <h2 className="font-heading text-3xl font-black text-[#081c3d] sm:text-4xl mb-4">
+                {content.form.title}
+              </h2>
+              <p className="text-lg text-slate-600">
+                {content.form.subtitle}
+              </p>
+            </div>
+
+            {submitStatus === 'success' && (
+              <div className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-4 flex items-start gap-3">
+                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-green-800">{content.form.success}</p>
+              </div>
+            )}
+
+            {submitStatus === 'error' && (
+              <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800">{errorMessage}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-[#081c3d] mb-2">
+                    {content.form.fields.companyName} <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      name="companyName"
+                      value={formData.companyName}
+                      onChange={handleChange}
+                      required
+                      className="w-full rounded-xl border border-[#e1e4e8] bg-white py-3 pl-10 pr-4 text-sm text-[#081c3d] outline-none transition focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/10"
+                      placeholder={isFrench ? 'Votre entreprise' : 'Your company'}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#081c3d] mb-2">
+                    {content.form.fields.contactName} <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Users className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      name="contactName"
+                      value={formData.contactName}
+                      onChange={handleChange}
+                      required
+                      className="w-full rounded-xl border border-[#e1e4e8] bg-white py-3 pl-10 pr-4 text-sm text-[#081c3d] outline-none transition focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/10"
+                      placeholder={isFrench ? 'Votre nom' : 'Your name'}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-[#081c3d] mb-2">
+                    {content.form.fields.email} <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full rounded-xl border border-[#e1e4e8] bg-white py-3 pl-10 pr-4 text-sm text-[#081c3d] outline-none transition focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/10"
+                      placeholder="email@company.com"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#081c3d] mb-2">
+                    {content.form.fields.phone}
+                  </label>
+                  <div className="relative">
+                    <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="w-full rounded-xl border border-[#e1e4e8] bg-white py-3 pl-10 pr-4 text-sm text-[#081c3d] outline-none transition focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/10"
+                      placeholder="+243 000 000 000"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-[#081c3d] mb-2">
+                    {content.form.fields.partnershipType} <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="partnershipType"
+                    value={formData.partnershipType}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-xl border border-[#e1e4e8] bg-white py-3 px-4 text-sm text-[#081c3d] outline-none transition focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/10"
+                  >
+                    <option value="">{isFrench ? 'Sélectionnez...' : 'Select...'}</option>
+                    {content.form.options.partnershipType.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#081c3d] mb-2">
+                    {content.form.fields.budget}
+                  </label>
+                  <select
+                    name="budget"
+                    value={formData.budget}
+                    onChange={handleChange}
+                    className="w-full rounded-xl border border-[#e1e4e8] bg-white py-3 px-4 text-sm text-[#081c3d] outline-none transition focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/10"
+                  >
+                    <option value="">{isFrench ? 'Sélectionnez...' : 'Select...'}</option>
+                    {content.form.options.budget.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#081c3d] mb-2">
+                  {content.form.fields.timeline}
+                </label>
+                <select
+                  name="timeline"
+                  value={formData.timeline}
+                  onChange={handleChange}
+                  className="w-full rounded-xl border border-[#e1e4e8] bg-white py-3 px-4 text-sm text-[#081c3d] outline-none transition focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/10"
+                >
+                  <option value="">{isFrench ? 'Sélectionnez...' : 'Select...'}</option>
+                  {content.form.options.timeline.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#081c3d] mb-2">
+                  {content.form.fields.message} <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                  rows={4}
+                  className="w-full rounded-xl border border-[#e1e4e8] bg-white py-3 px-4 text-sm text-[#081c3d] outline-none transition focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/10 resize-none"
+                  placeholder={isFrench ? 'Décrivez votre projet de partenariat...' : 'Describe your partnership project...'}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#0b3b8b] px-8 py-4 text-sm font-bold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#082a63] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    {isFrench ? 'Envoi en cours...' : 'Sending...'}
+                  </span>
+                ) : (
+                  <>
+                    {content.form.submit}
+                    <Send className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="mt-8 pt-8 border-t border-[#e1e4e8]">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center text-sm text-slate-600">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  <span>partnerships@malakinfo.com</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  <span>+243 000 000 000</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  <span>Kinshasa, RDC</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

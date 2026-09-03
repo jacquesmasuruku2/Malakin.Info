@@ -1,58 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { sendTelegramMessage } from '@/lib/telegram';
-
-// Helper function to add CORS headers
-function cors(response: NextResponse) {
-  response.headers.set('Access-Control-Allow-Origin', 'https://dashboard.malakinfo.com');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  response.headers.set('Access-Control-Allow-Credentials', 'true');
-  return response;
-}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, company, partnershipType, message } = body;
+    
+    const {
+      companyName,
+      contactName,
+      email,
+      phone,
+      partnershipType,
+      message,
+      budget,
+      timeline
+    } = body;
 
-    if (!name || !email || !company || !partnershipType) {
+    // Validation
+    if (!companyName || !contactName || !email || !partnershipType || !message) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { message: 'Missing required fields' },
         { status: 400 }
       );
     }
 
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { message: 'Invalid email format' },
+        { status: 400 }
+      );
+    }
+
+    // Create partnership request
     const partnership = await prisma.partnership.create({
       data: {
-        companyName: company,
-        contactName: name,
+        companyName,
+        contactName,
         email,
+        phone: phone || null,
         type: partnershipType,
-        description: message || null,
-      },
+        description: `${message}${budget ? `\n\nBudget: ${budget}` : ''}${timeline ? `\n\nTimeline: ${timeline}` : ''}`,
+        status: 'pending'
+      }
     });
 
-    const telegramResult = await sendTelegramMessage(
-      `Nouvelle demande de partenariat :\nSociété : ${company}\nContact : ${name}\nEmail : ${email}\nType : ${partnershipType}`
-    );
-    console.log('Telegram notification result (partnership):', telegramResult);
-
     return NextResponse.json(
-      { message: 'Partnership request submitted successfully', id: partnership.id },
+      { 
+        message: 'Partnership request submitted successfully',
+        partnershipId: partnership.id 
+      },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error creating partnership request:', error);
+    console.error('Error creating partnership:', error);
     return NextResponse.json(
-      { error: 'Failed to submit partnership request' },
+      { message: 'Internal server error' },
       { status: 500 }
     );
   }
-}
-
-export async function OPTIONS() {
-  return cors(new NextResponse(null, { status: 200 }));
 }
 
 export async function GET(request: NextRequest) {
@@ -65,16 +72,17 @@ export async function GET(request: NextRequest) {
     const partnerships = await prisma.partnership.findMany({
       where,
       orderBy: {
-        createdAt: 'desc',
+        createdAt: 'desc'
       },
+      take: 50
     });
 
-    return cors(NextResponse.json(partnerships));
+    return NextResponse.json({ partnerships });
   } catch (error) {
-    console.error('Error fetching partnership requests:', error);
-    return cors(NextResponse.json(
-      { error: 'Failed to fetch partnership requests', partnerships: [] },
+    console.error('Error fetching partnerships:', error);
+    return NextResponse.json(
+      { message: 'Internal server error' },
       { status: 500 }
-    ));
+    );
   }
 }
