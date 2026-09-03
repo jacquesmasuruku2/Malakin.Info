@@ -158,13 +158,13 @@ export default function EditArticlePage() {
     setUploadingImage(true);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', 'Images_blogs');
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('folder', 'Images_blogs');
 
       const response = await fetch('/api/upload', {
         method: 'POST',
-        body: formData,
+        body: uploadFormData,
       });
 
       if (!response.ok) {
