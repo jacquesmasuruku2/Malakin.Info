@@ -292,7 +292,7 @@ export default function Footer() {
                 {[nav.contact, t.advertising, nav.supportUs].map((item, index) => (
                   <Link 
                     key={index}
-                    href={`/${locale}/${['contact', 'partenariats', 'nous-soutenir'][index]}`} 
+                    href={`/${locale}/${['contact', 'partenaires', 'nous-soutenir'][index]}`}
                     className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:translate-x-2 flex items-center gap-1 group"
                   >
                     <div className="w-1 h-1 bg-red-500 rounded-full group-hover:scale-150 transition-transform" />

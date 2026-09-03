@@ -98,7 +98,7 @@ export default function Navigation() {
     { name: t.scienceTech, href: `/${locale}/science-tech` },
     { name: t.culture, href: `/${locale}/culture` },
     { name: t.sport, href: `/${locale}/sport` },
-    { name: t.partnerships, href: `/${locale}/partenariats` },
+    { name: t.partnerships, href: `/${locale}/partenaires` },
     { name: t.supportUs, href: `/${locale}/nous-soutenir` },
   ];
 
@@ -125,7 +125,7 @@ export default function Navigation() {
         { name: t.society, href: `/${locale}/societe` },
         { name: t.health, href: `/${locale}/sante` },
         { name: t.security, href: `/${locale}/securite` },
-        { name: t.partnerships, href: `/${locale}/partenariats` },
+        { name: t.partnerships, href: `/${locale}/partenaires` },
       ],
     },
     {
@@ -221,10 +221,10 @@ export default function Navigation() {
       title: t.partnerships,
       icon: Handshake,
       items: [
-        { name: locale === 'fr' ? 'Publicité & Sponsorship' : 'Advertising & Sponsorship', href: `/${locale}/partenariats` },
-        { name: locale === 'fr' ? 'Partenariats Éditoriaux' : 'Editorial Partnerships', href: `/${locale}/partenariats` },
-        { name: locale === 'fr' ? 'Solutions Digitales' : 'Digital Solutions', href: `/${locale}/partenariats` },
-        { name: locale === 'fr' ? 'Partenariats Institutionnels' : 'Institutional Partnerships', href: `/${locale}/partenariats` },
+        { name: locale === 'fr' ? 'Publicité & Sponsorship' : 'Advertising & Sponsorship', href: `/${locale}/partenaires` },
+        { name: locale === 'fr' ? 'Partenariats Éditoriaux' : 'Editorial Partnerships', href: `/${locale}/partenaires` },
+        { name: locale === 'fr' ? 'Solutions Digitales' : 'Digital Solutions', href: `/${locale}/partenaires` },
+        { name: locale === 'fr' ? 'Partenariats Institutionnels' : 'Institutional Partnerships', href: `/${locale}/partenaires` },
       ],
     },
     {
@@ -432,7 +432,7 @@ export default function Navigation() {
             <Link href={`/${locale}/sport`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
               {t.sport}
             </Link>
-            <Link href={`/${locale}/partenariats`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/partenaires`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
               {t.partnerships}
             </Link>
             <Link href={`/${locale}/religion`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">

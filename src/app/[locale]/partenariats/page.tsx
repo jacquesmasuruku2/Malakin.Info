@@ -314,9 +314,9 @@ export default function PartenariatsPage({
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4 [scrollbar-width:thin]">
           {content.partnershipTypes.types.map((type, index) => (
-            <div key={index} className="rounded-2xl border border-[#e1e4e8] bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div key={index} className="w-[min(86vw,440px)] shrink-0 snap-start rounded-2xl border border-[#e1e4e8] bg-white p-6 shadow-sm transition-shadow hover:shadow-md md:w-[min(62vw,520px)]">
               <div className="flex items-start gap-4 mb-4">
                 <div className="rounded-xl bg-[#d4af37]/10 p-3 text-[#d4af37]">
                   <type.icon className="h-6 w-6" />

@@ -44,7 +44,7 @@ export default function ServicesModal() {
     { name: t.employment, href: `/${locale}/emploi` },
     { name: t.media, href: `/${locale}/medias` },
     { name: t.music, href: `/${locale}/culture/musique` },
-    { name: t.partnerships, href: `/${locale}/partenariats` },
+    { name: t.partnerships, href: `/${locale}/partenaires` },
     { name: t.scienceTech, href: `/${locale}/science-tech` },
     { name: t.search, href: `/${locale}/recherche` },
     { name: t.support, href: `/${locale}/nous-soutenir` },
