@@ -6,6 +6,7 @@ import NewsletterSignupInline from '@/components/NewsletterSignupInline';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 import { withRetry } from '@/lib/database';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
+import RadioHomeButton from '@/components/RadioHomeButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -166,6 +167,9 @@ export default async function Home({
 
       {/* Main Editorial Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-5 flex justify-end">
+          <RadioHomeButton />
+        </div>
         <div className="mb-8 border-b border-gray-200 pb-4">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {categoryFilters.map((item) => {

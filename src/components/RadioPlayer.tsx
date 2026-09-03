@@ -64,6 +64,7 @@ export default function RadioPlayer() {
   const [isMounted, setIsMounted] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isDesktopOpen, setIsDesktopOpen] = useState(false);
   const lastScrollYRef = useRef(0);
 
   // Load saved state on mount
@@ -346,6 +347,7 @@ export default function RadioPlayer() {
 
   useEffect(() => {
     const handleRadioToggle = () => {
+      setIsDesktopOpen(true);
       void togglePlayback();
     };
 
@@ -375,7 +377,7 @@ export default function RadioPlayer() {
       />
 
       <div
-        className={`${isMobile || isMediaPage ? 'fixed' : 'hidden'} z-[60] border border-white/10 bg-slate-950/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out ${
+        className={`${isMobile || isMediaPage || isDesktopOpen ? 'fixed' : 'hidden'} z-[60] border border-white/10 bg-slate-950/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out ${
           isMobile ? 'inset-x-0 bottom-0 rounded-t-2xl border-b-0' : 'right-[max(1rem,calc((100vw-80rem)/2+1rem))] top-[5.5rem] w-[min(300px,calc(100vw-2rem))] rounded-full'
         } ${!isMobile && isHidden ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'}`}
       >

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { ArrowRight, Calendar, Clock, TrendingUp } from 'lucide-react';
 import NewsletterSignupInline from '@/components/NewsletterSignupInline';
+import RadioHomeButton from '@/components/RadioHomeButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -143,6 +144,7 @@ export default async function Home() {
               >
                 En savoir plus
               </Link>
+              <RadioHomeButton />
             </div>
           </div>
         </div>
