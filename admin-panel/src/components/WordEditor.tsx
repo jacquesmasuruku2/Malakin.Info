@@ -129,10 +129,10 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
 
       const currentScrollY = window.scrollY;
       const scrollingUp = currentScrollY < previousScrollY.current;
-      const toolbarReachedTop = toolbarRef.current.getBoundingClientRect().top <= 1;
+      const toolbarReachedTop = toolbarRef.current.getBoundingClientRect().top <= 56;
 
       window.dispatchEvent(new CustomEvent('editor-toolbar-visibility', {
-        detail: scrollingUp && toolbarReachedTop,
+        detail: window.scrollY > 0 && scrollingUp && toolbarReachedTop,
       }));
       previousScrollY.current = currentScrollY;
     };
