@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   const origin = request.headers.get('origin');
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'http://localhost:3001', 'https://dashboard.malakinfo.com'];
   
-  // Check if origin is allowed
+  // Only check CORS if origin is provided (for cross-origin requests)
   if (origin && !allowedOrigins.includes(origin)) {
     return NextResponse.json(
       { error: 'Origin not allowed' },
