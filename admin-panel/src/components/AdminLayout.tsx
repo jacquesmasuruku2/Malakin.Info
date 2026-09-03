@@ -16,7 +16,9 @@ import {
   MessageSquare,
   Briefcase,
   Radio
-  ,Music
+  ,Music,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 
@@ -29,6 +31,7 @@ export default function AdminLayout({
   const router = useRouter();
   const { logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isEditorToolbarActive, setIsEditorToolbarActive] = useState(false);
 
   useEffect(() => {
@@ -83,21 +86,32 @@ export default function AdminLayout({
       <div className="flex min-w-0">
         {/* Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-[min(82vw,16rem)] transform transition-transform duration-300 ease-in-out lg:w-64 lg:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-50 w-[min(82vw,16rem)] transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
+            isSidebarCollapsed ? 'lg:w-20' : 'lg:w-64'
+          } ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
           style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}
         >
           <div className="flex flex-col h-full">
             {/* Logo */}
-            <div className="flex items-center space-x-2 p-6 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
+            <div className={`flex items-center border-b p-4 ${isSidebarCollapsed ? 'justify-center' : 'space-x-2'} lg:p-6`} style={{ borderColor: 'var(--sidebar-border)' }}>
               <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--primary)' }}>
                 <Shield className="w-6 h-6 text-white" />
               </div>
-              <div>
+              <div className={isSidebarCollapsed ? 'hidden' : ''}>
                 <span className="font-heading font-bold text-xl" style={{ color: 'var(--primary)' }}>Malakin</span>
                 <span className="font-heading font-bold text-xl" style={{ color: 'var(--text-primary)' }}>.info</span>
               </div>
+              <button
+                type="button"
+                onClick={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
+                className={`hidden lg:inline-flex items-center justify-center rounded-md p-2 text-secondary transition-colors hover:bg-gray-100 hover:text-primary ${isSidebarCollapsed ? '' : 'ml-auto'}`}
+                aria-label={isSidebarCollapsed ? 'Afficher les libellés du menu' : 'Masquer les libellés du menu'}
+                title={isSidebarCollapsed ? 'Afficher les libellés' : 'Masquer les libellés'}
+              >
+                {isSidebarCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+              </button>
             </div>
 
             {/* Navigation */}
@@ -110,7 +124,8 @@ export default function AdminLayout({
                     <li key={item.name}>
                       <Link
                         href={item.href}
-                        className="flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-md transition-colors"
+                        className={`flex items-center rounded-md py-3 text-sm font-medium transition-colors ${isSidebarCollapsed ? 'justify-center px-2' : 'space-x-3 px-4'}`}
+                        title={isSidebarCollapsed ? item.name : undefined}
                         style={{
                           backgroundColor: isActive ? 'var(--primary-bg)' : 'transparent',
                           color: isActive ? 'var(--primary)' : 'var(--text-secondary)'
@@ -118,7 +133,7 @@ export default function AdminLayout({
                         onClick={() => setIsSidebarOpen(false)}
                       >
                         <Icon className="w-5 h-5" />
-                        <span>{item.name}</span>
+                        <span className={isSidebarCollapsed ? 'hidden' : ''}>{item.name}</span>
                       </Link>
                     </li>
                   );
@@ -127,25 +142,27 @@ export default function AdminLayout({
             </nav>
 
             {/* Footer */}
-            <div className="p-4 border-t" style={{ borderColor: 'var(--sidebar-border)' }}>
+            <div className={`border-t p-4 ${isSidebarCollapsed ? 'lg:px-2' : ''}`} style={{ borderColor: 'var(--sidebar-border)' }}>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex w-full items-center space-x-3 px-4 py-3 text-sm font-medium rounded-md transition-colors hover:bg-red-50 hover:text-red-600"
+                className={`flex w-full items-center rounded-md py-3 text-sm font-medium transition-colors hover:bg-red-50 hover:text-red-600 ${isSidebarCollapsed ? 'justify-center px-2' : 'space-x-3 px-4'}`}
+                title={isSidebarCollapsed ? 'Se déconnecter' : undefined}
                 style={{ color: 'var(--text-secondary)' }}
               >
                 <LogOut className="w-5 h-5" />
-                <span>Se déconnecter</span>
+                <span className={isSidebarCollapsed ? 'hidden' : ''}>Se déconnecter</span>
               </button>
               <a
                 href="https://malakin-info.vercel.app"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2 flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-md transition-colors hover:bg-gray-100 hover:text-red-600"
+                className={`mt-2 flex items-center rounded-md py-3 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-red-600 ${isSidebarCollapsed ? 'justify-center px-2' : 'space-x-3 px-4'}`}
+                title={isSidebarCollapsed ? 'Retour au site' : undefined}
                 style={{ color: 'var(--text-secondary)' }}
               >
                 <span className="w-5 h-5" aria-hidden="true" />
-                <span>Retour au site</span>
+                <span className={isSidebarCollapsed ? 'hidden' : ''}>Retour au site</span>
               </a>
             </div>
           </div>
@@ -160,7 +177,7 @@ export default function AdminLayout({
         )}
 
         {/* Main content */}
-        <main className="min-w-0 flex-1 min-h-screen lg:ml-64">
+        <main className={`min-w-0 flex-1 min-h-screen transition-[margin] duration-300 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
           <div className="p-4 sm:p-6 lg:p-8">
             {children}
           </div>
