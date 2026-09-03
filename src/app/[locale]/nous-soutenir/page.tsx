@@ -24,12 +24,13 @@ export default function NousSoutenirPage() {
   const [isGift, setIsGift] = useState(false);
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const activeDigitalPlan = digitalPlans.find((plan) => plan.id === selectedDigitalPlan) ?? digitalPlans[1];
   const activePrintPlan = printPlans.find((plan) => plan.id === selectedPrintPlan) ?? printPlans[0];
   const activePlan = selectedPlanType === 'digital' ? activeDigitalPlan : activePrintPlan;
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!email.trim()) {
@@ -37,18 +38,46 @@ export default function NousSoutenirPage() {
       return;
     }
 
-    const query = new URLSearchParams({
-      email: email.trim(),
-      plan: activePlan.label,
-      planName: activePlan.label,
-      amount: String(activePlan.price),
-      type: selectedPlanType,
-      country: selectedCountry,
-      gift: String(isGift),
-    });
+    setIsProcessing(true);
+    setError('');
 
-    const redirectUrl = new URL(`./nous-soutenir/faire-un-don/checkout?${query.toString()}`, window.location.href);
-    window.location.href = redirectUrl.toString();
+    try {
+      // Create Stripe checkout session directly
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          amount: activePlan.price,
+          planName: activePlan.label,
+          country: selectedCountry,
+          isGift,
+        }),
+      });
+
+      const { url, error } = await response.json();
+
+      if (error) {
+        console.error('Error creating checkout session:', error);
+        setError('Erreur lors de la création de la session de paiement');
+        setIsProcessing(false);
+        return;
+      }
+
+      // Redirect to Stripe Checkout URL directly
+      if (url) {
+        window.location.href = url;
+      } else {
+        setError('Erreur lors de la création de la session de paiement');
+        setIsProcessing(false);
+      }
+    } catch (error) {
+      console.error('Error during checkout:', error);
+      setError('Erreur lors du traitement du paiement');
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -276,10 +305,11 @@ export default function NousSoutenirPage() {
 
               <button
                 type="submit"
-                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#0B3B8B] px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#082a63]"
+                disabled={isProcessing}
+                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#0B3B8B] px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#082a63] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Prochaine étape
-                <ArrowRight className="h-4 w-4" />
+                {isProcessing ? 'Traitement en cours...' : 'Prochaine étape'}
+                {!isProcessing && <ArrowRight className="h-4 w-4" />}
               </button>
             </aside>
           </div>
