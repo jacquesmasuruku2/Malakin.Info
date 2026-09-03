@@ -303,6 +303,7 @@ export default function EditArticlePage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
             <div className="card rounded-xl shadow-sm border overflow-hidden">
               <div className="p-6 space-y-6">
                 <div>
@@ -351,7 +352,7 @@ export default function EditArticlePage() {
               </div>
             </div>
 
-            <div className="card rounded-xl shadow-sm border overflow-hidden">
+            <div className="card rounded-xl shadow-sm border overflow-hidden lg:sticky lg:top-4">
               <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
                 <h2 className="text-lg font-semibold text-primary">Paramètres de l'article</h2>
               </div>
@@ -648,6 +649,7 @@ export default function EditArticlePage() {
                   </div>
                 )}
               </div>
+            </div>
             </div>
 
             <div className="flex items-center justify-end gap-4 pt-6">

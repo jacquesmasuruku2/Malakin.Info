@@ -239,8 +239,9 @@ export default function NewArticlePage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
             {/* Main Content Card */}
-            <div className="card rounded-xl shadow-sm border overflow-hidden">
+            <div className="card rounded-xl shadow-sm border overflow-hidden lg:sticky lg:top-4">
               <div className="p-6 space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -606,6 +607,7 @@ export default function NewArticlePage() {
                   </div>
                 )}
               </div>
+            </div>
             </div>
 
             {/* Action Buttons */}
