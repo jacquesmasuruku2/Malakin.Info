@@ -17,7 +17,10 @@ export async function GET(
     if (!article) {
       return NextResponse.json({ error: 'Article not found' }, { status: 404 });
     }
-    return NextResponse.json(article);
+    return NextResponse.json({
+      ...article,
+      views: Number(article.views),
+    });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch article' }, { status: 500 });
   }
@@ -54,7 +57,10 @@ export async function PUT(
         author: true,
       },
     });
-    return NextResponse.json(article);
+    return NextResponse.json({
+      ...article,
+      views: Number(article.views),
+    });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update article' }, { status: 500 });
   }
