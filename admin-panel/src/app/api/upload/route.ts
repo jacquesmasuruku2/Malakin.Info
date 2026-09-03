@@ -37,6 +37,8 @@ export async function POST(request: NextRequest) {
     uploadFormData.append('file', file);
     uploadFormData.append('folder', folder);
 
+    console.log('Forwarding upload to:', `${mainSiteUrl}/api/upload`);
+
     const response = await fetch(`${mainSiteUrl}/api/upload`, {
       method: 'POST',
       body: uploadFormData,
@@ -44,6 +46,7 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('Upload API error:', errorData);
       return NextResponse.json(
         { error: errorData.error || 'Upload failed' },
         { status: response.status }
@@ -51,6 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
+    console.log('Upload success:', data);
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error uploading image:', error);
