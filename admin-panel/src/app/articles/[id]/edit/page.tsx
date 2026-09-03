@@ -5,7 +5,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import WordEditor from '@/components/WordEditor';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Save } from 'lucide-react';
+import { Save, Upload, X, Loader2 } from 'lucide-react';
 import { getApiUrl } from '@/lib/api';
 
 interface Article {
@@ -39,6 +39,7 @@ export default function EditArticlePage() {
   const [autoSaving, setAutoSaving] = useState(false);
   const [translationLoading, setTranslationLoading] = useState(false);
   const [translationTargetLocale, setTranslationTargetLocale] = useState('en');
+  const [uploadingImage, setUploadingImage] = useState(false);
   const localeOptions = ['fr', 'en', 'es', 'sw', 'ln', 'rw'];
   const [formData, setFormData] = useState<{
     title: string;
@@ -150,6 +151,42 @@ export default function EditArticlePage() {
       setAuthors(data);
     } catch (error) {
       console.error('Failed to fetch authors:', error);
+    }
+  };
+
+  const handleImageUpload = async (file: File, isMainImage: boolean = true, index?: number) => {
+    setUploadingImage(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'Images_blogs');
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.url) {
+        if (isMainImage) {
+          setFormData({ ...formData, mainImageUrl: data.url });
+        } else if (typeof index === 'number') {
+          const newImages = [...formData.additionalImages];
+          newImages[index] = data.url;
+          setFormData({ ...formData, additionalImages: newImages });
+        }
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Erreur lors de l\'upload de l\'image');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -422,17 +459,55 @@ export default function EditArticlePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">URL de l'image principale</label>
-                  <input
-                    type="url"
-                    value={formData.mainImageUrl}
-                    onChange={(e) => setFormData({ ...formData, mainImageUrl: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="https://res.cloudinary.com/your-cloud/image.jpg"
-                  />
-                  <p className="text-sm text-gray-500 mt-2">
-                    Collez l'URL de votre image hébergée sur Cloudinary, Imgur, ImgBB ou tout autre service d'hébergement d'images.
-                  </p>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Image principale</label>
+                  <div className="space-y-3">
+                    <div className="flex gap-3">
+                      <input
+                        type="url"
+                        value={formData.mainImageUrl}
+                        onChange={(e) => setFormData({ ...formData, mainImageUrl: e.target.value })}
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="https://media.malakinfo.com/Images_blogs/..."
+                      />
+                      <label className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+                        {uploadingImage ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Upload className="w-4 h-4" />
+                        )}
+                        <span className="text-sm">{uploadingImage ? 'Upload...' : 'Uploader'}</span>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleImageUpload(file, true);
+                          }}
+                          className="hidden"
+                          disabled={uploadingImage}
+                        />
+                      </label>
+                    </div>
+                    {formData.mainImageUrl && (
+                      <div className="relative h-48 bg-gray-100 rounded-lg overflow-hidden">
+                        <img
+                          src={formData.mainImageUrl}
+                          alt="Aperçu"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, mainImageUrl: '' })}
+                          className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                    <p className="text-sm text-gray-500">
+                      Collez l'URL de votre image ou uploadez-la directement vers Cloudflare R2.
+                    </p>
+                  </div>
                 </div>
 
                 <div>
@@ -442,30 +517,64 @@ export default function EditArticlePage() {
                   <p className="text-sm text-gray-500 mb-3">
                     Ajoutez jusqu'à 4 images supplémentaires pour illustrer votre article (captures d'écran, etc.).
                   </p>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {formData.additionalImages.map((url, index) => (
-                      <div key={index} className="flex gap-2">
-                        <input
-                          type="url"
-                          value={url}
-                          onChange={(e) => {
-                            const newImages = [...formData.additionalImages];
-                            newImages[index] = e.target.value;
-                            setFormData({ ...formData, additionalImages: newImages });
-                          }}
-                          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          placeholder={`URL de l'image ${index + 1}`}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newImages = formData.additionalImages.filter((_, i) => i !== index);
-                            setFormData({ ...formData, additionalImages: newImages });
-                          }}
-                          className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                        >
-                          Supprimer
-                        </button>
+                      <div key={index} className="space-y-2">
+                        <div className="flex gap-2">
+                          <input
+                            type="url"
+                            value={url}
+                            onChange={(e) => {
+                              const newImages = [...formData.additionalImages];
+                              newImages[index] = e.target.value;
+                              setFormData({ ...formData, additionalImages: newImages });
+                            }}
+                            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            placeholder={`URL de l'image ${index + 1}`}
+                          />
+                          <label className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+                            {uploadingImage ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Upload className="w-4 h-4" />
+                            )}
+                            <span className="text-sm">Upload</span>
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const newImages = [...formData.additionalImages];
+                                  newImages[index] = ''; // Clear current URL
+                                  setFormData({ ...formData, additionalImages: newImages });
+                                  handleImageUpload(file, false, index);
+                                }
+                              }}
+                              className="hidden"
+                              disabled={uploadingImage}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newImages = formData.additionalImages.filter((_, i) => i !== index);
+                              setFormData({ ...formData, additionalImages: newImages });
+                            }}
+                            className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+                        {url && (
+                          <div className="relative h-32 bg-gray-100 rounded-lg overflow-hidden">
+                            <img
+                              src={url}
+                              alt={`Aperçu ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
                       </div>
                     ))}
                     {formData.additionalImages.length < 4 && (
