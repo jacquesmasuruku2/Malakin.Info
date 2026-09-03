@@ -26,7 +26,7 @@ const normalizeText = (value: string | null | undefined, maxLength = 200) => {
 };
 
 const buildArticleUrl = (article: NewsletterArticle) => {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com';
+  const baseUrl = 'https://malakinfo.com';
   const locale = 'fr';
   const slug = article.slug || '';
 
