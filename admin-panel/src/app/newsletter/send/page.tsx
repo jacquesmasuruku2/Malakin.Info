@@ -6,6 +6,13 @@ import NewsletterArticleSelector, { type NewsletterArticleOption } from '@/compo
 import { generateCustomNewsletterHtml, generateMalakinfoNewsletterHtml } from '@/lib/newsletter';
 import { Loader2, Send } from 'lucide-react';
 
+type NewsletterSubscriber = {
+  id: string;
+  email: string;
+  name: string | null;
+  isActive: boolean;
+};
+
 export default function NewsletterSendPage() {
   const [articles, setArticles] = useState<NewsletterArticleOption[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -22,6 +29,10 @@ export default function NewsletterSendPage() {
   const [imageLinkUrl, setImageLinkUrl] = useState('');
   const [buttonLabel, setButtonLabel] = useState('');
   const [buttonUrl, setButtonUrl] = useState('');
+  const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
+  const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
+  const [recipientMode, setRecipientMode] = useState<'include' | 'exclude'>('include');
+  const [subscriberSearch, setSubscriberSearch] = useState('');
 
   useEffect(() => {
     const loadArticles = async () => {
@@ -57,6 +68,26 @@ export default function NewsletterSendPage() {
     loadArticles();
   }, []);
 
+  useEffect(() => {
+    const loadSubscribers = async () => {
+      try {
+        const response = await fetch('/api/newsletter');
+        if (!response.ok) throw new Error('Impossible de charger les abonnés');
+        const data = await response.json();
+        const activeSubscribers = Array.isArray(data)
+          ? data.filter((subscriber: NewsletterSubscriber) => subscriber.isActive)
+          : [];
+        setSubscribers(activeSubscribers);
+        setSelectedEmails(activeSubscribers.map((subscriber) => subscriber.email));
+      } catch (error) {
+        console.error(error);
+        setStatus({ type: 'error', message: 'Impossible de charger les abonnés.' });
+      }
+    };
+
+    loadSubscribers();
+  }, []);
+
   const selectedArticles = useMemo(
     () => selectedIds.map((id) => articles.find((article) => article.id === id)).filter(Boolean) as NewsletterArticleOption[],
     [articles, selectedIds],
@@ -88,6 +119,10 @@ export default function NewsletterSendPage() {
   const previewContainerKey = `${previewMode}-${selectedIds.join('-') || 'empty'}`;
 
   const handleSubmit = async () => {
+    if (recipientMode === 'include' && selectedEmails.length === 0) {
+      setStatus({ type: 'error', message: 'Sélectionnez au moins un destinataire.' });
+      return;
+    }
     if (mode === 'articles' && (selectedArticles.length < 1 || selectedArticles.length > 6)) {
       setStatus({ type: 'error', message: 'Veuillez sélectionner entre 1 et 6 articles.' });
       return;
@@ -106,6 +141,9 @@ export default function NewsletterSendPage() {
         html: htmlPreview,
         text: customContent || 'Newsletter Malakinfo',
         filter: { activeOnly: true },
+        ...(recipientMode === 'include'
+          ? { includeEmails: selectedEmails }
+          : { excludeEmails: selectedEmails }),
       };
 
       const response = await fetch('/api/newsletter/send', {
@@ -170,6 +208,40 @@ export default function NewsletterSendPage() {
               className="w-full rounded-lg border border-slate-300 px-3 py-2 shadow-sm outline-none focus:border-red-500"
               required
             />
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-slate-900">Destinataires</h2>
+                <p className="text-xs text-slate-500">
+                  {recipientMode === 'include' ? 'Seuls les abonnés cochés recevront cet email.' : 'Les abonnés cochés seront exclus de cet envoi.'}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 rounded-lg border border-slate-200 bg-white p-1">
+                <button type="button" onClick={() => setRecipientMode('include')} className={`rounded-md px-3 py-2 text-xs font-semibold ${recipientMode === 'include' ? 'bg-[#081c3d] text-white' : 'text-slate-600'}`}>
+                  Envoyer aux cochés
+                </button>
+                <button type="button" onClick={() => setRecipientMode('exclude')} className={`rounded-md px-3 py-2 text-xs font-semibold ${recipientMode === 'exclude' ? 'bg-[#081c3d] text-white' : 'text-slate-600'}`}>
+                  Exclure les cochés
+                </button>
+              </div>
+            </div>
+            <input value={subscriberSearch} onChange={(event) => setSubscriberSearch(event.target.value)} placeholder="Rechercher un email..." className="mt-4 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#d4af37]" />
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" onClick={() => setSelectedEmails(subscribers.map((subscriber) => subscriber.email))} className="text-xs font-semibold text-[#0b3b8b]">Tout cocher</button>
+              <button type="button" onClick={() => setSelectedEmails([])} className="text-xs font-semibold text-[#0b3b8b]">Tout décocher</button>
+              <span className="text-xs text-slate-500">{selectedEmails.length} sélectionné(s) sur {subscribers.length}</span>
+            </div>
+            <div className="mt-3 max-h-52 space-y-2 overflow-y-auto rounded-lg border border-slate-200 bg-white p-3">
+              {subscribers.filter((subscriber) => `${subscriber.email} ${subscriber.name || ''}`.toLowerCase().includes(subscriberSearch.toLowerCase())).map((subscriber) => (
+                <label key={subscriber.id} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 text-sm text-slate-700 hover:bg-slate-50">
+                  <input type="checkbox" checked={selectedEmails.includes(subscriber.email)} onChange={(event) => setSelectedEmails((current) => event.target.checked ? [...current, subscriber.email] : current.filter((email) => email !== subscriber.email))} />
+                  <span className="min-w-0 truncate">{subscriber.email}{subscriber.name ? ` (${subscriber.name})` : ''}</span>
+                </label>
+              ))}
+              {subscribers.length === 0 && <p className="text-sm text-slate-500">Aucun abonné actif trouvé.</p>}
+            </div>
           </div>
 
           <div className="grid gap-2 rounded-lg bg-slate-100 p-1 sm:grid-cols-2">
@@ -245,7 +317,7 @@ export default function NewsletterSendPage() {
 
           <button
             type="button"
-            disabled={isSending || (mode === 'articles' && (selectedArticles.length < 1 || selectedArticles.length > 6)) || (mode === 'custom' && (!customTitle.trim() || !customContent.trim()))}
+            disabled={isSending || (recipientMode === 'include' && selectedEmails.length === 0) || (mode === 'articles' && (selectedArticles.length < 1 || selectedArticles.length > 6)) || (mode === 'custom' && (!customTitle.trim() || !customContent.trim()))}
             onClick={handleSubmit}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-6 py-3 text-white shadow-sm hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
           >

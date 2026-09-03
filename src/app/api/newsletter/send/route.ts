@@ -11,6 +11,8 @@ interface Body {
     activeOnly?: boolean;
     interests?: string[];
   };
+  includeEmails?: string[];
+  excludeEmails?: string[];
 }
 
 export async function POST(request: Request) {
@@ -51,12 +53,29 @@ export async function POST(request: Request) {
     }
 
     const safeSubscribers = Array.isArray(subscribers) ? subscribers : [];
+    const hasIncludeList = Array.isArray(body.includeEmails);
+    const includedEmails = new Set(
+      (hasIncludeList ? body.includeEmails || [] : [])
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean),
+    );
+    const excludedEmails = new Set(
+      (Array.isArray(body.excludeEmails) ? body.excludeEmails : [])
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean),
+    );
+    const recipientSubscribers = safeSubscribers.filter((subscriber) => {
+      const email = subscriber.email.toLowerCase();
+      if (hasIncludeList && !includedEmails.has(email)) return false;
+      if (excludedEmails.has(email)) return false;
+      return true;
+    });
     const filteredSubscribers = filter?.interests?.length
-      ? safeSubscribers.filter((subscriber) => {
+      ? recipientSubscribers.filter((subscriber) => {
           const interests = Array.isArray(subscriber.interests) ? subscriber.interests : [];
           return filter.interests?.every((interest) => interests.includes(interest));
         })
-      : safeSubscribers;
+      : recipientSubscribers;
 
     if (filteredSubscribers.length === 0) {
       return NextResponse.json({ message: 'Aucun abonné trouvé pour l’envoi', count: 0 });
