@@ -232,6 +232,10 @@ export default function CookieConsentModal() {
     setIsNewsletterPromptOpen(false);
   };
 
+  const closeNewsletterPromptWithoutSave = () => {
+    setIsNewsletterPromptOpen(false);
+  };
+
   const handleNewsletterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsNewsletterSubmitting(true);
@@ -382,9 +386,9 @@ export default function CookieConsentModal() {
           <div className="newsletter-card-enter relative max-h-[calc(100svh-1rem)] w-full max-w-4xl overflow-y-auto border border-[#d7cdbb] bg-[#f7f3eb] shadow-2xl">
             <button
               type="button"
-              onClick={closeNewsletterPrompt}
+              onClick={closeNewsletterPromptWithoutSave}
               aria-label="Fermer l'inscription à la newsletter"
-              className="newsletter-close absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#081c3d] bg-white/90 text-[#081c3d] transition hover:bg-[#081c3d] hover:text-white"
+              className="newsletter-close absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#081c3d] bg-white/90 text-[#081c3d] transition hover:bg-[#081c3d] hover:text-white pointer-events-auto"
             >
               <X className="h-5 w-5" />
             </button>
