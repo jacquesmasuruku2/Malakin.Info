@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import { Bookmark, Calendar, ExternalLink, User } from 'lucide-react';
+import { getClientAuthHeaders } from '@/lib/client-auth';
 
 export default function FavoritesPage() {
   const { data: session, status } = useSession();
@@ -39,7 +40,9 @@ export default function FavoritesPage() {
   const fetchFavorites = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/user/favorites');
+      const response = await fetch('/api/user/favorites', {
+        headers: getClientAuthHeaders(),
+      });
 
       if (response.ok) {
         const data = await response.json();

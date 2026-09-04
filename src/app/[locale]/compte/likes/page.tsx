@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import { Heart, Calendar, ExternalLink, User } from 'lucide-react';
+import { getClientAuthHeaders } from '@/lib/client-auth';
 
 export default function LikesPage() {
   const { data: session, status } = useSession();
@@ -38,7 +39,9 @@ export default function LikesPage() {
 
   const fetchLikes = async () => {
     try {
-      const response = await fetch('/api/user/likes');
+      const response = await fetch('/api/user/likes', {
+        headers: getClientAuthHeaders(),
+      });
 
       if (response.ok) {
         const data = await response.json();

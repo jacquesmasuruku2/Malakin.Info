@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import { MessageSquare, Calendar, ExternalLink, User, Pencil, Save, X } from 'lucide-react';
+import { getClientAuthHeaders } from '@/lib/client-auth';
 
 export default function CommentsPage() {
   const { data: session, status } = useSession();
@@ -42,7 +43,9 @@ export default function CommentsPage() {
   const fetchComments = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/user/comments');
+      const response = await fetch('/api/user/comments', {
+        headers: getClientAuthHeaders(),
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -70,7 +73,10 @@ export default function CommentsPage() {
       setSaving(true);
       const response = await fetch('/api/user/comments', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getClientAuthHeaders(),
+        },
         body: JSON.stringify({ commentId, content: editingContent.trim() }),
       });
 
