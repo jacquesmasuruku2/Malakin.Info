@@ -9,6 +9,12 @@ async function resolveCurrentUserId(request: NextRequest) {
   if (session?.user?.id) {
     return session.user.id;
   }
+  if (session?.user?.email) {
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+    if (user) {
+      return user.id;
+    }
+  }
 
   // Then try Authorization header (from localStorage)
   const authHeader = request.headers.get('authorization');
