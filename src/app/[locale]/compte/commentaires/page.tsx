@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useParams } from 'next/navigation';
 import { MessageSquare, Calendar, ExternalLink, User, Pencil, Save, X } from 'lucide-react';
 
 export default function CommentsPage() {
   const { data: session, status } = useSession();
+  const { locale } = useParams<{ locale: string }>();
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [localUser, setLocalUser] = useState<any>(null);
@@ -158,7 +160,7 @@ export default function CommentsPage() {
                       Modifier
                     </button>
                     <a
-                      href={`/${comment.article?.slug}`}
+                      href={`/${locale}/${comment.article?.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary hover:text-primary/80"

@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useParams } from 'next/navigation';
 import { Bookmark, Calendar, ExternalLink, User } from 'lucide-react';
 
 export default function FavoritesPage() {
   const { data: session, status } = useSession();
+  const { locale } = useParams<{ locale: string }>();
   const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [localUser, setLocalUser] = useState<any>(null);
@@ -133,7 +135,7 @@ export default function FavoritesPage() {
                           })}
                         </p>
                         <a
-                          href={`/${favorite.article?.slug}`}
+                          href={`/${locale}/${favorite.article?.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-medium"

@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useParams } from 'next/navigation';
 import { Heart, Calendar, ExternalLink, User } from 'lucide-react';
 
 export default function LikesPage() {
   const { data: session, status } = useSession();
+  const { locale } = useParams<{ locale: string }>();
   const [likes, setLikes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [localUser, setLocalUser] = useState<any>(null);
@@ -115,7 +117,7 @@ export default function LikesPage() {
                     })}
                   </p>
                   <a
-                    href={`/${like.article?.slug}`}
+                    href={`/${locale}/${like.article?.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-medium"
