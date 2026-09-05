@@ -1,0 +1,2 @@
+ALTER TABLE "Partnership" ADD COLUMN IF NOT EXISTS "imageUrl" TEXT;
+ALTER TABLE "Partnership" ADD COLUMN IF NOT EXISTS "websiteUrl" TEXT;

@@ -63,7 +63,9 @@ export default function ConfirmDialog({
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            className="rounded-md p-1 text-gray-400 transition-colors hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            aria-label="Fermer"
+            title="Fermer"
           >
             <X className="w-5 h-5" />
           </button>

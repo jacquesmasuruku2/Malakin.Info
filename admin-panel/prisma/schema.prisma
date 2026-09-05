@@ -344,6 +344,8 @@ model Partnership {
   phone       String?
   type        String
   description String?
+  imageUrl    String?
+  websiteUrl  String?
   status      String    @default("pending")
   startDate   DateTime?
   endDate     DateTime?

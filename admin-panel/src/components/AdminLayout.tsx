@@ -13,10 +13,17 @@ import {
   Menu,
   X,
   Shield,
-  MessageSquare,
+  Inbox,
   Briefcase,
-  Radio
-  ,Music,
+  Handshake,
+  Mail,
+  Send,
+  ListVideo,
+  Video,
+  ExternalLink,
+  ClipboardList,
+  Radio,
+  Music,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -55,15 +62,15 @@ export default function AdminLayout({
     { name: 'Catégories', href: '/categories', icon: FolderOpen },
     { name: 'Auteurs', href: '/authors', icon: Users },
     { name: 'Radio', href: '/radio', icon: Radio },
-    { name: 'Émissions radio', href: '/radio/programs', icon: Radio },
-    { name: 'Lives', href: '/lives', icon: Radio },
+    { name: 'Émissions radio', href: '/radio/programs', icon: ListVideo },
+    { name: 'Lives', href: '/lives', icon: Video },
     { name: 'Médias', href: '/media', icon: Music },
-    { name: 'Sponsors', href: '/sponsored', icon: Briefcase },
-    { name: 'Abonnement', href: '/newsletter', icon: MessageSquare },
-    { name: 'Envoyer une newsletter', href: '/newsletter/send', icon: Briefcase },
-    { name: 'Soumissions', href: '/form-submissions', icon: MessageSquare },
+    { name: 'Sponsors', href: '/sponsored', icon: Handshake },
+    { name: 'Abonnement', href: '/newsletter', icon: Mail },
+    { name: 'Envoyer une newsletter', href: '/newsletter/send', icon: Send },
+    { name: 'Soumissions', href: '/form-submissions', icon: Inbox },
     { name: 'Offres d\'emploi', href: '/job-offers', icon: Briefcase },
-    { name: 'Candidatures', href: '/job-applications', icon: Briefcase },
+    { name: 'Candidatures', href: '/job-applications', icon: ClipboardList },
     { name: 'Paramètres', href: '/settings', icon: Settings },
   ];
 
@@ -74,7 +81,8 @@ export default function AdminLayout({
         <div className="flex items-center justify-between">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 hover:bg-gray-100 rounded-md"
+            className="rounded-md p-2 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            aria-label={isSidebarOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
           >
             {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -124,7 +132,7 @@ export default function AdminLayout({
                     <li key={item.name}>
                       <Link
                         href={item.href}
-                        className={`flex items-center rounded-md py-3 text-sm font-medium transition-colors ${isSidebarCollapsed ? 'justify-center px-2' : 'space-x-3 px-4'}`}
+                        className={`flex items-center rounded-md py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${isSidebarCollapsed ? 'justify-center px-2' : 'space-x-3 px-4'}`}
                         title={isSidebarCollapsed ? item.name : undefined}
                         style={{
                           backgroundColor: isActive ? 'var(--primary-bg)' : 'transparent',
@@ -146,7 +154,7 @@ export default function AdminLayout({
               <button
                 type="button"
                 onClick={handleLogout}
-                className={`flex w-full items-center rounded-md py-3 text-sm font-medium transition-colors hover:bg-red-50 hover:text-red-600 ${isSidebarCollapsed ? 'justify-center px-2' : 'space-x-3 px-4'}`}
+                className={`flex w-full items-center rounded-md py-3 text-sm font-medium transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 ${isSidebarCollapsed ? 'justify-center px-2' : 'space-x-3 px-4'}`}
                 title={isSidebarCollapsed ? 'Se déconnecter' : undefined}
                 style={{ color: 'var(--text-secondary)' }}
               >
@@ -157,11 +165,11 @@ export default function AdminLayout({
                 href="https://malakin-info.vercel.app"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`mt-2 flex items-center rounded-md py-3 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-red-600 ${isSidebarCollapsed ? 'justify-center px-2' : 'space-x-3 px-4'}`}
+                className={`mt-2 flex items-center rounded-md py-3 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${isSidebarCollapsed ? 'justify-center px-2' : 'space-x-3 px-4'}`}
                 title={isSidebarCollapsed ? 'Retour au site' : undefined}
                 style={{ color: 'var(--text-secondary)' }}
               >
-                <span className="w-5 h-5" aria-hidden="true" />
+                <ExternalLink className="w-5 h-5" />
                 <span className={isSidebarCollapsed ? 'hidden' : ''}>Retour au site</span>
               </a>
             </div>

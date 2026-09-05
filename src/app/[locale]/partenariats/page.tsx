@@ -7,7 +7,18 @@ type ApprovedPartner = {
   id: string;
   companyName: string;
   type: string;
+  imageUrl: string | null;
+  websiteUrl: string | null;
 };
+
+function getPartnerWebsiteUrl(value: string | null) {
+  if (!value) return null;
+  try {
+    return new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`).toString();
+  } catch {
+    return null;
+  }
+}
 
 export default function PartenariatsPage({ 
   params 
@@ -361,13 +372,14 @@ export default function PartenariatsPage({
                   <div key={partner.id} className="w-full shrink-0 px-1" aria-hidden={activePartnership !== index}>
                     <div className="rounded-2xl border border-[#e1e4e8] bg-white p-8 text-center shadow-sm sm:p-12">
                       <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#d4af37]/10 text-[#d4af37]">
-                        <Building2 className="h-8 w-8" />
+                        {partner.imageUrl ? <img src={partner.imageUrl} alt={partner.companyName} className="h-full w-full rounded-2xl object-cover" /> : <Building2 className="h-8 w-8" />}
                       </div>
                       <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#b88f18]">
                         {isFrench ? 'Partenaire approuvé' : 'Approved partner'}
                       </p>
                       <h3 className="font-heading text-2xl font-bold text-[#081c3d] sm:text-3xl">{partner.companyName}</h3>
                       <p className="mt-3 text-sm text-slate-600">{partner.type}</p>
+                      {getPartnerWebsiteUrl(partner.websiteUrl) && <a href={getPartnerWebsiteUrl(partner.websiteUrl) || undefined} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex text-sm font-semibold text-[#0b3b8b] underline underline-offset-4 hover:text-[#b88f18]">Visiter le site</a>}
                     </div>
                   </div>
                 ))}

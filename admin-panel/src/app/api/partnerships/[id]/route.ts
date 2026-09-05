@@ -8,9 +8,21 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { status } = body;
+    const { status, imageUrl, websiteUrl } = body;
 
-    if (!status) {
+    if (websiteUrl) {
+      try {
+        const parsedWebsiteUrl = new URL(websiteUrl);
+        if (!['http:', 'https:'].includes(parsedWebsiteUrl.protocol)) throw new Error('Invalid protocol');
+      } catch {
+        return NextResponse.json(
+          { error: 'Website URL must be a valid HTTP or HTTPS URL' },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (!status && imageUrl === undefined && websiteUrl === undefined) {
       return NextResponse.json(
         { error: 'Status is required' },
         { status: 400 }
@@ -19,7 +31,11 @@ export async function PATCH(
 
     const partnership = await prisma.partnership.update({
       where: { id },
-      data: { status },
+      data: {
+        ...(status ? { status } : {}),
+        ...(imageUrl !== undefined ? { imageUrl: imageUrl || null } : {}),
+        ...(websiteUrl !== undefined ? { websiteUrl: websiteUrl || null } : {}),
+      },
     });
 
     return NextResponse.json(partnership);

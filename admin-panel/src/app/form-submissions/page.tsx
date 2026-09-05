@@ -12,7 +12,11 @@ import {
   Filter,
   Search,
   Eye,
-  Trash2
+  Trash2,
+  ImagePlus,
+  Link as LinkIcon,
+  Save,
+  Upload
 } from 'lucide-react';
 import { getApiUrl } from '@/lib/api';
 
@@ -27,6 +31,10 @@ export default function FormSubmissionsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [partnerImageUrl, setPartnerImageUrl] = useState('');
+  const [partnerWebsiteUrl, setPartnerWebsiteUrl] = useState('');
+  const [isPartnerSaving, setIsPartnerSaving] = useState(false);
+  const [isPartnerUploading, setIsPartnerUploading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -77,6 +85,46 @@ export default function FormSubmissionsPage() {
     } catch (error) {
       console.error('Error updating status:', error);
       alert('Erreur lors de la mise à jour du statut');
+    }
+  };
+
+  const handlePartnerUpload = async (file: File) => {
+    setIsPartnerUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'Images_partners');
+      const response = await fetch(getApiUrl('/api/upload'), { method: 'POST', body: formData });
+      const data = await response.json();
+      if (!response.ok || !data.url) throw new Error(data.error || 'Upload failed');
+      setPartnerImageUrl(data.url);
+    } catch (error) {
+      console.error('Error uploading partner image:', error);
+      alert('Erreur lors du téléversement de l’image');
+    } finally {
+      setIsPartnerUploading(false);
+    }
+  };
+
+  const handlePartnerSave = async () => {
+    if (!selectedItem) return;
+    setIsPartnerSaving(true);
+    try {
+      const response = await fetch(getApiUrl(`/api/partnerships/${selectedItem.id}`), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: partnerImageUrl, websiteUrl: partnerWebsiteUrl }),
+      });
+      if (!response.ok) throw new Error('Failed to save partner details');
+      const updatedPartner = await response.json();
+      setSelectedItem(updatedPartner);
+      setPartnerships((current) => current.map((item) => item.id === updatedPartner.id ? updatedPartner : item));
+      alert('Informations du partenaire enregistrées');
+    } catch (error) {
+      console.error('Error saving partner details:', error);
+      alert('Erreur lors de l’enregistrement');
+    } finally {
+      setIsPartnerSaving(false);
     }
   };
 
@@ -302,6 +350,8 @@ export default function FormSubmissionsPage() {
                             <button
                               onClick={() => {
                                 setSelectedItem(item);
+                                setPartnerImageUrl(item.imageUrl || '');
+                                setPartnerWebsiteUrl(item.websiteUrl || '');
                                 setShowDetailModal(true);
                               }}
                               className="text-blue-600 hover:text-blue-900 p-1.5 sm:p-1"
@@ -395,6 +445,34 @@ export default function FormSubmissionsPage() {
                       <p className="mt-1 text-sm text-primary whitespace-pre-wrap">{selectedItem.description}</p>
                     </div>
                   )}
+                  <div className="space-y-4 border-t border-gray-200 pt-4">
+                    <div>
+                      <label className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700">
+                        <LinkIcon className="h-4 w-4" /> Site web du partenaire
+                      </label>
+                      <input
+                        type="url"
+                        value={partnerWebsiteUrl}
+                        onChange={(event) => setPartnerWebsiteUrl(event.target.value)}
+                        placeholder="https://exemple.com"
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700">
+                        <ImagePlus className="h-4 w-4" /> Logo ou image publique
+                      </label>
+                      {partnerImageUrl && <img src={partnerImageUrl} alt="Aperçu du partenaire" className="mb-3 h-20 w-20 rounded-lg border border-gray-200 object-cover" />}
+                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        <Upload className="h-4 w-4" />
+                        {isPartnerUploading ? 'Téléversement...' : 'Choisir une image'}
+                        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" disabled={isPartnerUploading} onChange={(event) => { const file = event.target.files?.[0]; if (file) void handlePartnerUpload(file); }} />
+                      </label>
+                    </div>
+                    <button type="button" onClick={() => void handlePartnerSave()} disabled={isPartnerSaving || isPartnerUploading} className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
+                      <Save className="h-4 w-4" /> {isPartnerSaving ? 'Enregistrement...' : 'Enregistrer les informations publiques'}
+                    </button>
+                  </div>
                 </>
               )}
               <div className="pt-4 border-t border-gray-200">

@@ -1,13 +1,12 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import { Mail, X } from 'lucide-react';
 
 const STORAGE_KEY = 'malakinfo_cookie_consent';
 const PREFERENCES_KEY = 'malakinfo_cookie_preferences';
 const NEWSLETTER_PROMPT_KEY = 'malakinfo_newsletter_prompt_dismissed';
+const COOKIE_CONSENT_DELAY_MS = 2_000;
 
 const PREFERENCE_CATEGORIES = [
   { key: 'improveServices', label: 'Développer et améliorer les services', required: false },
@@ -42,7 +41,6 @@ function buildSavedPreferences(raw: string | null) {
 }
 
 function CookiePreferencesModal({
-  locale,
   preferences,
   onSetPreference,
   onSave,
@@ -50,7 +48,6 @@ function CookiePreferencesModal({
   onRejectAll,
   onClose,
 }: {
-  locale: string;
   preferences: Record<string, boolean>;
   onSetPreference: (key: string, value: boolean) => void;
   onSave: () => void;
@@ -168,8 +165,6 @@ function CookiePreferencesModal({
 }
 
 export default function CookieConsentModal() {
-  const pathname = usePathname();
-  const locale = pathname?.split('/')[1] || 'fr';
   const [isVisible, setIsVisible] = useState(false);
   const [hasConsent, setHasConsent] = useState(false);
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
@@ -182,16 +177,14 @@ export default function CookieConsentModal() {
 
   useEffect(() => {
     const consent = window.localStorage.getItem(STORAGE_KEY);
-    const savedPreferences = buildSavedPreferences(window.localStorage.getItem(PREFERENCES_KEY));
-
-    setPreferences(savedPreferences);
 
     if (!consent) {
-      const timer = window.setTimeout(() => setIsVisible(true), 15_000);
+      const timer = window.setTimeout(() => setIsVisible(true), COOKIE_CONSENT_DELAY_MS);
       return () => window.clearTimeout(timer);
     }
 
-    setHasConsent(true);
+    const timer = window.setTimeout(() => setHasConsent(true), 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -199,12 +192,33 @@ export default function CookieConsentModal() {
 
     if (!hasConsent || dismissed) return;
 
-    const timer = window.setTimeout(() => {
-      setIsNewsletterPromptOpen(true);
-    }, 15_000);
+    const openNewsletterPrompt = () => {
+      if (isVisible || isPreferencesOpen || isNewsletterPromptOpen) return;
+      if (window.localStorage.getItem(NEWSLETTER_PROMPT_KEY)) return;
 
-    return () => window.clearTimeout(timer);
-  }, [hasConsent]);
+      setIsNewsletterPromptOpen(true);
+    };
+
+    const handleMouseOut = (event: MouseEvent) => {
+      if (!event.relatedTarget && event.clientY <= 0) {
+        openNewsletterPrompt();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        openNewsletterPrompt();
+      }
+    };
+
+    document.addEventListener('mouseout', handleMouseOut);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('mouseout', handleMouseOut);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [hasConsent, isVisible, isPreferencesOpen, isNewsletterPromptOpen]);
 
   useEffect(() => {
     if (isPreferencesOpen) {
@@ -225,11 +239,6 @@ export default function CookieConsentModal() {
     setPreferences(nextPreferences);
     setIsVisible(false);
     setIsPreferencesOpen(false);
-  };
-
-  const closeNewsletterPrompt = () => {
-    window.localStorage.setItem(NEWSLETTER_PROMPT_KEY, 'true');
-    setIsNewsletterPromptOpen(false);
   };
 
   const closeNewsletterPromptWithoutSave = () => {
@@ -360,7 +369,10 @@ export default function CookieConsentModal() {
               <button
                 type="button"
                 className="inline-flex items-center justify-center rounded-[2px] bg-white px-4 py-3 text-sm font-bold text-[#081c3d] transition hover:bg-[#f7f3eb]"
-                onClick={() => setIsPreferencesOpen(true)}
+                onClick={() => {
+                  setPreferences(buildSavedPreferences(window.localStorage.getItem(PREFERENCES_KEY)));
+                  setIsPreferencesOpen(true);
+                }}
               >
                 Paramètres des cookies
               </button>
@@ -371,7 +383,6 @@ export default function CookieConsentModal() {
 
       {isPreferencesOpen && (
         <CookiePreferencesModal
-          locale={locale}
           preferences={preferences}
           onSetPreference={handlePreferenceChange}
           onSave={handleSave}

@@ -84,6 +84,8 @@ export async function GET() {
         id: true,
         companyName: true,
         type: true,
+        imageUrl: true,
+        websiteUrl: true,
         createdAt: true,
       },
       orderBy: {
