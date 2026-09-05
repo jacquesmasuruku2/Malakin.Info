@@ -2,8 +2,18 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // Helper function to add CORS headers
-function cors(response: NextResponse) {
-  response.headers.set('Access-Control-Allow-Origin', 'https://dashboard.malakinfo.com');
+function cors(response: NextResponse, request?: Request) {
+  const requestOrigin = request?.headers.get('origin');
+  const allowedOrigins = [
+    process.env.ADMIN_PANEL_URL,
+    process.env.NEXT_PUBLIC_ADMIN_URL,
+    'https://dashboard.malakinfo.com',
+    'http://localhost:3001',
+    'http://localhost:3000',
+  ].filter(Boolean);
+  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+    response.headers.set('Access-Control-Allow-Origin', requestOrigin);
+  }
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   response.headers.set('Access-Control-Allow-Credentials', 'true');
@@ -11,9 +21,9 @@ function cors(response: NextResponse) {
 }
 
 // Handle OPTIONS request for CORS preflight
-export async function OPTIONS() {
+export async function OPTIONS(request: Request) {
   const response = new NextResponse(null, { status: 200 });
-  return cors(response);
+  return cors(response, request);
 }
 
 export const DEFAULT_STATION = {
@@ -26,7 +36,7 @@ export const DEFAULT_STATION = {
   isActive: true,
 } as const;
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     console.log('[radio API] GET request received');
     const station = await prisma.radioStation.findFirst({
@@ -35,11 +45,11 @@ export async function GET() {
     });
     console.log('[radio API] Station found:', !!station);
 
-    return cors(NextResponse.json(station ?? DEFAULT_STATION, { status: 200 }));
+    return cors(NextResponse.json(station ?? DEFAULT_STATION, { status: 200 }), request);
   } catch (error) {
     console.error('[radio API] Error fetching station:', error);
     console.error('[radio API] Error details:', error instanceof Error ? error.message : String(error));
-    return cors(NextResponse.json(DEFAULT_STATION, { status: 200 }));
+    return cors(NextResponse.json(DEFAULT_STATION, { status: 200 }), request);
   }
 }
 
@@ -57,6 +67,13 @@ export async function POST(request: Request) {
       showLabel: body?.showLabel ?? DEFAULT_STATION.showLabel,
       isActive: body?.isActive ?? DEFAULT_STATION.isActive,
     };
+
+    try {
+      const streamUrl = new URL(payload.streamUrl);
+      if (!['http:', 'https:'].includes(streamUrl.protocol)) throw new Error('Invalid protocol');
+    } catch {
+      return cors(NextResponse.json({ error: 'L’URL du flux doit être une URL HTTP ou HTTPS valide.' }, { status: 400 }), request);
+    }
     console.log('[radio API] Payload:', payload);
 
     if (body.id && body.id !== 'default-radio') {
@@ -69,7 +86,7 @@ export async function POST(request: Request) {
       });
       console.log('[radio API] Station updated:', station.id);
 
-      return cors(NextResponse.json(station, { status: 200 }));
+      return cors(NextResponse.json(station, { status: 200 }), request);
     }
 
     if (payload.isActive) {
@@ -86,7 +103,7 @@ export async function POST(request: Request) {
     });
     console.log('[radio API] Station created:', station.id);
 
-    return cors(NextResponse.json(station, { status: 201 }));
+    return cors(NextResponse.json(station, { status: 201 }), request);
   } catch (error) {
     console.error('[radio API] Error saving station:', error);
     console.error('[radio API] Error details:', error instanceof Error ? error.message : String(error));
@@ -94,6 +111,6 @@ export async function POST(request: Request) {
     return cors(NextResponse.json(
       { error: 'Impossible de sauvegarder la radio.' },
       { status: 500 }
-    ));
+    ), request);
   }
 }
