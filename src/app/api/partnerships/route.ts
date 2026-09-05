@@ -76,15 +76,16 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-
-    const where = status ? { status } : {};
-
     const partnerships = await prisma.partnership.findMany({
-      where,
+      where: { status: 'approved' },
+      select: {
+        id: true,
+        companyName: true,
+        type: true,
+        createdAt: true,
+      },
       orderBy: {
         createdAt: 'desc'
       },

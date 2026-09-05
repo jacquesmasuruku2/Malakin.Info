@@ -1,8 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Handshake, Sparkles, Target, Users, Globe, Zap, Mail, ArrowRight, Building2, TrendingUp, Award, CheckCircle2, Send, CheckCircle, AlertCircle, Phone, MapPin } from 'lucide-react';
+import { Handshake, Sparkles, Target, Users, Globe, Zap, Mail, ArrowRight, ArrowLeft, Building2, TrendingUp, Award, Send, CheckCircle, AlertCircle, Phone, MapPin } from 'lucide-react';
+
+type ApprovedPartner = {
+  id: string;
+  companyName: string;
+  type: string;
+};
 
 export default function PartenariatsPage({ 
   params 
@@ -24,12 +29,22 @@ export default function PartenariatsPage({
   const [errorMessage, setErrorMessage] = useState('');
   const [locale, setLocale] = useState('fr');
   const [showForm, setShowForm] = useState(false);
+  const [activePartnership, setActivePartnership] = useState(0);
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
+  const [approvedPartners, setApprovedPartners] = useState<ApprovedPartner[]>([]);
 
   useEffect(() => {
     params.then((resolvedParams) => {
       setLocale(resolvedParams.locale);
     });
   }, [params]);
+
+  useEffect(() => {
+    fetch('/api/partnerships')
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Failed to load partners')))
+      .then((data: { partnerships?: ApprovedPartner[] }) => setApprovedPartners(data.partnerships || []))
+      .catch(() => setApprovedPartners([]));
+  }, []);
 
   const isFrench = locale === 'fr';
 
@@ -191,6 +206,22 @@ export default function PartenariatsPage({
     }
   };
 
+  useEffect(() => {
+    if (isCarouselPaused || approvedPartners.length === 0) return;
+
+    const interval = window.setInterval(() => {
+      setActivePartnership((current) => (current + 1) % approvedPartners.length);
+    }, 6000);
+
+    return () => window.clearInterval(interval);
+  }, [approvedPartners.length, isCarouselPaused]);
+
+  const goToPartnership = (index: number) => {
+    const total = approvedPartners.length;
+    if (total === 0) return;
+    setActivePartnership((index + total) % total);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
@@ -230,7 +261,7 @@ export default function PartenariatsPage({
         setSubmitStatus('error');
         setErrorMessage(errorData.message || content.form.error);
       }
-    } catch (error) {
+    } catch {
       setSubmitStatus('error');
       setErrorMessage(content.form.error);
     } finally {
@@ -303,45 +334,63 @@ export default function PartenariatsPage({
         </div>
       </section>
 
-      {/* Partnership Types Section */}
+      {/* Approved Partners Section */}
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
         <div className="mx-auto max-w-3xl text-center mb-12">
           <h2 className="font-heading text-3xl font-black text-[#081c3d] sm:text-4xl mb-4">
-            {content.partnershipTypes.title}
+            {isFrench ? 'Nos partenaires' : 'Our partners'}
           </h2>
           <p className="text-lg text-slate-600">
-            {content.partnershipTypes.subtitle}
+            {isFrench ? 'Découvrez les organisations qui ont rejoint notre réseau.' : 'Discover the organizations that have joined our network.'}
           </p>
         </div>
 
-        <div className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4 [scrollbar-width:thin]">
-          {content.partnershipTypes.types.map((type, index) => (
-            <div key={index} className="w-[min(86vw,440px)] shrink-0 snap-start rounded-2xl border border-[#e1e4e8] bg-white p-6 shadow-sm transition-shadow hover:shadow-md md:w-[min(62vw,520px)]">
-              <div className="flex items-start gap-4 mb-4">
-                <div className="rounded-xl bg-[#d4af37]/10 p-3 text-[#d4af37]">
-                  <type.icon className="h-6 w-6" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-heading text-xl font-bold text-[#081c3d] mb-2">
-                    {type.title}
-                  </h3>
-                  <p className="text-slate-600 text-sm">
-                    {type.description}
-                  </p>
-                </div>
-              </div>
-              
-              <ul className="space-y-2">
-                {type.features.map((feature, featureIndex) => (
-                  <li key={featureIndex} className="flex items-center gap-2 text-sm text-slate-600">
-                    <CheckCircle2 className="h-4 w-4 text-[#0b3b8b] flex-shrink-0" />
-                    {feature}
-                  </li>
+        {approvedPartners.length > 0 ? (
+          <div
+            className="relative mx-auto max-w-3xl"
+            onMouseEnter={() => setIsCarouselPaused(true)}
+            onMouseLeave={() => setIsCarouselPaused(false)}
+            onFocus={() => setIsCarouselPaused(true)}
+            onBlur={() => setIsCarouselPaused(false)}
+            aria-roledescription="carousel"
+            aria-label={isFrench ? 'Partenaires approuvés' : 'Approved partners'}
+          >
+            <div className="overflow-hidden rounded-2xl">
+              <div className="flex transition-transform duration-500 ease-out" style={{ transform: `translateX(-${activePartnership * 100}%)` }}>
+                {approvedPartners.map((partner, index) => (
+                  <div key={partner.id} className="w-full shrink-0 px-1" aria-hidden={activePartnership !== index}>
+                    <div className="rounded-2xl border border-[#e1e4e8] bg-white p-8 text-center shadow-sm sm:p-12">
+                      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#d4af37]/10 text-[#d4af37]">
+                        <Building2 className="h-8 w-8" />
+                      </div>
+                      <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#b88f18]">
+                        {isFrench ? 'Partenaire approuvé' : 'Approved partner'}
+                      </p>
+                      <h3 className="font-heading text-2xl font-bold text-[#081c3d] sm:text-3xl">{partner.companyName}</h3>
+                      <p className="mt-3 text-sm text-slate-600">{partner.type}</p>
+                    </div>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
-          ))}
-        </div>
+
+            {approvedPartners.length > 1 && (
+              <>
+                <button type="button" onClick={() => goToPartnership(activePartnership - 1)} aria-label={isFrench ? 'Partenaire précédent' : 'Previous partner'} className="absolute left-[-1rem] top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[#e1e4e8] bg-white text-[#081c3d] shadow-md transition hover:border-[#d4af37] hover:text-[#b88f18] sm:left-[-3.25rem]"><ArrowLeft className="h-5 w-5" /></button>
+                <button type="button" onClick={() => goToPartnership(activePartnership + 1)} aria-label={isFrench ? 'Partenaire suivant' : 'Next partner'} className="absolute right-[-1rem] top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[#e1e4e8] bg-white text-[#081c3d] shadow-md transition hover:border-[#d4af37] hover:text-[#b88f18] sm:right-[-3.25rem]"><ArrowRight className="h-5 w-5" /></button>
+                <div className="mt-6 flex justify-center gap-2">
+                  {approvedPartners.map((partner, index) => (
+                    <button key={partner.id} type="button" onClick={() => goToPartnership(index)} aria-label={`${isFrench ? 'Afficher' : 'Show'} ${partner.companyName}`} aria-current={activePartnership === index ? 'true' : undefined} className={`h-2.5 rounded-full transition-all ${activePartnership === index ? 'w-8 bg-[#0b3b8b]' : 'w-2.5 bg-[#cfd6df] hover:bg-[#b88f18]'}`} />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-[#cfd6df] bg-white px-6 py-12 text-center text-slate-600">
+            {isFrench ? 'Les partenaires approuvés seront affichés ici.' : 'Approved partners will be displayed here.'}
+          </div>
+        )}
       </section>
 
       {/* CTA Button Section */}
