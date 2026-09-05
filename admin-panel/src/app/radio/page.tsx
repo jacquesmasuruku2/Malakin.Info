@@ -146,12 +146,25 @@ export default function RadioPage() {
               </div>
 
               <div className="grid gap-2">
-                <label className="text-sm font-medium text-secondary">Logo</label>
+                <label className="text-sm font-medium text-secondary">URL de l’icône / logo</label>
                 <input
+                  type="text"
                   value={station.logoUrl ?? ''}
                   onChange={(e) => setStation({ ...station, logoUrl: e.target.value || null })}
+                  placeholder="https://... ou /images/logo.png"
                   className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none"
                 />
+                <p className="text-xs text-secondary">Cette image sera affichée dans le player radio et les contrôles de lecture.</p>
+                <div className="flex items-center gap-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3">
+                  <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-white">
+                    {station.logoUrl ? (
+                      <img src={station.logoUrl} alt="Aperçu de l’icône radio" className="h-full w-full object-cover" />
+                    ) : (
+                      <Radio className="h-5 w-5 text-gray-400" />
+                    )}
+                  </div>
+                  <span className="text-xs text-secondary">Aperçu de l’icône</span>
+                </div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
