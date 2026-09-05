@@ -36,7 +36,7 @@ export default function RadioPage() {
   useEffect(() => {
     const fetchStation = async () => {
       try {
-        const response = await fetch(getApiUrl('/api/radio/active'));
+        const response = await fetch(getApiUrl('/api/radio'));
         if (!response.ok) throw new Error('Failed to fetch radio station');
         const data = await response.json();
         setStation({
@@ -62,7 +62,7 @@ export default function RadioPage() {
     try {
       const payload = {
         ...station,
-        id: station.id || undefined,
+        id: station.id && station.id !== 'default-radio' ? station.id : undefined,
       };
       console.log('[RadioPage] Submitting payload:', payload);
 

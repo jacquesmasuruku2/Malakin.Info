@@ -59,11 +59,13 @@ export async function POST(request: Request) {
     };
     console.log('[radio API] Payload:', payload);
 
-    if (body.id) {
+    if (body.id && body.id !== 'default-radio') {
       console.log('[radio API] Updating existing station:', body.id);
-      const station = await prisma.radioStation.update({
-        where: { id: String(body.id) },
-        data: payload,
+      const station = await prisma.$transaction(async (transaction) => {
+        if (payload.isActive) {
+          await transaction.radioStation.updateMany({ where: { isActive: true, id: { not: String(body.id) } }, data: { isActive: false } });
+        }
+        return transaction.radioStation.update({ where: { id: String(body.id) }, data: payload });
       });
       console.log('[radio API] Station updated:', station.id);
 

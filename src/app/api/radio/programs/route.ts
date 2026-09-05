@@ -1,11 +1,26 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
+function cors(response: NextResponse, request?: Request) {
+  const origin = request?.headers.get('origin');
+  const allowed = [process.env.ADMIN_PANEL_URL, process.env.NEXT_PUBLIC_ADMIN_URL, 'https://dashboard.malakinfo.com', 'http://localhost:3001', 'http://localhost:3000'].filter(Boolean);
+  if (origin && allowed.includes(origin)) response.headers.set('Access-Control-Allow-Origin', origin);
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  return response;
+}
+
+export async function OPTIONS(request: Request) {
+  return cors(new NextResponse(null, { status: 204 }), request);
+}
+
+export async function GET(request: Request) {
   try {
     const now = new Date();
+    const showAll = new URL(request.url).searchParams.get('all') === 'true';
     const programs = await prisma.radioProgram.findMany({
-      where: {
+      where: showAll ? undefined : {
         OR: [
           { isLive: true },
           { startTime: { gte: now } },
@@ -18,10 +33,10 @@ export async function GET() {
       ],
     });
 
-    return NextResponse.json(programs, { status: 200 });
+    return cors(NextResponse.json(programs, { status: 200 }), request);
   } catch (error) {
     console.error('[radio programs API] Error fetching programs:', error);
-    return NextResponse.json([], { status: 200 });
+    return cors(NextResponse.json([], { status: 200 }), request);
   }
 }
 
@@ -43,14 +58,14 @@ export async function POST(request: Request) {
       isFeatured: Boolean(body.isFeatured),
     };
 
-    if (!payload.title || !payload.slug || !payload.startTime) {
-      return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
+    if (!payload.title || !payload.slug || Number.isNaN(payload.startTime.getTime())) {
+      return cors(NextResponse.json({ error: 'Missing required fields.' }, { status: 400 }), request);
     }
 
     const program = await prisma.radioProgram.create({ data: payload });
-    return NextResponse.json(program, { status: 201 });
+    return cors(NextResponse.json(program, { status: 201 }), request);
   } catch (error) {
     console.error('[radio programs API] Error creating program:', error);
-    return NextResponse.json({ error: 'Unable to create radio program.' }, { status: 500 });
+    return cors(NextResponse.json({ error: 'Unable to create radio program.' }, { status: 500 }), request);
   }
 }

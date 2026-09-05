@@ -25,16 +25,33 @@ export default function RadioProgramsPage() {
   const [programs, setPrograms] = useState<RadioProgram[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchPrograms = async () => {
     try {
-      const response = await fetch(getApiUrl('/api/radio/programs'));
+      const response = await fetch(getApiUrl('/api/radio/programs?all=true'));
       const data = await response.json();
+      if (!response.ok || !Array.isArray(data)) throw new Error(data?.error || 'Impossible de charger les émissions');
       setPrograms(data);
     } catch (error) {
       console.error('Failed to fetch radio programs:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteProgram = async (program: RadioProgram) => {
+    if (!window.confirm(`Supprimer l'émission « ${program.title} » ?`)) return;
+    setDeletingId(program.id);
+    try {
+      const response = await fetch(getApiUrl(`/api/radio/programs/${program.id}`), { method: 'DELETE' });
+      if (!response.ok) throw new Error('Impossible de supprimer l’émission');
+      setPrograms((current) => current.filter((item) => item.id !== program.id));
+    } catch (error) {
+      console.error('Failed to delete radio program:', error);
+      window.alert('Impossible de supprimer l’émission.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -129,7 +146,7 @@ export default function RadioProgramsPage() {
                             <Link href={`/radio/programs/${program.id}/edit`} className="rounded-md border border-gray-200 p-2 text-slate-600 hover:bg-gray-50">
                               <Edit className="h-4 w-4" />
                             </Link>
-                            <button type="button" className="rounded-md border border-red-200 p-2 text-red-600 hover:bg-red-50">
+                            <button type="button" onClick={() => deleteProgram(program)} disabled={deletingId === program.id} aria-label={`Supprimer ${program.title}`} className="rounded-md border border-red-200 p-2 text-red-600 hover:bg-red-50 disabled:opacity-50">
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
