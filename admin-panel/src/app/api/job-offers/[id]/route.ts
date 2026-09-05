@@ -1,12 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+function mainSiteApiUrl(id: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL;
+  return baseUrl ? `${baseUrl.replace(/\/$/, '')}/api/job-offers/${id}` : null;
+}
+
+async function proxyToMainSite(request: NextRequest, id: string, method: 'GET' | 'PUT' | 'DELETE') {
+  const url = mainSiteApiUrl(id);
+  if (!url) return null;
+  const response = await fetch(url, {
+    method,
+    headers: method === 'PUT' ? { 'Content-Type': 'application/json' } : undefined,
+    body: method === 'PUT' ? await request.text() : undefined,
+    cache: 'no-store',
+  });
+  const body = await response.text();
+  return new NextResponse(body, {
+    status: response.status,
+    headers: { 'Content-Type': response.headers.get('Content-Type') || 'application/json' },
+  });
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    if (!process.env.DATABASE_URL) {
+      const proxiedResponse = await proxyToMainSite(request, id, 'GET');
+      if (proxiedResponse) return proxiedResponse;
+      return NextResponse.json({ error: 'DATABASE_URL ou NEXT_PUBLIC_MAIN_SITE_URL est requis.' }, { status: 503 });
+    }
     const jobOffer = await prisma.jobOffer.findUnique({
       where: { id },
       include: {
@@ -39,6 +65,11 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
+    if (!process.env.DATABASE_URL) {
+      const proxiedResponse = await proxyToMainSite(request, id, 'PUT');
+      if (proxiedResponse) return proxiedResponse;
+      return NextResponse.json({ error: 'DATABASE_URL ou NEXT_PUBLIC_MAIN_SITE_URL est requis.' }, { status: 503 });
+    }
     const body = await request.json();
     const {
       title,
@@ -94,6 +125,11 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    if (!process.env.DATABASE_URL) {
+      const proxiedResponse = await proxyToMainSite(request, id, 'DELETE');
+      if (proxiedResponse) return proxiedResponse;
+      return NextResponse.json({ error: 'DATABASE_URL ou NEXT_PUBLIC_MAIN_SITE_URL est requis.' }, { status: 503 });
+    }
     await prisma.jobOffer.delete({
       where: { id },
     });

@@ -1,8 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+function mainSiteApiUrl() {
+  const baseUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL;
+  return baseUrl ? `${baseUrl.replace(/\/$/, '')}/api/job-offers` : null;
+}
+
+async function proxyToMainSite(request: NextRequest, method: 'GET' | 'POST') {
+  const url = mainSiteApiUrl();
+  if (!url) return null;
+
+  const response = await fetch(url, {
+    method,
+    headers: method === 'POST' ? { 'Content-Type': 'application/json' } : undefined,
+    body: method === 'POST' ? await request.text() : undefined,
+    cache: 'no-store',
+  });
+  const body = await response.text();
+  return new NextResponse(body, {
+    status: response.status,
+    headers: { 'Content-Type': response.headers.get('Content-Type') || 'application/json' },
+  });
+}
+
 export async function GET(request: NextRequest) {
   try {
+    if (!process.env.DATABASE_URL) {
+      const proxiedResponse = await proxyToMainSite(request, 'GET');
+      if (proxiedResponse) return proxiedResponse;
+      return NextResponse.json({ error: 'DATABASE_URL ou NEXT_PUBLIC_MAIN_SITE_URL est requis pour gérer les offres.' }, { status: 503 });
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const type = searchParams.get('type');
@@ -41,6 +69,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!process.env.DATABASE_URL) {
+      const proxiedResponse = await proxyToMainSite(request, 'POST');
+      if (proxiedResponse) return proxiedResponse;
+      return NextResponse.json({ error: 'DATABASE_URL ou NEXT_PUBLIC_MAIN_SITE_URL est requis pour publier une offre.' }, { status: 503 });
+    }
+
     const body = await request.json();
     const {
       title,

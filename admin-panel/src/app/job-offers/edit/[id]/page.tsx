@@ -149,7 +149,8 @@ export default function JobOfferEditPage() {
       });
 
       if (!response.ok) {
-        throw new Error(isNew ? 'Failed to create job offer' : 'Failed to update job offer');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.details || (isNew ? 'Failed to create job offer' : 'Failed to update job offer'));
       }
 
       router.push('/job-offers');
