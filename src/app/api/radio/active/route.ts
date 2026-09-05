@@ -44,8 +44,11 @@ export async function GET(request: Request) {
     ]);
 
     const candidateStream = currentProgram?.streamUrl || station?.streamUrl || DEFAULT_STATION.streamUrl;
-    const hasSafeStream = candidateStream.startsWith('/') || candidateStream.startsWith('https://');
-    const activeStream = hasSafeStream ? candidateStream : DEFAULT_STATION.streamUrl;
+    const streamIsWebUrl = candidateStream.startsWith('http://') || candidateStream.startsWith('https://');
+    const hasSafeStream = candidateStream.startsWith('/') || streamIsWebUrl;
+    const activeStream = hasSafeStream && streamIsWebUrl
+      ? `/api/radio/stream?url=${encodeURIComponent(candidateStream)}`
+      : hasSafeStream ? candidateStream : DEFAULT_STATION.streamUrl;
     const usingFallback = !hasSafeStream;
     const activeName = usingFallback ? DEFAULT_STATION.name : currentProgram?.title || station?.name || DEFAULT_STATION.name;
     const activeDescription = usingFallback ? DEFAULT_STATION.description : currentProgram?.description || station?.description || DEFAULT_STATION.description;

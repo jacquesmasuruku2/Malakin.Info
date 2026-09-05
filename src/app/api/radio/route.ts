@@ -82,7 +82,7 @@ export async function POST(request: Request) {
 
     try {
       const streamUrl = new URL(payload.streamUrl);
-      if (streamUrl.protocol !== 'https:') throw new Error('Only HTTPS streams are supported');
+      if (!['http:', 'https:'].includes(streamUrl.protocol)) throw new Error('Invalid protocol');
     } catch {
       return cors(NextResponse.json({ error: 'L’URL du flux doit être une URL HTTP ou HTTPS valide.' }, { status: 400 }), request);
     }

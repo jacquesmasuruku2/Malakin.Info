@@ -168,7 +168,7 @@ export default function RadioPlayer() {
     if (!audio) return;
 
     const url = station.streamUrl;
-    const isHlsStream = /\.m3u8($|\?)/i.test(url);
+    const isHlsStream = /\.m3u8($|\?)/i.test(url) || /\.m3u8/i.test(decodeURIComponent(url));
 
     if (isHlsStream && Hls.isSupported()) {
       if (!hlsRef.current) {
