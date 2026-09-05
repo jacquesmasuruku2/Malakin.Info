@@ -167,9 +167,6 @@ export default async function Home({
 
       {/* Main Editorial Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-5 flex justify-end">
-          <RadioHomeButton />
-        </div>
         <div className="mb-8 border-b border-gray-200 pb-4">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {categoryFilters.map((item) => {
@@ -315,11 +312,12 @@ export default async function Home({
           <div className="lg:col-span-3">
             <div className="sticky top-20">
               <div className="bg-white border border-gray-200">
-                <div className="bg-[#0B3B8B] text-white px-4 py-3">
-                  <h3 className="font-heading font-bold text-lg uppercase tracking-wide flex items-center">
-                    {locale === 'fr' ? 'Dernières Infos' : 'Latest News'}
-                    <span className="ml-2 animate-pulse">›</span>
+                <div className="flex items-center justify-between gap-3 bg-[#0B3B8B] px-4 py-2 text-white">
+                  <h3 className="font-heading flex items-center text-lg font-bold uppercase tracking-wide">
+                      {locale === 'fr' ? 'Dernières Infos' : 'Latest News'}
+                      <span className="ml-2 animate-pulse">›</span>
                   </h3>
+                  <RadioHomeButton compact />
                 </div>
                 <div className="divide-y divide-gray-200">
                   {filteredLatestNews.slice(0, 8).map((news) => (
