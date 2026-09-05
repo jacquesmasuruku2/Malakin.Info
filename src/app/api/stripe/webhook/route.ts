@@ -43,6 +43,26 @@ export async function POST(request: NextRequest) {
 
         const purchaseType = session.metadata?.purchaseType;
         const articleId = session.metadata?.articleId;
+        const donationId = session.metadata?.donationId;
+
+        if (purchaseType === 'donation' && donationId) {
+          if (session.payment_status !== 'paid') {
+            console.warn('Donation checkout completed without a paid status:', session.id);
+            break;
+          }
+
+          await prisma.donation.updateMany({
+            where: { id: donationId, status: { not: 'completed' } },
+            data: {
+              status: 'completed',
+              paymentMethod: 'stripe',
+              stripeSessionId: session.id,
+              transactionId: typeof session.payment_intent === 'string' ? session.payment_intent : session.id,
+            },
+          });
+          console.log('Donation recorded:', donationId);
+          break;
+        }
 
         // Find or create user by email
         let user = await prisma.user.findUnique({
@@ -94,7 +114,14 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'checkout.session.expired':
-        console.log('Checkout session expired:', event.data.object.id);
+        const expiredSession = event.data.object as Stripe.Checkout.Session;
+        if (expiredSession.metadata?.purchaseType === 'donation' && expiredSession.metadata.donationId) {
+          await prisma.donation.updateMany({
+            where: { id: expiredSession.metadata.donationId, status: 'pending' },
+            data: { status: 'cancelled' },
+          });
+        }
+        console.log('Checkout session expired:', expiredSession.id);
         break;
 
       case 'payment_intent.succeeded':

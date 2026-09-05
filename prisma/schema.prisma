@@ -252,6 +252,7 @@ model Donation {
   message       String?
   isAnonymous   Boolean  @default(false)
   paymentMethod String?
+  stripeSessionId String? @unique
   transactionId String?  @unique
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

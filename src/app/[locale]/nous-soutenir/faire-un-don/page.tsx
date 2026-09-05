@@ -1,350 +1,77 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import { CreditCard, Smartphone, CheckCircle, Heart, ArrowLeft, Shield } from 'lucide-react';
+import { useState } from 'react';
+import { CheckCircle, Heart, Loader2, Shield } from 'lucide-react';
+
+const presetAmounts = [5000, 10000, 25000, 50000, 100000];
 
 export default function FaireUnDonPage() {
-  const [selectedAmount, setSelectedAmount] = useState('');
+  const [selectedAmount, setSelectedAmount] = useState(10000);
   const [customAmount, setCustomAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardName, setCardName] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvv, setCardCvv] = useState('');
+  const [donorName, setDonorName] = useState('');
+  const [donorEmail, setDonorEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState('');
 
-  const presetAmounts = ['5000', '10000', '25000', '50000', '100000'];
+  const amount = customAmount ? Number(customAmount) : selectedAmount;
 
-  const paymentMethods = [
-    {
-      id: 'orange-money',
-      name: 'Orange Money',
-      icon: '🟠',
-      color: 'bg-orange-500',
-      borderColor: 'border-orange-500',
-    },
-    {
-      id: 'airtel-money',
-      name: 'Airtel Money',
-      icon: '🔴',
-      color: 'bg-red-500',
-      borderColor: 'border-red-500',
-    },
-    {
-      id: 'mpesa',
-      name: 'M-Pesa',
-      icon: '🟢',
-      color: 'bg-green-500',
-      borderColor: 'border-green-500',
-    },
-    {
-      id: 'card',
-      name: 'Carte Prépayée',
-      icon: '💳',
-      color: 'bg-blue-500',
-      borderColor: 'border-blue-500',
-    },
-  ];
-
-  const handleAmountSelect = (amount: string) => {
-    setSelectedAmount(amount);
-    setCustomAmount('');
-  };
-
-  const handleCustomAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCustomAmount(e.target.value);
-    setSelectedAmount('');
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setIsProcessing(true);
+    setError('');
 
-    // Simulation de traitement du paiement
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/donations/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, donorName, donorEmail, message, isAnonymous }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.url) throw new Error(data.error || 'Impossible de créer le paiement.');
+      window.location.assign(data.url);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'Impossible de créer le paiement.');
       setIsProcessing(false);
-      setIsSuccess(true);
-    }, 2000);
+    }
   };
-
-  const finalAmount = selectedAmount || customAmount;
-
-  if (isSuccess) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <section className="bg-gradient-to-r from-primary to-primary/80 text-white py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Link href="/nous-soutenir" className="text-gray-300 hover:text-white mb-4 inline-block">
-              ← Retour à Nous Soutenir
-            </Link>
-            <h1 className="font-heading text-4xl font-bold mb-4">Faire un Don</h1>
-          </div>
-        </section>
-
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-card rounded-xl p-8 text-center border-2 border-green-500">
-            <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
-            <h2 className="font-heading text-3xl font-bold text-foreground mb-4">
-              Merci pour votre don !
-            </h2>
-            <p className="text-xl text-muted-foreground mb-2">
-              Montant : {finalAmount} FCFA
-            </p>
-            <p className="text-muted-foreground mb-8">
-              Votre contribution nous aide à continuer notre mission d'information indépendante en Afrique.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={() => {
-                  setIsSuccess(false);
-                  setSelectedAmount('');
-                  setCustomAmount('');
-                  setPaymentMethod('');
-                  setPhoneNumber('');
-                  setCardNumber('');
-                  setCardName('');
-                  setCardExpiry('');
-                  setCardCvv('');
-                }}
-                className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
-              >
-                Faire un autre don
-              </button>
-              <Link
-                href="/"
-                className="px-6 py-3 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-colors font-medium"
-              >
-                Retour à l'accueil
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="flex flex-col">
-      <section className="bg-gradient-to-r from-primary to-primary/80 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/nous-soutenir" className="text-gray-300 hover:text-white mb-4 inline-block">
-            ← Retour à Nous Soutenir
-          </Link>
-          <h1 className="font-heading text-4xl font-bold mb-4">Faire un Don</h1>
-          <p className="text-xl text-gray-200">
-            Soutenez le journalisme indépendant africain
-          </p>
+    <div className="flex min-h-screen flex-col">
+      <section className="bg-gradient-to-r from-primary to-primary/80 py-12 text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <Link href="/nous-soutenir" className="mb-4 inline-block text-gray-300 hover:text-white">← Retour à Nous Soutenir</Link>
+          <h1 className="font-heading mb-4 text-4xl font-bold">Faire un don</h1>
+          <p className="text-xl text-gray-200">Soutenez le journalisme indépendant africain</p>
         </div>
       </section>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <div>
-            <div className="bg-gradient-to-br from-accent/10 to-primary/10 rounded-xl p-6 mb-8">
-              <div className="flex items-center gap-3 mb-4">
-                <Heart className="w-8 h-8 text-primary" />
-                <h2 className="font-heading text-2xl font-bold">Pourquoi donner ?</h2>
-              </div>
-              <ul className="space-y-3">
-                {[
-                  'Soutenir un journalisme indépendant',
-                  'Contribuer à l\'information de qualité',
-                  'Aider à couvrir les coûts de production',
-                  'Permettre le développement de nouvelles rubriques',
-                  'Soutenir nos enquêtes et reportages',
-                ].map((reason, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                    <span className="text-foreground">{reason}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="bg-card rounded-xl p-6 border border-border">
-              <div className="flex items-center gap-3 mb-4">
-                <Shield className="w-6 h-6 text-primary" />
-                <h3 className="font-heading text-lg font-semibold">Paiement sécurisé</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Vos transactions sont sécurisées. Nous utilisons les protocoles de sécurité les plus récents pour protéger vos informations.
-              </p>
-            </div>
+      <main className="mx-auto grid w-full max-w-5xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_1.1fr] lg:px-8 lg:py-16">
+        <section>
+          <div className="mb-8 rounded-xl bg-gradient-to-br from-accent/10 to-primary/10 p-6">
+            <div className="mb-4 flex items-center gap-3"><Heart className="h-8 w-8 text-primary" /><h2 className="font-heading text-2xl font-bold">Pourquoi donner ?</h2></div>
+            <ul className="space-y-3">{['Soutenir un journalisme indépendant', 'Contribuer à une information de qualité', 'Aider à couvrir les coûts de production', 'Permettre le développement de nouvelles rubriques', 'Soutenir nos enquêtes et reportages'].map((reason) => <li key={reason} className="flex items-start gap-2"><CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" /><span>{reason}</span></li>)}</ul>
           </div>
+          <div className="rounded-xl border border-border bg-card p-6"><div className="mb-3 flex items-center gap-3"><Shield className="h-6 w-6 text-primary" /><h3 className="font-heading text-lg font-semibold">Paiement sécurisé par Stripe</h3></div><p className="text-sm text-muted-foreground">Vos informations bancaires sont saisies directement sur Stripe. MalakInfo ne reçoit ni votre numéro de carte ni votre code de sécurité.</p></div>
+        </section>
 
-          <div>
-            <form onSubmit={handleSubmit} className="bg-card rounded-xl p-8 shadow-sm">
-              <h2 className="font-heading text-2xl font-bold mb-6">Votre don</h2>
+        <form onSubmit={handleSubmit} className="rounded-xl bg-card p-6 shadow-sm sm:p-8">
+          <h2 className="font-heading mb-2 text-2xl font-bold">Votre don</h2>
+          <p className="mb-6 text-sm text-muted-foreground">Paiement unique en FCFA via Stripe Checkout.</p>
+          <label className="mb-3 block text-sm font-medium">Montant du don</label>
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{presetAmounts.map((preset) => <button key={preset} type="button" onClick={() => { setSelectedAmount(preset); setCustomAmount(''); }} className={`rounded-lg border-2 px-3 py-3 text-sm font-medium transition-colors ${selectedAmount === preset && !customAmount ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background hover:border-primary/50'}`}>{preset.toLocaleString()} FCFA</button>)}</div>
+          <input type="number" min="500" max="5000000" step="1" value={customAmount} onChange={(event) => { setCustomAmount(event.target.value); setSelectedAmount(0); }} placeholder="Autre montant (min. 500 FCFA)" className="mb-6 w-full rounded-lg border border-border bg-background px-4 py-3 outline-none focus:ring-2 focus:ring-primary" />
 
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-foreground mb-3">
-                  Montant du don (FCFA)
-                </label>
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  {presetAmounts.map((amount) => (
-                    <button
-                      key={amount}
-                      type="button"
-                      onClick={() => handleAmountSelect(amount)}
-                      className={`px-4 py-3 rounded-lg border-2 transition-colors font-medium ${
-                        selectedAmount === amount
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-border hover:border-primary/50 bg-background text-foreground'
-                      }`}
-                    >
-                      {parseInt(amount).toLocaleString()} FCFA
-                    </button>
-                  ))}
-                </div>
-                <input
-                  type="number"
-                  value={customAmount}
-                  onChange={handleCustomAmount}
-                  placeholder="Autre montant"
-                  className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-                />
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-foreground mb-3">
-                  Mode de paiement
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {paymentMethods.map((method) => (
-                    <button
-                      key={method.id}
-                      type="button"
-                      onClick={() => setPaymentMethod(method.id)}
-                      className={`flex items-center gap-3 px-4 py-4 rounded-lg border-2 transition-colors ${
-                        paymentMethod === method.id
-                          ? `${method.borderColor} ${method.color} text-white`
-                          : 'border-border hover:border-primary/50 bg-background text-foreground'
-                      }`}
-                    >
-                      <span className="text-2xl">{method.icon}</span>
-                      <span className="font-medium">{method.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {paymentMethod && (
-                <div className="mb-6 p-4 bg-muted/50 rounded-lg">
-                  {paymentMethod === 'card' ? (
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          Numéro de carte
-                        </label>
-                        <input
-                          type="text"
-                          value={cardNumber}
-                          onChange={(e) => setCardNumber(e.target.value)}
-                          placeholder="1234 5678 9012 3456"
-                          className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">
-                          Nom sur la carte
-                        </label>
-                        <input
-                          type="text"
-                          value={cardName}
-                          onChange={(e) => setCardName(e.target.value)}
-                          placeholder="JEAN DUPONT"
-                          className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-                          required
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
-                            Expiration
-                          </label>
-                          <input
-                            type="text"
-                            value={cardExpiry}
-                            onChange={(e) => setCardExpiry(e.target.value)}
-                            placeholder="MM/YY"
-                            className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-foreground mb-2">
-                            CVV
-                          </label>
-                          <input
-                            type="text"
-                            value={cardCvv}
-                            onChange={(e) => setCardCvv(e.target.value)}
-                            placeholder="123"
-                            className="w-full px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-                            required
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Numéro de téléphone
-                      </label>
-                      <div className="flex gap-2">
-                        <select className="px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors">
-                          <option value="+243">+243 (RDC)</option>
-                          <option value="+225">+225 (CI)</option>
-                          <option value="+221">+221 (SN)</option>
-                          <option value="+234">+234 (NG)</option>
-                          <option value="+254">+254 (KE)</option>
-                        </select>
-                        <input
-                          type="tel"
-                          value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value)}
-                          placeholder="XX XX XX XX"
-                          className="flex-1 px-4 py-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-                          required
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Vous recevrez un code de confirmation sur votre téléphone pour valider le paiement.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={!finalAmount || !paymentMethod || isProcessing}
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isProcessing ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Traitement en cours...
-                  </>
-                ) : (
-                  <>
-                    <Heart className="w-5 h-5" />
-                    Faire un don de {finalAmount ? parseInt(finalAmount).toLocaleString() : '0'} FCFA
-                  </>
-                )}
-              </button>
-
-              <p className="text-xs text-muted-foreground text-center mt-4">
-                En faisant un don, vous acceptez nos conditions d'utilisation et notre politique de confidentialité.
-              </p>
-            </form>
-          </div>
-        </div>
-      </div>
+          <div className="grid gap-4 sm:grid-cols-2"><label className="text-sm font-medium">Nom (optionnel)<input value={donorName} onChange={(event) => setDonorName(event.target.value)} className="mt-2 w-full rounded-lg border border-border bg-background px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-primary" placeholder="Votre nom" /></label><label className="text-sm font-medium">Email (optionnel)<input type="email" value={donorEmail} onChange={(event) => setDonorEmail(event.target.value)} className="mt-2 w-full rounded-lg border border-border bg-background px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-primary" placeholder="vous@exemple.com" /></label></div>
+          <label className="mt-4 flex items-center gap-2 text-sm"><input type="checkbox" checked={isAnonymous} onChange={(event) => setIsAnonymous(event.target.checked)} />Afficher ce don comme anonyme</label>
+          <label className="mt-4 block text-sm font-medium">Message (optionnel)<textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={3} maxLength={500} className="mt-2 w-full resize-none rounded-lg border border-border bg-background px-4 py-3 font-normal outline-none focus:ring-2 focus:ring-primary" placeholder="Un mot pour notre équipe" /></label>
+          {error && <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+          <button type="submit" disabled={!amount || amount < 500 || isProcessing} className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-4 text-lg font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50">{isProcessing ? <><Loader2 className="h-5 w-5 animate-spin" />Redirection vers Stripe...</> : <><Heart className="h-5 w-5" />Continuer vers le paiement</>}</button>
+          <p className="mt-4 text-center text-xs text-muted-foreground">Le don sera confirmé uniquement après validation du paiement par Stripe.</p>
+        </form>
+      </main>
     </div>
   );
 }

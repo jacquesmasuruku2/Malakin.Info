@@ -3,21 +3,26 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle2, ArrowLeft, Home } from 'lucide-react';
-import Stripe from 'stripe';
+
+type StripeSessionData = {
+  amount_total: number | null;
+  currency?: string | null;
+  customer_email?: string | null;
+  metadata?: Record<string, string> | null;
+};
 
 export default function SuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
-  const [sessionData, setSessionData] = useState<any>(null);
+  const [sessionData, setSessionData] = useState<StripeSessionData | null>(null);
   const [error, setError] = useState('');
+  const isDonation = sessionData?.metadata?.purchaseType === 'donation';
 
   useEffect(() => {
     const sessionId = searchParams.get('session_id');
     
     if (!sessionId) {
-      setError('Session ID manquant');
-      setLoading(false);
       return;
     }
 
@@ -32,13 +37,15 @@ export default function SuccessPage() {
         }
         setLoading(false);
       })
-      .catch(err => {
+      .catch(() => {
         setError('Erreur lors de la récupération des détails de la session');
         setLoading(false);
       });
   }, [searchParams]);
 
-  if (loading) {
+  const missingSessionId = !searchParams.get('session_id');
+
+  if (loading && !missingSessionId) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#eef1ef] px-4">
         <div className="text-center">
@@ -49,7 +56,7 @@ export default function SuccessPage() {
     );
   }
 
-  if (error) {
+  if (error || missingSessionId) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#eef1ef] px-4 py-10">
         <div className="w-full max-w-xl rounded-2xl border border-red-200 bg-white p-8 text-center shadow-sm">
@@ -57,7 +64,7 @@ export default function SuccessPage() {
             <CheckCircle2 className="h-8 w-8" />
           </div>
           <h1 className="text-2xl font-bold text-[#111827]">Erreur</h1>
-          <p className="mt-4 text-base text-[#4b5563]">{error}</p>
+          <p className="mt-4 text-base text-[#4b5563]">{error || 'Session ID manquant'}</p>
           <button
             onClick={() => router.push('/fr/nous-soutenir/faire-un-don')}
             className="mt-6 rounded-md bg-[#0b3b8b] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#082a63]"
@@ -77,13 +84,13 @@ export default function SuccessPage() {
         </div>
 
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#0b3b8b]">Paiement réussi</p>
-        <h1 className="text-3xl font-bold text-[#111827]">Merci pour votre soutien !</h1>
+        <h1 className="text-3xl font-bold text-[#111827]">{isDonation ? 'Merci pour votre don !' : 'Merci pour votre soutien !'}</h1>
         
         {sessionData && (
           <>
             <p className="mt-4 text-base text-[#4b5563]">
               Votre paiement de <span className="font-semibold text-[#111827]">
-                {(sessionData.amount_total / 100).toFixed(2)} $
+                {isDonation ? `${Number(sessionData.amount_total || 0).toLocaleString('fr-FR')} ${sessionData.currency?.toUpperCase() || 'XOF'}` : `${((sessionData.amount_total || 0) / 100).toFixed(2)} $`}
               </span> a bien été effectué.
             </p>
 
@@ -92,18 +99,7 @@ export default function SuccessPage() {
                 <span>Email</span>
                 <span className="font-semibold">{sessionData.customer_email || 'N/A'}</span>
               </div>
-              <div className="mt-2 flex items-center justify-between gap-3">
-                <span>Plan</span>
-                <span className="font-semibold">{sessionData.metadata?.planName || 'N/A'}</span>
-              </div>
-              <div className="mt-2 flex items-center justify-between gap-3">
-                <span>Pays</span>
-                <span className="font-semibold">{sessionData.metadata?.country || 'N/A'}</span>
-              </div>
-              <div className="mt-2 flex items-center justify-between gap-3">
-                <span>Offre cadeau</span>
-                <span className="font-semibold">{sessionData.metadata?.isGift === 'true' ? 'Oui' : 'Non'}</span>
-              </div>
+              {isDonation ? <div className="mt-2 flex items-center justify-between gap-3"><span>Type</span><span className="font-semibold">Don ponctuel</span></div> : <><div className="mt-2 flex items-center justify-between gap-3"><span>Plan</span><span className="font-semibold">{sessionData.metadata?.planName || 'N/A'}</span></div><div className="mt-2 flex items-center justify-between gap-3"><span>Pays</span><span className="font-semibold">{sessionData.metadata?.country || 'N/A'}</span></div><div className="mt-2 flex items-center justify-between gap-3"><span>Offre cadeau</span><span className="font-semibold">{sessionData.metadata?.isGift === 'true' ? 'Oui' : 'Non'}</span></div></>}
             </div>
           </>
         )}
