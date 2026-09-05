@@ -4,7 +4,6 @@ import AdminLayout from '@/components/AdminLayout';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Save, X } from 'lucide-react';
-import { getApiUrl } from '@/lib/api';
 
 interface Category {
   id: string;
@@ -22,6 +21,7 @@ export default function EditCategoryPage() {
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -31,33 +31,42 @@ export default function EditCategoryPage() {
   });
 
   useEffect(() => {
-    fetchCategory();
-  }, [categoryId]);
+    let cancelled = false;
 
-  const fetchCategory = async () => {
-    try {
-      const response = await fetch(getApiUrl(`/api/categories/${categoryId}`));
-      const data: Category = await response.json();
-      setFormData({
-        title: data.title,
-        slug: data.slug,
-        description: data.description || '',
-        color: data.color || '#3B82F6',
-        icon: data.icon || '',
-      });
-    } catch (error) {
-      console.error('Failed to fetch category:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const loadCategory = async () => {
+      try {
+        const response = await fetch(`/api/categories/${categoryId}`, { credentials: 'include' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Catégorie introuvable');
+        if (cancelled) return;
+        const category = data as Category;
+        setFormData({
+          title: category.title,
+          slug: category.slug,
+          description: category.description || '',
+          color: category.color || '#3B82F6',
+          icon: category.icon || '',
+        });
+      } catch (error) {
+        if (!cancelled) {
+          console.error('Failed to fetch category:', error);
+          setErrorMessage(error instanceof Error ? error.message : 'Impossible de charger la catégorie');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    void loadCategory();
+    return () => { cancelled = true; };
+  }, [categoryId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
     try {
-      const response = await fetch(getApiUrl(`/api/categories/${categoryId}`), {
+      const response = await fetch(`/api/categories/${categoryId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +77,8 @@ export default function EditCategoryPage() {
       if (response.ok) {
         router.push('/categories');
       } else {
-        alert('Erreur lors de la modification de la catégorie');
+        const data = await response.json().catch(() => ({}));
+        alert(data.error || 'Erreur lors de la modification de la catégorie');
       }
     } catch (error) {
       console.error('Failed to update category:', error);
@@ -100,6 +110,20 @@ export default function EditCategoryPage() {
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="text-gray-500 mt-4">Chargement...</p>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <AdminLayout>
+        <div className="mx-auto max-w-2xl rounded-lg border border-red-200 bg-red-50 p-6 text-red-800">
+          <h1 className="text-xl font-semibold">Impossible de charger la catégorie</h1>
+          <p className="mt-2 text-sm">{errorMessage}</p>
+          <button type="button" onClick={() => router.push('/categories')} className="mt-4 rounded-md bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800">
+            Retour aux catégories
+          </button>
         </div>
       </AdminLayout>
     );
@@ -191,7 +215,7 @@ export default function EditCategoryPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Icône (emoji ou nom d'icône)
+              Icône (emoji ou nom d&apos;icône)
             </label>
             <input
               type="text"

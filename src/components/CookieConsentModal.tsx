@@ -320,7 +320,7 @@ export default function CookieConsentModal() {
   return (
     <>
       {isVisible && !isPreferencesOpen && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 pb-3 sm:inset-x-auto sm:left-3 sm:max-w-[430px] sm:px-0 sm:pb-3">
+        <div className="pointer-events-none fixed inset-x-0 bottom-[5.5rem] z-[70] max-h-[calc(100svh-6.5rem)] overflow-y-auto px-3 pb-1 sm:inset-x-auto sm:bottom-0 sm:left-3 sm:max-h-none sm:max-w-[430px] sm:overflow-visible sm:px-0 sm:pb-3">
           <div className="pointer-events-auto cookie-consent-enter w-full rounded-[3px] border border-[#d4af37] bg-[#081c3d] p-4 text-white shadow-2xl shadow-[#081c3d]/40 sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
