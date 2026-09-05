@@ -245,7 +245,7 @@ export default function NewArticlePage() {
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="grid items-start gap-6 xl:gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
             {/* Main Content Card */}
-            <div className="card rounded-xl shadow-sm border overflow-hidden">
+            <div className="card rounded-xl shadow-sm border">
               <div className="p-6 space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">

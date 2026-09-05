@@ -312,7 +312,7 @@ export default function EditArticlePage() {
 
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
-            <div className="card rounded-xl shadow-sm border overflow-hidden">
+            <div className="card rounded-xl shadow-sm border">
               <div className="p-6 space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Titre *</label>
