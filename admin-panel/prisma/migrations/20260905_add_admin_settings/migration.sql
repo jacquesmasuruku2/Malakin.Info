@@ -12,7 +12,4 @@ CREATE TABLE IF NOT EXISTS "AdminSettings" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "AdminSettings_publicApiKey_key" ON "AdminSettings"("publicApiKey");
 CREATE INDEX IF NOT EXISTS "AdminSettings_updatedById_idx" ON "AdminSettings"("updatedById");
-DO $$ BEGIN
-  ALTER TABLE "AdminSettings" ADD CONSTRAINT "AdminSettings_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES "AdminUser"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
+ALTER TABLE "AdminSettings" ADD CONSTRAINT "AdminSettings_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES "AdminUser"("id") ON DELETE SET NULL ON UPDATE CASCADE;
