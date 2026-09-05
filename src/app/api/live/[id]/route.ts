@@ -2,8 +2,17 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // Helper function to add CORS headers
-function cors(response: NextResponse) {
-  response.headers.set('Access-Control-Allow-Origin', 'https://dashboard.malakinfo.com');
+function cors(response: NextResponse, request?: Request) {
+  const requestOrigin = request?.headers.get('origin');
+  const allowedOrigins = [
+    process.env.ADMIN_PANEL_URL,
+    process.env.NEXT_PUBLIC_ADMIN_URL,
+    'https://dashboard.malakinfo.com',
+    'http://localhost:3001',
+    'http://localhost:3000',
+  ].filter(Boolean);
+  const origin = requestOrigin && allowedOrigins.includes(requestOrigin) ? requestOrigin : allowedOrigins[0];
+  if (origin) response.headers.set('Access-Control-Allow-Origin', origin);
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   response.headers.set('Access-Control-Allow-Credentials', 'true');
@@ -19,9 +28,9 @@ function serializeLiveEvent(event: any) {
 }
 
 // Handle OPTIONS request for CORS preflight
-export async function OPTIONS() {
+export async function OPTIONS(request: Request) {
   const response = new NextResponse(null, { status: 200 });
-  return cors(response);
+  return cors(response, request);
 }
 
 // Helper function to calculate status based on time
@@ -67,18 +76,18 @@ export async function GET(
         where: { id },
         data: { status: calculatedStatus },
       });
-      return cors(NextResponse.json(serializeLiveEvent(updatedEvent)));
+      return cors(NextResponse.json(serializeLiveEvent(updatedEvent)), request);
     }
 
     console.log('[live API] Returning event:', event.id);
-    return cors(NextResponse.json(serializeLiveEvent(event)));
+    return cors(NextResponse.json(serializeLiveEvent(event)), request);
   } catch (error) {
     console.error('[live API] Error fetching live event:', error);
     console.error('[live API] Error details:', error instanceof Error ? error.message : String(error));
     return cors(NextResponse.json(
       { error: 'Failed to fetch live event' },
       { status: 500 }
-    ));
+    ), request);
   }
 }
 
@@ -129,13 +138,13 @@ export async function PUT(
       },
     });
 
-    return cors(NextResponse.json(serializeLiveEvent(event)));
+    return cors(NextResponse.json(serializeLiveEvent(event)), request);
   } catch (error) {
     console.error('Error updating live event:', error);
     return cors(NextResponse.json(
       { error: 'Failed to update live event' },
       { status: 500 }
-    ));
+    ), request);
   }
 }
 
@@ -149,12 +158,12 @@ export async function DELETE(
       where: { id }
     });
 
-    return cors(NextResponse.json({ success: true }));
+    return cors(NextResponse.json({ success: true }), request);
   } catch (error) {
     console.error('Error deleting live event:', error);
     return cors(NextResponse.json(
       { error: 'Failed to delete live event' },
       { status: 500 }
-    ));
+    ), request);
   }
 }

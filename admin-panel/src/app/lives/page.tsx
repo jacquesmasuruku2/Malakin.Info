@@ -41,6 +41,7 @@ export default function LivesPage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [lives, setLives] = useState<LiveEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<{
     isOpen: boolean;
     liveId: string | null;
@@ -55,17 +56,24 @@ export default function LivesPage() {
     fetchLives();
   }, []);
 
-  const fetchLives = async () => {
+  async function fetchLives() {
+    setLoading(true);
+    setErrorMessage(null);
     try {
-      const response = await fetch(getApiUrl('/api/live'));
+      const response = await fetch(getApiUrl('/api/live'), { credentials: 'include' });
       const data = await response.json();
+      if (!response.ok || !Array.isArray(data)) {
+        throw new Error(data?.error || `Erreur de chargement (${response.status})`);
+      }
       setLives(data);
     } catch (error) {
       console.error('Failed to fetch lives:', error);
+      setLives([]);
+      setErrorMessage(error instanceof Error ? error.message : 'Impossible de charger les lives.');
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const deleteLive = async (id: string) => {
     try {
@@ -194,6 +202,15 @@ export default function LivesPage() {
           </div>
 
           {/* Lives Table */}
+          {errorMessage && !loading && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+              <div className="flex items-center justify-between gap-4">
+                <span>{errorMessage}</span>
+                <button type="button" onClick={fetchLives} className="rounded-md bg-red-100 px-3 py-1.5 font-medium hover:bg-red-200">Réessayer</button>
+              </div>
+            </div>
+          )}
+
           <div className="card rounded-lg shadow-sm border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[800px]">

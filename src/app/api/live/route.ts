@@ -2,8 +2,17 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // Helper function to add CORS headers
-function cors(response: NextResponse) {
-  response.headers.set('Access-Control-Allow-Origin', 'https://dashboard.malakinfo.com');
+function cors(response: NextResponse, request?: Request) {
+  const requestOrigin = request?.headers.get('origin');
+  const allowedOrigins = [
+    process.env.ADMIN_PANEL_URL,
+    process.env.NEXT_PUBLIC_ADMIN_URL,
+    'https://dashboard.malakinfo.com',
+    'http://localhost:3001',
+    'http://localhost:3000',
+  ].filter(Boolean);
+  const origin = requestOrigin && allowedOrigins.includes(requestOrigin) ? requestOrigin : allowedOrigins[0];
+  if (origin) response.headers.set('Access-Control-Allow-Origin', origin);
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   response.headers.set('Access-Control-Allow-Credentials', 'true');
@@ -11,9 +20,9 @@ function cors(response: NextResponse) {
 }
 
 // Handle OPTIONS request for CORS preflight
-export async function OPTIONS() {
+export async function OPTIONS(request: Request) {
   const response = new NextResponse(null, { status: 200 });
-  return cors(response);
+  return cors(response, request);
 }
 
 function serializeLiveEvent(event: any) {
@@ -80,12 +89,12 @@ export async function GET(request: Request) {
           }
         }
 
-        return cors(NextResponse.json(currentLive ? serializeLiveEvent(currentLive) : null));
+        return cors(NextResponse.json(currentLive ? serializeLiveEvent(currentLive) : null), request);
       } catch (error) {
         console.error('[live API] Error fetching current live:', error);
         console.error('[live API] Error details:', error instanceof Error ? error.message : String(error));
         console.error('[live API] Error stack:', error instanceof Error ? error.stack : 'No stack');
-        return cors(NextResponse.json(null));
+        return cors(NextResponse.json(null), request);
       }
     }
 
@@ -106,11 +115,11 @@ export async function GET(request: Request) {
         });
         console.log('[live API] Upcoming events fetched:', upcomingEvents.length);
 
-        return cors(NextResponse.json(upcomingEvents.map(serializeLiveEvent)));
+        return cors(NextResponse.json(upcomingEvents.map(serializeLiveEvent)), request);
       } catch (error) {
         console.error('[live API] Error fetching upcoming events:', error);
         console.error('[live API] Error details:', error instanceof Error ? error.message : String(error));
-        return cors(NextResponse.json([]));
+        return cors(NextResponse.json([]), request);
       }
     }
 
@@ -142,12 +151,12 @@ export async function GET(request: Request) {
       // Run status updates in background
       Promise.allSettled(statusUpdates);
 
-      return cors(NextResponse.json(events.map(serializeLiveEvent)));
+      return cors(NextResponse.json(events.map(serializeLiveEvent)), request);
     } catch (error) {
       console.error('[live API] Error fetching all events:', error);
       console.error('[live API] Error details:', error instanceof Error ? error.message : String(error));
       console.error('[live API] Error stack:', error instanceof Error ? error.stack : 'No stack');
-      return cors(NextResponse.json([]));
+      return cors(NextResponse.json([]), request);
     }
   } catch (error) {
     console.error('[live API] Unexpected error:', error);

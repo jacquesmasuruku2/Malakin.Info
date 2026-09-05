@@ -143,9 +143,25 @@ model AdminUser {
   lastLoginAt   DateTime?
   sessions      AdminSession[]
   passwordResets AdminPasswordReset[]
+  updatedSettings AdminSettings[] @relation("AdminSettingsUpdatedBy")
 
   @@index([email])
   @@index([provider])
+}
+
+model AdminSettings {
+  id                   String    @id @default("global")
+  siteName             String    @default("Malakinfo.com")
+  contactEmail         String    @default("contact@malakinfo.com")
+  emailNotifications   Boolean   @default(true)
+  securityAlerts       Boolean   @default(true)
+  weeklyReports        Boolean   @default(false)
+  publicApiKey         String    @unique
+  updatedAt            DateTime  @updatedAt
+  updatedById          String?
+  updatedBy            AdminUser? @relation("AdminSettingsUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([updatedById])
 }
 
 model AdminSession {
