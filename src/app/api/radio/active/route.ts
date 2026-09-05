@@ -43,10 +43,13 @@ export async function GET(request: Request) {
       }),
     ]);
 
-    const activeStream = currentProgram?.streamUrl || station?.streamUrl || DEFAULT_STATION.streamUrl;
-    const activeName = currentProgram?.title || station?.name || DEFAULT_STATION.name;
-    const activeDescription = currentProgram?.description || station?.description || DEFAULT_STATION.description;
-    const activeLogo = currentProgram?.imageUrl || station?.logoUrl || DEFAULT_STATION.logoUrl;
+    const candidateStream = currentProgram?.streamUrl || station?.streamUrl || DEFAULT_STATION.streamUrl;
+    const hasSafeStream = candidateStream.startsWith('/') || candidateStream.startsWith('https://');
+    const activeStream = hasSafeStream ? candidateStream : DEFAULT_STATION.streamUrl;
+    const usingFallback = !hasSafeStream;
+    const activeName = usingFallback ? DEFAULT_STATION.name : currentProgram?.title || station?.name || DEFAULT_STATION.name;
+    const activeDescription = usingFallback ? DEFAULT_STATION.description : currentProgram?.description || station?.description || DEFAULT_STATION.description;
+    const activeLogo = usingFallback ? DEFAULT_STATION.logoUrl : currentProgram?.imageUrl || station?.logoUrl || DEFAULT_STATION.logoUrl;
 
     return cors(NextResponse.json(
       {
@@ -55,7 +58,7 @@ export async function GET(request: Request) {
         streamUrl: activeStream,
         description: activeDescription,
         logoUrl: activeLogo,
-        currentProgram: currentProgram
+        currentProgram: currentProgram && !usingFallback
           ? {
               id: currentProgram.id,
               title: currentProgram.title,

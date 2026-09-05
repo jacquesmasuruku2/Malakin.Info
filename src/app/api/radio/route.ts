@@ -68,9 +68,21 @@ export async function POST(request: Request) {
       isActive: body?.isActive ?? DEFAULT_STATION.isActive,
     };
 
+    if (payload.logoUrl) {
+      const isLocalPath = payload.logoUrl.startsWith('/');
+      if (!isLocalPath) {
+        try {
+          const logoUrl = new URL(payload.logoUrl);
+          if (!['http:', 'https:'].includes(logoUrl.protocol)) throw new Error('Invalid protocol');
+        } catch {
+          return cors(NextResponse.json({ error: 'L’URL de l’icône doit être une URL HTTP/HTTPS ou un chemin local.' }, { status: 400 }), request);
+        }
+      }
+    }
+
     try {
       const streamUrl = new URL(payload.streamUrl);
-      if (!['http:', 'https:'].includes(streamUrl.protocol)) throw new Error('Invalid protocol');
+      if (streamUrl.protocol !== 'https:') throw new Error('Only HTTPS streams are supported');
     } catch {
       return cors(NextResponse.json({ error: 'L’URL du flux doit être une URL HTTP ou HTTPS valide.' }, { status: 400 }), request);
     }
