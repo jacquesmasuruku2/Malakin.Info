@@ -73,13 +73,6 @@ export default async function ReligionPage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-3">Une foi, des enseignements et des paroles</h2>
-          <p className="text-base leading-relaxed text-gray-700">
-            Une lecture inspirante des sujets spirituels, des homélies, des méditations et des réflexions qui accompagnent la vie de foi et la réflexion sur le sens de l’existence.
-          </p>
-        </div>
-
         <div className="grid grid-cols-1 gap-8">
           <div className="space-y-8">
             <div>

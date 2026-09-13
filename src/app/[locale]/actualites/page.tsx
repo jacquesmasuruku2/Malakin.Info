@@ -166,13 +166,6 @@ export default async function ActualitesPage({
           </section>
         )}
 
-        <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-3">L’actualité en direct</h2>
-          <p className="text-base leading-relaxed text-gray-700">
-            Suivez les faits, les analyses et les sujets qui structurent le débat public en Afrique et dans le monde, avec une lecture claire, rapide et fiable.
-          </p>
-        </div>
-
         <div className="grid grid-cols-1 gap-8">
           <div>
             {news.length > 0 ? (

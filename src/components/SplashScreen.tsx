@@ -2,48 +2,47 @@
 
 import { useEffect, useState } from 'react';
 
+const VISIBLE_MS = 2000;
+const FADE_MS = 400;
+const STORAGE_KEY = 'malakinfo-preload-seen';
+
 export default function SplashScreen() {
-  const [isVisible, setIsVisible] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);
+  const [phase, setPhase] = useState<'show' | 'hide' | 'gone'>('show');
 
   useEffect(() => {
-    setIsMounted(true);
-    
-    // Fade out after hydration is complete
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-    }, 1500);
+    if (window.sessionStorage.getItem(STORAGE_KEY) === '1') {
+      setPhase('gone');
+      return;
+    }
 
-    return () => clearTimeout(timer);
+    const fadeTimer = window.setTimeout(() => setPhase('hide'), VISIBLE_MS);
+    const goneTimer = window.setTimeout(() => {
+      window.sessionStorage.setItem(STORAGE_KEY, '1');
+      setPhase('gone');
+    }, VISIBLE_MS + FADE_MS);
+
+    return () => {
+      window.clearTimeout(fadeTimer);
+      window.clearTimeout(goneTimer);
+    };
   }, []);
 
-  if (!isVisible) return null;
+  if (phase === 'gone') return null;
 
   return (
-    <div 
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-background transition-opacity duration-700 ease-in-out ${
-        isMounted ? 'opacity-100' : 'opacity-0'
-      } ${!isVisible ? 'opacity-0 pointer-events-none' : ''}`}
-      style={{ visibility: isVisible ? 'visible' : 'hidden' }}
+    <div
+      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-background/20 transition-opacity ease-out pointer-events-none ${
+        phase === 'hide' ? 'opacity-0' : 'opacity-100'
+      }`}
+      style={{ transitionDuration: `${FADE_MS}ms` }}
+      aria-hidden="true"
     >
-      <div className="flex flex-col items-center gap-6">
-        <div className="relative flex items-center justify-center">
-          <img
-            src="/images/logo.png"
-            alt="MalakInfo"
-            className="h-20 w-auto max-w-[240px] object-contain drop-shadow-lg md:h-28"
-            loading="eager"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-          <div className="w-3 h-3 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-          <div className="w-3 h-3 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-        </div>
-        <p className="text-muted-foreground text-sm md:text-base animate-pulse">
-          Chargement du contenu...
-        </p>
-      </div>
+      <img
+        src="/images/logo.png"
+        alt=""
+        className="h-16 w-auto max-w-[200px] object-contain drop-shadow-md sm:h-20 md:h-24"
+        loading="eager"
+      />
     </div>
   );
 }

@@ -59,13 +59,6 @@ export default async function InfosPratiquesPage({
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="font-heading text-2xl font-bold text-[#081C3D] mb-3">Des repères utiles tous les jours</h2>
-          <p className="text-base leading-relaxed text-gray-700">
-            Des guides pratiques, des tutoriels et des ressources pour faciliter les démarches, mieux comprendre les services publics et gagner en autonomie dans la vie quotidienne.
-          </p>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {guides.length > 0 ? (
             guides.map((guide) => (

@@ -2,9 +2,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mail, Phone, MapPin, ChevronRight, ArrowUp, Globe, Sparkles, Award, Users, Radio, TrendingUp, BookOpen, Newspaper, Music, Film, Briefcase, Heart, Share2, Smartphone, Download, Camera, Mic, Coffee, MessageCircle, Send, Video, MessageSquare } from 'lucide-react';
+import { Mail, Phone, MapPin, ChevronRight, ArrowUp, Sparkles, Award, Users, Radio, TrendingUp, Newspaper, Heart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
+
+const chipClass =
+  'relative overflow-hidden rounded-lg border border-white/15 px-3 py-2.5 text-center text-xs text-white/90 transition-colors hover:border-white/30 hover:bg-white/10';
+const linkClass =
+  'group flex items-center gap-1.5 text-sm text-white/70 transition-colors hover:text-white';
+const headingClass =
+  'mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white';
 
 export default function Footer() {
   const pathname = usePathname();
@@ -15,13 +22,12 @@ export default function Footer() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isNewsletterSubmitting, setIsNewsletterSubmitting] = useState(false);
-  
+
   const locale = getLocaleFromPathname(pathname);
   const messages = getMessages(locale);
   const t = messages.footer;
   const nav = messages.nav;
 
-  // Scroll to top functionality
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 500);
@@ -80,7 +86,6 @@ export default function Footer() {
     }
   };
 
-  // Social media icons mapping with official icons and URLs
   const socialIcons = {
     Website: {
       icon: () => (
@@ -88,7 +93,7 @@ export default function Footer() {
           <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
         </svg>
       ),
-      color: '#0F172A',
+      color: '#FFFFFF',
       url: 'https://www.malakinfo.com',
     },
     Facebook: {
@@ -106,7 +111,7 @@ export default function Footer() {
           <path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
         </svg>
       ),
-      color: '#000000',
+      color: '#FFFFFF',
       url: 'https://x.com/Malakinfo1',
     },
     Instagram: {
@@ -139,233 +144,195 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative bg-gradient-to-b from-gray-900 via-black to-black text-white overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-0 left-0 w-64 h-64 bg-red-600 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-600 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-yellow-600 rounded-full blur-3xl animate-pulse delay-2000" />
-      </div>
+    <footer className="relative bg-[#081c3d] text-white">
+      <div className="h-px bg-[#d4af37]" />
 
-      {/* Red accent bar with gradient */}
-      <div className="h-1 bg-gradient-to-r from-red-600 via-red-500 to-red-600 animate-gradient-x"></div>
-      
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Scroll to top button */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         {showScrollTop && (
           <button
             onClick={scrollToTop}
-            className="fixed bottom-28 right-4 z-[60] bg-red-600 hover:bg-red-700 text-white p-3 rounded-full shadow-2xl hover:shadow-red-500/50 transition-all duration-300 transform hover:scale-110 group sm:bottom-8 sm:right-8"
+            className="fixed bottom-28 right-4 z-[60] rounded-full bg-[#0b3b8b] p-3 text-white shadow-lg transition hover:bg-[#0a3276] sm:bottom-8 sm:right-8"
+            aria-label={locale === 'fr' ? 'Remonter en haut' : 'Back to top'}
           >
-            <ArrowUp className="w-6 h-6 group-hover:animate-bounce" />
+            <ArrowUp className="w-5 h-5" />
           </button>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          
-          {/* Column 1: Dans l'actualité + Rubriques */}
-          <div className="space-y-8 border-r border-gray-700/50 pr-0 md:pr-8 last:border-r-0 last:pr-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
+          <div className="space-y-8">
             <div>
-              <h3 className="font-bold text-white mb-4 text-sm tracking-wider uppercase flex items-center gap-2">
-                <Newspaper className="w-4 h-4 text-red-500" />
+              <h3 className={headingClass}>
+                <Newspaper className="w-4 h-4 text-[#d4af37]" />
                 {t.inTheNews}
               </h3>
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <Link 
+                <div className="grid grid-cols-2 gap-2.5">
+                  <Link
                     href={`/${locale}/politique`}
-                    className="group relative border border-white/20 text-white px-3 py-2.5 text-xs text-center hover:bg-white hover:text-black transition-all duration-300 hover:shadow-lg hover:shadow-red-500/20 overflow-hidden"
+                    className={chipClass}
                     onMouseEnter={() => setHoveredItem('politics')}
                     onMouseLeave={() => setHoveredItem(null)}
                   >
                     <span className="relative z-10">{nav.politics}</span>
-                    <span className="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
                   </Link>
-                  <Link 
+                  <Link
                     href={`/${locale}/economie`}
-                    className="group relative border border-white/20 text-white px-3 py-2.5 text-xs text-center hover:bg-white hover:text-black transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 overflow-hidden"
+                    className={chipClass}
                     onMouseEnter={() => setHoveredItem('economy')}
                     onMouseLeave={() => setHoveredItem(null)}
                   >
                     <span className="relative z-10">{nav.economy}</span>
-                    <span className="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform origin-right duration-300" />
                   </Link>
                 </div>
-                <Link 
-                  href={`/${locale}/actualites`} 
-                  className="group relative border border-white/20 text-white px-3 py-2.5 text-xs text-center block hover:bg-white hover:text-black transition-all duration-300 hover:shadow-lg hover:shadow-yellow-500/20 overflow-hidden"
+                <Link
+                  href={`/${locale}/actualites`}
+                  className={chipClass}
                   onMouseEnter={() => setHoveredItem('allNews')}
                   onMouseLeave={() => setHoveredItem(null)}
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
-                    <Sparkles className="w-3 h-3" />
+                    <Sparkles className="w-3 h-3 text-[#d4af37]" />
                     {t.africanNews2026}
                   </span>
-                  <span className="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform origin-center duration-300" />
                 </Link>
-                <div className="grid grid-cols-2 gap-3">
-                  <Link 
+                <div className="grid grid-cols-2 gap-2.5">
+                  <Link
                     href={`/${locale}/societe`}
-                    className="group relative border border-white/20 text-white px-3 py-2.5 text-xs text-center hover:bg-white hover:text-black transition-all duration-300 hover:shadow-lg hover:shadow-green-500/20 overflow-hidden"
+                    className={chipClass}
                     onMouseEnter={() => setHoveredItem('society')}
                     onMouseLeave={() => setHoveredItem(null)}
                   >
                     <span className="relative z-10">{nav.society}</span>
-                    <span className="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
                   </Link>
-                  <Link 
+                  <Link
                     href={`/${locale}/sante`}
-                    className="group relative border border-white/20 text-white px-3 py-2.5 text-xs text-center hover:bg-white hover:text-black transition-all duration-300 hover:shadow-lg hover:shadow-red-500/20 overflow-hidden"
+                    className={chipClass}
                     onMouseEnter={() => setHoveredItem('health')}
                     onMouseLeave={() => setHoveredItem(null)}
                   >
                     <span className="relative z-10">{nav.health}</span>
-                    <span className="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform origin-right duration-300" />
                   </Link>
                 </div>
               </div>
             </div>
-            
+
             <div>
-              <h3 className="font-bold text-white mb-4 text-sm tracking-wider uppercase flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-blue-400" />
+              <h3 className={headingClass}>
+                <TrendingUp className="w-4 h-4 text-[#d4af37]" />
                 {t.sections}
               </h3>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="space-y-2">
-                  {[nav.security, nav.environment, nav.culture].map((item, index) => (
-                    <Link 
-                      key={index}
-                      href={`/${locale}/${['securite', 'environnement', 'culture'][index]}`}
-                      className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:translate-x-2 hover:scale-105 flex items-center gap-1 group"
-                    >
-                      <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-red-500" />
-                      {item}
-                    </Link>
-                  ))}
-                </div>
-                <div className="space-y-2">
-                  {[nav.sport, nav.employment, nav.religion].map((item, index) => (
-                    <Link 
-                      key={index}
-                      href={`/${locale}/${['sport', 'emploi', 'religion'][index]}`} 
-                      className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:translate-x-2 hover:scale-105 flex items-center gap-1 group"
-                    >
-                      <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-red-500" />
-                      {item}
-                    </Link>
-                  ))}
-                </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                {[nav.security, nav.environment, nav.culture].map((item, index) => (
+                  <Link
+                    key={item}
+                    href={`/${locale}/${['securite', 'environnement', 'culture'][index]}`}
+                    className={linkClass}
+                  >
+                    <ChevronRight className="w-3 h-3 text-[#d4af37] opacity-0 transition-opacity group-hover:opacity-100" />
+                    {item}
+                  </Link>
+                ))}
+                {[nav.sport, nav.employment, nav.religion].map((item, index) => (
+                  <Link
+                    key={item}
+                    href={`/${locale}/${['sport', 'emploi', 'religion'][index]}`}
+                    className={linkClass}
+                  >
+                    <ChevronRight className="w-3 h-3 text-[#d4af37] opacity-0 transition-opacity group-hover:opacity-100" />
+                    {item}
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Column 2: À propos de Malakin */}
-          <div className="border-r border-gray-700/50 pr-0 md:pr-8 last:border-r-0 last:pr-0">
-            <h3 className="font-bold text-white mb-4 text-sm tracking-wider uppercase flex items-center gap-2">
-              <Users className="w-4 h-4 text-purple-400" />
+          <div>
+            <h3 className={headingClass}>
+              <Users className="w-4 h-4 text-[#d4af37]" />
               {t.aboutMalakin}
             </h3>
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="space-y-2">
-                {[t.whoAreWe, t.ourMission, t.ourTeam].map((item, index) => (
-                  <Link
-                    key={index}
-                    href={`/${locale}/${['a-propos', 'mission', 'equipe'][index]}`}
-                    className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:translate-x-2 flex items-center gap-1 group"
-                  >
-                    <div className="w-1 h-1 bg-red-500 rounded-full group-hover:scale-150 transition-transform" />
-                    {item}
-                  </Link>
-                ))}
-              </div>
-              <div className="space-y-2">
-                {[nav.contact, t.advertising, nav.supportUs].map((item, index) => (
-                  <Link 
-                    key={index}
-                    href={`/${locale}/${['contact', 'partenariats', 'nous-soutenir'][index]}`}
-                    className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:translate-x-2 flex items-center gap-1 group"
-                  >
-                    <div className="w-1 h-1 bg-red-500 rounded-full group-hover:scale-150 transition-transform" />
-                    {item}
-                  </Link>
-                ))}
-              </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              {[t.whoAreWe, t.ourMission, t.ourTeam].map((item, index) => (
+                <Link
+                  key={item}
+                  href={`/${locale}/${['a-propos', 'mission', 'equipe'][index]}`}
+                  className={linkClass}
+                >
+                  <span className="h-1 w-1 rounded-full bg-[#d4af37]" />
+                  {item}
+                </Link>
+              ))}
+              {[nav.contact, t.advertising, nav.supportUs].map((item, index) => (
+                <Link
+                  key={item}
+                  href={`/${locale}/${['contact', 'partenariats', 'nous-soutenir'][index]}`}
+                  className={linkClass}
+                >
+                  <span className="h-1 w-1 rounded-full bg-[#d4af37]" />
+                  {item}
+                </Link>
+              ))}
             </div>
-            
-            {/* Support us badge */}
-            <div className="mt-6 p-4 bg-gradient-to-r from-red-600/20 to-red-600/5 border border-red-500/20 rounded-lg">
+
+            <div className="mt-6 rounded-lg border border-white/10 bg-white/5 px-4 py-3">
               <div className="flex items-center gap-2 text-sm">
-                <Heart className="w-4 h-4 text-red-500 animate-pulse" />
-                <span className="text-xs text-gray-300">Soutenez l'information indépendante</span>
+                <Heart className="w-4 h-4 text-[#e63946]" />
+                <span className="text-xs text-white/75">Soutenez l'information indépendante</span>
               </div>
             </div>
           </div>
 
-          {/* Column 3: Réseau Malakin Media */}
-          <div className="border-r border-gray-700/50 pr-0 md:pr-8 last:border-r-0 last:pr-0">
-            <h3 className="font-bold text-white mb-4 text-sm tracking-wider uppercase flex items-center gap-2">
-              <Radio className="w-4 h-4 text-green-400 animate-pulse" />
+          <div>
+            <h3 className={headingClass}>
+              <Radio className="w-4 h-4 text-[#d4af37]" />
               {t.malakinMediaNetwork}
             </h3>
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="space-y-2">
-                {[t.malakinRadioAfrica, t.focusEco, t.youthTribune].map((item, index) => (
-                  <Link 
-                    key={index}
-                    href={`/${locale}/${['diffusion-en-direct', 'medias', 'medias/live'][index]}`}
-                    className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-500/10 p-2 rounded hover:bg-red-600/10"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-red-500">●</span>
-                      {item}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-              <div className="space-y-2">
-                {[t.malakinDocu, t.mediaObservatory, t.partnerships].map((item, index) => (
-                  <Link 
-                    key={index}
-                    href={`/${locale}/${['medias/photos', 'nous-soutenir', 'partenariats'][index]}`}
-                    className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-500/10 p-2 rounded hover:bg-blue-600/10"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-blue-400">◆</span>
-                      {item}
-                    </div>
-                  </Link>
-                ))}
-              </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              {[t.malakinRadioAfrica, t.focusEco, t.youthTribune].map((item, index) => (
+                <Link
+                  key={item}
+                  href={`/${locale}/${['diffusion-en-direct', 'medias', 'medias/live'][index]}`}
+                  className={linkClass}
+                >
+                  <span className="text-[#d4af37]">●</span>
+                  {item}
+                </Link>
+              ))}
+              {[t.malakinDocu, t.mediaObservatory, t.partnerships].map((item, index) => (
+                <Link
+                  key={item}
+                  href={`/${locale}/${['medias/photos', 'nous-soutenir', 'partenariats'][index]}`}
+                  className={linkClass}
+                >
+                  <span className="text-[#d4af37]">◆</span>
+                  {item}
+                </Link>
+              ))}
             </div>
           </div>
 
-          {/* Column 4: Services */}
           <div>
-            <h3 className="font-bold text-white mb-4 text-sm tracking-wider uppercase flex items-center gap-2">
-              <Award className="w-4 h-4 text-yellow-400" />
+            <h3 className={headingClass}>
+              <Award className="w-4 h-4 text-[#d4af37]" />
               {t.services}
             </h3>
-            <div className="space-y-2 text-xs">
-              <Link
-                href="/rss.xml"
-                className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:scale-105 p-2 rounded hover:bg-gradient-to-r hover:from-red-600/20 hover:to-transparent"
-              >
-                <div className="flex items-center gap-2">
-                  <Mail className="w-3 h-3 text-red-400" />
-                  {t.rssFeeds}
-                </div>
+            <div className="space-y-2">
+              <Link href="/rss.xml" className={linkClass}>
+                <Mail className="w-3.5 h-3.5 text-[#d4af37]" />
+                {t.rssFeeds}
               </Link>
             </div>
           </div>
         </div>
 
-        <div className="mt-12 border-t border-gray-800/50 pt-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mt-12 rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-red-400">Newsletter</p>
-              <h4 className="mt-2 text-2xl font-bold text-white">{locale === 'fr' ? 'Restez informé' : 'Stay informed'}</h4>
-              <p className="mt-2 text-sm text-gray-300">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#d4af37]">Newsletter</p>
+              <h4 className="mt-2 font-heading text-2xl font-bold text-white">
+                {locale === 'fr' ? 'Restez informé' : 'Stay informed'}
+              </h4>
+              <p className="mt-2 text-sm text-white/70">
                 {locale === 'fr'
                   ? 'Abonnez-vous pour recevoir les dernières actualités directement dans votre boîte mail.'
                   : 'Subscribe to receive the latest news directly in your inbox.'}
@@ -379,7 +346,7 @@ export default function Footer() {
                   value={newsletterName}
                   onChange={(event) => setNewsletterName(event.target.value)}
                   placeholder={locale === 'fr' ? 'Votre nom (optionnel)' : 'Your name (optional)'}
-                  className="w-full max-w-[220px] rounded-md border border-gray-700 bg-gray-950/60 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:border-red-500 focus:outline-none"
+                  className="w-full max-w-[220px] rounded-lg border border-white/15 bg-[#081c3d] px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-[#d4af37] focus:outline-none"
                   aria-label="Name newsletter"
                 />
                 <input
@@ -387,19 +354,19 @@ export default function Footer() {
                   value={newsletterEmail}
                   onChange={(event) => setNewsletterEmail(event.target.value)}
                   placeholder={locale === 'fr' ? 'Entrez votre adresse email' : 'Enter your email address'}
-                  className="flex-1 rounded-md border border-gray-700 bg-gray-950/60 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:border-red-500 focus:outline-none"
+                  className="flex-1 rounded-lg border border-white/15 bg-[#081c3d] px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-[#d4af37] focus:outline-none"
                   aria-label="Email newsletter"
                 />
                 <button
                   type="submit"
                   disabled={isNewsletterSubmitting}
-                  className="rounded-md bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-lg bg-[#0b3b8b] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0a3276] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isNewsletterSubmitting ? (locale === 'fr' ? 'Envoi...' : 'Sending...') : (locale === 'fr' ? 'S\'abonner' : 'Subscribe')}
                 </button>
               </div>
               {newsletterStatus && (
-                <p className={`mt-3 text-sm ${newsletterStatus.type === 'success' ? 'text-emerald-400' : 'text-red-400'}`}>
+                <p className={`mt-3 text-sm ${newsletterStatus.type === 'success' ? 'text-emerald-300' : 'text-red-300'}`}>
                   {newsletterStatus.text}
                 </p>
               )}
@@ -407,97 +374,69 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Legal bar with animated separator */}
-        <div className="border-t border-gray-800/50 mt-6 pt-6 mb-4 relative">
-          <div className="absolute -top-px left-0 w-1/4 h-px bg-gradient-to-r from-red-500 to-transparent"></div>
-          <div className="flex flex-wrap gap-6 text-xs text-gray-300">
-            {[
-              t.legalNotices,
-              t.privacyPolicy,
-              t.termsOfUse,
-              t.cookies
-            ].map((item, index) => (
-              <Link 
-                key={index}
-                href={`/${locale}/${['mentions-legales', 'politique-confidentialite', 'conditions-utilisation', 'cookies'][index]}`} 
-                className="hover:text-white transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 px-2 py-1 rounded hover:bg-red-600/10"
-              >
-                {item}
-              </Link>
-            ))}
-          </div>
+        <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/65">
+          {[
+            t.legalNotices,
+            t.privacyPolicy,
+            t.termsOfUse,
+            t.cookies
+          ].map((item, index) => (
+            <Link
+              key={item}
+              href={`/${locale}/${['mentions-legales', 'politique-confidentialite', 'conditions-utilisation', 'cookies'][index]}`}
+              className="transition-colors hover:text-white"
+            >
+              {item}
+            </Link>
+          ))}
         </div>
 
-        {/* Social media bar with interactive icons */}
-        <div className="border-t border-gray-800/50 pt-6 mb-4">
-          <div className="flex flex-wrap items-center gap-4 text-xs text-gray-300">
-            {Object.entries(socialIcons).map(([name, { icon: Icon, color, url }]) => (
-              <a
-                key={name}
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white cursor-pointer transition-all duration-300 transform hover:scale-125 hover:shadow-lg hover:shadow-red-500/20 px-2 py-1 rounded hover:bg-red-600/10 group flex items-center gap-2"
-                onMouseEnter={() => setHoveredItem(name)}
-                onMouseLeave={() => setHoveredItem(null)}
-              >
-                <span style={{ color }}>
-                  <Icon />
-                </span>
-                {name}
-                <span className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-[8px] text-red-400 block">●</span>
-              </a>
-            ))}
-            
-            <div className="border-l border-gray-700/50 pl-4 ml-2 flex flex-wrap items-center gap-4">
-              <a href="mailto:contact@malakinfo.com" className="flex items-center gap-2 hover:text-white transition-all duration-300 transform hover:scale-105 cursor-pointer group">
-                <Mail className="w-4 h-4 text-red-400 group-hover:animate-pulse" />
-                <span className="hover:text-white">{t.contactEmail}</span>
-              </a>
-              <a href="tel:+243998258441" className="flex items-center gap-2 hover:text-white transition-all duration-300 transform hover:scale-105 cursor-pointer group">
-                <Phone className="w-4 h-4 text-green-400 group-hover:animate-pulse" />
-                <span>+243 998 258 441</span>
-              </a>
-              <div className="flex items-center gap-2 hover:text-white transition-all duration-300 transform hover:scale-105 cursor-pointer group">
-                <MapPin className="w-4 h-4 text-yellow-400 group-hover:animate-pulse" />
-                <span>{t.location}</span>
-              </div>
+        <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-white/10 pt-6 text-sm text-white/70">
+          {Object.entries(socialIcons).map(([name, { icon: Icon, color, url }]) => (
+            <a
+              key={name}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1.5 transition-colors hover:border-white/30 hover:bg-white/10 hover:text-white"
+              onMouseEnter={() => setHoveredItem(name)}
+              onMouseLeave={() => setHoveredItem(null)}
+            >
+              <span style={{ color }}>
+                <Icon />
+              </span>
+              {name}
+              <span className={`text-[8px] text-[#d4af37] ${hoveredItem === name ? 'opacity-100' : 'opacity-0'}`}>●</span>
+            </a>
+          ))}
+
+          <div className="flex flex-wrap items-center gap-4 sm:ml-2 sm:border-l sm:border-white/15 sm:pl-4">
+            <a href="mailto:contact@malakinfo.com" className="inline-flex items-center gap-2 transition-colors hover:text-white">
+              <Mail className="w-4 h-4 text-[#d4af37]" />
+              <span>{t.contactEmail}</span>
+            </a>
+            <a href="tel:+243998258441" className="inline-flex items-center gap-2 transition-colors hover:text-white">
+              <Phone className="w-4 h-4 text-[#d4af37]" />
+              <span>+243 998 258 441</span>
+            </a>
+            <div className="inline-flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-[#d4af37]" />
+              <span>{t.location}</span>
             </div>
           </div>
         </div>
 
-        {/* Copyright with animated gradient */}
-        <div className="relative text-xs text-gray-400 text-right pt-4 border-t border-gray-800/50">
-          <div className="absolute -top-px right-0 w-1/4 h-px bg-gradient-to-l from-red-500 to-transparent"></div>
-          <p className="flex items-center justify-end gap-2">
+        <div className="mt-6 border-t border-white/10 pt-5 text-xs text-white/50">
+          <p className="flex flex-wrap items-center justify-end gap-2">
             <span>© {currentYear} MalakInfo.com</span>
-            <span className="w-1 h-1 bg-red-500 rounded-full animate-pulse"></span>
+            <span className="h-1 w-1 rounded-full bg-[#d4af37]" />
             <span>{t.copyright}</span>
-            <span className="w-1 h-1 bg-red-500 rounded-full animate-pulse delay-500"></span>
+            <span className="h-1 w-1 rounded-full bg-[#d4af37]" />
             <span>{t.madeWith}</span>
-            <Heart className="w-3 h-3 text-red-500 inline animate-pulse" />
+            <Heart className="w-3 h-3 text-[#e63946] inline" />
           </p>
         </div>
       </div>
-
-      {/* CSS animations */}
-      <style jsx>{`
-        @keyframes gradient-x {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .animate-gradient-x {
-          background-size: 200% 200%;
-          animation: gradient-x 3s ease infinite;
-        }
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 0.05; transform: scale(1); }
-          50% { opacity: 0.1; transform: scale(1.1); }
-        }
-        .animate-pulse-slow {
-          animation: pulse-slow 4s ease-in-out infinite;
-        }
-      `}</style>
     </footer>
   );
 }
