@@ -1,47 +1,62 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
+import { PUBLICATION_DIRECTOR, SITE_ADDRESS, SITE_EMAIL, SITE_NAME, SITE_PHONE } from '@/lib/site-legal';
 
 export const metadata: Metadata = {
   title: 'À propos - Malakinfo.com',
-  description: 'Découvrez Malakinfo.com - L\'info qui traverse les frontières',
+  description: 'MalakInfo est un média d’information indépendant basé à Kinshasa, consacré à l’Afrique et au monde.',
 };
 
-export default function AboutPage({ 
-  params 
-}: { 
-  params: Promise<{ locale: string }> 
-}) {
+export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isFrench = locale === 'fr';
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="font-heading text-4xl font-bold text-foreground mb-8">
-          À propos de Malakinfo.com
+          {isFrench ? `À propos de ${SITE_NAME}` : `About ${SITE_NAME}`}
         </h1>
-        <div className="prose prose-lg max-w-none">
-          <p className="text-muted-foreground text-lg mb-6">
-            Malakinfo.com est une plateforme d'information indépendante dédiée à informer, éduquer et connecter l'Afrique à travers un journalisme fiable et multiculturel.
+        <div className="prose prose-lg max-w-none space-y-6 text-muted-foreground">
+          <p className="text-lg">
+            {SITE_NAME} est un média d’information indépendant, édité à Kinshasa, en République démocratique du Congo. Nous publions des actualités, des analyses et des dossiers sur l’Afrique et le monde, avec une attention particulière à la RDC et à sa diaspora.
           </p>
-          <p className="text-muted-foreground text-lg mb-6">
-            Notre mission est de fournir une couverture médiatique de qualité qui traverse les frontières, en mettant en lumière les histoires qui comptent pour le continent africain et sa diaspora.
+          <p>
+            Notre ligne est celle d’un journalisme de service public : vérifier, contextualiser et expliquer. Le site est conçu pour les lecteurs, pas pour dupliquer des dépêches sans valeur ajoutée.
           </p>
-          <h2 className="font-heading text-2xl font-bold text-foreground mt-8 mb-4">
-            Notre Mission
-          </h2>
-          <p className="text-muted-foreground text-lg mb-6">
-            Nous nous engageons à:
+
+          <h2 className="font-heading text-2xl font-bold text-foreground">Qui nous sommes</h2>
+          <p>
+            {SITE_NAME} est édité par {PUBLICATION_DIRECTOR} et porté par une rédaction de journalistes, de contributeurs et d’une équipe technique basée à Kinshasa. Les auteurs sont identifiés sur les articles et sur la page équipe.
           </p>
-          <ul className="list-disc pl-6 text-muted-foreground text-lg mb-6 space-y-2">
-            <li>Informer avec intégrité et précision</li>
-            <li>Éduquer à travers des contenus de qualité</li>
-            <li>Connecter les communautés africaines</li>
-            <li>Valoriser la diversité culturelle</li>
-            <li>Promouvoir le journalisme indépendant</li>
+
+          <h2 className="font-heading text-2xl font-bold text-foreground">Ce que nous publions</h2>
+          <ul className="list-disc pl-6 space-y-2">
+            <li>Actualités politiques, économiques, diplomatiques et sportives</li>
+            <li>Dossiers de société, santé, culture et science</li>
+            <li>Contenus multimédias : photos, vidéos, lives et radio</li>
+            <li>Offres d’emploi et informations pratiques</li>
           </ul>
-          <h2 className="font-heading text-2xl font-bold text-foreground mt-8 mb-4">
-            Notre Équipe
-          </h2>
-          <p className="text-muted-foreground text-lg mb-6">
-            Notre équipe est composée de journalistes passionnés, d'experts et de créateurs engagés à faire la différence à travers leur travail.
-          </p>
+
+          <h2 className="font-heading text-2xl font-bold text-foreground">Où nous trouver</h2>
+          <p>{SITE_ADDRESS}</p>
+          <p>Email : {SITE_EMAIL}</p>
+          <p>Téléphone : {SITE_PHONE}</p>
+
+          <div className="flex flex-wrap gap-4 pt-4">
+            <Link href={`/${locale}/equipe`} className="text-primary hover:underline font-medium">
+              {isFrench ? 'Rencontrer l’équipe' : 'Meet the team'}
+            </Link>
+            <Link href={`/${locale}/mission`} className="text-primary hover:underline font-medium">
+              {isFrench ? 'Notre mission' : 'Our mission'}
+            </Link>
+            <Link href={`/${locale}/charte`} className="text-primary hover:underline font-medium">
+              {isFrench ? 'Charte éthique' : 'Editorial charter'}
+            </Link>
+            <Link href={`/${locale}/contact`} className="text-primary hover:underline font-medium">
+              Contact
+            </Link>
+          </div>
         </div>
       </div>
     </div>

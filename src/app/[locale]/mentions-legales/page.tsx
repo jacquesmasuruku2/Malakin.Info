@@ -1,135 +1,102 @@
 import { Metadata } from 'next';
+import {
+  HOSTING_PROVIDER,
+  LEGAL_UPDATED_AT,
+  PUBLICATION_DIRECTOR,
+  SITE_ADDRESS,
+  SITE_EMAIL,
+  SITE_NAME,
+  SITE_PHONE,
+} from '@/lib/site-legal';
 
 export const metadata: Metadata = {
   title: 'Mentions légales - Malakinfo.com',
   description: 'Mentions légales du site Malakinfo.com',
 };
 
-export default function LegalNoticesPage({ 
-  params 
-}: { 
-  params: Promise<{ locale: string }> 
-}) {
+export default function LegalNoticesPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="font-heading text-4xl font-bold text-foreground mb-8">
           Mentions légales
         </h1>
-        
+
         <div className="prose prose-lg max-w-none space-y-8">
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Éditeur du site</h2>
             <p className="text-muted-foreground">
-              <strong>[À COMPLÉTER PAR LE PROPRIÉTAIRE]</strong>
+              <strong>{SITE_NAME}</strong>
             </p>
             <p className="text-muted-foreground">
-              Nom de l'entreprise ou de l'organisation : [À COMPLÉTER PAR LE PROPRIÉTAIRE]
+              Média d’information indépendant consacré à l’Afrique et au monde, édité par {PUBLICATION_DIRECTOR}.
             </p>
-            <p className="text-muted-foreground">
-              Forme juridique : [À COMPLÉTER PAR LE PROPRIÉTAIRE]
-            </p>
-            <p className="text-muted-foreground">
-              Capital social : [À COMPLÉTER PAR LE PROPRIÉTAIRE]
-            </p>
-            <p className="text-muted-foreground">
-              Adresse du siège social : [À COMPLÉTER PAR LE PROPRIÉTAIRE]
-            </p>
+            <p className="text-muted-foreground">Adresse : {SITE_ADDRESS}</p>
+            <p className="text-muted-foreground">Email : {SITE_EMAIL}</p>
+            <p className="text-muted-foreground">Téléphone : {SITE_PHONE}</p>
           </section>
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Responsable de publication</h2>
             <p className="text-muted-foreground">
-              <strong>[À COMPLÉTER PAR LE PROPRIÉTAIRE]</strong>
+              <strong>{PUBLICATION_DIRECTOR}</strong>
             </p>
             <p className="text-muted-foreground">
-              Nom et prénom : [À COMPLÉTER PAR LE PROPRIÉTAIRE]
+              Directeur de la publication
             </p>
             <p className="text-muted-foreground">
-              Fonction : [À COMPLÉTER PAR LE PROPRIÉTAIRE]
-            </p>
-          </section>
-
-          <section>
-            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Coordonnées de contact</h2>
-            <p className="text-muted-foreground">
-              Email : contact@malakinfo.com
-            </p>
-            <p className="text-muted-foreground">
-              Téléphone : +243 998 258 441
-            </p>
-            <p className="text-muted-foreground">
-              Adresse : Kinshasa, République Démocratique du Congo
+              Contact éditorial : {SITE_EMAIL}
             </p>
           </section>
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Hébergeur</h2>
             <p className="text-muted-foreground">
-              <strong>[À COMPLÉTER PAR LE PROPRIÉTAIRE]</strong>
+              <strong>{HOSTING_PROVIDER.name}</strong>
             </p>
+            <p className="text-muted-foreground">{HOSTING_PROVIDER.address}</p>
             <p className="text-muted-foreground">
-              Nom de l'hébergeur : [À COMPLÉTER PAR LE PROPRIÉTAIRE]
-            </p>
-            <p className="text-muted-foreground">
-              Adresse de l'hébergeur : [À COMPLÉTER PAR LE PROPRIÉTAIRE]
-            </p>
-            <p className="text-muted-foreground">
-              Téléphone de l'hébergeur : [À COMPLÉTER PAR LE PROPRIÉTAIRE]
+              Site : <a href={HOSTING_PROVIDER.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{HOSTING_PROVIDER.website}</a>
             </p>
           </section>
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Propriété intellectuelle</h2>
             <p className="text-muted-foreground">
-              L'ensemble du contenu de ce site (textes, images, vidéos, sons, graphismes, logos, etc.) est protégé par le droit d'auteur. Toute reproduction, même partielle, est interdite sans autorisation préalable du propriétaire du site.
+              Les contenus originaux publiés sur ce site (textes, images, vidéos, sons, graphismes, logos) sont protégés. Toute reproduction non autorisée est interdite, sauf accord préalable de {SITE_NAME} ou usage légitime expressément prévu par la loi.
             </p>
             <p className="text-muted-foreground">
-              Les marques et logos cités sur ce site sont la propriété de leurs détenteurs respectifs.
+              Les marques et contenus de tiers restent la propriété de leurs titulaires.
             </p>
           </section>
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Contenus provenant de tiers</h2>
             <p className="text-muted-foreground">
-              Ce site peut contenir des contenus provenant de sources tierces (agences de presse, partenaires, etc.). Ces contenus sont utilisés avec l'autorisation de leurs auteurs ou dans le cadre d'une licence d'utilisation.
+              Certains articles peuvent citer ou relayer des informations d’agences, d’institutions ou de partenaires. Ces contenus sont utilisés dans un cadre journalistique, avec mention de la source lorsque cela s’applique.
             </p>
           </section>
 
           <section>
-            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Liens externes</h2>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Signalement</h2>
             <p className="text-muted-foreground">
-              Ce site peut contenir des liens vers des sites web tiers. Malakinfo.com n'exerce aucun contrôle sur ces sites et ne peut être tenu responsable de leur contenu ou de leurs pratiques en matière de confidentialité.
+              Pour signaler une erreur, un contenu illicite ou une atteinte à un droit, écrivez à {SITE_EMAIL} en indiquant l’URL concernée.
             </p>
           </section>
 
           <section>
-            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Signalement d'une erreur ou d'un contenu illicite</h2>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Données personnelles et cookies</h2>
             <p className="text-muted-foreground">
-              Si vous constatez une erreur ou un contenu illicite sur ce site, vous pouvez nous en informer en envoyant un email à contact@malakinfo.com en précisant l'URL de la page concernée et la nature du problème.
-            </p>
-            <p className="text-muted-foreground">
-              Nous nous engageons à examiner votre demande dans les plus brefs délais et à prendre les mesures appropriées si nécessaire.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Données personnelles</h2>
-            <p className="text-muted-foreground">
-              La collecte et le traitement de vos données personnelles sont régis par notre politique de confidentialité. Pour en savoir plus, consultez notre page <a href="/politique-confidentialite" className="text-primary hover:underline">Politique de confidentialité</a>.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Cookies</h2>
-            <p className="text-muted-foreground">
-              Ce site utilise des cookies pour améliorer votre expérience de navigation. Pour en savoir plus sur l'utilisation des cookies et vos options, consultez notre page <a href="/cookies" className="text-primary hover:underline">Politique de cookies</a>.
+              Le traitement des données est décrit dans la{' '}
+              <a href="/fr/politique-confidentialite" className="text-primary hover:underline">politique de confidentialité</a>
+              {' '}et la{' '}
+              <a href="/fr/cookies" className="text-primary hover:underline">politique de cookies</a>.
             </p>
           </section>
 
           <section className="border-t border-border pt-6">
             <p className="text-sm text-muted-foreground">
-              Date de dernière mise à jour : {new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+              Date de dernière mise à jour : {LEGAL_UPDATED_AT}
             </p>
           </section>
         </div>

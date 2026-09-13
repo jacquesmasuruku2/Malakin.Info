@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { cn } from "@/lib/utils";
 import Providers from "@/components/Providers";
 import ServicesModal from "@/components/ServicesModal";
 import RadioPlayer from "@/components/RadioPlayer";
 import SplashScreen from "@/components/SplashScreen";
+import ConsentScripts from "@/components/ConsentScripts";
 import "./globals.css";
 
-const ADSENSE_ID = process.env.NEXT_PUBLIC_ADSENSE_ID || 'ca-pub-4621769509750492';
 const GOOGLE_SITE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '';
 
 export const metadata: Metadata = {
@@ -86,43 +85,12 @@ export default function RootLayout({
     <html lang="fr" className={cn("h-full", "antialiased")}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-        <Script id="gtm-script" strategy="beforeInteractive">
-          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-WTSZH2PT');`}
-        </Script>
-        <Script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-8V0GJZF6WD"
-          strategy="afterInteractive"
-        />
-        <Script id="gtag-config" strategy="afterInteractive">
-          {`window.dataLayer = window.dataLayer || [];
-function gtag(){window.dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-8V0GJZF6WD');`}
-        </Script>
         {GOOGLE_SITE_VERIFICATION && (
           <meta name="google-site-verification" content={GOOGLE_SITE_VERIFICATION} />
         )}
-        <Script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_ID}`}
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
       </head>
       <body className="min-h-full flex flex-col">
-        <noscript>
-          <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-WTSZH2PT"
-            height="0"
-            width="0"
-            style={{ display: 'none', visibility: 'hidden' }}
-          />
-        </noscript>
+        <ConsentScripts />
         <SplashScreen />
         <Providers>
           <main className="flex-1 pb-20 md:pb-0">

@@ -6,7 +6,7 @@ export default function MissionPage() {
     <div className="flex flex-col">
       <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/a-propos" className="text-gray-300 hover:text-white mb-4 inline-block">
+          <Link href="/fr/a-propos" className="text-gray-300 hover:text-white mb-4 inline-block">
             ← Retour à À Propos
           </Link>
           <h1 className="font-heading text-4xl font-bold mb-4">Notre Mission</h1>
@@ -68,7 +68,7 @@ export default function MissionPage() {
 
           <div className="mt-12 pt-8 border-t border-border">
             <Link
-              href="/charte"
+              href="/fr/charte"
               className="inline-flex items-center text-primary hover:text-primary/80 font-medium"
             >
               Découvrir notre charte éthique

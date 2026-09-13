@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Mail, X } from 'lucide-react';
+import { CONSENT_UPDATED_EVENT } from '@/lib/consent';
 
 const STORAGE_KEY = 'malakinfo_cookie_consent';
 const PREFERENCES_KEY = 'malakinfo_cookie_preferences';
@@ -235,6 +236,7 @@ export default function CookieConsentModal() {
   const savePreferences = (nextPreferences: Record<string, boolean>) => {
     window.localStorage.setItem(STORAGE_KEY, 'configured');
     window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(nextPreferences));
+    window.dispatchEvent(new Event(CONSENT_UPDATED_EVENT));
     setHasConsent(true);
     setPreferences(nextPreferences);
     setIsVisible(false);

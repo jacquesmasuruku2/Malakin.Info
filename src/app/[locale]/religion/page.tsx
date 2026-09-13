@@ -36,16 +36,16 @@ export default async function ReligionPage() {
   const articles = await getReligionArticles();
 
   const categories = [
-    { name: 'Méditations', href: '/religion/meditations', icon: BookOpen, count: articles.filter((a: any) => a.category.slug === 'meditations').length || 56 },
-    { name: 'Homélies', href: '/religion/homelies', icon: Heart, count: articles.filter((a: any) => a.category.slug === 'homelies').length || 89 },
-    { name: 'Musiques Sacrées', href: '/religion/musiques-sacrees', icon: Music, count: articles.filter((a: any) => a.category.slug === 'musiques-sacrees').length || 34 },
-    { name: 'Agenda Religieux', href: '/religion/agenda-religieux', icon: CalendarIcon, count: 23 },
+    { name: 'Méditations', href: '/fr/religion/meditations', icon: BookOpen, count: articles.filter((a: any) => a.category.slug === 'meditations').length },
+    { name: 'Homélies', href: '/fr/religion/homelies', icon: Heart, count: articles.filter((a: any) => a.category.slug === 'homelies').length },
+    { name: 'Musiques Sacrées', href: '/fr/religion/musiques-sacrees', icon: Music, count: articles.filter((a: any) => a.category.slug === 'musiques-sacrees').length },
+    { name: 'Agenda Religieux', href: '/fr/religion/agenda-religieux', icon: CalendarIcon, count: 0 },
   ];
 
   const messageDuTemps = [
-    { name: 'William Branham', href: '/religion/message-du-temps/branham', count: 145 },
-    { name: 'Les 7 Âges de l\'Église', href: '/religion/message-du-temps/les-7-ages-de-l-eglise', count: 7 },
-    { name: 'Autres Messages', href: '/religion/message-du-temps/autres-messages', count: 67 },
+    { name: 'William Branham', href: '/fr/religion/message-du-temps/branham', count: articles.length },
+    { name: 'Les 7 Âges de l\'Église', href: '/fr/religion/message-du-temps/les-7-ages-de-l-eglise', count: 0 },
+    { name: 'Autres Messages', href: '/fr/religion/message-du-temps/autres-messages', count: 0 },
   ];
 
   const featuredContent = articles.slice(0, 6).map((article: any) => ({
@@ -59,29 +59,7 @@ export default async function ReligionPage() {
     slug: article.slug,
   }));
 
-  const upcomingEvents = [
-    {
-      id: 1,
-      title: 'Messe spéciale Fête Nationale',
-      date: '30 Juin 2026',
-      location: 'Cathédrale Notre-Dame, Kinshasa',
-      time: '10:00',
-    },
-    {
-      id: 2,
-      title: 'Conférence sur la vie spirituelle',
-      date: '5 Juillet 2026',
-      location: 'Centre Paroissial Saint-Pierre',
-      time: '15:00',
-    },
-    {
-      id: 3,
-      title: 'Concert de musique sacrée',
-      date: '10 Juillet 2026',
-      location: 'Église Sainte-Anne',
-      time: '18:00',
-    },
-  ];
+  const upcomingEvents: Array<{ id: string; title: string; date: string; location: string; time: string }> = [];
 
   return (
     <div className="flex flex-col">
@@ -106,6 +84,11 @@ export default async function ReligionPage() {
           <div className="space-y-8">
             <div>
               <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
+              {featuredContent.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border bg-card p-8 text-muted-foreground">
+                  Aucun article religieux n’est encore publié.
+                </p>
+              ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {featuredContent.map((content: any) => (
                   <article
@@ -113,7 +96,7 @@ export default async function ReligionPage() {
                     className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="relative h-48">
-                      <Link href={`/${content.slug}`}>
+                      <Link href={`/fr/${content.slug}`}>
                         <img
                           src={content.image}
                           alt={content.title}
@@ -139,7 +122,7 @@ export default async function ReligionPage() {
                         {content.excerpt}
                       </p>
                       <Link
-                        href={`/${content.slug}`}
+                        href={`/fr/${content.slug}`}
                         className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                       >
                         Lire
@@ -149,8 +132,10 @@ export default async function ReligionPage() {
                   </article>
                 ))}
               </div>
+              )}
             </div>
 
+            {upcomingEvents.length > 0 && (
             <div>
               <h2 className="font-heading text-2xl font-bold mb-6">Événements à venir</h2>
               <div className="space-y-4">
@@ -180,6 +165,7 @@ export default async function ReligionPage() {
                 ))}
               </div>
             </div>
+            )}
           </div>
         </div>
       </div>

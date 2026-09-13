@@ -1,206 +1,65 @@
 import { MetadataRoute } from 'next'
 import { prisma } from '@/lib/prisma'
+import { SITE_URL } from '@/lib/site-legal'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://malakinfo.com'
   const currentDate = new Date()
+  const locales = ['fr', 'en'] as const
 
-  // Static pages
-  const staticPages: MetadataRoute.Sitemap = [
-    {
-      url: baseUrl,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/fr`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/fr/actualites`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/fr/politique`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/fr/economie`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/fr/science-tech`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/fr/culture`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/fr/sport`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/fr/religion`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/fr/diffusion-en-direct`,
-      lastModified: currentDate,
-      changeFrequency: 'hourly',
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/en`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/en/news`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/fr/blog`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/en/blog`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/fr/a-propos`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/en/about`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/fr/contact`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/en/contact`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/fr/mentions-legales`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/fr/politique-confidentialite`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/fr/cookies`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/fr/conditions-utilisation`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/fr/politique-correction`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly',
-      priority: 0.3,
-    },
+  const staticPaths = [
+    '',
+    '/actualites',
+    '/politique',
+    '/economie',
+    '/societe',
+    '/sante',
+    '/securite',
+    '/environnement',
+    '/culture',
+    '/sport',
+    '/religion',
+    '/science-tech',
+    '/blog',
+    '/emploi',
+    '/contact',
+    '/a-propos',
+    '/mission',
+    '/equipe',
+    '/charte',
+    '/mentions-legales',
+    '/politique-confidentialite',
+    '/cookies',
+    '/conditions-utilisation',
+    '/nous-soutenir',
+    '/partenariats',
   ]
 
+  const staticPages: MetadataRoute.Sitemap = locales.flatMap((locale) =>
+    staticPaths.map((path) => ({
+      url: `${SITE_URL}/${locale}${path}`,
+      lastModified: currentDate,
+      changeFrequency: path === '' || path === '/actualites' ? 'daily' : 'weekly',
+      priority: path === '' ? 1 : 0.7,
+    }))
+  )
+
   try {
-    // Fetch all articles
     const articles = await prisma.article.findMany({
-      include: {
-        category: {
-          select: {
-            slug: true,
-          },
-        },
-      },
+      select: { slug: true, updatedAt: true },
+      orderBy: { publishedAt: 'desc' },
+      take: 1000,
     })
 
-    // Add article pages to sitemap
-    const articlePages: MetadataRoute.Sitemap = articles.map((article) => ({
-      url: `${baseUrl}/fr/${article.slug}`,
-      lastModified: article.updatedAt,
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    }))
+    const articlePages: MetadataRoute.Sitemap = articles.flatMap((article) =>
+      locales.map((locale) => ({
+        url: `${SITE_URL}/${locale}/${article.slug}`,
+        lastModified: article.updatedAt,
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      }))
+    )
 
-    // Fetch all blog posts
-    const blogPosts = await prisma.blogPost.findMany({
-      select: {
-        slug: true,
-        type: true,
-        updatedAt: true,
-      },
-    })
-
-    // Add blog post pages to sitemap
-    const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
-      url: `${baseUrl}/fr/blog/${post.type}/${post.slug}`,
-      lastModified: post.updatedAt,
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }))
-
-    // Fetch all categories
-    const categories = await prisma.category.findMany({
-      select: {
-        slug: true,
-        updatedAt: true,
-      },
-    })
-
-    // Add category pages to sitemap
-    const categoryPages: MetadataRoute.Sitemap = categories.map((category) => ({
-      url: `${baseUrl}/fr/${category.slug}`,
-      lastModified: category.updatedAt,
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }))
-
-    return [...staticPages, ...articlePages, ...blogPages, ...categoryPages]
+    return [...staticPages, ...articlePages]
   } catch (error) {
     console.error('Error generating sitemap:', error)
     return staticPages

@@ -127,11 +127,11 @@ export default async function Home({
     title: currentLive.title,
     text: locale === 'fr' ? 'Regarder maintenant' : 'Watch now',
     href: `/${locale}/medias/live/${currentLive.id}`,
-  } : activeRadio ? {
+  } : activeRadio?.streamUrl && !String(activeRadio.name || '').includes('BBC') ? {
     label: locale === 'fr' ? '📻 RADIO EN DIRECT' : '📻 LIVE RADIO',
-    title: activeRadio.name || 'Radio Okapi',
-    text: activeRadio.description || 'La voix de la paix',
-    href: `/${locale}`,
+    title: activeRadio.name || 'Radio MalakInfo',
+    text: activeRadio.description || (locale === 'fr' ? 'Écouter en direct' : 'Listen live'),
+    href: `/${locale}/diffusion-en-direct`,
   } : null;
 
   return (

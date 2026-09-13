@@ -19,13 +19,13 @@ export const RADIO_TOGGLE_EVENT = 'malakinfo:radio-toggle';
 export const RADIO_STATE_EVENT = 'malakinfo:radio-state';
 
 const DEFAULT_STATION: RadioStation = {
-  id: 'default-radio',
-  name: 'BBC World Service',
-  streamUrl: 'https://as-hls-ww.live.cf.md.bbci.co.uk/pool_07364996/live/ww/bbc_world_service_news_internet/bbc_world_service_news_internet.isml/bbc_world_service_news_internet-audio%3d48000.norewind.m3u8',
+  id: 'malakinfo-radio',
+  name: 'Radio MalakInfo',
+  streamUrl: '',
   logoUrl: '/images/logo.png',
-  description: 'Flux radio BBC par défaut',
+  description: 'Radio MalakInfo',
   showLabel: true,
-  isActive: true,
+  isActive: false,
 };
 
 const RADIO_STORAGE_KEY = 'malakinfo-radio-state';
@@ -55,7 +55,7 @@ export default function RadioPlayer() {
   const isMediaPage = pathname?.includes('/medias') ?? false;
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const [station, setStation] = useState<RadioStation>(DEFAULT_STATION);
+  const [station, setStation] = useState<RadioStation | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -70,8 +70,8 @@ export default function RadioPlayer() {
   // Load saved state on mount
   useEffect(() => {
     const savedState = loadRadioState();
-    if (savedState) {
-      setStation(savedState.station || DEFAULT_STATION);
+    if (savedState?.station?.streamUrl && !String(savedState.station.name || '').includes('BBC')) {
+      setStation(savedState.station);
       setVolume(savedState.volume || 0.7);
       setIsMuted(savedState.isMuted || false);
       
@@ -90,8 +90,8 @@ export default function RadioPlayer() {
     }
   }, []);
 
-  // Save state whenever it changes
   useEffect(() => {
+    if (!station?.streamUrl) return;
     saveRadioState({ isPlaying, volume, isMuted, station });
   }, [isPlaying, volume, isMuted, station]);
 
@@ -144,6 +144,8 @@ export default function RadioPlayer() {
 
         if (data && data.streamUrl) {
           setStation(data);
+        } else {
+          setStation(null);
         }
       } catch {
         if (!mounted) return;
@@ -167,7 +169,8 @@ export default function RadioPlayer() {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const url = station.streamUrl;
+    const url = station?.streamUrl;
+    if (!url) return;
     const isHlsStream = /\.m3u8($|\?)/i.test(url) || /\.m3u8/i.test(decodeURIComponent(url));
 
     if (isHlsStream && Hls.isSupported()) {
@@ -210,7 +213,7 @@ export default function RadioPlayer() {
         hlsRef.current = null;
       }
     };
-  }, [station.streamUrl]);
+  }, [station?.streamUrl]);
 
   useEffect(() => {
     const handleToggleRadio = async () => {
@@ -276,10 +279,12 @@ export default function RadioPlayer() {
     const audio = audioRef.current;
 
     // Set metadata
+    if (!station) return;
+
     navigator.mediaSession.metadata = new MediaMetadata({
       title: station.name,
       artist: station.description || 'Radio en direct',
-      album: 'Malakin Info',
+      album: 'MalakInfo',
       artwork: station.logoUrl ? [
         { src: station.logoUrl, sizes: '96x96', type: 'image/png' },
         { src: station.logoUrl, sizes: '128x128', type: 'image/png' },
@@ -365,6 +370,10 @@ export default function RadioPlayer() {
     if (volume < 0.7) return 'Moyen';
     return 'Fort';
   }, [isMuted, volume]);
+
+  if (!station?.streamUrl) {
+    return null;
+  }
 
   return (
     <>

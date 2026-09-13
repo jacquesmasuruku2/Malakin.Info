@@ -10,9 +10,13 @@ Allow: /
 User-agent: Googlebot
 Allow: /
 
-# Disallow admin areas
+# Disallow admin areas and internal test pages
 Disallow: /compte/
 Disallow: /studio/
+Disallow: /test-authors
+Disallow: /fr/test-authors
+Disallow: /en/test-authors
 
 # Sitemap
 Sitemap: https://malakinfo.com/sitemap.xml
+Sitemap: https://malakinfo.com/rss.xml

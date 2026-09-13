@@ -27,13 +27,13 @@ export async function OPTIONS(request: Request) {
 }
 
 export const DEFAULT_STATION = {
-  id: 'default-radio',
-  name: 'BBC World Service',
-  streamUrl: 'https://as-hls-ww.live.cf.md.bbci.co.uk/pool_07364996/live/ww/bbc_world_service_news_internet/bbc_world_service_news_internet.isml/bbc_world_service_news_internet-audio%3d48000.norewind.m3u8',
+  id: 'malakinfo-radio',
+  name: 'Radio MalakInfo',
+  streamUrl: '',
   logoUrl: '/images/logo.png',
-  description: 'Flux radio BBC par défaut',
+  description: 'Radio MalakInfo',
   showLabel: true,
-  isActive: true,
+  isActive: false,
 } as const;
 
 export async function GET(request: Request) {

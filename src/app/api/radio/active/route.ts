@@ -43,16 +43,16 @@ export async function GET(request: Request) {
       }),
     ]);
 
-    const candidateStream = currentProgram?.streamUrl || station?.streamUrl || DEFAULT_STATION.streamUrl;
+    const candidateStream = currentProgram?.streamUrl || station?.streamUrl || '';
     const streamIsWebUrl = candidateStream.startsWith('http://') || candidateStream.startsWith('https://');
-    const hasSafeStream = candidateStream.startsWith('/') || streamIsWebUrl;
+    const hasSafeStream = Boolean(candidateStream) && (candidateStream.startsWith('/') || streamIsWebUrl);
     const activeStream = hasSafeStream && streamIsWebUrl
       ? `/api/radio/stream?url=${encodeURIComponent(candidateStream)}`
-      : hasSafeStream ? candidateStream : DEFAULT_STATION.streamUrl;
+      : hasSafeStream ? candidateStream : '';
     const usingFallback = !hasSafeStream;
-    const activeName = usingFallback ? DEFAULT_STATION.name : currentProgram?.title || station?.name || DEFAULT_STATION.name;
-    const activeDescription = usingFallback ? DEFAULT_STATION.description : currentProgram?.description || station?.description || DEFAULT_STATION.description;
-    const activeLogo = usingFallback ? DEFAULT_STATION.logoUrl : currentProgram?.imageUrl || station?.logoUrl || DEFAULT_STATION.logoUrl;
+    const activeName = currentProgram?.title || station?.name || DEFAULT_STATION.name;
+    const activeDescription = currentProgram?.description || station?.description || DEFAULT_STATION.description;
+    const activeLogo = currentProgram?.imageUrl || station?.logoUrl || DEFAULT_STATION.logoUrl;
 
     return cors(NextResponse.json(
       {

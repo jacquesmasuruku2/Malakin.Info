@@ -1,6 +1,6 @@
 import CategoryArticlesList from '@/components/CategoryArticlesList';
 
-export default async function ActualitesSecuritePage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function SecuritePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
 
   return (

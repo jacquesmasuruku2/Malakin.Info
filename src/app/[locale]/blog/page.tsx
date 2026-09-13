@@ -44,10 +44,10 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
   }
 
   const categories = [
-    { name: 'Tribunes', href: '/blog/tribunes', icon: PenTool, count: 34 },
-    { name: 'Chroniques', href: '/blog/chroniques', icon: FileText, count: 56 },
-    { name: 'Enquêtes', href: '/blog/enquetes', icon: Search, count: 23 },
-    { name: 'Sondages', href: '/blog/sondages', icon: BarChart3, count: 18 },
+    { name: 'Tribunes', href: `/${locale}/blog/tribunes`, icon: PenTool, count: posts.filter((post: any) => post.type === 'tribunes').length },
+    { name: 'Chroniques', href: `/${locale}/blog/chroniques`, icon: FileText, count: posts.filter((post: any) => post.type === 'chroniques').length },
+    { name: 'Enquêtes', href: `/${locale}/blog/enquetes`, icon: Search, count: posts.filter((post: any) => post.type === 'enquetes').length },
+    { name: 'Sondages', href: `/${locale}/blog/sondages`, icon: BarChart3, count: posts.filter((post: any) => post.type === 'sondages').length },
   ];
 
   const formatDate = (dateString: string) => {
@@ -85,81 +85,8 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
     image: post.mainImageUrl || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=300&fit=crop',
   }));
 
-  // Fallback to mock data if no posts from Sanity
-  const displayFeaturedPosts = featuredPosts.length > 0 ? featuredPosts : [
-    {
-      id: 1,
-      category: 'Tribune',
-      author: 'Jean Dupont',
-      authorSlug: undefined,
-      title: 'L\'avenir du journalisme en Afrique à l\'ère numérique',
-      excerpt: 'Analyse des défis et des opportunités pour la presse africaine face à la transformation numérique.',
-      image: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop',
-      date: '27 Juin 2026',
-      readTime: '8 min',
-      slug: '1',
-    },
-    {
-      id: 2,
-      category: 'Enquête',
-      author: 'Marie Koffi',
-      authorSlug: undefined,
-      title: 'Enquête exclusive : Les coulisses du marché informel à Kinshasa',
-      excerpt: 'Une plongée dans l\'économie informelle qui fait vivre des millions de Congolais.',
-      image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800&h=400&fit=crop',
-      date: '26 Juin 2026',
-      readTime: '12 min',
-      slug: '2',
-    },
-    {
-      id: 3,
-      category: 'Chronique',
-      author: 'Ahmed Benali',
-      authorSlug: undefined,
-      title: 'Chronique : La jeunesse africaine, moteur du changement',
-      excerpt: 'Comment la nouvelle génération redéfinit le futur du continent.',
-      image: 'https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=800&h=400&fit=crop',
-      date: '25 Juin 2026',
-      readTime: '6 min',
-      slug: '3',
-    },
-  ];
-
-  const displayLatestPosts = latestPosts.length > 0 ? latestPosts : [
-    {
-      id: 4,
-      category: 'Sondage',
-      author: 'Équipe Malakin',
-      authorSlug: undefined,
-      title: 'Sondage : Les Africains et leur confiance dans les médias',
-      date: '27 Juin 2026',
-      readTime: '5 min',
-      slug: '4',
-      image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&h=300&fit=crop',
-    },
-    {
-      id: 5,
-      category: 'Tribune',
-      author: 'Grace Okafor',
-      authorSlug: undefined,
-      title: 'La culture africaine comme vecteur d\'unité',
-      date: '26 Juin 2026',
-      readTime: '7 min',
-      slug: '5',
-      image: 'https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=400&h=300&fit=crop',
-    },
-    {
-      id: 6,
-      category: 'Chronique',
-      author: 'Pierre Mwamba',
-      authorSlug: undefined,
-      title: 'Le sport comme outil de développement social',
-      date: '25 Juin 2026',
-      readTime: '4 min',
-      slug: '6',
-      image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=400&h=300&fit=crop',
-    },
-  ];
+  const displayFeaturedPosts = featuredPosts;
+  const displayLatestPosts = latestPosts;
 
   return (
     <div className="flex flex-col">
@@ -184,6 +111,11 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
           <div className="space-y-8">
             <div>
               <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
+              {displayFeaturedPosts.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border bg-card p-8 text-muted-foreground">
+                  Aucun article de blog n’est encore publié.
+                </p>
+              ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {displayFeaturedPosts.map((post: Post) => (
                   <article
@@ -241,10 +173,14 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
                   </article>
                 ))}
               </div>
+              )}
             </div>
 
             <div>
               <h2 className="font-heading text-2xl font-bold mb-6">Derniers articles</h2>
+              {displayLatestPosts.length === 0 ? (
+                <p className="text-muted-foreground">Les prochains textes du blog apparaîtront ici.</p>
+              ) : (
               <div className="space-y-4">
                 {displayLatestPosts.map((post: Post) => (
                   <article
@@ -287,6 +223,7 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
                   </article>
                 ))}
               </div>
+              )}
             </div>
           </div>
         </div>
