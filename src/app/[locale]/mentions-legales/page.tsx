@@ -55,6 +55,7 @@ export default function LegalNoticesPage() {
               <strong>{HOSTING_PROVIDER.name}</strong>
             </p>
             <p className="text-muted-foreground">{HOSTING_PROVIDER.address}</p>
+            <p className="text-muted-foreground">Téléphone : {HOSTING_PROVIDER.phone}</p>
             <p className="text-muted-foreground">
               Site : <a href={HOSTING_PROVIDER.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{HOSTING_PROVIDER.website}</a>
             </p>

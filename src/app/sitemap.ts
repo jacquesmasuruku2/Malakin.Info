@@ -19,7 +19,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/sport',
     '/religion',
     '/science-tech',
-    '/blog',
     '/emploi',
     '/contact',
     '/a-propos',

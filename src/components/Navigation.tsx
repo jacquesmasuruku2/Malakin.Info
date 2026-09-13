@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, BookOpen, Info, Mail, Grip, LogOut, Settings, Heart, MessageSquare, Bookmark, Menu, Handshake } from 'lucide-react';
+import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, Info, Mail, Grip, LogOut, Settings, Heart, MessageSquare, Bookmark, Menu, Handshake } from 'lucide-react';
 import SearchBar from './SearchBar';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
@@ -108,7 +108,6 @@ export default function Navigation() {
     { name: t.practicalInfo, href: `/${locale}/infos-pratiques` },
     { name: t.religion, href: `/${locale}/religion` },
     { name: t.employment, href: `/${locale}/emploi` },
-    { name: t.blog, href: `/${locale}/blog` },
     { name: t.about, href: `/${locale}/a-propos` },
     { name: t.contact, href: `/${locale}/contact` },
   ];
@@ -205,16 +204,6 @@ export default function Navigation() {
         { name: t.religious, href: `/${locale}/communiques/religieux` },
         { name: t.ngo, href: `/${locale}/communiques/ong` },
         { name: t.educational, href: `/${locale}/communiques/educatif` },
-      ],
-    },
-    {
-      title: t.blog,
-      icon: BookOpen,
-      items: [
-        { name: t.tribunes, href: `/${locale}/blog/tribunes` },
-        { name: t.chronicles, href: `/${locale}/blog/chroniques` },
-        { name: t.investigations, href: `/${locale}/blog/enquetes` },
-        { name: t.polls, href: `/${locale}/blog/sondages` },
       ],
     },
     {

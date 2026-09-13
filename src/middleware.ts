@@ -30,6 +30,12 @@ export function middleware(request: NextRequest) {
   const segments = pathname.split('/').filter(Boolean);
   if (segments.length >= 2) {
     const [locale, slug] = segments;
+    if (
+      slug === 'blog' &&
+      supportedLocales.includes(locale as (typeof supportedLocales)[number])
+    ) {
+      return NextResponse.redirect(new URL(`/${locale}/actualites`, request.url), 308);
+    }
     const alias = PAGE_ALIASES[slug];
     if (alias && supportedLocales.includes(locale as (typeof supportedLocales)[number])) {
       const rest = segments.slice(2).join('/');

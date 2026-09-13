@@ -1,80 +1,77 @@
+import { Metadata } from 'next';
 import Link from 'next/link';
-import { Target, ArrowRight } from 'lucide-react';
+import { LEGAL_UPDATED_AT, PUBLICATION_DIRECTOR, SITE_NAME } from '@/lib/site-legal';
 
-export default function MissionPage() {
+export const metadata: Metadata = {
+  title: 'Notre mission - Malakinfo.com',
+  description: 'La mission de MalakInfo : informer, éduquer et connecter l’Afrique à travers un journalisme indépendant.',
+};
+
+export default async function MissionPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
   return (
-    <div className="flex flex-col">
-      <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/fr/a-propos" className="text-gray-300 hover:text-white mb-4 inline-block">
-            ← Retour à À Propos
-          </Link>
-          <h1 className="font-heading text-4xl font-bold mb-4">Notre Mission</h1>
-          <p className="text-xl text-gray-200">
-            Notre engagement envers l'Afrique et son avenir
-          </p>
-        </div>
-      </section>
-
+    <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-card rounded-lg p-8 md:p-12 shadow-sm">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Target className="w-8 h-8 text-primary" />
-            </div>
-            <h2 className="font-heading text-3xl font-bold">Notre Mission</h2>
-          </div>
+        <h1 className="font-heading text-4xl font-bold text-foreground mb-8">
+          Notre mission
+        </h1>
 
-          <blockquote className="text-2xl font-heading text-primary mb-8 italic border-l-4 border-primary pl-6">
-            "Informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel."
-          </blockquote>
-
-          <div className="space-y-6 text-muted-foreground">
-            <p className="text-lg">
-              Malakinfo.com est né de la conviction que l'accès à une information de qualité est un droit fondamental et un moteur essentiel pour le développement du continent africain.
+        <div className="prose prose-lg max-w-none space-y-8">
+          <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Engagement</h2>
+            <p className="text-muted-foreground">
+              Informer, éduquer et connecter l’Afrique à travers un journalisme indépendant, fiable et multiculturel.
             </p>
-
-            <p>
-              Notre mission s'articule autour de trois piliers fondamentaux :
+            <p className="text-muted-foreground">
+              {SITE_NAME} est né de la conviction que l’accès à une information de qualité est un droit fondamental et un moteur du développement du continent africain.
             </p>
+          </section>
 
-            <div className="space-y-4 mt-8">
-              <div className="bg-muted/50 rounded-lg p-6">
-                <h3 className="font-heading text-xl font-semibold text-foreground mb-2">Informer</h3>
-                <p>
-                  Nous nous engageons à fournir une information précise, vérifiée et pertinente sur les événements qui façonnent l'Afrique et le monde. Notre couverture journalistique est exhaustive, allant de la politique à l'économie, en passant par la culture, le sport et la religion.
-                </p>
-              </div>
-
-              <div className="bg-muted/50 rounded-lg p-6">
-                <h3 className="font-heading text-xl font-semibold text-foreground mb-2">Éduquer</h3>
-                <p>
-                  Au-delà de l'information, nous visons à éduquer nos lecteurs en leur offrant des analyses approfondies, des contextes historiques et des perspectives qui leur permettent de comprendre les enjeux complexes auxquels l'Afrique fait face.
-                </p>
-              </div>
-
-              <div className="bg-muted/50 rounded-lg p-6">
-                <h3 className="font-heading text-xl font-semibold text-foreground mb-2">Connecter</h3>
-                <p>
-                  Nous créons des ponts entre les communautés africaines et le reste du monde, facilitant le dialogue et la compréhension mutuelle. Notre plateforme est un espace où les voix africaines peuvent être entendues et valorisées.
-                </p>
-              </div>
-            </div>
-
-            <p className="text-lg mt-8">
-              Notre engagement est de maintenir les plus hauts standards du journalisme, en respectant notre charte éthique et en servant l'intérêt public avant tout autre considération.
+          <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Informer</h2>
+            <p className="text-muted-foreground">
+              Nous fournissons une information précise, vérifiée et pertinente sur les événements qui façonnent l’Afrique et le monde. Notre couverture va de la politique à l’économie, en passant par la culture, le sport et la religion.
             </p>
-          </div>
+          </section>
 
-          <div className="mt-12 pt-8 border-t border-border">
-            <Link
-              href="/fr/charte"
-              className="inline-flex items-center text-primary hover:text-primary/80 font-medium"
-            >
-              Découvrir notre charte éthique
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
-          </div>
+          <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Éduquer</h2>
+            <p className="text-muted-foreground">
+              Au-delà de l’actualité, nous proposons des analyses, des contextes et des perspectives pour aider les lecteurs à comprendre les enjeux auxquels l’Afrique fait face.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Connecter</h2>
+            <p className="text-muted-foreground">
+              Nous créons des ponts entre les communautés africaines et le reste du monde. La plateforme donne une place aux voix africaines et favorise le dialogue.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Ligne éditoriale</h2>
+            <p className="text-muted-foreground">
+              {SITE_NAME} est édité par {PUBLICATION_DIRECTOR}. Notre travail est guidé par l’intérêt public et par notre charte éthique.
+            </p>
+            <p className="text-muted-foreground">
+              Consultez la{' '}
+              <Link href={`/${locale}/charte`} className="text-primary hover:underline">
+                charte éthique
+              </Link>
+              {' '}et la page{' '}
+              <Link href={`/${locale}/a-propos`} className="text-primary hover:underline">
+                À propos
+              </Link>
+              .
+            </p>
+          </section>
+
+          <section className="border-t border-border pt-6">
+            <p className="text-sm text-muted-foreground">
+              Date de dernière mise à jour : {LEGAL_UPDATED_AT}
+            </p>
+          </section>
         </div>
       </div>
     </div>

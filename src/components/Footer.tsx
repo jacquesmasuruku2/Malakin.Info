@@ -245,10 +245,10 @@ export default function Footer() {
                   ))}
                 </div>
                 <div className="space-y-2">
-                  {[nav.sport, nav.employment, nav.blog].map((item, index) => (
+                  {[nav.sport, nav.employment, nav.religion].map((item, index) => (
                     <Link 
                       key={index}
-                      href={`/${locale}/${['sport', 'emploi', 'blog'][index]}`} 
+                      href={`/${locale}/${['sport', 'emploi', 'religion'][index]}`} 
                       className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:translate-x-2 hover:scale-105 flex items-center gap-1 group"
                     >
                       <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-red-500" />
@@ -347,18 +347,15 @@ export default function Footer() {
               {t.services}
             </h3>
             <div className="space-y-2 text-xs">
-              {[t.newsletters, t.rssFeeds].map((item, index) => (
-                <Link 
-                  key={index}
-                  href={index === 0 ? `/${locale}/contact` : '/rss.xml'}
-                  className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:scale-105 p-2 rounded hover:bg-gradient-to-r hover:from-red-600/20 hover:to-transparent"
-                >
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-3 h-3 text-red-400" />
-                    {item}
-                  </div>
-                </Link>
-              ))}
+              <Link
+                href="/rss.xml"
+                className="text-gray-300 hover:text-white block transition-all duration-300 transform hover:scale-105 p-2 rounded hover:bg-gradient-to-r hover:from-red-600/20 hover:to-transparent"
+              >
+                <div className="flex items-center gap-2">
+                  <Mail className="w-3 h-3 text-red-400" />
+                  {t.rssFeeds}
+                </div>
+              </Link>
             </div>
           </div>
         </div>

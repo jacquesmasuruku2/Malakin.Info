@@ -8,9 +8,10 @@ export const PUBLICATION_DIRECTOR = 'Ezekiel Matumona';
 export const LEGAL_UPDATED_AT = '13 septembre 2026';
 
 export const HOSTING_PROVIDER = {
-  name: 'Vercel Inc.',
-  address: '440 Terry Avenue North, Seattle, WA 98109, États-Unis',
-  website: 'https://vercel.com',
+  name: 'RackNerd LLC',
+  address: '10602 Trademark Pkwy N. Ste #511, Rancho Cucamonga, CA 91730, États-Unis',
+  phone: '+1 (888) 881-6373',
+  website: 'https://racknerd.com/',
 };
 
 export const GOOGLE_ADS_SETTINGS_URL = 'https://www.google.com/settings/ads';
