@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getLocalizedCategories } from '@/lib/site-navigation';
 
 // Helper function to add CORS headers
 function cors(response: NextResponse) {
@@ -14,8 +15,15 @@ export async function OPTIONS() {
   return cors(new NextResponse(null, { status: 200 }));
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const locale = new URL(request.url).searchParams.get('locale');
+
+    if (locale) {
+      const categories = await getLocalizedCategories(locale);
+      return cors(NextResponse.json(categories));
+    }
+
     const categories = await prisma.category.findMany({
       include: {
         _count: {

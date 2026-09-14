@@ -1,10 +1,88 @@
 'use client';
 
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { X, Newspaper, ScrollText, Radio, BookOpen, ChevronRight, Home } from 'lucide-react';
+import { X, ChevronRight } from 'lucide-react';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { useState, useEffect } from 'react';
 import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
+
+type MenuLink = { name: string; href: string };
+type MenuSection = { title: string; href?: string; items?: MenuLink[] };
+
+type CategoryPayload = {
+  slug?: string;
+  title?: string;
+  articleCount?: number;
+};
+
+function MenuTree({
+  sections,
+  expandedCategory,
+  setExpandedCategory,
+  closeServices,
+}: {
+  sections: MenuSection[];
+  expandedCategory: string | null;
+  setExpandedCategory: (title: string | null) => void;
+  closeServices: () => void;
+}) {
+  return (
+    <div className="space-y-0">
+      {sections.map((category) => {
+        if (category.href) {
+          return (
+            <Link
+              key={category.title}
+              href={category.href}
+              onClick={closeServices}
+              className="block px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] border-b border-gray-200 transition-colors"
+            >
+              {category.title}
+            </Link>
+          );
+        }
+
+        const isExpanded = expandedCategory === category.title;
+        return (
+          <div key={category.title} className="border-b border-gray-200">
+            <button
+              type="button"
+              className="w-full flex items-center justify-between px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors"
+              onClick={() => setExpandedCategory(isExpanded ? null : category.title)}
+            >
+              <span>{category.title}</span>
+              <ChevronRight
+                className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
+              />
+            </button>
+
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                isExpanded ? 'max-h-[min(20rem,45vh)] opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              {isExpanded && category.items && (
+                <div className="pl-4 pr-3 py-2 space-y-1 bg-gray-50 max-h-[min(20rem,45vh)] overflow-y-auto">
+                  {category.items.map((item) => (
+                    <Link
+                      key={`${item.href}-${item.name}`}
+                      href={item.href}
+                      onClick={closeServices}
+                      className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function ServicesModal() {
   const pathname = usePathname();
@@ -12,16 +90,7 @@ export default function ServicesModal() {
   const locale = getLocaleFromPathname(pathname);
   const t = getMessages(locale).nav;
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  // Handle animation when modal opens/closes
-  useEffect(() => {
-    if (isServicesOpen) {
-      setIsAnimating(true);
-    } else {
-      setIsAnimating(false);
-    }
-  }, [isServicesOpen]);
+  const [newsCategories, setNewsCategories] = useState<MenuLink[] | null>(null);
 
   useEffect(() => {
     if (!isServicesOpen) {
@@ -39,7 +108,54 @@ export default function ServicesModal() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isServicesOpen, closeServices]);
 
-  const servicesItems = [
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCategories() {
+      try {
+        const response = await fetch(`/api/categories?locale=${encodeURIComponent(locale)}`);
+        if (!response.ok) return;
+        const data = await response.json();
+        if (cancelled || !Array.isArray(data)) return;
+
+        const items = (data as CategoryPayload[])
+          .filter((category) => category.slug && category.slug !== 'actualites')
+          .map((category) => ({
+            name: category.title || category.slug || '',
+            href: `/${locale}/${category.slug}`,
+            articleCount: category.articleCount ?? 0,
+          }))
+          .sort((a, b) => {
+            if (b.articleCount !== a.articleCount) {
+              return b.articleCount - a.articleCount;
+            }
+            return a.name.localeCompare(b.name, locale);
+          })
+          .map(({ name, href }) => ({ name, href }));
+
+        setNewsCategories(items);
+      } catch {
+        if (!cancelled) {
+          setNewsCategories(null);
+        }
+      }
+    }
+
+    loadCategories();
+    return () => {
+      cancelled = true;
+    };
+  }, [locale]);
+
+  const fallbackNewsCategories: MenuLink[] = [
+    { name: t.politics, href: `/${locale}/politique` },
+    { name: t.economy, href: `/${locale}/economie` },
+    { name: t.society, href: `/${locale}/societe` },
+    { name: t.health, href: `/${locale}/sante` },
+    { name: t.security, href: `/${locale}/securite` },
+  ];
+
+  const servicesItems: MenuLink[] = [
     { name: t.contact, href: `/${locale}/contact` },
     { name: t.employment, href: `/${locale}/emploi` },
     { name: t.media, href: `/${locale}/medias` },
@@ -50,7 +166,7 @@ export default function ServicesModal() {
     { name: t.support, href: `/${locale}/nous-soutenir` },
   ];
 
-  const menuCategories = [
+  const menuCategories: MenuSection[] = [
     {
       title: t.home,
       href: `/${locale}`,
@@ -59,16 +175,13 @@ export default function ServicesModal() {
       title: t.news,
       items: [
         { name: t.allNews, href: `/${locale}/actualites` },
-        { name: t.politics, href: `/${locale}/politique` },
-        { name: t.economy, href: `/${locale}/economie` },
-        { name: t.society, href: `/${locale}/societe` },
-        { name: t.health, href: `/${locale}/sante` },
-        { name: t.security, href: `/${locale}/securite` },
+        ...(newsCategories ?? fallbackNewsCategories),
       ],
     },
     {
       title: t.media,
       items: [
+        { name: locale === 'fr' ? 'Diffusion en direct' : 'Live broadcasts', href: `/${locale}/diffusion-en-direct` },
         { name: t.photos, href: `/${locale}/medias/photos` },
         { name: t.videos, href: `/${locale}/medias/videos` },
         { name: t.podcasts, href: `/${locale}/medias/podcasts` },
@@ -98,16 +211,23 @@ export default function ServicesModal() {
       title: t.sport,
       items: [
         { name: t.football, href: `/${locale}/sport/football` },
-        { name: t.basketball, href: `/${locale}/sport/basketball` },
+        { name: t.basketball, href: `/${locale}/sport/basket` },
         { name: t.athletics, href: `/${locale}/sport/athletisme` },
-        { name: t.tennis, href: `/${locale}/sport/tennis` },
+        { name: t.events, href: `/${locale}/sport/evenements` },
+      ],
+    },
+    {
+      title: t.scienceTech,
+      items: [
+        { name: t.database, href: `/${locale}/science-tech/base-de-donnees` },
+        { name: t.dataAnalysis, href: `/${locale}/science-tech/analyse-de-donnees` },
+        { name: t.natureEnvironment, href: `/${locale}/science-tech/nature-environnement` },
       ],
     },
   ];
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-black/50 z-[60] md:hidden transition-opacity duration-300 ${
           isServicesOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -115,7 +235,6 @@ export default function ServicesModal() {
         onClick={closeServices}
       />
 
-      {/* Mobile Bottom Sheet */}
       <div className={`fixed bottom-0 left-0 right-0 z-[70] md:hidden transition-transform duration-300 ease-out ${
         isServicesOpen ? 'translate-y-0' : 'translate-y-full'
       }`}>
@@ -123,6 +242,7 @@ export default function ServicesModal() {
           <div className="sticky top-0 bg-white p-4 border-b-2 border-[#D4AF37] flex justify-between items-center">
             <h3 className="text-[#081C3D] font-bold uppercase tracking-wide">{t.servicesMalakin}</h3>
             <button
+              type="button"
               onClick={closeServices}
               className="flex items-center gap-2 text-[#081C3D] hover:text-[#D4AF37] transition-colors"
             >
@@ -136,76 +256,31 @@ export default function ServicesModal() {
               <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">{t.services}</h4>
               <div className="grid gap-2">
                 {servicesItems.map((item) => (
-                  <a
-                    key={item.name}
+                  <Link
+                    key={item.href}
                     href={item.href}
                     onClick={closeServices}
                     className="block min-h-[44px] items-center px-3 py-2.5 bg-gray-50 rounded-lg text-sm text-[#081C3D] hover:bg-[#D4AF37] hover:text-white transition-all duration-200"
                   >
                     {item.name}
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>
 
             <div>
               <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">Malakinfo Services</h4>
-              <div className="space-y-0">
-                {menuCategories.map((category) => {
-                  if (category.href) {
-                    return (
-                      <a
-                        key={category.title}
-                        href={category.href}
-                        onClick={closeServices}
-                        className="block px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] border-b border-gray-200 transition-colors"
-                      >
-                        {category.title}
-                      </a>
-                    );
-                  }
-
-                  const isExpanded = expandedCategory === category.title;
-                  return (
-                    <div key={category.title} className="border-b border-gray-200">
-                      <button
-                        className="w-full flex items-center justify-between px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors"
-                        onClick={() => setExpandedCategory(isExpanded ? null : category.title)}
-                      >
-                        <span>{category.title}</span>
-                        <ChevronRight
-                          className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
-                        />
-                      </button>
-
-                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                        isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                      }`}>
-                        {isExpanded && category.items && (
-                          <div className="pl-4 pr-3 py-2 space-y-1 bg-gray-50">
-                            {category.items.map((item) => (
-                              <a
-                                key={item.name}
-                                href={item.href}
-                                onClick={closeServices}
-                                className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
-                              >
-                                {item.name}
-                              </a>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <MenuTree
+                sections={menuCategories}
+                expandedCategory={expandedCategory}
+                setExpandedCategory={setExpandedCategory}
+                closeServices={closeServices}
+              />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Desktop Dropdown */}
       <div className="hidden md:block">
         <div className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 ${
           isServicesOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -216,6 +291,7 @@ export default function ServicesModal() {
           <div className="flex justify-between items-center mb-4 border-b-2 border-[#D4AF37] pb-4">
             <h3 className="text-[#081C3D] font-bold uppercase tracking-wide">{t.servicesMalakin}</h3>
             <button
+              type="button"
               className="flex items-center gap-2 text-[#081C3D] hover:text-[#D4AF37] transition-colors"
               onClick={closeServices}
             >
@@ -229,70 +305,26 @@ export default function ServicesModal() {
               <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">{t.services}</h4>
               <div className="space-y-2">
                 {servicesItems.map((item) => (
-                  <a
-                    key={item.name}
+                  <Link
+                    key={item.href}
                     href={item.href}
                     onClick={closeServices}
                     className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
                   >
                     {item.name}
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>
 
             <div>
               <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">Malakinfo Services</h4>
-              <div className="space-y-0">
-                {menuCategories.map((category) => {
-                  if (category.href) {
-                    return (
-                      <a
-                        key={category.title}
-                        href={category.href}
-                        onClick={closeServices}
-                        className="block px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] border-b border-gray-200 transition-colors"
-                      >
-                        {category.title}
-                      </a>
-                    );
-                  }
-
-                  const isExpanded = expandedCategory === category.title;
-                  return (
-                    <div key={category.title} className="border-b border-gray-200">
-                      <button
-                        className="w-full flex items-center justify-between px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors"
-                        onClick={() => setExpandedCategory(isExpanded ? null : category.title)}
-                      >
-                        <span>{category.title}</span>
-                        <ChevronRight
-                          className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
-                        />
-                      </button>
-
-                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                        isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                      }`}>
-                        {isExpanded && category.items && (
-                          <div className="pl-4 pr-3 py-2 space-y-1 bg-gray-50">
-                            {category.items.map((item) => (
-                              <a
-                                key={item.name}
-                                href={item.href}
-                                onClick={closeServices}
-                                className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
-                              >
-                                {item.name}
-                              </a>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <MenuTree
+                sections={menuCategories}
+                expandedCategory={expandedCategory}
+                setExpandedCategory={setExpandedCategory}
+                closeServices={closeServices}
+              />
             </div>
           </div>
         </div>

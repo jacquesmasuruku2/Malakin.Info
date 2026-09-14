@@ -15,6 +15,7 @@ import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation
 import { getPremiumPreviewContent, hasPremiumAccess } from '@/lib/premium-access';
 import Paywall from '@/components/Paywall';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
+import CategoryArticlesList from '@/components/CategoryArticlesList';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +33,19 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     } as any) as any;
 
     if (!article) {
+      if (path.length === 1) {
+        const category = await prisma.category.findUnique({
+          where: { slug },
+        });
+        if (category) {
+          const translatedCategory = await getCategoryTranslation(category.id, locale);
+          return {
+            title: translatedCategory.title || category.title,
+            description: translatedCategory.description || category.description || category.title,
+          };
+        }
+      }
+
       return {
         title: 'Article non trouvé | Malakinfo.com',
       };
@@ -127,6 +141,30 @@ export default async function CatchAllArticlePage({
     } as any) as any;
 
     if (!article) {
+      if (path.length === 1) {
+        const category = await prisma.category.findUnique({
+          where: { slug },
+        });
+        if (category) {
+          const translatedCategory = await getCategoryTranslation(category.id, locale);
+          return (
+            <CategoryArticlesList
+              locale={locale}
+              slugs={[category.slug]}
+              title={translatedCategory.title || category.title}
+              description={
+                translatedCategory.description
+                || category.description
+                || (locale === 'fr'
+                  ? 'Retrouvez les articles de cette rubrique.'
+                  : 'Browse articles from this section.')
+              }
+              backHref={`/${locale}/actualites`}
+              backLabel={locale === 'fr' ? 'Retour aux actualités' : 'Back to news'}
+            />
+          );
+        }
+      }
       notFound();
     }
 
