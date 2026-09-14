@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 import Providers from "@/components/Providers";
 import ServicesModal from "@/components/ServicesModal";
 import RadioPlayer from "@/components/RadioPlayer";
-import SplashScreen from "@/components/SplashScreen";
 import ConsentScripts from "@/components/ConsentScripts";
 import "./globals.css";
 
@@ -89,13 +88,12 @@ export default function RootLayout({
           <meta name="google-site-verification" content={GOOGLE_SITE_VERIFICATION} />
         )}
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-dvh flex-col">
         <ConsentScripts />
-        <SplashScreen />
         <Providers>
-          <main className="flex-1 pb-20 md:pb-0">
+          <div className="flex flex-1 flex-col">
             {children}
-          </main>
+          </div>
           <ServicesModal />
           <RadioPlayer />
         </Providers>

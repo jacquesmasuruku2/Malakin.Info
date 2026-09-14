@@ -185,7 +185,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-[#081c3d] text-white">
+    <footer className="bg-[#081c3d] text-white pb-24 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {showScrollTop && (
           <button

@@ -12,7 +12,7 @@ export default async function LocaleLayout({
   const { locale } = await params;
 
   return (
-    <div className="min-h-full flex flex-col">
+    <div className="flex min-h-full flex-1 flex-col">
       <LocaleLang locale={locale} />
       <Navigation />
       <main className="flex-1">{children}</main>

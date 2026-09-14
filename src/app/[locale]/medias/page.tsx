@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ArrowDownToLine, ArrowRight, Calendar, Image as ImageIcon, Mic, Play, Radio } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
-import RadioPageButton from '@/components/RadioPageButton';
+import RadioOnAirWidget from '@/components/RadioOnAirWidget';
 import { withRetry } from '@/lib/database';
 
 export const dynamic = 'force-dynamic';
@@ -12,16 +12,23 @@ export default async function MediasPage({ params }: { params: Promise<{ locale:
   let media: any[] = [];
   let liveEvents: any[] = [];
   let radioPrograms: any[] = [];
+  let radio: { name: string; description: string | null } | null = null;
 
   try {
-    const [mediaResult, liveEventsResult, radioProgramsResult] = await Promise.all([
+    const [mediaResult, liveEventsResult, radioProgramsResult, radioResult] = await Promise.all([
       withRetry(() => prisma.media.findMany({ orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }], take: 24 })),
       withRetry(() => prisma.liveEvent.findMany({ where: { OR: [{ status: 'LIVE' }, { status: 'SCHEDULED' }] }, orderBy: { startTime: 'asc' }, take: 6 })),
       withRetry(() => prisma.radioProgram.findMany({ where: { OR: [{ isLive: true }, { endTime: { gte: new Date() } }] }, orderBy: [{ isLive: 'desc' }, { startTime: 'asc' }], take: 6 })),
+      withRetry(() => prisma.radioStation.findFirst({
+        where: { isActive: true },
+        orderBy: { createdAt: 'desc' },
+        select: { name: true, description: true },
+      })),
     ]);
     media = mediaResult || [];
     liveEvents = liveEventsResult || [];
     radioPrograms = radioProgramsResult || [];
+    radio = radioResult;
   } catch (error) {
     console.error('Media page database error:', error);
   }
@@ -37,9 +44,22 @@ export default async function MediasPage({ params }: { params: Promise<{ locale:
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.28em] text-[#d4af37]">MalakInfo Media</p>
           <h1 className="font-heading text-4xl font-black tracking-[-0.03em] sm:text-5xl">{isFrench ? 'Médias' : 'Media'}</h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-blue-100 sm:text-lg">{isFrench ? 'Écoutez nos chansons, retrouvez nos programmes audio et suivez les événements diffusés en direct.' : 'Listen to our songs, explore audio programs and follow live events.'}</p>
-          <div className="mt-6">
-            <RadioPageButton />
-          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#1f7a6a]">
+        <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-4 py-8 text-center sm:px-6 lg:px-8">
+          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/80">Radio</p>
+          <h2 className="font-heading text-2xl font-black text-white sm:text-3xl">{isFrench ? 'Flux radio en direct' : 'Live radio stream'}</h2>
+          <RadioOnAirWidget
+            name={radio?.name || 'Radio MalakInfo'}
+            onlineLabel={isFrench ? 'en ligne' : 'on air'}
+          />
+          <p className="max-w-xl text-sm leading-6 text-white/85">
+            {radio?.description || (isFrench
+              ? 'Cliquez sur le lecteur pour lancer ou mettre en pause le direct.'
+              : 'Click the player to start or pause the live stream.')}
+          </p>
         </div>
       </section>
 

@@ -6,7 +6,7 @@ import NewsletterSignupInline from '@/components/NewsletterSignupInline';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 import { withRetry } from '@/lib/database';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
-import RadioHomeButton from '@/components/RadioHomeButton';
+import RadioOnAirWidget from '@/components/RadioOnAirWidget';
 import { applyArticleLocales } from '@/lib/translation';
 
 export const dynamic = 'force-dynamic';
@@ -31,56 +31,64 @@ export default async function Home({
   let activeRadio: any = null;
 
   try {
-    featuredArticles = await withRetry(() => prisma.article.findMany({
-      where: {
-        featured: true,
-      },
-      include: {
-        category: true,
-        author: true,
-      },
-      take: 3,
-      orderBy: {
-        publishedAt: 'desc',
-      },
-    } as any)) || [];
-
-    latestArticles = await withRetry(() => prisma.article.findMany({
-      include: {
-        category: true,
-        author: true,
-      },
-      take: 6,
-      orderBy: {
-        publishedAt: 'desc',
-      },
-    } as any)) || [];
-
     const now = new Date();
-    currentLive = await withRetry(() => prisma.liveEvent.findFirst({
-      where: {
-        streamType: 'VIDEO',
-        startTime: { lte: now },
-        OR: [
-          { endTime: null },
-          { endTime: { gte: now } }
-        ]
-      },
-      orderBy: {
-        startTime: 'desc'
-      }
-    }));
+    const [featuredResult, latestResult, liveResult, radioResult] = await Promise.all([
+      withRetry(() => prisma.article.findMany({
+        where: {
+          featured: true,
+        },
+        include: {
+          category: true,
+          author: true,
+        },
+        take: 3,
+        orderBy: {
+          publishedAt: 'desc',
+        },
+      } as any)),
+      withRetry(() => prisma.article.findMany({
+        include: {
+          category: true,
+          author: true,
+        },
+        take: 6,
+        orderBy: {
+          publishedAt: 'desc',
+        },
+      } as any)),
+      withRetry(() => prisma.liveEvent.findFirst({
+        where: {
+          streamType: 'VIDEO',
+          startTime: { lte: now },
+          OR: [
+            { endTime: null },
+            { endTime: { gte: now } }
+          ]
+        },
+        orderBy: {
+          startTime: 'desc'
+        }
+      })),
+      withRetry(() => prisma.radioStation.findFirst({
+        where: { isActive: true },
+        orderBy: { createdAt: 'desc' },
+      })),
+    ]);
 
-    activeRadio = await withRetry(() => prisma.radioStation.findFirst({
-      where: { isActive: true },
-      orderBy: { createdAt: 'desc' },
-    }));
+    featuredArticles = featuredResult || [];
+    latestArticles = latestResult || [];
+    currentLive = liveResult;
+    activeRadio = radioResult;
   } catch (error) {
     console.error('Database connection error:', error);
   }
 
-  featuredArticles = await applyArticleLocales(featuredArticles, normalizedLocale);
-  latestArticles = await applyArticleLocales(latestArticles, normalizedLocale);
+  try {
+    featuredArticles = await applyArticleLocales(featuredArticles, normalizedLocale);
+    latestArticles = await applyArticleLocales(latestArticles, normalizedLocale);
+  } catch (error) {
+    console.error('Article locale error:', error);
+  }
 
   const featuredNews = featuredArticles.map(article => ({
     id: article.id,
@@ -135,48 +143,45 @@ export default async function Home({
     ? latestNews.filter((item) => item.categorySlug === selectedCategory)
     : latestNews;
 
-  const liveBanner = currentLive ? {
-    label: locale === 'fr' ? '🔴 EN DIRECT' : '🔴 LIVE',
-    title: currentLive.title,
-    text: locale === 'fr' ? 'Regarder maintenant' : 'Watch now',
-    href: `/${locale}/medias/live/${currentLive.id}`,
-  } : activeRadio?.streamUrl && !String(activeRadio.name || '').includes('BBC') ? {
-    label: locale === 'fr' ? '📻 RADIO EN DIRECT' : '📻 LIVE RADIO',
-    title: activeRadio.name || 'Radio MalakInfo',
-    text: activeRadio.description || (locale === 'fr' ? 'Écouter en direct' : 'Listen live'),
-    href: `/${locale}/diffusion-en-direct`,
-  } : null;
-
   return (
     <div className="flex flex-col">
-      {/* Live Banner - Priorité: TV live, puis radio active */}
-      {liveBanner && (
+      {currentLive ? (
         <div className="bg-gradient-to-r from-red-600 to-red-700 text-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Link href={liveBanner.href} className="hidden md:flex items-center justify-between py-4">
+            <Link href={`/${locale}/medias/live/${currentLive.id}`} className="hidden md:flex items-center justify-between py-4">
               <div className="flex items-center gap-3">
                 <span className="px-3 py-1 bg-white text-red-600 text-sm font-bold rounded-full animate-pulse">
-                  {liveBanner.label}
+                  {locale === 'fr' ? '🔴 EN DIRECT' : '🔴 LIVE'}
                 </span>
-                <span className="font-semibold">{liveBanner.title}</span>
+                <span className="font-semibold">{currentLive.title}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Radio className="w-4 h-4" />
-                <span>{liveBanner.text}</span>
+                <span>{locale === 'fr' ? 'Regarder maintenant' : 'Watch now'}</span>
                 <ArrowRight className="w-4 h-4" />
               </div>
             </Link>
 
-            <Link href={liveBanner.href} className="md:hidden block">
+            <Link href={`/${locale}/medias/live/${currentLive.id}`} className="md:hidden block">
               <div className="py-3 marquee-track">
                 <span className="marquee-content text-sm font-semibold">
-                  {`${liveBanner.label} — ${liveBanner.title} — ${liveBanner.text}`}
+                  {`${locale === 'fr' ? '🔴 EN DIRECT' : '🔴 LIVE'} — ${currentLive.title} — ${locale === 'fr' ? 'Regarder maintenant' : 'Watch now'}`}
                 </span>
               </div>
             </Link>
           </div>
         </div>
-      )}
+      ) : null}
+      {activeRadio?.streamUrl ? (
+        <section className="bg-[#1f7a6a]">
+          <div className="mx-auto flex max-w-7xl justify-center px-3 py-5 sm:px-6">
+            <RadioOnAirWidget
+              name={activeRadio.name || 'Radio MalakInfo'}
+              onlineLabel={locale === 'fr' ? 'en ligne' : 'on air'}
+            />
+          </div>
+        </section>
+      ) : null}
 
       {/* Main Editorial Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -330,8 +335,16 @@ export default async function Home({
                       {locale === 'fr' ? 'Dernières Infos' : 'Latest News'}
                       <span className="ml-2 animate-pulse">›</span>
                   </h3>
-                  <RadioHomeButton compact />
                 </div>
+                {activeRadio?.streamUrl ? (
+                  <div className="flex justify-center bg-[#1f7a6a] px-3 py-3">
+                    <RadioOnAirWidget
+                      compact
+                      name={activeRadio.name || 'Radio MalakInfo'}
+                      onlineLabel={locale === 'fr' ? 'en ligne' : 'on air'}
+                    />
+                  </div>
+                ) : null}
                 <div className="divide-y divide-gray-200">
                   {filteredLatestNews.slice(0, 8).map((news) => (
                     <article

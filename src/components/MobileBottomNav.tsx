@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Grip, Play, Briefcase, Radio, ShoppingBag, Mail } from 'lucide-react';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
+import { RADIO_TOGGLE_EVENT } from '@/lib/radio-events';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
@@ -19,7 +20,7 @@ export default function MobileBottomNav() {
     {
       name: 'Radio',
       icon: Radio,
-      action: () => window.dispatchEvent(new CustomEvent('malakinfo-radio-toggle')),
+      action: () => window.dispatchEvent(new CustomEvent(RADIO_TOGGLE_EVENT)),
       isButton: true,
       primary: true,
     },

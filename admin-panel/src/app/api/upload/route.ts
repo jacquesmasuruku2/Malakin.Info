@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward to the main site's upload API
-    const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'http://localhost:3001';
+    const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL || 'http://localhost:3000';
     const uploadFormData = new FormData();
     uploadFormData.append('file', file);
     uploadFormData.append('folder', folder);

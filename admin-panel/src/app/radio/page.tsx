@@ -17,12 +17,14 @@ interface RadioStation {
   isActive: boolean;
 }
 
+const PLACEHOLDER_IDS = new Set(['', 'default-radio', 'malakinfo-radio']);
+
 const emptyStation: RadioStation = {
   id: '',
-  name: 'BBC World Service',
-  streamUrl: 'https://as-hls-ww.live.cf.md.bbci.co.uk/pool_07364996/live/ww/bbc_world_service_news_internet/bbc_world_service_news_internet.isml/bbc_world_service_news_internet-audio%3d48000.norewind.m3u8',
+  name: 'Radio MalakInfo',
+  streamUrl: '',
   logoUrl: '/images/logo.png',
-  description: 'Flux radio BBC par défaut',
+  description: 'Radio MalakInfo',
   showLabel: true,
   isActive: true,
 };
@@ -31,17 +33,19 @@ export default function RadioPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [station, setStation] = useState<RadioStation>(emptyStation);
 
   useEffect(() => {
     const fetchStation = async () => {
       try {
-        const response = await fetch(getApiUrl('/api/radio'));
+        const response = await fetch(getApiUrl('/api/radio'), { credentials: 'include' });
         if (!response.ok) throw new Error('Failed to fetch radio station');
         const data = await response.json();
         setStation({
           ...emptyStation,
           ...data,
+          id: PLACEHOLDER_IDS.has(String(data?.id || '')) ? '' : data.id,
           showLabel: data?.showLabel ?? true,
           isActive: data?.isActive ?? true,
         });
@@ -60,31 +64,37 @@ export default function RadioPage() {
     setSaving(true);
 
     try {
+      setStatus(null);
       const payload = {
         ...station,
-        id: station.id && station.id !== 'default-radio' ? station.id : undefined,
+        id: station.id && !PLACEHOLDER_IDS.has(station.id) ? station.id : undefined,
       };
-      console.log('[RadioPage] Submitting payload:', payload);
 
       const response = await fetch(getApiUrl('/api/radio'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
-      console.log('[RadioPage] Response status:', response.status);
 
+      const responseData = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('[RadioPage] Error response:', errorData);
-        throw new Error('Unable to save radio station');
+        throw new Error(responseData?.error || 'Impossible d’enregistrer la radio.');
       }
 
-      const responseData = await response.json();
-      console.log('[RadioPage] Success response:', responseData);
+      setStation({
+        ...emptyStation,
+        ...responseData,
+        showLabel: responseData?.showLabel ?? true,
+        isActive: responseData?.isActive ?? true,
+      });
+      setStatus({ type: 'success', text: 'Radio enregistrée. Le lecteur du site public utilisera ce flux.' });
       router.refresh();
     } catch (error) {
-      console.error('[RadioPage] Error saving radio station:', error);
-      alert('Erreur lors de la sauvegarde de la radio');
+      setStatus({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Erreur lors de la sauvegarde de la radio',
+      });
     } finally {
       setSaving(false);
     }
@@ -109,7 +119,7 @@ export default function RadioPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-primary">Radio</h1>
-              <p className="text-secondary mt-1">Gérer la station de diffusion et son affichage.</p>
+              <p className="text-secondary mt-1">Le nom, l’URL du flux et le logo s’affichent sur le site public dès l’enregistrement.</p>
             </div>
             <div className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-red-700">
               Live
@@ -132,8 +142,11 @@ export default function RadioPage() {
                 <input
                   value={station.streamUrl}
                   onChange={(e) => setStation({ ...station, streamUrl: e.target.value })}
+                  placeholder="https://exemple.com/stream.mp3 ou .m3u8"
+                  required
                   className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none"
                 />
+                <p className="text-xs text-secondary">URL HTTP/HTTPS directe (Icecast, MP3, AAC ou HLS .m3u8). Cochez « Radio active » pour la diffuser sur le site.</p>
               </div>
 
               <div className="grid gap-2">
@@ -230,10 +243,16 @@ export default function RadioPage() {
                 </div>
               </div>
 
+              {status && (
+                <p className={`rounded-md px-3 py-2 text-sm ${status.type === 'success' ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>
+                  {status.text}
+                </p>
+              )}
+
               <div className="flex justify-end pt-2">
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || !station.streamUrl.trim()}
                   className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 font-medium text-slate-950 transition hover:opacity-90 disabled:opacity-60"
                 >
                   <Save className="h-4 w-4" />

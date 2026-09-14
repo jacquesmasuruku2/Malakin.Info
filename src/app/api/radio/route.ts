@@ -36,19 +36,17 @@ export const DEFAULT_STATION = {
   isActive: false,
 } as const;
 
+const PLACEHOLDER_STATION_IDS = new Set(['default-radio', 'malakinfo-radio', '']);
+
 export async function GET(request: Request) {
   try {
-    console.log('[radio API] GET request received');
     const station = await prisma.radioStation.findFirst({
-      where: { isActive: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ isActive: 'desc' }, { updatedAt: 'desc' }],
     });
-    console.log('[radio API] Station found:', !!station);
 
     return cors(NextResponse.json(station ?? DEFAULT_STATION, { status: 200 }), request);
   } catch (error) {
     console.error('[radio API] Error fetching station:', error);
-    console.error('[radio API] Error details:', error instanceof Error ? error.message : String(error));
     return cors(NextResponse.json(DEFAULT_STATION, { status: 200 }), request);
   }
 }
@@ -88,7 +86,7 @@ export async function POST(request: Request) {
     }
     console.log('[radio API] Payload:', payload);
 
-    if (body.id && body.id !== 'default-radio') {
+    if (body.id && !PLACEHOLDER_STATION_IDS.has(String(body.id))) {
       console.log('[radio API] Updating existing station:', body.id);
       const station = await prisma.$transaction(async (transaction) => {
         if (payload.isActive) {

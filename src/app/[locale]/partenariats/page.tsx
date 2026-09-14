@@ -48,7 +48,7 @@ export default async function PartenariatsPage({
       orderBy: { createdAt: 'desc' },
       take: 50,
     });
-  } catch {
+    } catch {
     partners = [];
   }
 
@@ -65,7 +65,7 @@ export default async function PartenariatsPage({
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="font-heading text-4xl font-bold text-foreground mb-8">
           {isFrench ? 'Partenariats' : 'Partnerships'}
-        </h1>
+            </h1>
 
         <div className="prose prose-lg max-w-none space-y-8">
           <section>
@@ -74,7 +74,7 @@ export default async function PartenariatsPage({
                 ? `${SITE_NAME} collabore avec des entreprises, des institutions et des organisations qui souhaitent soutenir un journalisme indépendant en Afrique. Les partenariats sont distincts de la rédaction : ils ne conditionnent pas nos enquêtes, nos titres ni nos choix éditoriaux.`
                 : `${SITE_NAME} works with companies, institutions and organizations that want to support independent journalism in Africa. Partnerships stay separate from the newsroom: they do not shape our reporting, headlines or editorial choices.`}
             </p>
-          </section>
+      </section>
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">
@@ -85,12 +85,12 @@ export default async function PartenariatsPage({
                 ? 'Espaces publicitaires, sponsoring de rubriques ou de formats, et campagnes clairement identifiées comme telles. Toute communication commerciale est distinguée de l’information.'
                 : 'Advertising space, section or format sponsorships, and campaigns that are clearly labelled as such. Commercial communication is always kept distinct from news.'}
             </p>
-          </section>
+      </section>
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">
               {isFrench ? 'Partenariats éditoriaux' : 'Editorial partnerships'}
-            </h2>
+          </h2>
             <p className="text-muted-foreground">
               {isFrench
                 ? 'Dossiers, événements, podcasts ou publications réalisés avec un partenaire, lorsque le sujet présente un intérêt public. La rédaction conserve le dernier mot sur le contenu.'
@@ -107,12 +107,12 @@ export default async function PartenariatsPage({
                 ? 'Collaborations avec des organisations, des universités, des ONG ou des institutions publiques autour de l’information, de la formation ou de campagnes d’intérêt général.'
                 : 'Collaborations with organizations, universities, NGOs or public institutions around news, training or public-interest campaigns.'}
             </p>
-          </section>
+      </section>
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">
               {isFrench ? 'Indépendance' : 'Independence'}
-            </h2>
+          </h2>
             <p className="text-muted-foreground">
               {isFrench ? (
                 <>
@@ -129,10 +129,10 @@ export default async function PartenariatsPage({
                     editorial charter
                   </Link>
                   .
-                </>
-              )}
+              </>
+            )}
             </p>
-          </section>
+      </section>
 
           {partners.length > 0 && (
             <section>
@@ -171,19 +171,19 @@ export default async function PartenariatsPage({
                         )}
                         <p className="text-sm text-muted-foreground">
                           {typeLabels[partner.type] || partner.type}
-                        </p>
-                      </div>
+            </p>
+          </div>
                     </li>
                   );
                 })}
               </ul>
-            </section>
-          )}
+        </section>
+      )}
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">
               {isFrench ? 'Proposer une collaboration' : 'Propose a collaboration'}
-            </h2>
+              </h2>
             <p className="text-muted-foreground mb-6">
               {isFrench
                 ? 'Décrivez votre projet. Nous répondons aux demandes sérieuses sous 48 à 72 heures.'
@@ -212,15 +212,15 @@ export default async function PartenariatsPage({
                   </Link>
                   .
                 </>
-              ) : (
-                <>
+                ) : (
+                  <>
                   You can also support us on the{' '}
                   <Link href={`/${locale}/nous-soutenir`} className="text-primary hover:underline">
                     Support us
                   </Link>{' '}
                   page.
-                </>
-              )}
+                  </>
+                )}
             </p>
           </section>
         </div>

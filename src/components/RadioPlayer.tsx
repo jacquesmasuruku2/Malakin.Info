@@ -1,9 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Volume2, VolumeX, Play, Pause, Radio, Loader2, WifiOff } from 'lucide-react';
+import { WifiOff } from 'lucide-react';
 import Hls from 'hls.js';
+import RadioOnAirWidget from '@/components/RadioOnAirWidget';
+import { RADIO_STATE_EVENT, RADIO_TOGGLE_EVENT } from '@/lib/radio-events';
+
+export { RADIO_STATE_EVENT, RADIO_TOGGLE_EVENT };
 
 type RadioStation = {
   id: string;
@@ -13,19 +17,6 @@ type RadioStation = {
   description?: string | null;
   showLabel?: boolean;
   isActive: boolean;
-};
-
-export const RADIO_TOGGLE_EVENT = 'malakinfo:radio-toggle';
-export const RADIO_STATE_EVENT = 'malakinfo:radio-state';
-
-const DEFAULT_STATION: RadioStation = {
-  id: 'malakinfo-radio',
-  name: 'Radio MalakInfo',
-  streamUrl: '',
-  logoUrl: '/images/logo.png',
-  description: 'Radio MalakInfo',
-  showLabel: true,
-  isActive: false,
 };
 
 const RADIO_STORAGE_KEY = 'malakinfo-radio-state';
@@ -52,7 +43,7 @@ const loadRadioState = () => {
 
 export default function RadioPlayer() {
   const pathname = usePathname();
-  const isMediaPage = pathname?.includes('/medias') ?? false;
+  const isMediaPage = Boolean(pathname?.includes('/medias') || pathname?.includes('/diffusion-en-direct'));
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [station, setStation] = useState<RadioStation | null>(null);
@@ -61,32 +52,17 @@ export default function RadioPlayer() {
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.7);
   const [error, setError] = useState<string | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isDesktopOpen, setIsDesktopOpen] = useState(false);
   const lastScrollYRef = useRef(0);
+  const wantsPlaybackRef = useRef(false);
 
-  // Load saved state on mount
   useEffect(() => {
     const savedState = loadRadioState();
-    if (savedState?.station?.streamUrl && !String(savedState.station.name || '').includes('BBC')) {
-      setStation(savedState.station);
-      setVolume(savedState.volume || 0.7);
-      setIsMuted(savedState.isMuted || false);
-      
-      // Auto-resume if it was playing before
-      if (savedState.isPlaying && audioRef.current) {
-        // Small delay to ensure audio element is ready
-        setTimeout(() => {
-          if (audioRef.current) {
-            audioRef.current.play().catch(() => {
-              // Auto-play might be blocked, user needs to interact first
-              console.log('Auto-play blocked, waiting for user interaction');
-            });
-          }
-        }, 500);
-      }
+    if (savedState) {
+      setVolume(typeof savedState.volume === 'number' ? savedState.volume : 0.7);
+      setIsMuted(Boolean(savedState.isMuted));
     }
   }, []);
 
@@ -99,7 +75,6 @@ export default function RadioPlayer() {
     const updateViewport = () => setIsMobile(window.innerWidth < 768);
     updateViewport();
     window.addEventListener('resize', updateViewport);
-    setIsMounted(true);
 
     return () => window.removeEventListener('resize', updateViewport);
   }, []);
@@ -174,24 +149,30 @@ export default function RadioPlayer() {
     const isHlsStream = /\.m3u8($|\?)/i.test(url) || /\.m3u8/i.test(decodeURIComponent(url));
 
     if (isHlsStream && Hls.isSupported()) {
-      if (!hlsRef.current) {
-        hlsRef.current = new Hls({
-          autoStartLoad: true,
-          startLevel: -1,
-          enableWorker: true,
-          lowLatencyMode: false,
-        });
-      }
-
-      hlsRef.current.destroy();
+      hlsRef.current?.destroy();
       hlsRef.current = new Hls({
-        autoStartLoad: true,
+        autoStartLoad: false,
         startLevel: -1,
         enableWorker: true,
         lowLatencyMode: false,
       });
       hlsRef.current.attachMedia(audio);
       hlsRef.current.loadSource(url);
+      hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
+        if (wantsPlaybackRef.current && audioRef.current) {
+          void audioRef.current.play().catch(() => {
+            setError('Lecture impossible. Vérifiez l’URL du flux ou le réseau.');
+            setIsBuffering(false);
+            setIsPlaying(false);
+          });
+        }
+      });
+      hlsRef.current.on(Hls.Events.ERROR, (_event, data) => {
+        if (!data.fatal) return;
+        setError('Le flux audio est indisponible ou invalide.');
+        setIsBuffering(false);
+        setIsPlaying(false);
+      });
       return () => {
         hlsRef.current?.detachMedia();
         hlsRef.current?.destroy();
@@ -220,24 +201,28 @@ export default function RadioPlayer() {
       if (!audioRef.current) return;
 
       if (isPlaying) {
+        wantsPlaybackRef.current = false;
         audioRef.current.pause();
+        hlsRef.current?.stopLoad();
         setIsPlaying(false);
         return;
       }
 
       try {
+        wantsPlaybackRef.current = true;
         setIsBuffering(true);
+        hlsRef.current?.startLoad();
         await audioRef.current.play();
       } catch {
-        setError('Lecture impossible. Vérifiez l’URL du flux ou le réseau.');
-        setIsBuffering(false);
-        setIsPlaying(false);
+        // HLS may still start after MANIFEST_PARSED.
       }
     };
 
+    window.addEventListener(RADIO_TOGGLE_EVENT, handleToggleRadio);
     window.addEventListener('malakinfo-radio-toggle', handleToggleRadio);
 
     return () => {
+      window.removeEventListener(RADIO_TOGGLE_EVENT, handleToggleRadio);
       window.removeEventListener('malakinfo-radio-toggle', handleToggleRadio);
     };
   }, [isPlaying]);
@@ -332,12 +317,16 @@ export default function RadioPlayer() {
 
     try {
       if (isPlaying) {
+        wantsPlaybackRef.current = false;
         audioRef.current.pause();
+        hlsRef.current?.stopLoad();
         setIsPlaying(false);
         return;
       }
 
+      wantsPlaybackRef.current = true;
       setIsBuffering(true);
+      hlsRef.current?.startLoad();
       await audioRef.current.play();
     } catch {
       setError('Lecture impossible. Vérifiez l’URL du flux ou le réseau.');
@@ -353,23 +342,15 @@ export default function RadioPlayer() {
   useEffect(() => {
     const handleRadioToggle = () => {
       setIsDesktopOpen(true);
-      void togglePlayback();
     };
 
     window.addEventListener(RADIO_TOGGLE_EVENT, handleRadioToggle);
-    return () => window.removeEventListener(RADIO_TOGGLE_EVENT, handleRadioToggle);
-  }, [isPlaying]);
-
-  const toggleMute = () => {
-    setIsMuted((prev) => !prev);
-  };
-
-  const volumeLabel = useMemo(() => {
-    if (isMuted || volume === 0) return 'Muet';
-    if (volume < 0.35) return 'Faible';
-    if (volume < 0.7) return 'Moyen';
-    return 'Fort';
-  }, [isMuted, volume]);
+    window.addEventListener('malakinfo-radio-toggle', handleRadioToggle);
+    return () => {
+      window.removeEventListener(RADIO_TOGGLE_EVENT, handleRadioToggle);
+      window.removeEventListener('malakinfo-radio-toggle', handleRadioToggle);
+    };
+  }, []);
 
   if (!station?.streamUrl) {
     return null;
@@ -379,97 +360,35 @@ export default function RadioPlayer() {
     <>
       <audio
         ref={audioRef}
-        src={station.streamUrl}
         preload="none"
         autoPlay={false}
         crossOrigin="anonymous"
       />
 
       <div
-        className={`${isMobile || isMediaPage || isDesktopOpen ? 'fixed' : 'hidden'} z-[60] border border-white/10 bg-slate-950/95 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out ${
-          isMobile ? 'inset-x-0 bottom-0 rounded-t-2xl border-b-0' : 'right-[max(1rem,calc((100vw-80rem)/2+1rem))] top-[5.5rem] w-[min(300px,calc(100vw-2rem))] rounded-full'
+        className={`${isMobile || isMediaPage || isDesktopOpen ? 'fixed' : 'hidden'} z-[60] transition-transform duration-300 ease-out ${
+          isMobile
+            ? 'inset-x-0 bottom-[68px] flex justify-center px-3'
+            : 'right-[max(0.75rem,calc((100vw-80rem)/2+1rem))] top-[5.5rem] w-[min(360px,calc(100vw-1.5rem))]'
         } ${!isMobile && isHidden ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'}`}
       >
-        <div className={`mx-auto flex items-center gap-2 px-2 py-1.5 sm:gap-3 sm:px-5 sm:py-2 ${isMobile ? 'max-w-7xl' : 'w-full'} ${station.showLabel === false ? 'justify-end' : ''}`}>
-          {station.showLabel !== false && (
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/10 bg-slate-800 sm:h-12 sm:w-12">
-                {station.logoUrl ? (
-                  <img
-                    src={station.logoUrl}
-                    alt={station.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-primary">
-                    <Radio className="h-5 w-5" />
-                  </div>
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-semibold text-white">{station.name}</div>
-                <div className="truncate text-[11px] text-slate-300">
-                  {station.description || 'Radio en direct'}
-                </div>
+        <div className="flex w-full max-w-md flex-col items-center">
+          <RadioOnAirWidget
+            name={station.name}
+            isPlaying={isPlaying}
+            onToggle={() => {
+              void togglePlayback();
+            }}
+          />
+          {error && (
+            <div className="mt-2 w-full rounded-full bg-red-600/95 px-3 py-1.5 text-center text-xs text-white sm:text-sm">
+              <div className="inline-flex items-center gap-2">
+                <WifiOff className="h-4 w-4" />
+                {error}
               </div>
             </div>
           )}
-
-          <div className={`flex items-center gap-2 sm:gap-3 ${station.showLabel === false ? 'ml-auto' : ''}`}>
-            <button
-              type="button"
-              onClick={togglePlayback}
-              disabled={!station.streamUrl || !isMounted}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-slate-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:w-10"
-              aria-label={isPlaying ? 'Pause' : 'Play'}
-            >
-              {isBuffering ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isPlaying ? (
-                <Pause className="h-4 w-4" />
-              ) : (
-                <Play className="h-4 w-4 fill-current" />
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={toggleMute}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-slate-800 text-slate-200 transition hover:bg-slate-700 sm:h-9 sm:w-9"
-              aria-label={isMuted ? 'Réactiver le son' : 'Couper le son'}
-            >
-              {isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-            </button>
-
-            <div className="hidden items-center gap-2 sm:flex">
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={isMuted ? 0 : volume}
-                onChange={(e) => {
-                  const next = Number(e.target.value);
-                  setVolume(next);
-                  setIsMuted(next === 0);
-                }}
-                className="h-1.5 w-24 cursor-pointer accent-primary"
-                aria-label="Volume"
-              />
-              <span className="min-w-[42px] text-[10px] uppercase tracking-wide text-slate-300">{volumeLabel}</span>
-            </div>
-          </div>
         </div>
-
-        {error && (
-          <div className="border-t border-red-500/30 bg-red-500/10 px-3 py-2 text-center text-xs text-red-200 sm:text-sm">
-            <div className="inline-flex items-center gap-2">
-              <WifiOff className="h-4 w-4" />
-              {error}
-            </div>
-          </div>
-        )}
       </div>
     </>
   );

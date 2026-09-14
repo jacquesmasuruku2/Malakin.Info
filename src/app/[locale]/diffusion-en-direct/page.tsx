@@ -1,6 +1,8 @@
 import Link from 'next/link';
-import { ArrowRight, Calendar, Clock, Radio, Video } from 'lucide-react';
+import { ArrowRight, Calendar, Radio, Video } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
+import { withRetry } from '@/lib/database';
+import RadioOnAirWidget from '@/components/RadioOnAirWidget';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,18 +14,28 @@ export default async function LiveBroadcastsPage({
   const { locale } = await params;
   const now = new Date();
   let events: any[] = [];
+  let radio: { name: string; description: string | null } | null = null;
 
   try {
-    events = await prisma.liveEvent.findMany({
-      where: {
-        OR: [
-          { status: 'LIVE' },
-          { status: 'SCHEDULED', startTime: { gte: now } },
-        ],
-      },
-      orderBy: [{ status: 'asc' }, { startTime: 'asc' }],
-      take: 24,
-    });
+    const [eventsResult, radioResult] = await Promise.all([
+      withRetry(() => prisma.liveEvent.findMany({
+        where: {
+          OR: [
+            { status: 'LIVE' },
+            { status: 'SCHEDULED', startTime: { gte: now } },
+          ],
+        },
+        orderBy: [{ status: 'asc' }, { startTime: 'asc' }],
+        take: 24,
+      })),
+      withRetry(() => prisma.radioStation.findFirst({
+        where: { isActive: true },
+        orderBy: { createdAt: 'desc' },
+        select: { name: true, description: true },
+      })),
+    ]);
+    events = eventsResult || [];
+    radio = radioResult;
   } catch (error) {
     console.error('Live broadcasts page database error:', error);
   }
@@ -50,11 +62,29 @@ export default async function LiveBroadcastsPage({
               <h1 className="font-heading text-4xl font-black tracking-[-0.03em] sm:text-5xl">{isFrench ? 'Diffusion en direct' : 'Live broadcasts'}</h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-blue-100 sm:text-lg">
                 {isFrench
-                  ? 'Regardez les prédications, les enseignements de William Branham et tous les événements diffusés en ligne par MalakInfo.'
-                  : 'Watch sermons, William Branham teachings and every event broadcast online by MalakInfo.'}
+                  ? 'Écoutez la radio MalakInfo, puis suivez les prédications, les enseignements de William Branham et tous les événements diffusés en ligne.'
+                  : 'Listen to MalakInfo radio, then follow sermons, William Branham teachings and every event broadcast online.'}
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="bg-[#1f7a6a]">
+        <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 px-4 py-10 text-center sm:px-6 lg:px-8">
+          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/80">Radio</p>
+          <h2 className="font-heading text-2xl font-black text-white sm:text-3xl">
+            {isFrench ? 'Flux radio en direct' : 'Live radio stream'}
+          </h2>
+          <RadioOnAirWidget
+            name={radio?.name || 'Radio MalakInfo'}
+            onlineLabel={isFrench ? 'en ligne' : 'on air'}
+          />
+          <p className="max-w-xl text-sm leading-6 text-white/85">
+            {radio?.description || (isFrench
+              ? 'Cliquez sur le lecteur pour lancer ou mettre en pause le direct.'
+              : 'Click the player to start or pause the live stream.')}
+          </p>
         </div>
       </section>
 
