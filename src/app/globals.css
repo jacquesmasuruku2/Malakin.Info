@@ -249,11 +249,28 @@
   .improved-contrast {
     color: #0a1628;
   }
-  .premium-preview-lines {
-    display: -webkit-box;
+  .premium-preview-fade {
+    position: relative;
+    max-height: 13.2em;
     overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 5;
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 36%,
+      rgba(0, 0, 0, 0.82) 52%,
+      rgba(0, 0, 0, 0.48) 68%,
+      rgba(0, 0, 0, 0.16) 84%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 36%,
+      rgba(0, 0, 0, 0.82) 52%,
+      rgba(0, 0, 0, 0.48) 68%,
+      rgba(0, 0, 0, 0.16) 84%,
+      transparent 100%
+    );
   }
   /* Marquee / scrolling banner for live broadcasts on mobile */
   .marquee-track {

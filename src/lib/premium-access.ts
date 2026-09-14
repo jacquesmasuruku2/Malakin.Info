@@ -50,6 +50,21 @@ export async function hasPremiumAccess(articleId: string) {
 }
 
 export function getPremiumPreviewContent(content: string) {
-  const firstParagraph = content.match(/<p\b[^>]*>[\s\S]*?<\/p>/i)?.[0];
-  return firstParagraph || '';
+  const paragraphs = content.match(/<p\b[^>]*>[\s\S]*?<\/p>/gi) ?? [];
+
+  if (paragraphs.length === 0) {
+    const stripped = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    return stripped ? `<p>${stripped.slice(0, 700)}</p>` : '';
+  }
+
+  let html = '';
+  let textLength = 0;
+
+  for (const paragraph of paragraphs.slice(0, 4)) {
+    html += paragraph;
+    textLength += paragraph.replace(/<[^>]+>/g, '').length;
+    if (textLength >= 420) break;
+  }
+
+  return html;
 }

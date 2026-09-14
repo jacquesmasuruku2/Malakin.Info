@@ -301,20 +301,19 @@ export default async function ArticlePage({
                   <ReadAlsoRenderer content={displayContent} />
                 </div>
               ) : (
-                <div>
-                  <div className="premium-preview premium-preview-lines text-[1.04rem] leading-[1.9] text-gray-800 md:text-[1.18rem]" dangerouslySetInnerHTML={{ __html: previewContent }} />
-                  <p className="mt-3 text-sm font-medium text-muted-foreground">
-                    {locale === 'fr' ? 'Les cinq premières lignes sont visibles. Abonnez-vous ou achetez cet article pour lire la suite.' : 'The first five lines are visible. Subscribe or purchase this article to continue reading.'}
-                  </p>
+                <div className="premium-gate">
+                  <div
+                    className={`${playfair.className} premium-preview premium-preview-fade text-[1.04rem] leading-[1.9] text-gray-800 md:text-[1.18rem]`}
+                    dangerouslySetInnerHTML={{ __html: previewContent }}
+                  />
+                  {article.isPremium && (
+                    <Paywall
+                      articleId={article.id}
+                      articleTitle={displayTitle}
+                      premiumPrice={article.premiumPrice ? Number(article.premiumPrice) : 1.9}
+                    />
+                  )}
                 </div>
-              )}
-
-              {article.isPremium && !premiumAccess && (
-                <Paywall 
-                  articleId={article.id} 
-                  articleTitle={displayTitle}
-                  premiumPrice={article.premiumPrice ? Number(article.premiumPrice) : 1.9}
-                />
               )}
 
               <div className="mt-8">
