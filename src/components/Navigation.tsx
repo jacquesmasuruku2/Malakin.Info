@@ -223,6 +223,7 @@ export default function Navigation() {
         { name: t.mission, href: `/${locale}/mission` },
         { name: t.team, href: `/${locale}/equipe` },
         { name: t.charter, href: `/${locale}/charte` },
+        { name: 'Archives', href: `/${locale}/archives` },
       ],
     },
   ];

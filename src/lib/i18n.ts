@@ -65,6 +65,7 @@ const translations: Record<SupportedLocale, typeof frMessages> = {
       mediaObservatory: 'Support us',
       partnerships: 'Partnerships',
       services: 'SERVICES',
+      archives: 'Archives',
       newsletters: 'Newsletters',
       rssFeeds: 'RSS Feeds',
       applications: 'APPLICATIONS',

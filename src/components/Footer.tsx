@@ -2,21 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mail, Phone, MapPin, ChevronRight, ArrowUp, Sparkles, Award, Users, Radio, TrendingUp, Newspaper, Heart } from 'lucide-react';
+import { Mail, Phone, MapPin, ArrowUp, Heart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
 
+const headingClass = 'mb-5 text-[13px] font-semibold uppercase tracking-[0.12em] text-[#d4af37]';
+const textLinkClass = 'text-[15px] text-white/85 transition-colors hover:text-[#d4af37]';
 const chipClass =
-  'relative overflow-hidden rounded-lg border border-white/15 px-3 py-2.5 text-center text-xs text-white/90 transition-colors hover:border-white/30 hover:bg-white/10';
-const linkClass =
-  'group flex items-center gap-1.5 text-sm text-white/70 transition-colors hover:text-white';
-const headingClass =
-  'mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white';
+  'inline-flex items-center rounded-full border border-white/25 px-3.5 py-1.5 text-[13px] text-white/90 transition-colors hover:border-[#d4af37] hover:text-[#d4af37]';
 
 export default function Footer() {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [newsletterName, setNewsletterName] = useState('');
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -143,11 +140,53 @@ export default function Footer() {
     },
   };
 
-  return (
-    <footer className="relative bg-[#081c3d] text-white">
-      <div className="h-px bg-[#d4af37]" />
+  const newsTopics = [
+    { label: nav.politics, href: `/${locale}/politique` },
+    { label: nav.economy, href: `/${locale}/economie` },
+    { label: t.africanNews2026, href: `/${locale}/actualites` },
+    { label: nav.society, href: `/${locale}/societe` },
+    { label: nav.health, href: `/${locale}/sante` },
+  ];
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+  const sectionLinks = [
+    { label: nav.security, href: `/${locale}/securite` },
+    { label: nav.environment, href: `/${locale}/environnement` },
+    { label: nav.culture, href: `/${locale}/culture` },
+    { label: nav.sport, href: `/${locale}/sport` },
+    { label: nav.employment, href: `/${locale}/emploi` },
+    { label: nav.religion, href: `/${locale}/religion` },
+  ];
+
+  const aboutLinks = [
+    { label: t.whoAreWe, href: `/${locale}/a-propos` },
+    { label: t.ourMission, href: `/${locale}/mission` },
+    { label: t.ourTeam, href: `/${locale}/equipe` },
+    { label: nav.contact, href: `/${locale}/contact` },
+    { label: t.advertising, href: `/${locale}/partenariats` },
+    { label: nav.supportUs, href: `/${locale}/nous-soutenir` },
+  ];
+
+  const networkLinks = [
+    { label: t.malakinRadioAfrica, href: `/${locale}/diffusion-en-direct` },
+    { label: t.focusEco, href: `/${locale}/medias` },
+    { label: t.youthTribune, href: `/${locale}/medias/live` },
+    { label: t.malakinDocu, href: `/${locale}/medias/photos` },
+    { label: t.mediaObservatory, href: `/${locale}/nous-soutenir` },
+    { label: t.partnerships, href: `/${locale}/partenariats` },
+  ];
+
+  const topRubriques = [
+    { label: nav.politics, href: `/${locale}/politique` },
+    { label: nav.economy, href: `/${locale}/economie` },
+    { label: nav.culture, href: `/${locale}/culture` },
+    { label: nav.sport, href: `/${locale}/sport` },
+    { label: nav.scienceTech, href: `/${locale}/science-tech` },
+    { label: nav.religion, href: `/${locale}/religion` },
+  ];
+
+  return (
+    <footer className="bg-[#081c3d] text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {showScrollTop && (
           <button
             onClick={scrollToTop}
@@ -158,215 +197,104 @@ export default function Footer() {
           </button>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
-          <div className="space-y-8">
-            <div>
-              <h3 className={headingClass}>
-                <Newspaper className="w-4 h-4 text-[#d4af37]" />
-                {t.inTheNews}
-              </h3>
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2.5">
-                  <Link
-                    href={`/${locale}/politique`}
-                    className={chipClass}
-                    onMouseEnter={() => setHoveredItem('politics')}
-                    onMouseLeave={() => setHoveredItem(null)}
-                  >
-                    <span className="relative z-10">{nav.politics}</span>
-                  </Link>
-                  <Link
-                    href={`/${locale}/economie`}
-                    className={chipClass}
-                    onMouseEnter={() => setHoveredItem('economy')}
-                    onMouseLeave={() => setHoveredItem(null)}
-                  >
-                    <span className="relative z-10">{nav.economy}</span>
-                  </Link>
-                </div>
-                <Link
-                  href={`/${locale}/actualites`}
-                  className={chipClass}
-                  onMouseEnter={() => setHoveredItem('allNews')}
-                  onMouseLeave={() => setHoveredItem(null)}
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-2">
-                    <Sparkles className="w-3 h-3 text-[#d4af37]" />
-                    {t.africanNews2026}
-                  </span>
-                </Link>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <Link
-                    href={`/${locale}/societe`}
-                    className={chipClass}
-                    onMouseEnter={() => setHoveredItem('society')}
-                    onMouseLeave={() => setHoveredItem(null)}
-                  >
-                    <span className="relative z-10">{nav.society}</span>
-                  </Link>
-                  <Link
-                    href={`/${locale}/sante`}
-                    className={chipClass}
-                    onMouseEnter={() => setHoveredItem('health')}
-                    onMouseLeave={() => setHoveredItem(null)}
-                  >
-                    <span className="relative z-10">{nav.health}</span>
-                  </Link>
-                </div>
-              </div>
-            </div>
+        <nav className="flex flex-wrap gap-x-8 gap-y-3 border-b border-white/15 py-5 text-[13px] font-medium uppercase tracking-[0.08em] text-white/80">
+          {topRubriques.map((item) => (
+            <Link key={item.href} href={item.href} className="hover:text-[#d4af37]">
+              {item.label}
+            </Link>
+          ))}
+        </nav>
 
-            <div>
-              <h3 className={headingClass}>
-                <TrendingUp className="w-4 h-4 text-[#d4af37]" />
-                {t.sections}
-              </h3>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                {[nav.security, nav.environment, nav.culture].map((item, index) => (
-                  <Link
-                    key={item}
-                    href={`/${locale}/${['securite', 'environnement', 'culture'][index]}`}
-                    className={linkClass}
-                  >
-                    <ChevronRight className="w-3 h-3 text-[#d4af37] opacity-0 transition-opacity group-hover:opacity-100" />
-                    {item}
-                  </Link>
-                ))}
-                {[nav.sport, nav.employment, nav.religion].map((item, index) => (
-                  <Link
-                    key={item}
-                    href={`/${locale}/${['sport', 'emploi', 'religion'][index]}`}
-                    className={linkClass}
-                  >
-                    <ChevronRight className="w-3 h-3 text-[#d4af37] opacity-0 transition-opacity group-hover:opacity-100" />
-                    {item}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-
+        <div className="grid grid-cols-1 gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <h3 className={headingClass}>
-              <Users className="w-4 h-4 text-[#d4af37]" />
-              {t.aboutMalakin}
-            </h3>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-              {[t.whoAreWe, t.ourMission, t.ourTeam].map((item, index) => (
-                <Link
-                  key={item}
-                  href={`/${locale}/${['a-propos', 'mission', 'equipe'][index]}`}
-                  className={linkClass}
-                >
-                  <span className="h-1 w-1 rounded-full bg-[#d4af37]" />
-                  {item}
-                </Link>
-              ))}
-              {[nav.contact, t.advertising, nav.supportUs].map((item, index) => (
-                <Link
-                  key={item}
-                  href={`/${locale}/${['contact', 'partenariats', 'nous-soutenir'][index]}`}
-                  className={linkClass}
-                >
-                  <span className="h-1 w-1 rounded-full bg-[#d4af37]" />
-                  {item}
+            <h3 className={headingClass}>{t.inTheNews}</h3>
+            <div className="flex flex-wrap gap-2">
+              {newsTopics.map((item) => (
+                <Link key={item.href + item.label} href={item.href} className={chipClass}>
+                  {item.label}
                 </Link>
               ))}
             </div>
-
-            <div className="mt-6 rounded-lg border border-white/10 bg-white/5 px-4 py-3">
-              <div className="flex items-center gap-2 text-sm">
-                <Heart className="w-4 h-4 text-[#e63946]" />
-                <span className="text-xs text-white/75">Soutenez l'information indépendante</span>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 className={headingClass}>
-              <Radio className="w-4 h-4 text-[#d4af37]" />
-              {t.malakinMediaNetwork}
-            </h3>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-              {[t.malakinRadioAfrica, t.focusEco, t.youthTribune].map((item, index) => (
-                <Link
-                  key={item}
-                  href={`/${locale}/${['diffusion-en-direct', 'medias', 'medias/live'][index]}`}
-                  className={linkClass}
-                >
-                  <span className="text-[#d4af37]">●</span>
-                  {item}
-                </Link>
-              ))}
-              {[t.malakinDocu, t.mediaObservatory, t.partnerships].map((item, index) => (
-                <Link
-                  key={item}
-                  href={`/${locale}/${['medias/photos', 'nous-soutenir', 'partenariats'][index]}`}
-                  className={linkClass}
-                >
-                  <span className="text-[#d4af37]">◆</span>
-                  {item}
+            <h3 className={`${headingClass} mt-8`}>{t.sections}</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+              {sectionLinks.map((item) => (
+                <Link key={item.href} href={item.href} className={textLinkClass}>
+                  {item.label}
                 </Link>
               ))}
             </div>
           </div>
 
           <div>
-            <h3 className={headingClass}>
-              <Award className="w-4 h-4 text-[#d4af37]" />
-              {t.services}
-            </h3>
-            <div className="space-y-2">
-              <Link href="/rss.xml" className={linkClass}>
-                <Mail className="w-3.5 h-3.5 text-[#d4af37]" />
+            <h3 className={headingClass}>{t.aboutMalakin}</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+              {aboutLinks.map((item) => (
+                <Link key={item.href + item.label} href={item.href} className={textLinkClass}>
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+            <p className="mt-6 flex items-center gap-2 text-sm text-white/70">
+              <Heart className="h-4 w-4 text-[#e63946]" />
+              Soutenez l'information indépendante
+            </p>
+          </div>
+
+          <div>
+            <h3 className={headingClass}>{t.malakinMediaNetwork}</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+              {networkLinks.map((item) => (
+                <Link key={item.href + item.label} href={item.href} className={textLinkClass}>
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className={headingClass}>{t.services}</h3>
+            <div className="space-y-2.5">
+              <Link href={`/${locale}/archives`} className={`${textLinkClass} block`}>
+                {t.archives}
+              </Link>
+              <Link href="/rss.xml" className={`${textLinkClass} block`}>
                 {t.rssFeeds}
               </Link>
             </div>
-          </div>
-        </div>
-
-        <div className="mt-12 rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#d4af37]">Newsletter</p>
-              <h4 className="mt-2 font-heading text-2xl font-bold text-white">
-                {locale === 'fr' ? 'Restez informé' : 'Stay informed'}
-              </h4>
-              <p className="mt-2 text-sm text-white/70">
-                {locale === 'fr'
-                  ? 'Abonnez-vous pour recevoir les dernières actualités directement dans votre boîte mail.'
-                  : 'Subscribe to receive the latest news directly in your inbox.'}
-              </p>
-            </div>
-
-            <form onSubmit={handleNewsletterSubmit} className="w-full max-w-xl">
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <input
-                  type="text"
-                  value={newsletterName}
-                  onChange={(event) => setNewsletterName(event.target.value)}
-                  placeholder={locale === 'fr' ? 'Votre nom (optionnel)' : 'Your name (optional)'}
-                  className="w-full max-w-[220px] rounded-lg border border-white/15 bg-[#081c3d] px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-[#d4af37] focus:outline-none"
-                  aria-label="Name newsletter"
-                />
-                <input
-                  type="email"
-                  value={newsletterEmail}
-                  onChange={(event) => setNewsletterEmail(event.target.value)}
-                  placeholder={locale === 'fr' ? 'Entrez votre adresse email' : 'Enter your email address'}
-                  className="flex-1 rounded-lg border border-white/15 bg-[#081c3d] px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-[#d4af37] focus:outline-none"
-                  aria-label="Email newsletter"
-                />
-                <button
-                  type="submit"
-                  disabled={isNewsletterSubmitting}
-                  className="rounded-lg bg-[#0b3b8b] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0a3276] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isNewsletterSubmitting ? (locale === 'fr' ? 'Envoi...' : 'Sending...') : (locale === 'fr' ? 'S\'abonner' : 'Subscribe')}
-                </button>
-              </div>
+            <p className="mt-8 mb-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-[#d4af37]">
+              Newsletter
+            </p>
+            <p className="mb-4 text-sm text-white/70">
+              {locale === 'fr'
+                ? 'Abonnez-vous pour recevoir les dernières actualités directement dans votre boîte mail.'
+                : 'Subscribe to receive the latest news directly in your inbox.'}
+            </p>
+            <form onSubmit={handleNewsletterSubmit} className="space-y-2.5">
+              <input
+                type="text"
+                value={newsletterName}
+                onChange={(event) => setNewsletterName(event.target.value)}
+                placeholder={locale === 'fr' ? 'Votre nom (optionnel)' : 'Your name (optional)'}
+                className="w-full rounded-md border border-white/20 bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-[#d4af37] focus:outline-none"
+                aria-label="Name newsletter"
+              />
+              <input
+                type="email"
+                value={newsletterEmail}
+                onChange={(event) => setNewsletterEmail(event.target.value)}
+                placeholder={locale === 'fr' ? 'Entrez votre adresse email' : 'Enter your email address'}
+                className="w-full rounded-md border border-white/20 bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-[#d4af37] focus:outline-none"
+                aria-label="Email newsletter"
+              />
+              <button
+                type="submit"
+                disabled={isNewsletterSubmitting}
+                className="w-full rounded-md bg-[#0b3b8b] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0a3276] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isNewsletterSubmitting ? (locale === 'fr' ? 'Envoi...' : 'Sending...') : (locale === 'fr' ? 'S\'abonner' : 'Subscribe')}
+              </button>
               {newsletterStatus && (
-                <p className={`mt-3 text-sm ${newsletterStatus.type === 'success' ? 'text-emerald-300' : 'text-red-300'}`}>
+                <p className={`text-sm ${newsletterStatus.type === 'success' ? 'text-emerald-300' : 'text-red-300'}`}>
                   {newsletterStatus.text}
                 </p>
               )}
@@ -374,64 +302,59 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/65">
+        <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-white/15 py-5 text-sm text-white/70">
           {[
             t.legalNotices,
             t.privacyPolicy,
             t.termsOfUse,
-            t.cookies
+            t.cookies,
           ].map((item, index) => (
             <Link
               key={item}
               href={`/${locale}/${['mentions-legales', 'politique-confidentialite', 'conditions-utilisation', 'cookies'][index]}`}
-              className="transition-colors hover:text-white"
+              className="hover:text-[#d4af37]"
             >
               {item}
             </Link>
           ))}
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-white/10 pt-6 text-sm text-white/70">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-white/15 py-5 text-sm text-white/85">
           {Object.entries(socialIcons).map(([name, { icon: Icon, color, url }]) => (
             <a
               key={name}
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1.5 transition-colors hover:border-white/30 hover:bg-white/10 hover:text-white"
-              onMouseEnter={() => setHoveredItem(name)}
-              onMouseLeave={() => setHoveredItem(null)}
+              className="inline-flex items-center gap-2 hover:text-[#d4af37]"
             >
               <span style={{ color }}>
                 <Icon />
               </span>
               {name}
-              <span className={`text-[8px] text-[#d4af37] ${hoveredItem === name ? 'opacity-100' : 'opacity-0'}`}>●</span>
             </a>
           ))}
-
-          <div className="flex flex-wrap items-center gap-4 sm:ml-2 sm:border-l sm:border-white/15 sm:pl-4">
-            <a href="mailto:contact@malakinfo.com" className="inline-flex items-center gap-2 transition-colors hover:text-white">
-              <Mail className="w-4 h-4 text-[#d4af37]" />
-              <span>{t.contactEmail}</span>
-            </a>
-            <a href="tel:+243998258441" className="inline-flex items-center gap-2 transition-colors hover:text-white">
-              <Phone className="w-4 h-4 text-[#d4af37]" />
-              <span>+243 998 258 441</span>
-            </a>
-            <div className="inline-flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#d4af37]" />
-              <span>{t.location}</span>
-            </div>
-          </div>
         </div>
 
-        <div className="mt-6 border-t border-white/10 pt-5 text-xs text-white/50">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pb-5 text-sm text-white/70">
+          <a href="mailto:contact@malakinfo.com" className="inline-flex items-center gap-2 hover:text-[#d4af37]">
+            <Mail className="w-4 h-4 text-[#d4af37]" />
+            {t.contactEmail}
+          </a>
+          <a href="tel:+243998258441" className="inline-flex items-center gap-2 hover:text-[#d4af37]">
+            <Phone className="w-4 h-4 text-[#d4af37]" />
+            +243 998 258 441
+          </a>
+          <span className="inline-flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-[#d4af37]" />
+            {t.location}
+          </span>
+        </div>
+
+        <div className="border-t border-white/15 py-5 text-xs text-white/50">
           <p className="flex flex-wrap items-center justify-end gap-2">
             <span>© {currentYear} MalakInfo.com</span>
-            <span className="h-1 w-1 rounded-full bg-[#d4af37]" />
             <span>{t.copyright}</span>
-            <span className="h-1 w-1 rounded-full bg-[#d4af37]" />
             <span>{t.madeWith}</span>
             <Heart className="w-3 h-3 text-[#e63946] inline" />
           </p>

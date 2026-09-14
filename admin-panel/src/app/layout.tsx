@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -17,8 +18,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
+    <html lang="fr" data-theme="blue">
       <body className={jetbrainsMono.variable}>
+        <Script id="admin-theme" strategy="beforeInteractive">
+          {`try{var t=localStorage.getItem('admin-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}`}
+        </Script>
         <ThemeProvider>
           <AuthProvider>
             {children}

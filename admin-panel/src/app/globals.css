@@ -2,12 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-mono: var(--font-jetbrains-mono);
-}
-
-/* Thème bleu (défaut) */
+:root,
 [data-theme="blue"] {
+  --font-mono: var(--font-jetbrains-mono);
   --primary: #2563eb;
   --primary-dark: #1d4ed8;
   --primary-light: #3b82f6;

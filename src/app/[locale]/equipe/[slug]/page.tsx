@@ -1,11 +1,36 @@
+import { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, Calendar, Mail, PenLine } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ContributorProfilePage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const author = await prisma.author.findUnique({
+    where: { slug },
+    select: { name: true, bio: true, role: true },
+  });
+
+  if (!author) {
+    return { title: 'Équipe - Malakinfo.com' };
+  }
+
+  return {
+    title: `${author.name} - Malakinfo.com`,
+    description: author.bio?.slice(0, 160) || `${author.name}${author.role ? `, ${author.role}` : ''} — MalakInfo.`,
+  };
+}
+
+export default async function ContributorProfilePage({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}) {
   const { locale, slug } = await params;
   const isFrench = locale === 'fr';
   const author = await prisma.author.findUnique({
@@ -18,28 +43,119 @@ export default async function ContributorProfilePage({ params }: { params: Promi
 
   if (!author) notFound();
 
-  return (
-    <div className="min-h-screen bg-[#f8f9fb]">
-      <section className="bg-[#081c3d] text-white">
-        <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
-          <Link href={`/${locale}/equipe`} className="mb-8 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#d4af37] hover:text-white"><ArrowLeft className="h-4 w-4" />{isFrench ? 'Retour à l’équipe' : 'Back to team'}</Link>
-          <div className="flex flex-col gap-8 sm:flex-row sm:items-center">
-            <div className="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-[#d4af37] bg-[#e9eef4] text-5xl font-heading font-black text-[#0b3b8b]/40 sm:h-40 sm:w-40">
-              {author.imageUrl ? <img src={author.imageUrl} alt={author.imageAlt || author.name} className="h-full w-full object-cover" /> : author.name.charAt(0).toUpperCase()}
-            </div>
-            <div><p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#d4af37]">MalakInfo</p><h1 className="mt-3 font-heading text-4xl font-black tracking-[-0.03em] sm:text-6xl">{author.name}</h1><p className="mt-3 text-sm font-bold uppercase tracking-[0.14em] text-blue-100">{author.role || (isFrench ? 'Contributeur éditorial' : 'Editorial contributor')}</p></div>
-          </div>
-        </div>
-      </section>
+  const articleLabel = isFrench
+    ? author.articles.length > 1
+      ? 'articles'
+      : 'article'
+    : author.articles.length === 1
+      ? 'article'
+      : 'articles';
 
-      <main className="mx-auto max-w-5xl space-y-12 px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-        <section className="grid gap-8 md:grid-cols-[1fr_280px]">
-          <div className="border border-slate-200 bg-white p-6 shadow-sm sm:p-8"><p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#b88f18]">{isFrench ? 'À propos' : 'About'}</p><h2 className="mt-2 font-heading text-3xl font-black text-[#081c3d]">{isFrench ? 'Son regard et son engagement' : 'Perspective and commitment'}</h2><p className="mt-5 whitespace-pre-line text-base leading-8 text-slate-600">{author.bio || (isFrench ? 'La biographie de ce contributeur sera bientôt publiée.' : 'This contributor biography will be published soon.')}</p></div>
-          <aside className="border border-[#d9e1ee] bg-[#fffaf0] p-6"><p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#b88f18]">{isFrench ? 'Contribution' : 'Contribution'}</p><div className="mt-5 space-y-4 text-sm text-[#081c3d]"><p className="flex items-center gap-2"><PenLine className="h-4 w-4 text-[#0b3b8b]" />{author.articles.length} article(s)</p><p className="flex items-center gap-2"><Calendar className="h-4 w-4 text-[#0b3b8b]" />{author.media.length} média(s)</p>{author.email && <a href={`mailto:${author.email}`} className="flex items-center gap-2 font-semibold text-[#0b3b8b] hover:text-[#b88f18]"><Mail className="h-4 w-4" />Contacter</a>}</div></aside>
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <Link href={`/${locale}/equipe`} className="text-sm text-primary hover:underline">
+          {isFrench ? '← Retour à l’équipe' : '← Back to the team'}
+        </Link>
+
+        <header className="mt-8 flex flex-col gap-6 sm:flex-row sm:items-center">
+          <div className="h-28 w-28 shrink-0 overflow-hidden rounded-full bg-muted sm:h-32 sm:w-32">
+            {author.imageUrl ? (
+              <img
+                src={author.imageUrl}
+                alt={author.imageAlt || author.name}
+                className="h-full w-full object-cover object-top"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center font-heading text-4xl font-bold text-primary/25">
+                {author.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+          <div>
+            <h1 className="font-heading text-4xl font-bold text-foreground">{author.name}</h1>
+            <p className="mt-2 text-primary">
+              {author.role || (isFrench ? 'Contributeur' : 'Contributor')}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {author.articles.length} {articleLabel}
+              {author.media.length > 0
+                ? ` · ${author.media.length} ${isFrench ? (author.media.length > 1 ? 'médias' : 'média') : author.media.length === 1 ? 'media' : 'media items'}`
+                : ''}
+            </p>
+            {author.email && (
+              <a href={`mailto:${author.email}`} className="mt-3 inline-block text-sm text-primary hover:underline">
+                {isFrench ? 'Écrire un message' : 'Send a message'}
+              </a>
+            )}
+          </div>
+        </header>
+
+        <section className="mt-10">
+          <h2 className="font-heading text-2xl font-bold text-foreground mb-4">
+            {isFrench ? 'À propos' : 'About'}
+          </h2>
+          <p className="whitespace-pre-line text-muted-foreground leading-7">
+            {author.bio ||
+              (isFrench
+                ? 'La biographie de ce contributeur sera bientôt publiée.'
+                : 'This contributor biography will be published soon.')}
+          </p>
         </section>
 
-        <section><div className="mb-6 flex items-end justify-between border-b border-slate-200 pb-4"><div><p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#b88f18]">MalakInfo</p><h2 className="mt-2 font-heading text-3xl font-black text-[#081c3d]">{isFrench ? 'Ses contributions' : 'Contributions'}</h2></div><span className="text-xs text-slate-500">{author.articles.length}</span></div>{author.articles.length === 0 ? <div className="border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600">{isFrench ? 'Aucune contribution publiée pour le moment.' : 'No published contributions yet.'}</div> : <div className="space-y-4">{author.articles.map((article) => <Link key={article.id} href={`/${locale}/${article.slug}`} className="group flex flex-col gap-5 border border-slate-200 bg-white p-4 shadow-sm transition hover:border-[#d4af37] sm:flex-row"><div className="h-32 w-full shrink-0 overflow-hidden bg-[#e9eef4] sm:w-48">{article.mainImageUrl && <img src={article.mainImageUrl} alt={article.title} className="h-full w-full object-cover transition group-hover:scale-105" />}</div><div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#b88f18]">{article.category?.title || 'MalakInfo'}</p><h3 className="mt-2 font-heading text-2xl font-bold leading-tight text-[#081c3d] group-hover:text-[#b88f18]">{article.title}</h3><p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">{article.excerpt}</p><p className="mt-3 text-xs text-slate-500">{article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(isFrench ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}<ArrowRight className="ml-2 inline h-4 w-4" /></p></div></Link>)}</div>}</section>
-      </main>
+        <section className="mt-12">
+          <h2 className="font-heading text-2xl font-bold text-foreground mb-6">
+            {isFrench ? 'Articles' : 'Articles'}
+          </h2>
+
+          {author.articles.length === 0 ? (
+            <p className="text-muted-foreground">
+              {isFrench ? 'Aucun article publié pour le moment.' : 'No articles published yet.'}
+            </p>
+          ) : (
+            <ul className="space-y-4">
+              {author.articles.map((article) => (
+                <li key={article.id}>
+                  <Link
+                    href={`/${locale}/${article.slug}`}
+                    className="group flex flex-col gap-4 border border-border rounded-xl overflow-hidden bg-card sm:flex-row hover:border-primary/40 transition-colors"
+                  >
+                    <div className="h-40 w-full shrink-0 bg-muted sm:h-auto sm:w-48">
+                      {article.mainImageUrl && (
+                        <img
+                          src={article.mainImageUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <div className="flex-1 p-4 sm:py-5 sm:pr-5">
+                      {article.category?.title && (
+                        <p className="text-xs uppercase tracking-wide text-primary">{article.category.title}</p>
+                      )}
+                      <h3 className="mt-1 font-heading text-xl font-bold text-foreground group-hover:text-primary">
+                        {article.title}
+                      </h3>
+                      {article.excerpt && (
+                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{article.excerpt}</p>
+                      )}
+                      {article.publishedAt && (
+                        <p className="mt-3 text-xs text-muted-foreground">
+                          {new Date(article.publishedAt).toLocaleDateString(isFrench ? 'fr-FR' : 'en-US', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

@@ -1,13 +1,27 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+const PUBLIC_PATHS = ['/login', '/forgot-password', '/reset-password'];
+
+function isPublicPath(pathname: string) {
+  return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
 
 export function middleware(request: NextRequest) {
-  // L'admin-panel n'utilise pas de middleware
-  // Toutes les routes sont gérées par les composants React
-  return NextResponse.next()
+  const { pathname } = request.nextUrl;
+  const hasSession = Boolean(request.cookies.get('admin_session_token')?.value);
+
+  if (!isPublicPath(pathname) && !hasSession) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  if (pathname === '/login' && hasSession) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
-  // Matcher vide pour désactiver le middleware
-  matcher: [],
-}
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
+};

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 type Theme = 'blue' | 'gray' | 'dark' | 'green' | 'purple' | 'orange';
 
@@ -11,28 +11,26 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const THEMES: Theme[] = ['blue', 'gray', 'dark', 'green', 'purple', 'orange'];
+
+function isTheme(value: string | null): value is Theme {
+  return THEMES.includes(value as Theme);
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>('blue');
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    const savedTheme = localStorage.getItem('admin-theme') as Theme;
-    if (savedTheme) {
+    const savedTheme = localStorage.getItem('admin-theme');
+    if (isTheme(savedTheme)) {
       setTheme(savedTheme);
     }
   }, []);
 
   useEffect(() => {
-    if (mounted) {
-      localStorage.setItem('admin-theme', theme);
-      document.documentElement.setAttribute('data-theme', theme);
-    }
-  }, [theme, mounted]);
-
-  if (!mounted) {
-    return <>{children}</>;
-  }
+    localStorage.setItem('admin-theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>

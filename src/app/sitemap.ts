@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import { prisma } from '@/lib/prisma'
+import { getArchiveYears } from '@/lib/archives'
 import { SITE_URL } from '@/lib/site-legal'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -31,6 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/conditions-utilisation',
     '/nous-soutenir',
     '/partenariats',
+    '/archives',
   ]
 
   const staticPages: MetadataRoute.Sitemap = locales.flatMap((locale) =>
@@ -58,7 +60,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }))
     )
 
-    return [...staticPages, ...articlePages]
+    const archiveYears = await getArchiveYears()
+    const archiveYearPages: MetadataRoute.Sitemap = archiveYears.flatMap((year) =>
+      locales.map((locale) => ({
+        url: `${SITE_URL}/${locale}/archives/${year}`,
+        lastModified: currentDate,
+        changeFrequency: 'weekly' as const,
+        priority: 0.5,
+      }))
+    )
+
+    return [...staticPages, ...articlePages, ...archiveYearPages]
   } catch (error) {
     console.error('Error generating sitemap:', error)
     return staticPages
