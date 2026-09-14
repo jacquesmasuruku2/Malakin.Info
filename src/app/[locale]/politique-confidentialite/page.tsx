@@ -61,7 +61,7 @@ export default function PrivacyPolicyPage() {
             <h3 className="font-heading text-xl font-semibold text-foreground mb-3 mt-6">Données personnelles volontaires</h3>
             <p className="text-muted-foreground">Nous collectons les données que vous nous fournissez :</p>
             <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-              <li>Nom et prénom (formulaire de contact, compte, newsletter)</li>
+              <li>Nom et prénom (formulaire de contact, compte)</li>
               <li>Adresse email</li>
               <li>Contenu des messages, commentaires et candidatures</li>
             </ul>

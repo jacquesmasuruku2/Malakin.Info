@@ -16,7 +16,6 @@ export default function NewsletterSignupInline({
   buttonText = 'S\'abonner',
 }: NewsletterSignupInlineProps) {
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
   const [status, setStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -24,7 +23,6 @@ export default function NewsletterSignupInline({
     event.preventDefault();
 
     const trimmedEmail = email.trim();
-    const trimmedName = name.trim();
 
     if (!trimmedEmail || !trimmedEmail.includes('@')) {
       setStatus({
@@ -43,7 +41,6 @@ export default function NewsletterSignupInline({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: trimmedEmail,
-          name: trimmedName || null,
           consent: true,
           interests: ['actualites', 'economie', 'culture', 'sport', 'tech'],
         }),
@@ -63,7 +60,6 @@ export default function NewsletterSignupInline({
             : 'Thank you, you are subscribed to the newsletter.',
       });
       setEmail('');
-      setName('');
     } catch (error) {
       setStatus({
         type: 'error',
@@ -87,14 +83,7 @@ export default function NewsletterSignupInline({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-[1.1fr_1fr_auto]">
-          <input
-            type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder={locale === 'fr' ? 'Votre nom (optionnel)' : 'Your name (optional)'}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#0B3B8B] focus:bg-white"
-          />
+        <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
           <input
             type="email"
             value={email}

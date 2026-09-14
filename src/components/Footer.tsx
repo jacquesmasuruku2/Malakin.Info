@@ -15,7 +15,6 @@ export default function Footer() {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [newsletterName, setNewsletterName] = useState('');
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isNewsletterSubmitting, setIsNewsletterSubmitting] = useState(false);
@@ -57,7 +56,6 @@ export default function Footer() {
           email,
           consent: true,
           interests: ['actualites', 'economie', 'culture', 'sport', 'tech'],
-          name: newsletterName.trim() || null,
         }),
       });
 
@@ -71,7 +69,6 @@ export default function Footer() {
         type: 'success',
         text: locale === 'fr' ? 'Merci, vous êtes inscrit à la newsletter.' : 'Thank you, you are subscribed to the newsletter.',
       });
-      setNewsletterName('');
       setNewsletterEmail('');
     } catch (error) {
       setNewsletterStatus({
@@ -270,14 +267,6 @@ export default function Footer() {
                 : 'Subscribe to receive the latest news directly in your inbox.'}
             </p>
             <form onSubmit={handleNewsletterSubmit} className="space-y-2.5">
-              <input
-                type="text"
-                value={newsletterName}
-                onChange={(event) => setNewsletterName(event.target.value)}
-                placeholder={locale === 'fr' ? 'Votre nom (optionnel)' : 'Your name (optional)'}
-                className="w-full rounded-md border border-white/20 bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-[#d4af37] focus:outline-none"
-                aria-label="Name newsletter"
-              />
               <input
                 type="email"
                 value={newsletterEmail}

@@ -66,23 +66,23 @@ export default function RadioOnAirWidget({
       type="button"
       onClick={() => (onToggle ? onToggle() : window.dispatchEvent(new Event(RADIO_TOGGLE_EVENT)))}
       className={`group inline-flex max-w-full items-center rounded-full bg-white shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.22)] ${
-        compact ? 'gap-1.5 py-1 pl-1 pr-1 sm:gap-2' : 'gap-2 py-1.5 pl-1.5 pr-1.5 sm:gap-3'
+        compact ? 'gap-1 py-0.5 pl-0.5 pr-0.5 sm:gap-2 sm:py-1 sm:pl-1 sm:pr-1' : 'gap-1.5 py-1 pl-1 pr-1 sm:gap-3 sm:py-1.5 sm:pl-1.5 sm:pr-1.5'
       }`}
       aria-label={isPlaying ? `Mettre ${stationName} en pause` : `Écouter ${stationName} ${resolvedLabel}`}
     >
       <span
         className={`flex shrink-0 items-center justify-center rounded-full border-2 border-[#2f6fbf] bg-white text-[#2f6fbf] transition group-hover:bg-[#eef4fc] ${
-          compact ? 'h-9 w-9' : 'h-11 w-11 sm:h-12 sm:w-12'
+          compact ? 'h-7 w-7 sm:h-9 sm:w-9' : 'h-8 w-8 sm:h-12 sm:w-12'
         }`}
       >
         {isPlaying ? (
-          <Pause className={compact ? 'h-4 w-4 fill-current' : 'h-5 w-5 fill-current'} />
+          <Pause className={`fill-current ${compact ? 'h-3 w-3 sm:h-4 sm:w-4' : 'h-3.5 w-3.5 sm:h-5 sm:w-5'}`} />
         ) : (
-          <Play className={`ml-0.5 fill-current ${compact ? 'h-4 w-4' : 'h-5 w-5'}`} />
+          <Play className={`ml-0.5 fill-current ${compact ? 'h-3 w-3 sm:h-4 sm:w-4' : 'h-3.5 w-3.5 sm:h-5 sm:w-5'}`} />
         )}
       </span>
 
-      <span className={`flex items-end gap-[3px] pb-0.5 ${compact ? 'h-5' : 'h-7'}`} aria-hidden="true">
+      <span className={`flex items-end gap-[2px] pb-0.5 sm:gap-[3px] ${compact ? 'h-4 sm:h-5' : 'h-5 sm:h-7'}`} aria-hidden="true">
         {bars.map((height, index) => (
           <span
             key={index}
@@ -96,8 +96,10 @@ export default function RadioOnAirWidget({
       </span>
 
       <span
-        className={`min-w-0 truncate px-1 font-semibold tracking-tight text-[#1b5c52] ${
-          compact ? 'max-w-[9.5rem] text-sm sm:max-w-[14rem]' : 'text-[15px] sm:text-base'
+        className={`min-w-0 truncate px-0.5 font-medium tracking-tight text-[#1b5c52] sm:px-1 sm:font-semibold ${
+          compact
+            ? 'max-w-[8.5rem] text-[10px] leading-none sm:max-w-[14rem] sm:text-sm'
+            : 'max-w-[9.5rem] text-[11px] leading-none sm:max-w-none sm:text-base'
         }`}
       >
         {stationName} {resolvedLabel}
@@ -105,10 +107,10 @@ export default function RadioOnAirWidget({
 
       <span
         className={`flex shrink-0 items-center justify-center rounded-full bg-[#1f7a6a] text-white ${
-          compact ? 'h-9 w-9' : 'h-11 w-11 sm:h-12 sm:w-12'
+          compact ? 'h-7 w-7 sm:h-9 sm:w-9' : 'h-8 w-8 sm:h-12 sm:w-12'
         }`}
       >
-        <Headphones className={compact ? 'h-4 w-4' : 'h-5 w-5'} />
+        <Headphones className={compact ? 'h-3 w-3 sm:h-4 sm:w-4' : 'h-3.5 w-3.5 sm:h-5 sm:w-5'} />
       </span>
 
       <style>{`

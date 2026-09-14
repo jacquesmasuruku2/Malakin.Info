@@ -172,7 +172,6 @@ export default function CookieConsentModal() {
   const [preferences, setPreferences] = useState<Record<string, boolean>>(defaultPreferences);
   const [isNewsletterPromptOpen, setIsNewsletterPromptOpen] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [newsletterName, setNewsletterName] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isNewsletterSubmitting, setIsNewsletterSubmitting] = useState(false);
 
@@ -188,15 +187,39 @@ export default function CookieConsentModal() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    const dismissed = window.localStorage.getItem(NEWSLETTER_PROMPT_KEY);
+  const settleNewsletterPrompt = () => {
+    try {
+      window.sessionStorage.setItem(NEWSLETTER_PROMPT_KEY, 'true');
+    } catch {
+      // ignore storage failures
+    }
+  };
 
-    if (!hasConsent || dismissed) return;
+  const hasNewsletterPromptSettled = () => {
+    try {
+      return Boolean(
+        window.sessionStorage.getItem(NEWSLETTER_PROMPT_KEY) ||
+          window.localStorage.getItem(NEWSLETTER_PROMPT_KEY)
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  const closeNewsletterPrompt = () => {
+    settleNewsletterPrompt();
+    setIsNewsletterPromptOpen(false);
+  };
+
+  useEffect(() => {
+    if (!hasConsent || isVisible || isPreferencesOpen || isNewsletterPromptOpen) return;
+    if (hasNewsletterPromptSettled()) return;
 
     const openNewsletterPrompt = () => {
       if (isVisible || isPreferencesOpen || isNewsletterPromptOpen) return;
-      if (window.localStorage.getItem(NEWSLETTER_PROMPT_KEY)) return;
+      if (hasNewsletterPromptSettled()) return;
 
+      settleNewsletterPrompt();
       setIsNewsletterPromptOpen(true);
     };
 
@@ -206,20 +229,22 @@ export default function CookieConsentModal() {
       }
     };
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        openNewsletterPrompt();
+    document.addEventListener('mouseout', handleMouseOut);
+    return () => document.removeEventListener('mouseout', handleMouseOut);
+  }, [hasConsent, isVisible, isPreferencesOpen, isNewsletterPromptOpen]);
+
+  useEffect(() => {
+    if (!isNewsletterPromptOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeNewsletterPrompt();
       }
     };
 
-    document.addEventListener('mouseout', handleMouseOut);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('mouseout', handleMouseOut);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [hasConsent, isVisible, isPreferencesOpen, isNewsletterPromptOpen]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isNewsletterPromptOpen]);
 
   useEffect(() => {
     if (isPreferencesOpen) {
@@ -243,10 +268,6 @@ export default function CookieConsentModal() {
     setIsPreferencesOpen(false);
   };
 
-  const closeNewsletterPromptWithoutSave = () => {
-    setIsNewsletterPromptOpen(false);
-  };
-
   const handleNewsletterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsNewsletterSubmitting(true);
@@ -258,7 +279,6 @@ export default function CookieConsentModal() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: newsletterEmail.trim(),
-          name: newsletterName.trim() || null,
           consent: true,
           interests: ['actualites', 'economie', 'culture', 'sport', 'tech'],
         }),
@@ -267,7 +287,12 @@ export default function CookieConsentModal() {
 
       if (!response.ok) throw new Error(data?.error || 'Une erreur est survenue.');
 
-      window.localStorage.setItem(NEWSLETTER_PROMPT_KEY, 'true');
+      try {
+        window.localStorage.setItem(NEWSLETTER_PROMPT_KEY, 'true');
+      } catch {
+        // ignore storage failures
+      }
+      settleNewsletterPrompt();
       setNewsletterStatus({ type: 'success', text: 'Merci, vous êtes inscrit à la newsletter MalakInfo.' });
       window.setTimeout(() => setIsNewsletterPromptOpen(false), 1400);
     } catch (error) {
@@ -395,11 +420,21 @@ export default function CookieConsentModal() {
       )}
 
       {isNewsletterPromptOpen && (
-        <div className="newsletter-backdrop fixed inset-0 z-[60] flex items-center justify-center bg-[#07111c]/80 px-4 py-6 backdrop-blur-sm">
-          <div className="newsletter-card-enter relative max-h-[calc(100svh-1rem)] w-full max-w-4xl overflow-y-auto border border-[#d7cdbb] bg-[#f7f3eb] shadow-2xl">
+        <div
+          className="newsletter-backdrop fixed inset-0 z-[60] flex items-center justify-center bg-[#07111c]/80 px-4 py-6 backdrop-blur-sm"
+          onClick={closeNewsletterPrompt}
+          role="presentation"
+        >
+          <div
+            className="newsletter-card-enter relative max-h-[calc(100svh-1rem)] w-full max-w-4xl overflow-y-auto border border-[#d7cdbb] bg-[#f7f3eb] shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="newsletter-prompt-title"
+          >
             <button
               type="button"
-              onClick={closeNewsletterPromptWithoutSave}
+              onClick={closeNewsletterPrompt}
               aria-label="Fermer l'inscription à la newsletter"
               className="newsletter-close absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#081c3d] bg-white/90 text-[#081c3d] transition hover:bg-[#081c3d] hover:text-white pointer-events-auto"
             >
@@ -409,7 +444,7 @@ export default function CookieConsentModal() {
             <div className="grid md:grid-cols-[1fr_0.85fr]">
               <div className="newsletter-copy order-2 p-4 sm:p-10 md:order-1 md:p-12">
                 <p className="newsletter-stagger text-[11px] font-bold uppercase tracking-[0.28em] text-[#c56b36]">La lettre MalakInfo</p>
-                <h2 className="newsletter-stagger mt-2 font-heading text-2xl font-bold leading-[1.05] text-[#081c3d] sm:mt-4 sm:text-5xl">
+                <h2 id="newsletter-prompt-title" className="newsletter-stagger mt-2 font-heading text-2xl font-bold leading-[1.05] text-[#081c3d] sm:mt-4 sm:text-5xl">
                   L&apos;essentiel de l&apos;actualité africaine.
                 </h2>
                 <div className="newsletter-rule mt-3 h-px w-14 bg-[#c56b36] sm:mt-5" />
@@ -429,7 +464,6 @@ export default function CookieConsentModal() {
                   <p className="newsletter-stagger mt-1 text-xs leading-4 text-blue-100 sm:mt-2 sm:text-sm sm:leading-6">Inscription gratuite. Vous pouvez vous désabonner à tout moment.</p>
 
                   <form onSubmit={handleNewsletterSubmit} className="newsletter-stagger mt-4 space-y-2 sm:mt-6 sm:space-y-3">
-                    <input type="text" value={newsletterName} onChange={(event) => setNewsletterName(event.target.value)} placeholder="Votre nom (optionnel)" className="newsletter-input w-full border border-white/20 bg-white px-3 py-2 text-xs text-[#081c3d] outline-none placeholder:text-slate-400 focus:border-[#d4af37] sm:px-4 sm:py-3 sm:text-sm" />
                     <input type="email" value={newsletterEmail} onChange={(event) => setNewsletterEmail(event.target.value)} placeholder="Votre adresse e-mail" required className="newsletter-input w-full border border-white/20 bg-white px-3 py-2 text-xs text-[#081c3d] outline-none placeholder:text-slate-400 focus:border-[#d4af37] sm:px-4 sm:py-3 sm:text-sm" />
                     <button type="submit" disabled={isNewsletterSubmitting} className="newsletter-submit w-full bg-[#d4af37] px-3 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-[#081c3d] transition hover:bg-[#e4c65c] disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-3 sm:text-sm sm:tracking-[0.12em]">
                       {isNewsletterSubmitting ? 'Inscription...' : 'Recevoir la newsletter'}

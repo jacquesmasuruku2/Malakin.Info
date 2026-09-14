@@ -368,12 +368,13 @@ export default function RadioPlayer() {
       <div
         className={`${isMobile || isMediaPage || isDesktopOpen ? 'fixed' : 'hidden'} z-[60] transition-transform duration-300 ease-out ${
           isMobile
-            ? 'inset-x-0 bottom-[68px] flex justify-center px-3'
+            ? 'inset-x-0 bottom-0 flex justify-center px-2 pb-[max(0.4rem,env(safe-area-inset-bottom))]'
             : 'right-[max(0.75rem,calc((100vw-80rem)/2+1rem))] top-[5.5rem] w-[min(360px,calc(100vw-1.5rem))]'
         } ${!isMobile && isHidden ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100 pointer-events-auto'}`}
       >
         <div className="flex w-full max-w-md flex-col items-center">
           <RadioOnAirWidget
+            compact={isMobile}
             name={station.name}
             isPlaying={isPlaying}
             onToggle={() => {
