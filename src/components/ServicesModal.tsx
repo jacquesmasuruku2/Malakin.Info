@@ -6,6 +6,7 @@ import { X, ChevronRight } from 'lucide-react';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { useState, useEffect } from 'react';
 import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
+import { isMenuHubSlug, uniqueMenuLinks } from '@/lib/menu';
 
 type MenuLink = { name: string; href: string };
 type MenuSection = { title: string; href?: string; items?: MenuLink[] };
@@ -33,7 +34,7 @@ function MenuTree({
         if (category.href) {
           return (
             <Link
-              key={category.title}
+              key={category.href || category.title}
               href={category.href}
               onClick={closeServices}
               className="block px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] border-b border-gray-200 transition-colors"
@@ -118,20 +119,22 @@ export default function ServicesModal() {
         const data = await response.json();
         if (cancelled || !Array.isArray(data)) return;
 
-        const items = (data as CategoryPayload[])
-          .filter((category) => category.slug && category.slug !== 'actualites')
-          .map((category) => ({
-            name: category.title || category.slug || '',
-            href: `/${locale}/${category.slug}`,
-            articleCount: category.articleCount ?? 0,
-          }))
-          .sort((a, b) => {
-            if (b.articleCount !== a.articleCount) {
-              return b.articleCount - a.articleCount;
-            }
-            return a.name.localeCompare(b.name, locale);
-          })
-          .map(({ name, href }) => ({ name, href }));
+        const items = uniqueMenuLinks(
+          (data as CategoryPayload[])
+            .filter((category) => category.slug && !isMenuHubSlug(category.slug))
+            .map((category) => ({
+              name: category.title || category.slug || '',
+              href: `/${locale}/${category.slug}`,
+              articleCount: category.articleCount ?? 0,
+            }))
+            .sort((a, b) => {
+              if (b.articleCount !== a.articleCount) {
+                return b.articleCount - a.articleCount;
+              }
+              return a.name.localeCompare(b.name, locale);
+            })
+            .map(({ name, href }) => ({ name, href }))
+        );
 
         setNewsCategories(items);
       } catch {
@@ -155,17 +158,6 @@ export default function ServicesModal() {
     { name: t.security, href: `/${locale}/securite` },
   ];
 
-  const servicesItems: MenuLink[] = [
-    { name: t.contact, href: `/${locale}/contact` },
-    { name: t.employment, href: `/${locale}/emploi` },
-    { name: t.media, href: `/${locale}/medias` },
-    { name: t.music, href: `/${locale}/culture/musique` },
-    { name: t.partnerships, href: `/${locale}/partenaires` },
-    { name: t.scienceTech, href: `/${locale}/science-tech` },
-    { name: t.search, href: `/${locale}/recherche` },
-    { name: t.support, href: `/${locale}/nous-soutenir` },
-  ];
-
   const menuCategories: MenuSection[] = [
     {
       title: t.home,
@@ -173,14 +165,15 @@ export default function ServicesModal() {
     },
     {
       title: t.news,
-      items: [
+      items: uniqueMenuLinks([
         { name: t.allNews, href: `/${locale}/actualites` },
         ...(newsCategories ?? fallbackNewsCategories),
-      ],
+      ]),
     },
     {
       title: t.media,
       items: [
+        { name: locale === 'fr' ? 'Tous les médias' : 'All media', href: `/${locale}/medias` },
         { name: locale === 'fr' ? 'Diffusion en direct' : 'Live broadcasts', href: `/${locale}/diffusion-en-direct` },
         { name: t.photos, href: `/${locale}/medias/photos` },
         { name: t.videos, href: `/${locale}/medias/videos` },
@@ -191,6 +184,7 @@ export default function ServicesModal() {
     {
       title: t.religion,
       items: [
+        { name: locale === 'fr' ? 'Toute la rubrique' : 'All religion', href: `/${locale}/religion` },
         { name: t.meditations, href: `/${locale}/religion/meditations` },
         { name: t.homilies, href: `/${locale}/religion/homelies` },
         { name: t.sacredMusic, href: `/${locale}/religion/musiques-sacrees` },
@@ -201,6 +195,7 @@ export default function ServicesModal() {
     {
       title: t.culture,
       items: [
+        { name: locale === 'fr' ? 'Toute la culture' : 'All culture', href: `/${locale}/culture` },
         { name: t.music, href: `/${locale}/culture/musique` },
         { name: t.cinema, href: `/${locale}/culture/cinema` },
         { name: t.arts, href: `/${locale}/culture/arts` },
@@ -210,6 +205,7 @@ export default function ServicesModal() {
     {
       title: t.sport,
       items: [
+        { name: locale === 'fr' ? 'Tout le sport' : 'All sport', href: `/${locale}/sport` },
         { name: t.football, href: `/${locale}/sport/football` },
         { name: t.basketball, href: `/${locale}/sport/basket` },
         { name: t.athletics, href: `/${locale}/sport/athletisme` },
@@ -219,12 +215,37 @@ export default function ServicesModal() {
     {
       title: t.scienceTech,
       items: [
+        { name: locale === 'fr' ? 'Toute la rubrique' : 'All science & tech', href: `/${locale}/science-tech` },
         { name: t.database, href: `/${locale}/science-tech/base-de-donnees` },
         { name: t.dataAnalysis, href: `/${locale}/science-tech/analyse-de-donnees` },
         { name: t.natureEnvironment, href: `/${locale}/science-tech/nature-environnement` },
       ],
     },
+    {
+      title: t.practicalInfo,
+      items: [
+        { name: locale === 'fr' ? 'Toutes les infos' : 'All practical info', href: `/${locale}/infos-pratiques` },
+        { name: t.guides, href: `/${locale}/infos-pratiques/guides` },
+        { name: t.tutorials, href: `/${locale}/infos-pratiques/tutoriels` },
+        { name: t.resources, href: `/${locale}/infos-pratiques/ressources-educatives` },
+      ],
+    },
   ];
+
+  const reservedHrefs = new Set(
+    menuCategories.flatMap((section) => [
+      ...(section.href ? [section.href] : []),
+      ...(section.items?.map((item) => item.href) ?? []),
+    ])
+  );
+
+  const servicesItems = uniqueMenuLinks([
+    { name: t.contact, href: `/${locale}/contact` },
+    { name: t.employment, href: `/${locale}/emploi` },
+    { name: t.search, href: `/${locale}/recherche` },
+    { name: t.partnerships, href: `/${locale}/partenaires` },
+    { name: t.support, href: `/${locale}/nous-soutenir` },
+  ]).filter((item) => !reservedHrefs.has(item.href));
 
   return (
     <>
