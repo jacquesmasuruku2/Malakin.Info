@@ -4,17 +4,28 @@ import { useEffect, useState } from 'react';
 import Script from 'next/script';
 import { allowsAds, allowsAnalytics, CONSENT_UPDATED_EVENT, readConsentPreferences } from '@/lib/consent';
 
-const ADSENSE_ID = process.env.NEXT_PUBLIC_ADSENSE_ID || 'ca-pub-4621769509750492';
+function updateGoogleConsent(adsAllowed: boolean, analyticsAllowed: boolean) {
+  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
+  if (typeof gtag !== 'function') return;
+
+  gtag('consent', 'update', {
+    ad_storage: adsAllowed ? 'granted' : 'denied',
+    ad_user_data: adsAllowed ? 'granted' : 'denied',
+    ad_personalization: adsAllowed ? 'granted' : 'denied',
+    analytics_storage: analyticsAllowed ? 'granted' : 'denied',
+  });
+}
 
 export default function ConsentScripts() {
   const [analyticsAllowed, setAnalyticsAllowed] = useState(false);
-  const [adsAllowed, setAdsAllowed] = useState(false);
 
   useEffect(() => {
     const applyConsent = () => {
       const preferences = readConsentPreferences();
-      setAnalyticsAllowed(allowsAnalytics(preferences));
-      setAdsAllowed(allowsAds(preferences));
+      const nextAnalyticsAllowed = allowsAnalytics(preferences);
+      const nextAdsAllowed = allowsAds(preferences);
+      setAnalyticsAllowed(nextAnalyticsAllowed);
+      updateGoogleConsent(nextAdsAllowed, nextAnalyticsAllowed);
     };
 
     applyConsent();
@@ -44,13 +55,6 @@ gtag('js', new Date());
 gtag('config', 'G-8V0GJZF6WD');`}
           </Script>
         </>
-      )}
-      {adsAllowed && (
-        <Script
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_ID}`}
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
       )}
     </>
   );

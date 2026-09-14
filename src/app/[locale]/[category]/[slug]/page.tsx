@@ -7,6 +7,7 @@ import type { Metadata } from 'next';
 import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
+import { ADSENSE_SLOTS } from '@/lib/adsense';
 import ViewIncrementer from '@/components/ViewIncrementer';
 import FavoriteButton from '@/components/FavoriteButton';
 import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
@@ -317,7 +318,7 @@ export default async function ArticlePage({
               )}
 
               <div className="mt-8">
-                <AdSenseAd adSlot="0987654321" className="my-4" />
+                <AdSenseAd adSlot={ADSENSE_SLOTS.sidebar} className="my-4" />
               </div>
 
               <div className="mt-6 flex flex-wrap items-center gap-3">

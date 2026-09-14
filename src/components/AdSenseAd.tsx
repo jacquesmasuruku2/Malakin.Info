@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { ADSENSE_CLIENT } from '@/lib/adsense';
+import { allowsAds, CONSENT_UPDATED_EVENT, readConsentPreferences } from '@/lib/consent';
 
 interface AdSenseAdProps {
   adSlot: string;
@@ -10,10 +12,12 @@ interface AdSenseAdProps {
   fullWidthResponsive?: boolean;
 }
 
+const PLACEHOLDER_SLOTS = new Set(['1234567890', '0987654321', '3333333333']);
+
 export default function AdSenseAd({
   adSlot,
   adFormat = 'auto',
-  style = { display: 'block' },
+  style = { display: 'block', minHeight: 90 },
   className = '',
   fullWidthResponsive = true,
 }: AdSenseAdProps) {
@@ -21,17 +25,31 @@ export default function AdSenseAd({
   const [isAdLoaded, setIsAdLoaded] = useState(false);
   const [isAdFree, setIsAdFree] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [adsAllowed, setAdsAllowed] = useState(false);
 
-  const adClientId = process.env.NEXT_PUBLIC_ADSENSE_ID || '';
-  const placeholderSlots = ['1234567890', '0987654321', '3333333333'];
-  const isValidAdConfig = Boolean(adClientId) && Boolean(adSlot) && !placeholderSlots.includes(adSlot.trim()) && !adClientId.includes('XXXXXXXXXXXXXXXX');
+  const trimmedSlot = adSlot.trim();
+  const isValidAdConfig =
+    Boolean(ADSENSE_CLIENT) &&
+    Boolean(trimmedSlot) &&
+    !PLACEHOLDER_SLOTS.has(trimmedSlot) &&
+    !ADSENSE_CLIENT.includes('XXXXXXXXXXXXXXXX');
+
+  useEffect(() => {
+    const applyConsent = () => {
+      setAdsAllowed(allowsAds(readConsentPreferences()));
+    };
+
+    applyConsent();
+    window.addEventListener(CONSENT_UPDATED_EVENT, applyConsent);
+    return () => window.removeEventListener(CONSENT_UPDATED_EVENT, applyConsent);
+  }, []);
 
   useEffect(() => {
     const checkAdFreeStatus = async () => {
       try {
         const response = await fetch('/api/user/ad-free-status');
         const data = await response.json();
-        setIsAdFree(data.adFree);
+        setIsAdFree(Boolean(data.adFree));
       } catch (error) {
         console.error('Error checking ad-free status:', error);
         setIsAdFree(false);
@@ -44,24 +62,36 @@ export default function AdSenseAd({
   }, []);
 
   useEffect(() => {
-    if (!isValidAdConfig || isAdLoaded || isAdFree || isLoading) return;
+    if (!isValidAdConfig || isAdLoaded || isAdFree || isLoading || !adsAllowed) return;
 
-    if (adRef.current && adRef.current.innerHTML.trim() !== '') {
+    if (adRef.current?.getAttribute('data-adsbygoogle-status')) {
       setIsAdLoaded(true);
       return;
     }
 
-    if (typeof window !== 'undefined' && (window as any).adsbygoogle) {
-      try {
-        (window as any).adsbygoogle.push({});
-        setIsAdLoaded(true);
-      } catch (e) {
-        console.error('AdSense error:', e);
-      }
-    }
-  }, [adSlot, isAdLoaded, isValidAdConfig, isAdFree, isLoading]);
+    let attempts = 0;
+    const timer = window.setInterval(() => {
+      attempts += 1;
+      const adsbygoogle = (window as Window & { adsbygoogle?: unknown[] }).adsbygoogle;
 
-  if (!isValidAdConfig || isAdFree) {
+      if (!adsbygoogle) {
+        if (attempts >= 40) window.clearInterval(timer);
+        return;
+      }
+
+      try {
+        adsbygoogle.push({});
+        setIsAdLoaded(true);
+      } catch (error) {
+        console.error('AdSense error:', error);
+      }
+      window.clearInterval(timer);
+    }, 250);
+
+    return () => window.clearInterval(timer);
+  }, [adSlot, adsAllowed, isAdFree, isAdLoaded, isLoading, isValidAdConfig]);
+
+  if (!isValidAdConfig || isAdFree || !adsAllowed) {
     return null;
   }
 
@@ -71,8 +101,8 @@ export default function AdSenseAd({
         ref={adRef}
         className="adsbygoogle"
         style={style}
-        data-ad-client={adClientId}
-        data-ad-slot={adSlot}
+        data-ad-client={ADSENSE_CLIENT}
+        data-ad-slot={trimmedSlot}
         data-ad-format={adFormat}
         data-full-width-responsive={fullWidthResponsive.toString()}
       />

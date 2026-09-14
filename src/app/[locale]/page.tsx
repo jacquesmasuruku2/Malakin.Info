@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { ArrowRight, Calendar, Clock, TrendingUp, Radio } from 'lucide-react';
 import AdSenseAd from '@/components/AdSenseAd';
 import NewsletterSignupInline from '@/components/NewsletterSignupInline';
+import { ADSENSE_SLOTS } from '@/lib/adsense';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 import { withRetry } from '@/lib/database';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
@@ -372,7 +373,7 @@ export default async function Home({
               </div>
 
               <div className="mt-6">
-                <AdSenseAd adSlot="3333333333" className="my-4" />
+                <AdSenseAd adSlot={ADSENSE_SLOTS.sidebar} className="my-4" />
               </div>
             </div>
           </div>

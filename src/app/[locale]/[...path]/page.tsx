@@ -6,6 +6,7 @@ import { Metadata } from 'next';
 import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
+import { ADSENSE_SLOTS } from '@/lib/adsense';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
@@ -380,7 +381,7 @@ export default async function CatchAllArticlePage({
                 />
               </div>
 
-              <AdSenseAd adSlot="1234567890" className="my-4" />
+              <AdSenseAd adSlot={ADSENSE_SLOTS.inArticle} className="my-4" />
 
               {premiumAccess ? (
                 <div style={{ fontFamily: '"Playfair Display", Georgia, serif' }} className="text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]">
@@ -404,7 +405,7 @@ export default async function CatchAllArticlePage({
               )}
 
               <div className="mt-8">
-                <AdSenseAd adSlot="0987654321" className="my-4" />
+                <AdSenseAd adSlot={ADSENSE_SLOTS.sidebar} className="my-4" />
               </div>
             </article>
 

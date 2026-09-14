@@ -5,6 +5,7 @@ import { notFound, redirect } from 'next/navigation';
 import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
 import AdSenseAd from '@/components/AdSenseAd';
+import { ADSENSE_SLOTS } from '@/lib/adsense';
 import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
 import { SponsoredSection } from '@/components/SponsoredSection';
@@ -199,7 +200,7 @@ export default async function CultureCatchAllPage({
               </div>
 
               <div className="mb-8">
-                <AdSenseAd adSlot="1234567890" className="my-4" />
+                <AdSenseAd adSlot={ADSENSE_SLOTS.inArticle} className="my-4" />
               </div>
 
               <div style={{ fontFamily: '"Playfair Display", Georgia, serif' }} className="text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]">
@@ -207,7 +208,7 @@ export default async function CultureCatchAllPage({
               </div>
 
               <div className="mt-8">
-                <AdSenseAd adSlot="0987654321" className="my-4" />
+                <AdSenseAd adSlot={ADSENSE_SLOTS.sidebar} className="my-4" />
               </div>
             </article>
 
