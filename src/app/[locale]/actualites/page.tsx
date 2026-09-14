@@ -5,6 +5,58 @@ import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 import { applyArticleLocales } from '@/lib/translation';
+import { getArchiveYears, isValidArchiveYear, yearRange } from '@/lib/archives';
+
+function actualitesHref(locale: string, options: { page?: number; year?: number | null }) {
+  const params = new URLSearchParams();
+  if (options.year) {
+    params.set('year', String(options.year));
+  }
+  if (options.page && options.page > 1) {
+    params.set('page', String(options.page));
+  }
+  const query = params.toString();
+  return `/${locale}/actualites${query ? `?${query}` : ''}`;
+}
+
+function YearFilter({
+  locale,
+  years,
+  selectedYear,
+  className,
+}: {
+  locale: string;
+  years: number[];
+  selectedYear: number | null;
+  className?: string;
+}) {
+  if (years.length === 0) {
+    return null;
+  }
+
+  return (
+    <nav className={className} aria-label={locale === 'fr' ? 'Filtrer par année' : 'Filter by year'}>
+      {selectedYear ? (
+        <Link href={actualitesHref(locale, {})} className="rounded-lg bg-muted px-4 py-2 transition-colors hover:bg-muted/80">
+          {locale === 'fr' ? 'Toutes' : 'All'}
+        </Link>
+      ) : (
+        <span aria-current="page" className="rounded-lg bg-primary px-4 py-2 text-primary-foreground">
+          {locale === 'fr' ? 'Toutes' : 'All'}
+        </span>
+      )}
+      {years.map((year) => (
+        year === selectedYear ? (
+          <span key={year} aria-current="page" className="rounded-lg bg-primary px-4 py-2 text-primary-foreground">{year}</span>
+        ) : (
+          <Link key={year} href={actualitesHref(locale, { year })} className="rounded-lg bg-muted px-4 py-2 transition-colors hover:bg-muted/80">
+            {year}
+          </Link>
+        )
+      ))}
+    </nav>
+  );
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -13,51 +65,58 @@ export default async function ActualitesPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>
-  searchParams?: Promise<{ page?: string }>
+  searchParams?: Promise<{ page?: string; year?: string }>
 }) {
   const { locale } = await params;
   const resolvedSearchParams = (await searchParams) ?? {};
   const requestedPage = Number.parseInt(resolvedSearchParams.page || '1', 10);
   const currentPage = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const requestedYear = Number.parseInt(resolvedSearchParams.year || '', 10);
+  const selectedYear = isValidArchiveYear(requestedYear) ? requestedYear : null;
   const pageSize = 12;
+  const publishedWhere = selectedYear ? { publishedAt: yearRange(selectedYear) } : undefined;
 
-  // Fetch one page of articles with their categories.
-  const articles = await applyArticleLocales(await withRetry(() => prisma.article.findMany({
-    include: {
-      category: true,
-      author: true,
-    },
-    orderBy: {
-      publishedAt: 'desc',
-    },
-    skip: (currentPage - 1) * pageSize,
-    take: pageSize,
-  } as any)) || [], locale);
-  const totalArticles = await withRetry(() => prisma.article.count()) || 0;
+  const [articlesResult, totalArticlesResult, categoriesResult, articleCountsResult, actualitesCategory, archiveYears] = await Promise.all([
+    withRetry(() => prisma.article.findMany({
+      where: publishedWhere,
+      include: {
+        category: true,
+        author: true,
+      },
+      orderBy: {
+        publishedAt: 'desc',
+      },
+      skip: (currentPage - 1) * pageSize,
+      take: pageSize,
+    } as any)),
+    withRetry(() => prisma.article.count({ where: publishedWhere })),
+    withRetry(() => prisma.category.findMany()),
+    withRetry(() => prisma.article.groupBy({
+      by: ['categoryId'],
+      _count: {
+        categoryId: true,
+      },
+    })),
+    withRetry(() => prisma.category.findUnique({
+      where: { slug: 'actualites' }
+    })),
+    getArchiveYears(),
+  ]);
+
+  const articles = await applyArticleLocales(articlesResult || [], locale);
+  const totalArticles = totalArticlesResult || 0;
   const totalPages = Math.max(1, Math.ceil(totalArticles / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
   if (currentPage !== safeCurrentPage) {
-    const query = safeCurrentPage === 1 ? '' : `?page=${safeCurrentPage}`;
-    redirect(`/${locale}/actualites${query}`);
+    redirect(actualitesHref(locale, { page: safeCurrentPage, year: selectedYear }));
   }
 
-  // Fetch all categories and compute article counts without a non-existent relation field
-  const categories = await withRetry(() => prisma.category.findMany()) || [];
-  const articleCounts = await withRetry(() => prisma.article.groupBy({
-    by: ['categoryId'],
-    _count: {
-      categoryId: true,
-    },
-  })) || [];
+  const categories = categoriesResult || [];
+  const articleCounts = articleCountsResult || [];
   const articleCountMap = new Map(
     articleCounts.map((item) => [item.categoryId, item._count.categoryId])
   );
-
-  // Fetch live events for this category
-  const actualitesCategory = await withRetry(() => prisma.category.findUnique({
-    where: { slug: 'actualites' }
-  }));
 
   const liveEvents = actualitesCategory ? await withRetry(() => prisma.liveEvent.findMany({
     where: {
@@ -174,7 +233,9 @@ export default async function ActualitesPage({
                 <div className="mb-8 border-b border-gray-200 pb-6">
                   <div className="flex items-center justify-between gap-3">
                     <h2 className="font-heading text-2xl font-black uppercase tracking-[0.06em] text-[#081C3D]">
-                      Dernières infos
+                      {selectedYear
+                        ? (locale === 'fr' ? `Actualités ${selectedYear}` : `${selectedYear} news`)
+                        : (locale === 'fr' ? 'Dernières infos' : 'Latest news')}
                     </h2>
                     <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#D4AF37]">
                       {locale === 'fr' ? 'Edition locale' : 'Local edition'}
@@ -225,40 +286,58 @@ export default async function ActualitesPage({
                   ))}
                 </div>
 
-                {/* Pagination */}
                 {totalPages > 1 && (
-                  <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="Pagination des actualités">
+                  <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label={locale === 'fr' ? 'Pagination des actualités' : 'News pagination'}>
                     {safeCurrentPage > 1 ? (
-                      <Link href={`/${locale}/actualites?page=${safeCurrentPage - 1}`} className="rounded-lg bg-muted px-4 py-2 transition-colors hover:bg-muted/80">
-                        Précédent
+                      <Link href={actualitesHref(locale, { page: safeCurrentPage - 1, year: selectedYear })} className="rounded-lg bg-muted px-4 py-2 transition-colors hover:bg-muted/80">
+                        {locale === 'fr' ? 'Précédent' : 'Previous'}
                       </Link>
                     ) : (
-                      <span className="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-muted-foreground/50">Précédent</span>
+                      <span className="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-muted-foreground/50">{locale === 'fr' ? 'Précédent' : 'Previous'}</span>
                     )}
 
                     {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
                       page === safeCurrentPage ? (
                         <span key={page} aria-current="page" className="rounded-lg bg-primary px-4 py-2 text-primary-foreground">{page}</span>
                       ) : (
-                        <Link key={page} href={`/${locale}/actualites?page=${page}`} className="rounded-lg bg-muted px-4 py-2 transition-colors hover:bg-muted/80">
+                        <Link key={page} href={actualitesHref(locale, { page, year: selectedYear })} className="rounded-lg bg-muted px-4 py-2 transition-colors hover:bg-muted/80">
                           {page}
                         </Link>
                       )
                     ))}
 
                     {safeCurrentPage < totalPages ? (
-                      <Link href={`/${locale}/actualites?page=${safeCurrentPage + 1}`} className="rounded-lg bg-muted px-4 py-2 transition-colors hover:bg-muted/80">
-                        Suivant
+                      <Link href={actualitesHref(locale, { page: safeCurrentPage + 1, year: selectedYear })} className="rounded-lg bg-muted px-4 py-2 transition-colors hover:bg-muted/80">
+                        {locale === 'fr' ? 'Suivant' : 'Next'}
                       </Link>
                     ) : (
-                      <span className="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-muted-foreground/50">Suivant</span>
+                      <span className="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-muted-foreground/50">{locale === 'fr' ? 'Suivant' : 'Next'}</span>
                     )}
                   </nav>
+                )}
+
+                {archiveYears.length > 0 && (
+                  <YearFilter
+                    locale={locale}
+                    years={archiveYears}
+                    selectedYear={selectedYear}
+                    className="mt-4 flex flex-wrap items-center justify-center gap-2"
+                  />
                 )}
               </>
             ) : (
               <div className="bg-card rounded-lg p-12 text-center">
-                <p className="text-muted-foreground text-lg">Aucune actualité disponible pour le moment.</p>
+                <p className="text-muted-foreground text-lg">
+                  {selectedYear
+                    ? (locale === 'fr' ? `Aucune actualité pour ${selectedYear}.` : `No articles for ${selectedYear}.`)
+                    : (locale === 'fr' ? 'Aucune actualité disponible pour le moment.' : 'No articles available yet.')}
+                </p>
+                <YearFilter
+                  locale={locale}
+                  years={archiveYears}
+                  selectedYear={selectedYear}
+                  className="mt-6 flex flex-wrap items-center justify-center gap-2"
+                />
               </div>
             )}
           </div>
