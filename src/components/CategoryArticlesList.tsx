@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, Calendar, Clock } from 'lucide-react';
 import { getCategoryArticles } from '@/lib/get-category-articles';
+import { applyArticleLocales } from '@/lib/translation';
 
 type CategoryArticlesListProps = {
   locale: string;
@@ -19,7 +20,8 @@ export default async function CategoryArticlesList({
   backHref,
   backLabel,
 }: CategoryArticlesListProps) {
-  const { articles } = await getCategoryArticles(slugs);
+  const { articles: rawArticles } = await getCategoryArticles(slugs);
+  const articles = await applyArticleLocales(rawArticles, locale);
   const isFrench = locale === 'fr';
 
   return (

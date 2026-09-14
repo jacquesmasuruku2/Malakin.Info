@@ -1,11 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { Settings, Bell, Shield, Globe, Save, LogOut } from 'lucide-react';
+import { getLanguageOptions, getLocalizedPath } from '@/lib/i18n';
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
+  const pathname = usePathname();
+  const router = useRouter();
+  const languageOptions = getLanguageOptions();
   const [formData, setFormData] = useState({
     emailNewsletter: false,
     emailDigest: false,
@@ -56,7 +61,10 @@ export default function SettingsPage() {
       });
 
       if (response.ok) {
-        alert('Préférences enregistrées avec succès');
+        document.cookie = `app-locale=${formData.locale}; path=/; max-age=31536000; samesite=lax`;
+        window.localStorage.setItem('app-locale', formData.locale);
+        document.documentElement.lang = formData.locale;
+        router.push(getLocalizedPath(pathname, formData.locale));
       }
     } catch (error) {
       console.error('Error saving preferences:', error);
@@ -120,28 +128,19 @@ export default function SettingsPage() {
               Langue
             </h2>
             <div className="space-y-2">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="language"
-                  value="fr"
-                  checked={formData.locale === 'fr'}
-                  onChange={(e) => setFormData({ ...formData, locale: e.target.value })}
-                  className="w-4 h-4 text-primary border-border focus:ring-primary"
-                />
-                <span className="text-foreground">Français</span>
-              </label>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="language"
-                  value="en"
-                  checked={formData.locale === 'en'}
-                  onChange={(e) => setFormData({ ...formData, locale: e.target.value })}
-                  className="w-4 h-4 text-primary border-border focus:ring-primary"
-                />
-                <span className="text-foreground">English</span>
-              </label>
+              {languageOptions.map((option) => (
+                <label key={option.value} className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="language"
+                    value={option.value}
+                    checked={formData.locale === option.value}
+                    onChange={(e) => setFormData({ ...formData, locale: e.target.value })}
+                    className="w-4 h-4 text-primary border-border focus:ring-primary"
+                  />
+                  <span className="text-foreground">{option.label}</span>
+                </label>
+              ))}
             </div>
           </div>
 

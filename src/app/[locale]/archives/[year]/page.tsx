@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
 import { getArchiveYears, isValidArchiveYear, yearRange } from '@/lib/archives';
+import { applyArticleLocales } from '@/lib/translation';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,7 +59,7 @@ export default async function ArchiveYearPage({
     withRetry(() => prisma.article.count({ where: { publishedAt: range } })),
   ]);
 
-  const publishedArticles = articles || [];
+  const publishedArticles = await applyArticleLocales(articles || [], locale);
   const publishedCount = totalArticles || 0;
   const totalPages = Math.max(1, Math.ceil(publishedCount / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);

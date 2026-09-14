@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
+import { applyArticleLocales } from '@/lib/translation';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,7 @@ export default async function ActualitesPage({
   const pageSize = 12;
 
   // Fetch one page of articles with their categories.
-  const articles = await withRetry(() => prisma.article.findMany({
+  const articles = await applyArticleLocales(await withRetry(() => prisma.article.findMany({
     include: {
       category: true,
       author: true,
@@ -31,7 +32,7 @@ export default async function ActualitesPage({
     },
     skip: (currentPage - 1) * pageSize,
     take: pageSize,
-  } as any)) || [];
+  } as any)) || [], locale);
   const totalArticles = await withRetry(() => prisma.article.count()) || 0;
   const totalPages = Math.max(1, Math.ceil(totalArticles / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);

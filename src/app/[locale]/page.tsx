@@ -7,6 +7,7 @@ import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 import { withRetry } from '@/lib/database';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 import RadioHomeButton from '@/components/RadioHomeButton';
+import { applyArticleLocales } from '@/lib/translation';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,6 +79,9 @@ export default async function Home({
     console.error('Database connection error:', error);
   }
 
+  featuredArticles = await applyArticleLocales(featuredArticles, normalizedLocale);
+  latestArticles = await applyArticleLocales(latestArticles, normalizedLocale);
+
   const featuredNews = featuredArticles.map(article => ({
     id: article.id,
     slug: article.slug,
@@ -104,14 +108,23 @@ export default async function Home({
     image: article.mainImageUrl || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=300&fit=crop',
   }));
 
+  const tNav = messages.nav;
+  const allLabels: Record<string, string> = {
+    fr: 'Tout',
+    en: 'All',
+    es: 'Todo',
+    sw: 'Zote',
+    ln: 'Nionso',
+    rw: 'Byose',
+  };
   const categoryFilters = [
-    { name: locale === 'fr' ? 'Tout' : 'All', slug: 'all', href: `/${locale}` },
-    { name: locale === 'fr' ? 'Actualités' : 'News', slug: 'actualites', href: `/${locale}/actualites` },
-    { name: locale === 'fr' ? 'Politique' : 'Politics', slug: 'politique', href: `/${locale}/politique` },
-    { name: locale === 'fr' ? 'Économie' : 'Economy', slug: 'economie', href: `/${locale}/economie` },
-    { name: locale === 'fr' ? 'Culture' : 'Culture', slug: 'culture', href: `/${locale}/culture` },
-    { name: locale === 'fr' ? 'Sport' : 'Sport', slug: 'sport', href: `/${locale}/sport` },
-    { name: locale === 'fr' ? 'Science & Tech' : 'Science & Tech', slug: 'science-tech', href: `/${locale}/science-tech` },
+    { name: allLabels[normalizedLocale] || 'Tout', slug: 'all', href: `/${locale}` },
+    { name: tNav.news, slug: 'actualites', href: `/${locale}/actualites` },
+    { name: tNav.politics, slug: 'politique', href: `/${locale}/politique` },
+    { name: tNav.economy, slug: 'economie', href: `/${locale}/economie` },
+    { name: tNav.culture, slug: 'culture', href: `/${locale}/culture` },
+    { name: tNav.sport, slug: 'sport', href: `/${locale}/sport` },
+    { name: tNav.scienceTech, slug: 'science-tech', href: `/${locale}/science-tech` },
   ];
 
   const filteredFeaturedNews = selectedCategory && selectedCategory !== 'all'

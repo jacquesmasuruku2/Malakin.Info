@@ -8,6 +8,7 @@ import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, Flas
 import SearchBar from './SearchBar';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -362,10 +363,12 @@ export default function Navigation() {
               <Link href={`/${locale}/nous-soutenir`} className="rounded-full bg-[#0b3b8b] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#082a63]">
                 {t.subscribe}
               </Link>
+              <LanguageSwitcher />
 
             </div>
 
             <div className="relative z-[70] flex items-center space-x-2 md:hidden">
+              <LanguageSwitcher />
               {activeUser ? (
                 <Link
                   href={`/${locale}/compte/profil`}
@@ -398,7 +401,7 @@ export default function Navigation() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-2 overflow-x-auto py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <Link href={`/${locale}`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
-              Accueil
+              {t.home}
             </Link>
             <Link href={`/${locale}/actualites`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
               {t.news}

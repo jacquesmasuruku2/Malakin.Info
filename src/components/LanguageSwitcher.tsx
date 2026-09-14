@@ -2,25 +2,34 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { ChevronDown, Languages } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import {
+  getLanguageOptions,
+  getLocaleFromPathname,
+  getLocalizedPath,
+  normalizeLocale,
+} from '@/lib/i18n';
 
-const LOCALE_OPTIONS = [
-  { value: 'fr', label: 'Français' },
-  { value: 'en', label: 'English' },
-  { value: 'es', label: 'Español' },
-  { value: 'sw', label: 'Kiswahili' },
-  { value: 'ln', label: 'Lingala' },
-  { value: 'rw', label: 'Kinyarwanda' },
-] as const;
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+function persistLocale(locale: string) {
+  const normalized = normalizeLocale(locale);
+  document.cookie = `app-locale=${normalized}; path=/; max-age=${COOKIE_MAX_AGE}; samesite=lax`;
+  window.localStorage.setItem('app-locale', normalized);
+  document.documentElement.lang = normalized;
+}
 
 export default function LanguageSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const currentLocale = getLocaleFromPathname(pathname);
+  const options = getLanguageOptions();
 
-  const currentLocale = pathname.split('/')[1] || 'fr';
-  const currentOption = LOCALE_OPTIONS.find((option) => option.value === currentLocale) ?? LOCALE_OPTIONS[0];
+  useEffect(() => {
+    persistLocale(currentLocale);
+  }, [currentLocale]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -31,61 +40,69 @@ export default function LanguageSwitcher() {
       }
     };
 
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsOpen(false);
+    };
+
     document.addEventListener('mousedown', handlePointerDown);
-    return () => document.removeEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleEscape);
+    };
   }, [isOpen]);
 
   const switchLanguage = (nextLocale: string) => {
-    const pathParts = pathname.split('/');
-    if (pathParts[1]) {
-      pathParts[1] = nextLocale;
-    } else {
-      pathParts.unshift(nextLocale);
+    if (nextLocale === currentLocale) {
+      setIsOpen(false);
+      return;
     }
 
-    const newPath = pathParts.join('/');
+    persistLocale(nextLocale);
+    const search = typeof window !== 'undefined' ? window.location.search : '';
     setIsOpen(false);
-    router.push(newPath || `/${nextLocale}`);
+    router.push(`${getLocalizedPath(pathname, nextLocale)}${search}`);
   };
 
   return (
     <div ref={wrapperRef} className="relative z-50 flex-shrink-0">
       <button
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="flex max-w-[120px] items-center justify-between gap-1 rounded-full border border-[#dfe4ea] bg-[#0b3b8b] px-2.5 py-2 text-white shadow-[0_8px_24px_rgba(11,59,139,0.18)] transition-all duration-200 hover:brightness-105 sm:max-w-none sm:gap-2 sm:px-3 sm:py-2.5"
+        onClick={() => setIsOpen((open) => !open)}
+        className="inline-flex items-center gap-1 py-1 text-[15px] font-medium leading-none text-[#111827] transition-colors hover:text-[#0b3b8b]"
         aria-label="Changer la langue"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
       >
-        <Languages className="hidden h-4 w-4 text-white sm:block" />
-        <span className="hidden text-[10px] font-semibold uppercase tracking-[0.18em] text-white/90 sm:inline">
-          Langue
-        </span>
-        <span className="rounded-full bg-white/12 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-inner sm:px-2 sm:py-1 sm:text-sm">
-          {currentOption.value.toUpperCase()}
-        </span>
-        <ChevronDown className={`h-3.5 w-3.5 text-white transition-transform duration-200 sm:h-4 sm:w-4 ${isOpen ? 'rotate-180' : ''}`} />
+        <span>{currentLocale}</span>
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-[210px] overflow-hidden rounded-2xl border border-[#dfe4ea] bg-white shadow-[0_20px_40px_rgba(15,23,42,0.18)]">
-          {LOCALE_OPTIONS.map((option) => {
+        <ul
+          role="listbox"
+          className="absolute right-0 top-full z-50 mt-2 min-w-[200px] border border-[#e6e6e1] bg-white py-2 shadow-[0_12px_28px_rgba(15,23,42,0.12)]"
+        >
+          {options.map((option) => {
             const isSelected = option.value === currentLocale;
-
             return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => switchLanguage(option.value)}
-                className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium transition-colors ${
-                  isSelected ? 'bg-[#edf4ff] text-[#0b3b8b]' : 'text-[#1f2937] hover:bg-[#f7f9fc]'
-                }`}
-              >
-                <span>{option.label}</span>
-                {isSelected && <span className="text-xs font-bold text-[#0b3b8b]">✓</span>}
-              </button>
+              <li key={option.value} role="option" aria-selected={isSelected}>
+                <button
+                  type="button"
+                  onClick={() => switchLanguage(option.value)}
+                  className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-[15px] ${
+                    isSelected
+                      ? 'bg-[#f4f1ea] font-semibold text-[#0b3b8b]'
+                      : 'text-[#111827] hover:bg-[#f7f7f5]'
+                  }`}
+                >
+                  <span>{option.label}</span>
+                  {isSelected && <span aria-hidden="true" className="text-[#d4af37]">●</span>}
+                </button>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
     </div>
   );

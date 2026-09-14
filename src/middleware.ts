@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { defaultLocale, supportedLocales } from '@/lib/i18n';
+import { defaultLocale, isSupportedLocale, supportedLocales } from '@/lib/i18n';
 
 const PAGE_ALIASES: Record<string, string> = {
   about: 'a-propos',
@@ -24,7 +24,9 @@ export function middleware(request: NextRequest) {
   );
 
   if (pathnameIsMissingLocale) {
-    return NextResponse.redirect(new URL(`/${defaultLocale}${pathname}`, request.url));
+    const cookieLocale = request.cookies.get('app-locale')?.value;
+    const locale = isSupportedLocale(cookieLocale) ? cookieLocale : defaultLocale;
+    return NextResponse.redirect(new URL(`/${locale}${pathname}`, request.url));
   }
 
   const segments = pathname.split('/').filter(Boolean);

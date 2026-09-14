@@ -1,13 +1,19 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import LocaleLang from "@/components/LocaleLang";
 
-export default function LocaleLayout({
+export default async function LocaleLayout({
   children,
+  params,
 }: {
   children: React.ReactNode
+  params: Promise<{ locale: string }>
 }) {
+  const { locale } = await params;
+
   return (
     <div className="min-h-full flex flex-col">
+      <LocaleLang locale={locale} />
       <Navigation />
       <main className="flex-1">{children}</main>
       <Footer />

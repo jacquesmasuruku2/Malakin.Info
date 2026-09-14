@@ -261,3 +261,30 @@ export async function getCategoryTranslations(categoryId: string) {
     }))
   };
 }
+
+export async function applyArticleLocales<T extends { id: string; title: string; excerpt: string }>(
+  articles: T[],
+  locale: string
+): Promise<T[]> {
+  if (!articles.length || locale === 'fr') {
+    return articles;
+  }
+
+  const translations = await prisma.articleTranslation.findMany({
+    where: {
+      locale,
+      articleId: { in: articles.map((article) => article.id) },
+    },
+    select: { articleId: true, title: true, excerpt: true },
+  });
+
+  if (translations.length === 0) {
+    return articles;
+  }
+
+  const translated = new Map(translations.map((item) => [item.articleId, item]));
+  return articles.map((article) => {
+    const match = translated.get(article.id);
+    return match ? { ...article, title: match.title, excerpt: match.excerpt } : article;
+  });
+}
