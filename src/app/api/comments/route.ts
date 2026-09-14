@@ -1,42 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { resolveCurrentUser } from '@/lib/current-user';
 import { sendTelegramMessage } from '@/lib/telegram';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { articleId, userId, content, parentId } = body;
+    const user = await resolveCurrentUser(request);
 
-    if (!articleId || !userId || !content) {
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const articleId = typeof body.articleId === 'string' ? body.articleId : '';
+    const content = typeof body.content === 'string' ? body.content.trim() : '';
+    const parentId = typeof body.parentId === 'string' ? body.parentId : null;
+
+    if (!articleId || !content) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // For development: create user if doesn't exist
-    let user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          id: userId,
-          email: `${userId}@test.local`,
-          name: 'Utilisateur Test',
-          passwordHash: 'test',
-        },
-      });
-    }
-
     const comment = await prisma.comment.create({
       data: {
         articleId,
-        userId,
+        userId: user.id,
         content,
-        parentId: parentId || null,
-        status: 'approved', // Auto-approve for now, can be changed to require moderation
+        parentId,
+        status: 'approved',
       },
       include: {
         user: {
@@ -50,7 +43,7 @@ export async function POST(request: NextRequest) {
     });
 
     const telegramResult = await sendTelegramMessage(
-      `Nouveau commentaire sur l'article ${articleId} de ${comment.user?.name || userId} :\n${content}`
+      `Nouveau commentaire sur l'article ${articleId} de ${comment.user?.name || user.email} :\n${content}`
     );
     console.log('Telegram notification result (comment):', telegramResult);
 

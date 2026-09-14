@@ -1,62 +1,59 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import { Bookmark, Calendar, ExternalLink, User } from 'lucide-react';
-import { getClientAuthHeaders } from '@/lib/client-auth';
+import { authFetch } from '@/lib/client-auth';
+import { useAccountUser } from '@/lib/use-account-user';
 
 export default function FavoritesPage() {
-  const { data: session, status } = useSession();
+  const { user: currentUser, ready } = useAccountUser();
   const { locale } = useParams<{ locale: string }>();
   const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [localUser, setLocalUser] = useState<any>(null);
+  const [unauthorized, setUnauthorized] = useState(false);
+
+  const userKey = currentUser?.id ?? currentUser?.email ?? null;
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          setLocalUser(JSON.parse(storedUser));
-        } catch {
-          setLocalUser(null);
-        }
-      }
-    }
-  }, []);
+    if (!ready) return;
 
-  const currentUser = session?.user ?? localUser;
-
-  useEffect(() => {
-    if (!currentUser) {
+    if (!userKey) {
+      setUnauthorized(true);
+      setFavorites([]);
       setLoading(false);
       return;
     }
 
-    fetchFavorites();
-  }, [currentUser]);
+    const fetchFavorites = async () => {
+      try {
+        setLoading(true);
+        const response = await authFetch('/api/user/favorites');
 
-  const fetchFavorites = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/user/favorites', {
-        headers: getClientAuthHeaders(),
-      });
+        if (response.status === 401) {
+          setUnauthorized(true);
+          setFavorites([]);
+          return;
+        }
 
-      if (response.ok) {
+        if (!response.ok) {
+          setFavorites([]);
+          return;
+        }
+
         const data = await response.json();
+        setUnauthorized(false);
         setFavorites(Array.isArray(data) ? data : []);
-      } else {
+      } catch (error) {
+        console.error('Error fetching favorites:', error);
         setFavorites([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching favorites:', error);
-      setFavorites([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchFavorites();
+  }, [ready, userKey]);
 
   const groupedFavorites = favorites.reduce((acc: Record<string, any[]>, favorite) => {
     const categoryName = favorite.article?.category?.title || 'Autres';
@@ -65,9 +62,11 @@ export default function FavoritesPage() {
     return acc;
   }, {});
 
-  if (status === 'loading' || loading) {
+  if (!ready || loading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
   }
+
+  const showLogin = !currentUser || unauthorized;
 
   return (
     <div className="min-h-screen bg-muted/30 py-12 px-4">
@@ -83,12 +82,14 @@ export default function FavoritesPage() {
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-1">Favoris</h1>
             <p className="text-muted-foreground">
-              {currentUser ? `Connecté en tant que ${currentUser.name || currentUser.email}` : 'Vous devez être connecté pour voir vos favoris.'}
+              {currentUser && !unauthorized
+                ? `Connecté en tant que ${currentUser.name || currentUser.email}`
+                : 'Vous devez être connecté pour voir vos favoris.'}
             </p>
           </div>
         </div>
 
-        {!currentUser ? (
+        {showLogin ? (
           <div className="bg-card rounded-lg p-12 text-center">
             <Bookmark className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">Connexion requise</h2>

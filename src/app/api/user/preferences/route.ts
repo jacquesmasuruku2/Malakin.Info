@@ -1,25 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
-import { authOptions } from '@/lib/auth';
+import { resolveCurrentUserId } from '@/lib/current-user';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.id) {
+    const userId = await resolveCurrentUserId(request);
+
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     let preferences = await prisma.userPreference.findUnique({
-      where: { userId: session.user.id },
+      where: { userId },
     });
 
-    // Create default preferences if not exist
     if (!preferences) {
       preferences = await prisma.userPreference.create({
         data: {
-          userId: session.user.id,
+          userId,
           locale: 'fr',
           theme: 'light',
           emailNewsletter: false,
@@ -37,9 +35,9 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.id) {
+    const userId = await resolveCurrentUserId(request);
+
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -47,7 +45,7 @@ export async function PUT(request: NextRequest) {
     const { locale, theme, emailNewsletter, emailDigest } = body;
 
     const preferences = await prisma.userPreference.upsert({
-      where: { userId: session.user.id },
+      where: { userId },
       update: {
         ...(locale !== undefined && { locale }),
         ...(theme !== undefined && { theme }),
@@ -55,7 +53,7 @@ export async function PUT(request: NextRequest) {
         ...(emailDigest !== undefined && { emailDigest }),
       },
       create: {
-        userId: session.user.id,
+        userId,
         locale: locale || 'fr',
         theme: theme || 'light',
         emailNewsletter: emailNewsletter ?? false,

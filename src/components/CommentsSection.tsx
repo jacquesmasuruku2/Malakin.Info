@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { useSession, signIn } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { ThumbsUp, MessageCircle, Send, User as UserIcon } from 'lucide-react';
+import { authFetch } from '@/lib/client-auth';
+import { useAccountUser } from '@/lib/use-account-user';
 
 interface Comment {
   id: string;
@@ -23,9 +26,9 @@ interface CommentsSectionProps {
 }
 
 export default function CommentsSection({ articleId, locale }: CommentsSectionProps) {
-  const { data: session, status } = useSession();
-  const isAuthenticated = status === 'authenticated';
-  const userId = session?.user?.id ?? null;
+  const { user, ready } = useAccountUser();
+  const pathname = usePathname();
+  const isAuthenticated = ready && !!user;
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLiked, setIsLiked] = useState(false);
@@ -66,8 +69,9 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   }, [articleId]);
 
   useEffect(() => {
+    if (!ready) return;
     fetchLikeStatus();
-  }, [articleId, userId]);
+  }, [articleId, ready, isAuthenticated]);
 
   useEffect(() => {
     if (comments.length <= 1) return;
@@ -96,8 +100,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
 
   const fetchLikeStatus = async () => {
     try {
-      const url = `/api/likes?articleId=${articleId}${userId ? `&userId=${userId}` : ''}`;
-      const response = await fetch(url);
+      const response = await authFetch(`/api/likes?articleId=${articleId}`);
       if (response.ok) {
         const data = await response.json();
         setIsLiked(data.isLiked);
@@ -109,19 +112,24 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   };
 
   const handleLike = async () => {
-    if (!isAuthenticated || !userId) {
+    if (!isAuthenticated) {
       setError(t.loginToComment);
       return;
     }
 
     try {
-      const response = await fetch('/api/likes', {
+      const response = await authFetch('/api/likes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ articleId, userId }),
+        body: JSON.stringify({ articleId }),
       });
+
+      if (response.status === 401) {
+        setError(t.loginToComment);
+        return;
+      }
 
       if (response.ok) {
         const data = await response.json();
@@ -141,18 +149,18 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
       return;
     }
 
-    if (!isAuthenticated || !userId) {
+    if (!isAuthenticated) {
       setError(t.loginToComment);
       return;
     }
 
     try {
-      const response = await fetch('/api/comments', {
+      const response = await authFetch('/api/comments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ articleId, userId, content: newComment }),
+        body: JSON.stringify({ articleId, content: newComment }),
       });
 
       if (response.ok) {
@@ -178,18 +186,18 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
       return;
     }
 
-    if (!isAuthenticated || !userId) {
+    if (!isAuthenticated) {
       setError(t.loginToComment);
       return;
     }
 
     try {
-      const response = await fetch('/api/comments', {
+      const response = await authFetch('/api/comments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ articleId, userId, content: replyText, parentId: commentId }),
+        body: JSON.stringify({ articleId, content: replyText, parentId: commentId }),
       });
 
       if (response.ok) {
@@ -371,14 +379,14 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
           <p className="mb-4 text-sm text-muted-foreground">{t.loginPrompt}</p>
           <div className="flex flex-wrap gap-3">
             <Link
-              href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(window.location.href)}&scroll_to_comments=true`}
+              href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(pathname)}&scroll_to_comments=true`}
               className="inline-flex items-center justify-center rounded-2xl border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/80 transition"
             >
               {t.login}
             </Link>
             <button
               type="button"
-              onClick={() => signIn('google', { callbackUrl: `${window.location.href}?scroll_to_comments=true` })}
+              onClick={() => signIn('google', { callbackUrl: `${pathname}?scroll_to_comments=true` })}
               className="inline-flex items-center justify-center rounded-2xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition"
             >
               {t.loginWithGoogle}

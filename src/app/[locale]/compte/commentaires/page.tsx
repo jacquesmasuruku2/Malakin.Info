@@ -1,65 +1,62 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import { MessageSquare, Calendar, ExternalLink, User, Pencil, Save, X } from 'lucide-react';
-import { getClientAuthHeaders } from '@/lib/client-auth';
+import { authFetch } from '@/lib/client-auth';
+import { useAccountUser } from '@/lib/use-account-user';
 
 export default function CommentsPage() {
-  const { data: session, status } = useSession();
+  const { user: currentUser, ready } = useAccountUser();
   const { locale } = useParams<{ locale: string }>();
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [localUser, setLocalUser] = useState<any>(null);
+  const [unauthorized, setUnauthorized] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          setLocalUser(JSON.parse(storedUser));
-        } catch {
-          setLocalUser(null);
-        }
-      }
-    }
-  }, []);
-
-  const currentUser = session?.user ?? localUser;
+  const userKey = currentUser?.id ?? currentUser?.email ?? null;
 
   useEffect(() => {
-    if (!currentUser) {
+    if (!ready) return;
+
+    if (!userKey) {
+      setUnauthorized(true);
+      setComments([]);
       setLoading(false);
       return;
     }
 
-    fetchComments();
-  }, [currentUser]);
+    const fetchComments = async () => {
+      try {
+        setLoading(true);
+        const response = await authFetch('/api/user/comments');
 
-  const fetchComments = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/user/comments', {
-        headers: getClientAuthHeaders(),
-      });
+        if (response.status === 401) {
+          setUnauthorized(true);
+          setComments([]);
+          return;
+        }
 
-      if (response.ok) {
+        if (!response.ok) {
+          setComments([]);
+          return;
+        }
+
         const data = await response.json();
+        setUnauthorized(false);
         setComments(Array.isArray(data) ? data : []);
-      } else {
+      } catch (error) {
+        console.error('Error fetching comments:', error);
         setComments([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching comments:', error);
-      setComments([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchComments();
+  }, [ready, userKey]);
 
   const handleEdit = (comment: any) => {
     setEditingCommentId(comment.id);
@@ -71,11 +68,10 @@ export default function CommentsPage() {
 
     try {
       setSaving(true);
-      const response = await fetch('/api/user/comments', {
+      const response = await authFetch('/api/user/comments', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          ...getClientAuthHeaders(),
         },
         body: JSON.stringify({ commentId, content: editingContent.trim() }),
       });
@@ -99,9 +95,11 @@ export default function CommentsPage() {
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (!ready || loading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
   }
+
+  const showLogin = !currentUser || unauthorized;
 
   return (
     <div className="min-h-screen bg-muted/30 py-12 px-4">
@@ -117,18 +115,26 @@ export default function CommentsPage() {
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-1">Mes commentaires</h1>
             <p className="text-muted-foreground">
-              {currentUser ? `Connecté en tant que ${currentUser.name || currentUser.email}` : 'Vous devez être connecté pour voir vos commentaires.'}
+              {currentUser && !unauthorized
+                ? `Connecté en tant que ${currentUser.name || currentUser.email}`
+                : 'Vous devez être connecté pour voir vos commentaires.'}
             </p>
           </div>
         </div>
 
-        {!currentUser ? (
+        {showLogin ? (
           <div className="bg-card rounded-lg p-12 text-center">
             <MessageSquare className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">Connexion requise</h2>
             <p className="text-muted-foreground mb-4">
               Veuillez vous reconnecter pour voir vos commentaires.
             </p>
+            <a
+              href={`/${locale}/compte/connexion`}
+              className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white"
+            >
+              Se connecter
+            </a>
           </div>
         ) : comments.length === 0 ? (
           <div className="bg-card rounded-lg p-12 text-center">

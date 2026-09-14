@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Bookmark, BookmarkCheck } from 'lucide-react';
-import { getClientAuthHeaders } from '@/lib/client-auth';
+import { authFetch } from '@/lib/client-auth';
 
 interface FavoriteButtonProps {
   articleId: string;
@@ -19,9 +19,7 @@ export default function FavoriteButton({ articleId, locale, initialFavorited = f
 
     const checkFavorite = async () => {
       try {
-        const response = await fetch(`/api/user/favorites?articleId=${encodeURIComponent(articleId)}`, {
-          headers: getClientAuthHeaders(),
-        });
+        const response = await authFetch(`/api/user/favorites?articleId=${encodeURIComponent(articleId)}`);
         if (!response.ok) {
           return;
         }
@@ -44,11 +42,10 @@ export default function FavoriteButton({ articleId, locale, initialFavorited = f
   const handleToggleFavorite = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/user/favorites', {
+      const response = await authFetch('/api/user/favorites', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...getClientAuthHeaders(),
         },
         body: JSON.stringify({ articleId }),
       });

@@ -1,65 +1,64 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import { Heart, Calendar, ExternalLink, User } from 'lucide-react';
-import { getClientAuthHeaders } from '@/lib/client-auth';
+import { authFetch } from '@/lib/client-auth';
+import { useAccountUser } from '@/lib/use-account-user';
 
 export default function LikesPage() {
-  const { data: session, status } = useSession();
+  const { user: currentUser, ready } = useAccountUser();
   const { locale } = useParams<{ locale: string }>();
   const [likes, setLikes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [localUser, setLocalUser] = useState<any>(null);
+  const [unauthorized, setUnauthorized] = useState(false);
+
+  const userKey = currentUser?.id ?? currentUser?.email ?? null;
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          setLocalUser(JSON.parse(storedUser));
-        } catch {
-          setLocalUser(null);
-        }
-      }
-    }
-  }, []);
+    if (!ready) return;
 
-  const currentUser = session?.user ?? localUser;
-
-  useEffect(() => {
-    if (!currentUser) {
+    if (!userKey) {
+      setUnauthorized(true);
+      setLikes([]);
       setLoading(false);
       return;
     }
 
-    fetchLikes();
-  }, [currentUser]);
+    const fetchLikes = async () => {
+      try {
+        const response = await authFetch('/api/user/likes');
 
-  const fetchLikes = async () => {
-    try {
-      const response = await fetch('/api/user/likes', {
-        headers: getClientAuthHeaders(),
-      });
+        if (response.status === 401) {
+          setUnauthorized(true);
+          setLikes([]);
+          return;
+        }
 
-      if (response.ok) {
+        if (!response.ok) {
+          setLikes([]);
+          return;
+        }
+
         const data = await response.json();
+        setUnauthorized(false);
         setLikes(Array.isArray(data) ? data : []);
-      } else {
+      } catch (error) {
+        console.error('Error fetching likes:', error);
         setLikes([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching likes:', error);
-      setLikes([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  if (status === 'loading' || loading) {
+    fetchLikes();
+  }, [ready, userKey]);
+
+  if (!ready || loading) {
     return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
   }
+
+  const showLogin = !currentUser || unauthorized;
 
   return (
     <div className="min-h-screen bg-muted/30 py-12 px-4">
@@ -75,18 +74,26 @@ export default function LikesPage() {
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-1">Mes likes</h1>
             <p className="text-muted-foreground">
-              {currentUser ? `Connecté en tant que ${currentUser.name || currentUser.email}` : 'Vous devez être connecté pour voir vos likes.'}
+              {currentUser && !unauthorized
+                ? `Connecté en tant que ${currentUser.name || currentUser.email}`
+                : 'Vous devez être connecté pour voir vos likes.'}
             </p>
           </div>
         </div>
 
-        {!currentUser ? (
+        {showLogin ? (
           <div className="bg-card rounded-lg p-12 text-center">
             <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">Connexion requise</h2>
             <p className="text-muted-foreground mb-4">
               Veuillez vous reconnecter pour voir vos likes.
             </p>
+            <a
+              href={`/${locale}/compte/connexion`}
+              className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white"
+            >
+              Se connecter
+            </a>
           </div>
         ) : likes.length === 0 ? (
           <div className="bg-card rounded-lg p-12 text-center">
