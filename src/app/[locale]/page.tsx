@@ -241,16 +241,14 @@ export default async function Home({
                     </div>
                   </Link>
 
-                  <div className="flex items-end gap-4 border-t border-gray-200 bg-white p-4 sm:p-5">
-                    <div className="flex-1">
-                      <p className="text-base leading-relaxed text-gray-700">
-                        {filteredFeaturedNews[0].excerpt}
-                      </p>
-                    </div>
+                  <div className="flex flex-col gap-4 border-t border-gray-200 bg-white p-4 sm:flex-row sm:items-end sm:p-5">
+                    <p className="min-w-0 flex-1 text-sm leading-relaxed text-gray-700 sm:text-base">
+                      {filteredFeaturedNews[0].excerpt}
+                    </p>
 
                     <Link
                       href={`/${locale}/${filteredFeaturedNews[0].slug}`}
-                      className="inline-flex shrink-0 items-center justify-center border border-[#081C3D] bg-[#081C3D] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#D4AF37] hover:text-[#081C3D]"
+                      className="inline-flex w-full shrink-0 items-center justify-center border border-[#081C3D] bg-[#081C3D] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#D4AF37] hover:text-[#081C3D] sm:w-auto"
                     >
                       {locale === 'fr' ? 'Lire plus' : 'Read more'}
                     </Link>
