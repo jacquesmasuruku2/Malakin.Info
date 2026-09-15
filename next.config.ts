@@ -5,6 +5,20 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['127.0.0.1'],
+  async redirects() {
+    return [
+      {
+        source: '/:locale/nous-soutenir/faire-un-don',
+        destination: '/:locale/nous-soutenir',
+        permanent: true,
+      },
+      {
+        source: '/:locale/nous-soutenir/faire-un-don/:path*',
+        destination: '/:locale/nous-soutenir',
+        permanent: true,
+      },
+    ];
+  },
   turbopack: {
     root: process.cwd(),
   },

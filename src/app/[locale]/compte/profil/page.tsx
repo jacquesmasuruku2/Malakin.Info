@@ -1,50 +1,66 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSession, signOut } from 'next-auth/react';
+import { useState, useEffect, useRef } from 'react';
+import { signOut } from 'next-auth/react';
 import { User, Mail, Calendar, Edit, Save, X, Camera, LogOut, MessageSquare, Heart, Bookmark, DollarSign, Settings, ChevronRight } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { authFetch } from '@/lib/client-auth';
+import { logoutLocalSession, persistLocalUser } from '@/lib/theme';
+import { useAccountUser } from '@/lib/use-account-user';
 
 export default function ProfilePage() {
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'fr';
-  const { data: session, status } = useSession();
+  const { user: accountUser, ready } = useAccountUser();
   const [user, setUser] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: '',
     bio: '',
   });
 
   useEffect(() => {
-    const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+    if (!ready) return;
 
-    if (session?.user) {
-      setUser(session.user);
-      setFormData({
-        name: session.user.name || '',
-        bio: session.user.bio || '',
-      });
-      return;
-    }
-
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-        setFormData({
-          name: parsedUser.name || '',
-          bio: parsedUser.bio || '',
-        });
-      } catch {
-        setUser(null);
+    const loadProfile = async () => {
+      if (!accountUser) {
+        window.location.href = `/${locale}/compte/connexion?redirect=${encodeURIComponent(window.location.pathname)}`;
+        return;
       }
-    }
-  }, [session]);
+
+      setUser(accountUser);
+      setFormData({
+        name: accountUser.name || '',
+        bio: accountUser.bio || '',
+      });
+
+      try {
+        const response = await authFetch('/api/user/profile');
+        if (response.status === 401) {
+          window.location.href = `/${locale}/compte/connexion?redirect=${encodeURIComponent(window.location.pathname)}`;
+          return;
+        }
+        if (!response.ok) return;
+        const profile = await response.json();
+        setUser(profile);
+        setFormData({
+          name: profile.name || '',
+          bio: profile.bio || '',
+        });
+        persistLocalUser(profile);
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
+    };
+
+    loadProfile();
+  }, [ready, accountUser?.id, locale]);
 
   const handleSave = async () => {
     try {
-      const response = await fetch('/api/user/profile', {
+      const response = await authFetch('/api/user/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -54,11 +70,55 @@ export default function ProfilePage() {
 
       if (response.ok) {
         const updatedUser = await response.json();
-        setUser(updatedUser);
+        setUser((current: any) => {
+          const next = { ...current, ...updatedUser };
+          persistLocalUser(next);
+          return next;
+        });
         setIsEditing(false);
       }
     } catch (error) {
       console.error('Error updating profile:', error);
+    }
+  };
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingPhoto(true);
+      const payload = new FormData();
+      payload.append('file', file);
+      const response = await authFetch('/api/user/avatar', {
+        method: 'POST',
+        body: payload,
+      });
+
+      if (response.status === 401) {
+        window.location.href = `/${locale}/compte/connexion?redirect=${encodeURIComponent(window.location.href)}`;
+        return;
+      }
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Impossible de changer la photo');
+      }
+
+      const updatedUser = await response.json();
+      setUser((current: any) => {
+        const next = { ...current, ...updatedUser };
+        persistLocalUser(next);
+        return next;
+      });
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      alert(error instanceof Error ? error.message : 'Impossible de changer la photo de profil.');
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -71,10 +131,11 @@ export default function ProfilePage() {
   };
 
   const handleLogout = async () => {
+    logoutLocalSession();
     await signOut({ callbackUrl: '/' });
   };
 
-  if (status === 'loading' || !user) {
+  if (!ready || !user) {
     return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
   }
 
@@ -143,11 +204,22 @@ export default function ProfilePage() {
                     <User className="w-16 h-16 text-primary" />
                   </div>
                 )}
-                {isEditing && (
-                  <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors">
-                    <Camera className="w-4 h-4" />
-                  </button>
-                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingPhoto}
+                  className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors disabled:opacity-60"
+                  aria-label="Changer la photo de profil"
+                >
+                  <Camera className="w-4 h-4" />
+                </button>
               </div>
               <div className="flex-1 text-center sm:text-left">
                 <h1 className="text-2xl font-bold text-foreground mb-1">

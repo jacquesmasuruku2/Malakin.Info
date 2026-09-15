@@ -18,6 +18,7 @@ export async function PUT(request: NextRequest) {
       data: {
         ...(name && { name }),
         ...(bio !== undefined && { bio }),
+        ...(typeof body.avatarUrl === 'string' && body.avatarUrl && { avatarUrl: body.avatarUrl }),
       },
     });
 

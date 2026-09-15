@@ -38,6 +38,13 @@ export function middleware(request: NextRequest) {
     ) {
       return NextResponse.redirect(new URL(`/${locale}/actualites`, request.url), 308);
     }
+    if (
+      slug === 'nous-soutenir' &&
+      segments[2] === 'faire-un-don' &&
+      supportedLocales.includes(locale as (typeof supportedLocales)[number])
+    ) {
+      return NextResponse.redirect(new URL(`/${locale}/nous-soutenir`, request.url), 308);
+    }
     const alias = PAGE_ALIASES[slug];
     if (alias && supportedLocales.includes(locale as (typeof supportedLocales)[number])) {
       const rest = segments.slice(2).join('/');

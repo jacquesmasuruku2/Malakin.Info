@@ -10,6 +10,9 @@ import {
   normalizeLocale,
 } from '@/lib/i18n';
 
+import { authFetch } from '@/lib/client-auth';
+import { useAccountUser } from '@/lib/use-account-user';
+
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 function persistLocale(locale: string) {
@@ -22,6 +25,7 @@ function persistLocale(locale: string) {
 export default function LanguageSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useAccountUser();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const currentLocale = getLocaleFromPathname(pathname);
@@ -59,6 +63,15 @@ export default function LanguageSwitcher() {
     }
 
     persistLocale(nextLocale);
+    if (user) {
+      authFetch('/api/user/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locale: nextLocale }),
+      }).catch(() => {
+        // Locale still switches locally if the save fails.
+      });
+    }
     const search = typeof window !== 'undefined' ? window.location.search : '';
     setIsOpen(false);
     router.push(`${getLocalizedPath(pathname, nextLocale)}${search}`);
@@ -69,7 +82,7 @@ export default function LanguageSwitcher() {
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className="inline-flex items-center gap-1 py-1 text-[15px] font-medium leading-none text-[#111827] transition-colors hover:text-[#0b3b8b]"
+        className="inline-flex items-center gap-1 py-1 text-[15px] font-medium leading-none text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]"
         aria-label="Changer la langue"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
@@ -81,7 +94,7 @@ export default function LanguageSwitcher() {
       {isOpen && (
         <ul
           role="listbox"
-          className="absolute right-0 top-full z-50 mt-2 min-w-[200px] border border-[#e6e6e1] bg-white py-2 shadow-[0_12px_28px_rgba(15,23,42,0.12)]"
+          className="absolute right-0 top-full z-50 mt-2 min-w-[200px] border border-[#e6e6e1] bg-white py-2 shadow-[0_12px_28px_rgba(15,23,42,0.12)] dark:border-[#24364f] dark:bg-[#101a2c]"
         >
           {options.map((option) => {
             const isSelected = option.value === currentLocale;
@@ -92,8 +105,8 @@ export default function LanguageSwitcher() {
                   onClick={() => switchLanguage(option.value)}
                   className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-[15px] ${
                     isSelected
-                      ? 'bg-[#f4f1ea] font-semibold text-[#0b3b8b]'
-                      : 'text-[#111827] hover:bg-[#f7f7f5]'
+                      ? 'bg-[#f4f1ea] font-semibold text-[#0b3b8b] dark:bg-[#152238] dark:text-[#4f8ef7]'
+                      : 'text-[#111827] hover:bg-[#f7f7f5] dark:text-[#e8eef8] dark:hover:bg-[#152238]'
                   }`}
                 >
                   <span>{option.label}</span>

@@ -268,7 +268,7 @@ export default function PartenariatsSoutenirPage() {
                 Vous pouvez également nous soutenir directement par un don financier.
               </p>
               <Link
-                href="/nous-soutenir/faire-un-don"
+                href="/nous-soutenir"
                 className="inline-flex items-center text-primary hover:text-primary/80 font-medium"
               >
                 Faire un don

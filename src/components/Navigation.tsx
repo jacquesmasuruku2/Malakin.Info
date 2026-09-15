@@ -3,17 +3,20 @@
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
+import { signOut } from 'next-auth/react';
 import { Search, User, X, ChevronDown, ChevronRight, Newspaper, DollarSign, FlaskConical, Palette, Trophy, Radio, ScrollText, Briefcase, Info, Mail, Grip, LogOut, Settings, Heart, MessageSquare, Bookmark, Menu, Handshake } from 'lucide-react';
 import SearchBar from './SearchBar';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 import LanguageSwitcher from './LanguageSwitcher';
+import ThemeToggle from './ThemeToggle';
+import { logoutLocalSession } from '@/lib/theme';
+import { useAccountUser } from '@/lib/use-account-user';
 
 export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { user: activeUser } = useAccountUser();
   const { isServicesOpen, openServices, closeServices, toggleServices } = useServicesModal();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,21 +25,6 @@ export default function Navigation() {
   
   const locale = getLocaleFromPathname(pathname);
   const t = getMessages(locale).nav;
-  const [localUser, setLocalUser] = useState<any>(null);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setLocalUser(JSON.parse(storedUser));
-      } catch {
-        setLocalUser(null);
-      }
-    }
-  }, []);
-
-  const activeUser = session?.user ?? localUser;
 
   // detect mobile viewport
   useEffect(() => {
@@ -52,10 +40,7 @@ export default function Navigation() {
   // No extra topbar hidden behavior: the utility strip remains visible and lightweight.
 
   const handleLogout = async () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-    }
+    logoutLocalSession();
     await signOut({ callbackUrl: '/' });
     setIsUserMenuOpen(false);
   };
@@ -232,13 +217,13 @@ export default function Navigation() {
   return (
     <nav className="sticky top-0 z-50">
       {/* Main Header - En-tête premium éditorial */}
-      <div className="border-b border-[#e8e8e1] bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+      <div className="border-b border-[#e8e8e1] bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)] dark:border-[#24364f] dark:bg-[#0b1628] dark:shadow-none">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="relative flex h-20 items-center justify-between gap-4">
             <div className="hidden flex-1 items-center gap-3 md:flex">
               <button
                 type="button"
-                className="flex items-center gap-2 rounded-full border border-[#e9e9e3] bg-[#f8f8f5] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#1f2937] transition-colors hover:border-[#cfcfca] hover:bg-[#f1f1ee]"
+                className="flex items-center gap-2 rounded-full border border-[#e9e9e3] bg-[#f8f8f5] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#1f2937] transition-colors hover:border-[#cfcfca] hover:bg-[#f1f1ee] dark:border-[#24364f] dark:bg-[#152238] dark:text-[#e8eef8] dark:hover:border-[#4f8ef7]/40 dark:hover:bg-[#1b2d48]"
                 onClick={handleMenuToggle}
               >
                 <Menu className="h-4 w-4" />
@@ -251,11 +236,11 @@ export default function Navigation() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t.searchPlaceholder}
-                  className="w-52 rounded-full border border-[#ecece7] bg-[#f8f8f5] px-4 py-2 pr-10 text-sm text-[#111827] outline-none transition focus:border-[#d4af37] focus:bg-white focus:ring-2 focus:ring-[#d4af37]/20"
+                  className="w-52 rounded-full border border-[#ecece7] bg-[#f8f8f5] px-4 py-2 pr-10 text-sm text-[#111827] outline-none transition focus:border-[#d4af37] focus:bg-white focus:ring-2 focus:ring-[#d4af37]/20 dark:border-[#24364f] dark:bg-[#152238] dark:text-[#e8eef8] dark:focus:bg-[#101a2c]"
                 />
                 <button
                   type="submit"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4b5563] transition-colors hover:text-[#0b3b8b]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4b5563] transition-colors hover:text-[#0b3b8b] dark:text-[#9db0c9] dark:hover:text-[#4f8ef7]"
                 >
                   <Search className="h-4 w-4" />
                 </button>
@@ -265,7 +250,7 @@ export default function Navigation() {
             <div className="md:hidden flex items-center space-x-2">
               <button
                 type="button"
-                className="p-2 text-[#111827] transition-colors hover:text-[#0b3b8b]"
+                className="p-2 text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]"
                 onClick={handleMenuToggle}
               >
                 <Menu className="h-6 w-6" />
@@ -298,7 +283,7 @@ export default function Navigation() {
               {activeUser ? (
                 <div className="relative">
                   <button
-                    className="flex items-center gap-2 rounded-full border border-[#ecece7] bg-[#f8f8f5] p-1.5 transition-colors hover:border-[#d4af37]"
+                    className="flex items-center gap-2 rounded-full border border-[#ecece7] bg-[#f8f8f5] p-1.5 transition-colors hover:border-[#d4af37] dark:border-[#24364f] dark:bg-[#152238]"
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   >
                     {activeUser.avatarUrl ? (
@@ -315,37 +300,37 @@ export default function Navigation() {
                   </button>
 
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-[#e5e7eb] bg-white py-2 shadow-xl">
-                      <div className="border-b border-[#f1f1ef] px-4 py-2">
-                        <p className="text-sm font-medium text-[#111827]">{activeUser.name}</p>
-                        <p className="text-xs text-[#6b7280]">{activeUser.email}</p>
+                    <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-[#e5e7eb] bg-white py-2 shadow-xl dark:border-[#24364f] dark:bg-[#101a2c]">
+                      <div className="border-b border-[#f1f1ef] px-4 py-2 dark:border-[#24364f]">
+                        <p className="text-sm font-medium text-[#111827] dark:text-[#e8eef8]">{activeUser.name}</p>
+                        <p className="text-xs text-[#6b7280] dark:text-[#9db0c9]">{activeUser.email}</p>
                       </div>
-                      <Link href={`/${locale}/compte/profil`} className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#f7f7f5]" onClick={() => setIsUserMenuOpen(false)}>
+                      <Link href={`/${locale}/compte/profil`} className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#f7f7f5] dark:text-[#e8eef8] dark:hover:bg-[#152238]" onClick={() => setIsUserMenuOpen(false)}>
                         <User className="h-4 w-4" />
                         <span>{t.myProfile}</span>
                       </Link>
-                      <Link href={`/${locale}/compte/commentaires`} className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#f7f7f5]" onClick={() => setIsUserMenuOpen(false)}>
+                      <Link href={`/${locale}/compte/commentaires`} className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#f7f7f5] dark:text-[#e8eef8] dark:hover:bg-[#152238]" onClick={() => setIsUserMenuOpen(false)}>
                         <MessageSquare className="h-4 w-4" />
                         <span>{t.myComments}</span>
                       </Link>
-                      <Link href={`/${locale}/compte/likes`} className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#f7f7f5]" onClick={() => setIsUserMenuOpen(false)}>
+                      <Link href={`/${locale}/compte/likes`} className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#f7f7f5] dark:text-[#e8eef8] dark:hover:bg-[#152238]" onClick={() => setIsUserMenuOpen(false)}>
                         <Heart className="h-4 w-4" />
                         <span>{t.myLikes}</span>
                       </Link>
-                      <Link href={`/${locale}/compte/favoris`} className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#f7f7f5]" onClick={() => setIsUserMenuOpen(false)}>
+                      <Link href={`/${locale}/compte/favoris`} className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#f7f7f5] dark:text-[#e8eef8] dark:hover:bg-[#152238]" onClick={() => setIsUserMenuOpen(false)}>
                         <Bookmark className="h-4 w-4" />
                         <span>{t.favorites}</span>
                       </Link>
-                      <Link href={`/${locale}/compte/dons`} className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#f7f7f5]" onClick={() => setIsUserMenuOpen(false)}>
+                      <Link href={`/${locale}/compte/dons`} className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#f7f7f5] dark:text-[#e8eef8] dark:hover:bg-[#152238]" onClick={() => setIsUserMenuOpen(false)}>
                         <DollarSign className="h-4 w-4" />
                         <span>Mes dons</span>
                       </Link>
-                      <Link href={`/${locale}/compte/parametres`} className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#f7f7f5]" onClick={() => setIsUserMenuOpen(false)}>
+                      <Link href={`/${locale}/compte/parametres`} className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#f7f7f5] dark:text-[#e8eef8] dark:hover:bg-[#152238]" onClick={() => setIsUserMenuOpen(false)}>
                         <Settings className="h-4 w-4" />
                         <span>{t.settings}</span>
                       </Link>
-                      <div className="mt-2 border-t border-[#f1f1ef] pt-2">
-                        <button onClick={handleLogout} className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                      <div className="mt-2 border-t border-[#f1f1ef] pt-2 dark:border-[#24364f]">
+                        <button onClick={handleLogout} className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30">
                           <LogOut className="h-4 w-4" />
                           <span>{t.logout}</span>
                         </button>
@@ -354,7 +339,7 @@ export default function Navigation() {
                   )}
                 </div>
               ) : (
-                <Link href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(pathname)}`} className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1f2937] transition-colors hover:text-[#0b3b8b]">
+                <Link href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(pathname)}`} className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1f2937] transition-colors hover:text-[#0b3b8b] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
                   <User className="h-4 w-4" />
                   <span>{t.login}</span>
                 </Link>
@@ -363,17 +348,19 @@ export default function Navigation() {
               <Link href={`/${locale}/nous-soutenir`} className="rounded-full bg-[#0b3b8b] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#082a63]">
                 {t.subscribe}
               </Link>
+              <ThemeToggle />
               <LanguageSwitcher />
 
             </div>
 
             <div className="relative z-[70] flex items-center space-x-2 md:hidden">
+              <ThemeToggle />
               <LanguageSwitcher />
               {activeUser ? (
                 <Link
                   href={`/${locale}/compte/profil`}
                   aria-label="Ouvrir mon profil"
-                  className="inline-flex min-h-10 min-w-10 items-center justify-center px-2 text-[#111827] transition-colors hover:text-[#0b3b8b]"
+                  className="inline-flex min-h-10 min-w-10 items-center justify-center px-2 text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]"
                 >
                   {activeUser.avatarUrl ? (
                     <img src={activeUser.avatarUrl} alt={activeUser.name} className="h-7 w-7 rounded-full object-cover" />
@@ -397,40 +384,40 @@ export default function Navigation() {
       </div>
 
       {/* Bottom Navigation Bar - Barre de Catégories style presse */}
-      <div className="hidden border-b border-[#e6e6e1] bg-[#f9f8f5] md:block">
+      <div className="hidden border-b border-[#e6e6e1] bg-[#f9f8f5] dark:border-[#24364f] dark:bg-[#0b1628] md:block">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-2 overflow-x-auto py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <Link href={`/${locale}`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
               {t.home}
             </Link>
-            <Link href={`/${locale}/actualites`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/actualites`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
               {t.news}
             </Link>
-            <Link href={`/${locale}/politique`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/politique`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
               {t.politics}
             </Link>
-            <Link href={`/${locale}/economie`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/economie`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
               {t.economy}
             </Link>
-            <Link href={`/${locale}/education-et-enseignement`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/education-et-enseignement`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
               {t.education}
             </Link>
-            <Link href={`/${locale}/science-tech`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/science-tech`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
               {t.scienceTech}
             </Link>
-            <Link href={`/${locale}/culture`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/culture`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
               {t.culture}
             </Link>
-            <Link href={`/${locale}/sport`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/sport`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
               {t.sport}
             </Link>
-            <Link href={`/${locale}/partenaires`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/partenaires`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
               {t.partnerships}
             </Link>
-            <Link href={`/${locale}/religion`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/religion`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
               {t.religion}
             </Link>
-            <Link href={`/${locale}/medias`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b]">
+            <Link href={`/${locale}/medias`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
               {t.media}
             </Link>
           </div>

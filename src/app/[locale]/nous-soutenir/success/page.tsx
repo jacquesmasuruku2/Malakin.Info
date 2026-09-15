@@ -66,7 +66,7 @@ export default function SuccessPage() {
           <h1 className="text-2xl font-bold text-[#111827]">Erreur</h1>
           <p className="mt-4 text-base text-[#4b5563]">{error || 'Session ID manquant'}</p>
           <button
-            onClick={() => router.push('/fr/nous-soutenir/faire-un-don')}
+            onClick={() => router.push('/fr/nous-soutenir')}
             className="mt-6 rounded-md bg-[#0b3b8b] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#082a63]"
           >
             Réessayer
@@ -115,7 +115,7 @@ export default function SuccessPage() {
           </button>
           <button
             type="button"
-            onClick={() => router.push('/fr/nous-soutenir/faire-un-don')}
+            onClick={() => router.push('/fr/nous-soutenir')}
             className="flex-1 flex items-center justify-center gap-2 rounded-md border border-[#d1d5db] bg-white px-4 py-3 text-sm font-semibold text-[#111827] transition hover:bg-[#f9fafb]"
           >
             <ArrowLeft className="h-4 w-4" />

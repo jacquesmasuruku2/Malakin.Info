@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       }],
       customer_email: donorEmail || undefined,
       success_url: `${baseUrl}/fr/nous-soutenir/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/fr/nous-soutenir/faire-un-don?cancelled=1`,
+      cancel_url: `${baseUrl}/fr/nous-soutenir?cancelled=1`,
       metadata: { purchaseType: 'donation', donationId: donation.id },
       payment_intent_data: { metadata: { purchaseType: 'donation', donationId: donation.id } },
     });

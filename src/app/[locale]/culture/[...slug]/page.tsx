@@ -11,6 +11,7 @@ import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/Article
 import { SponsoredSection } from '@/components/SponsoredSection';
 import ViewIncrementer from '@/components/ViewIncrementer';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
+import FavoriteButton from '@/components/FavoriteButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -206,6 +207,13 @@ export default async function CultureCatchAllPage({
               <div style={{ fontFamily: '"Playfair Display", Georgia, serif' }} className="text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]">
                 <ReadAlsoRenderer content={displayContent} />
               </div>
+
+              <FavoriteButton
+                articleId={article.id}
+                locale={locale}
+                categoryId={article.categoryId}
+                categoryTitle={translatedCategory.title || article.category?.title || ''}
+              />
 
               <div className="mt-8">
                 <AdSenseAd adSlot={ADSENSE_SLOTS.sidebar} className="my-4" />

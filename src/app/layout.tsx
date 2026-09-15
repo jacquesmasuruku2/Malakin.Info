@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { cn } from "@/lib/utils";
 import Providers from "@/components/Providers";
 import ServicesModal from "@/components/ServicesModal";
@@ -6,6 +7,8 @@ import RadioPlayer from "@/components/RadioPlayer";
 import ConsentScripts from "@/components/ConsentScripts";
 import { ADSENSE_CLIENT } from "@/lib/adsense";
 import "./globals.css";
+
+const THEME_INIT_SCRIPT = `(function(){try{var logged=!!localStorage.getItem('user')||document.cookie.indexOf('session_token=')!==-1||document.cookie.indexOf('next-auth.session-token=')!==-1||document.cookie.indexOf('__Secure-next-auth.session-token=')!==-1;if(logged&&localStorage.getItem('malakinfo.theme')==='dark'){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}else{document.documentElement.classList.remove('dark');document.documentElement.style.colorScheme='light';}}catch(e){}})();`;
 
 const GOOGLE_SITE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '';
 
@@ -82,7 +85,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={cn("h-full", "antialiased")}>
+    <html lang="fr" className={cn("h-full", "antialiased")} suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         {GOOGLE_SITE_VERIFICATION && (
@@ -106,7 +109,10 @@ gtag('consent', 'default', {
           crossOrigin="anonymous"
         />
       </head>
-      <body className="flex min-h-dvh flex-col">
+      <body className="flex min-h-dvh flex-col" suppressHydrationWarning>
+        <Script id="malakinfo-theme-init" strategy="beforeInteractive">
+          {THEME_INIT_SCRIPT}
+        </Script>
         <ConsentScripts />
         <Providers>
           <div className="flex flex-1 flex-col">

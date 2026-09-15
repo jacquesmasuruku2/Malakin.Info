@@ -44,7 +44,7 @@ Les pages localisées utilisent le préfixe `/{locale}` (`fr` ou `en`). Exemples
 - `/fr` : accueil.
 - `/fr/actualites` : actualités.
 - `/fr/medias/live` : diffusion vidéo en direct.
-- `/fr/nous-soutenir/faire-un-don` : don Stripe.
+- `/fr/nous-soutenir` : abonnements et soutien.
 - `/fr/partenaires` : partenaires approuvés.
 - `/fr/partenariats` : demande de partenariat.
 - `/fr/emploi` : offres d'emploi.

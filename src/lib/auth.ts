@@ -71,14 +71,14 @@ export const authOptions: AuthOptions = {
           });
 
           if (existingUser) {
-            // Update avatar if user exists
-            if (user.image) {
+            if (user.image && !existingUser.avatarUrl) {
               await prisma.user.update({
                 where: { email: user.email },
                 data: { avatarUrl: user.image },
               });
             }
             user.id = existingUser.id;
+            user.avatarUrl = existingUser.avatarUrl || user.image;
           } else {
             // Create new user
             const newUser = await prisma.user.create({
@@ -105,7 +105,7 @@ export const authOptions: AuthOptions = {
       try {
         if (user) {
           token.id = user.id;
-          token.avatarUrl = user.avatarUrl;
+          token.avatarUrl = user.avatarUrl || user.image;
         }
         return token;
       } catch (error) {
@@ -135,6 +135,8 @@ export const authOptions: AuthOptions = {
           });
 
           if (user) {
+            session.user.name = user.name;
+            session.user.avatarUrl = user.avatarUrl || token.avatarUrl;
             session.user.bio = user.bio;
             session.user.createdAt = user.createdAt?.toISOString();
             session.user._count = user._count;

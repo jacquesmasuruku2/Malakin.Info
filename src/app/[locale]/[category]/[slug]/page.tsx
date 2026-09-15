@@ -320,8 +320,13 @@ export default async function ArticlePage({
                 <AdSenseAd adSlot={ADSENSE_SLOTS.sidebar} className="my-4" />
               </div>
 
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <FavoriteButton articleId={article.id} locale={locale} />
+              <div className="mt-6">
+                <FavoriteButton
+                  articleId={article.id}
+                  locale={locale}
+                  categoryId={article.categoryId}
+                  categoryTitle={translatedCategory.title || article.category?.title || ''}
+                />
               </div>
             </article>
 

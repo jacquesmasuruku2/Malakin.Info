@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       ],
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/fr/nous-soutenir/success?session_id={CHECKOUT_SESSION_ID}&article_id=${articleId}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/fr/nous-soutenir/faire-un-don`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/fr/nous-soutenir`,
       metadata: {
         articleId,
         purchaseType: 'single_article',

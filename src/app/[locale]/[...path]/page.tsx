@@ -17,6 +17,7 @@ import { getPremiumPreviewContent, hasPremiumAccess } from '@/lib/premium-access
 import Paywall from '@/components/Paywall';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 import CategoryArticlesList from '@/components/CategoryArticlesList';
+import FavoriteButton from '@/components/FavoriteButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -403,6 +404,13 @@ export default async function CatchAllArticlePage({
                   )}
                 </div>
               )}
+
+              <FavoriteButton
+                articleId={article.id}
+                locale={locale}
+                categoryId={article.categoryId}
+                categoryTitle={translatedCategory.title || article.category?.title || ''}
+              />
 
               <div className="mt-8">
                 <AdSenseAd adSlot={ADSENSE_SLOTS.sidebar} className="my-4" />
