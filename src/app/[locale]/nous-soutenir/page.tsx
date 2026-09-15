@@ -35,7 +35,7 @@ const benefits = [
 ];
 
 function planCardClass(isSelected: boolean) {
-  return `flex cursor-pointer items-center justify-between border p-4 transition-colors ${
+  return `flex cursor-pointer items-center justify-between rounded-md border p-4 transition-colors ${
     isSelected
       ? 'border-secondary bg-secondary/10'
       : 'border-border bg-muted/40 hover:border-primary/40'
@@ -43,7 +43,7 @@ function planCardClass(isSelected: boolean) {
 }
 
 function radioClass(isSelected: boolean) {
-  return `flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border-2 ${
+  return `flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 ${
     isSelected ? 'border-secondary bg-secondary' : 'border-muted-foreground/40 bg-card'
   }`;
 }
@@ -114,7 +114,7 @@ export default function NousSoutenirPage() {
     <div className="min-h-screen bg-background text-foreground">
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
         <header className="mx-auto mb-10 max-w-4xl text-center">
-          <div className="mb-4 inline-flex items-center gap-2 border border-secondary/40 bg-secondary/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-secondary">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-secondary/40 bg-secondary/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-secondary">
             <Sparkles className="h-3.5 w-3.5" />
             Soutenez Malakinfo
           </div>
@@ -132,9 +132,9 @@ export default function NousSoutenirPage() {
             return (
               <article
                 key={benefit.title}
-                className="border border-border bg-card p-5 shadow-sm"
+                className="rounded-lg border border-border bg-card p-5 shadow-sm"
               >
-                <div className="mb-3 inline-flex bg-primary/10 p-2 text-primary">
+                <div className="mb-3 inline-flex rounded-md bg-primary/10 p-2 text-primary">
                   <Icon className="h-5 w-5" />
                 </div>
                 <h2 className="font-heading text-lg font-bold text-card-foreground">{benefit.title}</h2>
@@ -146,13 +146,13 @@ export default function NousSoutenirPage() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid gap-6 lg:grid-cols-[1.1fr_1.1fr_0.8fr]">
-            <section className="border border-border bg-card p-5 shadow-sm sm:p-7">
+            <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-7">
               <div className="mb-6 flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">Numérique</p>
                   <h2 className="mt-2 font-heading text-2xl font-bold text-card-foreground">Accès en ligne</h2>
                 </div>
-                <div className="bg-primary/10 p-2 text-primary">
+                <div className="rounded-md bg-primary/10 p-2 text-primary">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
               </div>
@@ -175,7 +175,7 @@ export default function NousSoutenirPage() {
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="text-base font-semibold text-foreground">{plan.label}</span>
                             {plan.badge && (
-                              <span className="bg-secondary px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-secondary-foreground">
+                              <span className="rounded-md bg-secondary px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-secondary-foreground">
                                 {plan.badge}
                               </span>
                             )}
@@ -204,13 +204,13 @@ export default function NousSoutenirPage() {
               </div>
             </section>
 
-            <section className="border border-secondary/40 bg-card p-5 shadow-sm sm:p-7">
+            <section className="rounded-lg border border-secondary/40 bg-card p-5 shadow-sm sm:p-7">
               <div className="mb-6 flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-secondary">Numérique + papier</p>
                   <h2 className="mt-2 font-heading text-2xl font-bold text-card-foreground">Abonnement complet</h2>
                 </div>
-                <div className="bg-secondary/15 p-2 text-secondary">
+                <div className="rounded-md bg-secondary/15 p-2 text-secondary">
                   <Gift className="h-5 w-5" />
                 </div>
               </div>
@@ -228,7 +228,7 @@ export default function NousSoutenirPage() {
                       key={country}
                       type="button"
                       onClick={() => setSelectedCountry(country)}
-                      className={`border px-3 py-2 text-sm font-medium transition-colors ${
+                      className={`rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
                         isActive
                           ? 'border-primary bg-primary text-primary-foreground'
                           : 'border-border bg-muted/40 text-foreground hover:border-primary hover:text-primary'
@@ -276,20 +276,20 @@ export default function NousSoutenirPage() {
               </div>
             </section>
 
-            <aside className="border border-border bg-card p-5 shadow-sm sm:p-7">
+            <aside className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-7">
               <div className="mb-5 flex items-center gap-3">
-                <div className="bg-primary/10 p-2 text-primary">
+                <div className="rounded-md bg-primary/10 p-2 text-primary">
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
                 <p className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground">Finalisation</p>
               </div>
 
-              <label className="mb-5 flex cursor-pointer items-start gap-3 border border-border bg-muted/40 p-4 text-sm text-foreground transition-colors hover:border-secondary">
+              <label className="mb-5 flex cursor-pointer items-start gap-3 rounded-md border border-border bg-muted/40 p-4 text-sm text-foreground transition-colors hover:border-secondary">
                 <input
                   type="checkbox"
                   checked={isGift}
                   onChange={(event) => setIsGift(event.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded-sm border-input text-primary focus:ring-primary"
+                  className="mt-0.5 h-4 w-4 rounded-md border-input text-primary focus:ring-primary"
                 />
                 <span>J&apos;offre cet abonnement / don en cadeau</span>
               </label>
@@ -308,7 +308,7 @@ export default function NousSoutenirPage() {
                       if (error) setError('');
                     }}
                     placeholder="votre@email.com"
-                    className="w-full border border-input bg-background py-3 pl-10 pr-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-md border border-input bg-background py-3 pl-10 pr-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
                     aria-label="Adresse courriel"
                   />
                 </div>
@@ -316,7 +316,7 @@ export default function NousSoutenirPage() {
 
               {error && <p className="mt-4 text-sm font-medium text-destructive">{error}</p>}
 
-              <div className="mt-6 border border-secondary/30 bg-secondary/10 p-4">
+              <div className="mt-6 rounded-md border border-secondary/30 bg-secondary/10 p-4">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Plan sélectionné</p>
@@ -324,7 +324,7 @@ export default function NousSoutenirPage() {
                       {activePlan.label} · {activePlan.price} $
                     </p>
                   </div>
-                  <div className="bg-primary p-2 text-primary-foreground">
+                  <div className="rounded-md bg-primary p-2 text-primary-foreground">
                     <MapPin className="h-4 w-4" />
                   </div>
                 </div>
@@ -334,7 +334,7 @@ export default function NousSoutenirPage() {
               <button
                 type="submit"
                 disabled={isProcessing}
-                className="mt-6 inline-flex w-full items-center justify-center gap-2 bg-primary px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.12em] text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.12em] text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isProcessing ? 'Traitement en cours...' : 'Prochaine étape'}
                 {!isProcessing && <ArrowRight className="h-4 w-4" />}
