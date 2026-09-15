@@ -217,9 +217,9 @@ export default async function Home({
                       <img
                         src={filteredFeaturedNews[0].image}
                         alt={filteredFeaturedNews[0].title}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                        className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/15 sm:from-black/70 sm:via-black/20 sm:to-transparent" />
 
                       <div className="absolute inset-x-0 top-0 p-4 sm:p-6">
                         <span className="inline-flex items-center bg-secondary px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-secondary-foreground">
@@ -227,7 +227,7 @@ export default async function Home({
                         </span>
                       </div>
 
-                      <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
+                      <div className="absolute inset-x-0 bottom-0 hidden p-4 sm:block sm:p-6">
                         <div className="mb-3 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/90">
                           <span>{filteredFeaturedNews[0].category}</span>
                           <span>•</span>
@@ -238,6 +238,17 @@ export default async function Home({
                           {filteredFeaturedNews[0].title}
                         </h1>
                       </div>
+                    </div>
+
+                    <div className="border-t border-border bg-card px-4 pt-4 sm:hidden">
+                      <div className="mb-2 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                        <span>{filteredFeaturedNews[0].category}</span>
+                        <span>•</span>
+                        <span>{filteredFeaturedNews[0].date}</span>
+                      </div>
+                      <h1 className="font-heading text-[1.55rem] font-black leading-tight tracking-[-0.03em] text-foreground">
+                        {filteredFeaturedNews[0].title}
+                      </h1>
                     </div>
                   </Link>
 
