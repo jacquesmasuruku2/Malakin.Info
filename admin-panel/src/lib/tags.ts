@@ -47,10 +47,16 @@ export async function syncArticleTags(articleId: string, tagNames: unknown) {
   }
 }
 
-export function tagsFromArticle(article: {
-  articleTags?: Array<{ tag?: { name?: string | null } | null }> | null;
-}): string[] {
-  return (article.articleTags || [])
-    .map((row) => row.tag?.name?.trim())
+export function tagsFromArticle(article: unknown): string[] {
+  if (!article || typeof article !== 'object' || !('articleTags' in article)) {
+    return [];
+  }
+
+  const rows = (article as {
+    articleTags?: Array<{ tag?: { name?: string | null } | null }> | null;
+  }).articleTags;
+
+  return (rows || [])
+    .map((row) => row?.tag?.name?.trim())
     .filter((name): name is string => Boolean(name));
 }

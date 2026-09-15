@@ -68,10 +68,11 @@ export async function POST(request: NextRequest) {
         articleTags: { include: { tag: true } },
       },
     });
+    const saved = withTags || article;
     return NextResponse.json({
-      ...(withTags || article),
-      views: Number((withTags || article).views),
-      tags: tagsFromArticle(withTags || article),
+      ...saved,
+      views: Number(saved.views),
+      tags: tagsFromArticle(saved),
     }, { status: 201 });
   } catch (error) {
     console.error('Error creating article:', error);

@@ -60,6 +60,7 @@ export async function PUT(
       include: {
         category: true,
         author: true,
+        articleTags: { include: { tag: true } },
       },
     });
     if (body.tags !== undefined) {
@@ -73,10 +74,11 @@ export async function PUT(
         articleTags: { include: { tag: true } },
       },
     });
+    const saved = withTags || article;
     return NextResponse.json({
-      ...(withTags || article),
-      views: Number((withTags || article).views),
-      tags: tagsFromArticle(withTags || article),
+      ...saved,
+      views: Number(saved.views),
+      tags: tagsFromArticle(saved),
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update article' }, { status: 500 });
