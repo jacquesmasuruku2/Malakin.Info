@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ArrowRight, Check, CheckCircle2, Gift, Mail, MapPin, ShieldCheck, Sparkles } from 'lucide-react';
 
 const digitalPlans = [
@@ -14,7 +14,61 @@ const printPlans = [
   { id: 'print-2y', label: '2 ANS', price: 120, period: '2 ans', badge: null },
 ];
 
-const countries = ['RDC', 'Canada', 'Autres pays'];
+const featuredCountries = ['RDC', 'Canada', 'France', 'Belgique', 'États-Unis', 'Afrique du Sud'];
+const otherCountries = [
+  'Allemagne',
+  'Angola',
+  'Arabie saoudite',
+  'Australie',
+  'Autriche',
+  'Bénin',
+  'Botswana',
+  'Brésil',
+  'Burundi',
+  'Cameroun',
+  'Chine',
+  'Congo-Brazzaville',
+  'Côte d’Ivoire',
+  'Égypte',
+  'Émirats arabes unis',
+  'Espagne',
+  'Gabon',
+  'Ghana',
+  'Guinée',
+  'Haïti',
+  'Inde',
+  'Irlande',
+  'Italie',
+  'Japon',
+  'Kenya',
+  'Luxembourg',
+  'Madagascar',
+  'Malawi',
+  'Mali',
+  'Maroc',
+  'Maurice',
+  'Mozambique',
+  'Namibie',
+  'Nigeria',
+  'Norvège',
+  'Ouganda',
+  'Pays-Bas',
+  'Portugal',
+  'Qatar',
+  'République centrafricaine',
+  'Royaume-Uni',
+  'Rwanda',
+  'Sénégal',
+  'Suède',
+  'Suisse',
+  'Tanzanie',
+  'Tchad',
+  'Togo',
+  'Tunisie',
+  'Turquie',
+  'Zambie',
+  'Zimbabwe',
+];
 
 function planCardClass(isSelected: boolean) {
   return `flex cursor-pointer items-center justify-between rounded-md border p-4 transition-colors ${
@@ -35,10 +89,13 @@ export default function NousSoutenirPage() {
   const [selectedPrintPlan, setSelectedPrintPlan] = useState('print-1y');
   const [selectedPlanType, setSelectedPlanType] = useState<'digital' | 'print'>('digital');
   const [selectedCountry, setSelectedCountry] = useState('RDC');
+  const [showOtherCountries, setShowOtherCountries] = useState(false);
   const [isGift, setIsGift] = useState(false);
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const otherCountrySelectRef = useRef<HTMLSelectElement>(null);
+  const isOtherCountryMode = showOtherCountries || otherCountries.includes(selectedCountry);
 
   const activeDigitalPlan = digitalPlans.find((plan) => plan.id === selectedDigitalPlan) ?? digitalPlans[1];
   const activePrintPlan = printPlans.find((plan) => plan.id === selectedPrintPlan) ?? printPlans[0];
@@ -46,6 +103,12 @@ export default function NousSoutenirPage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!selectedCountry) {
+      setError('Veuillez choisir un pays de livraison.');
+      setShowOtherCountries(true);
+      return;
+    }
 
     if (!email.trim()) {
       setError('Veuillez renseigner votre adresse email.');
@@ -183,25 +246,74 @@ export default function NousSoutenirPage() {
                 Le magazine livré chez vous et un accès numérique illimité sur tous vos appareils.
               </p>
 
-              <div className="mb-6 flex flex-wrap gap-2">
-                {countries.map((country) => {
-                  const isActive = selectedCountry === country;
+              <div className="mb-6 space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {featuredCountries.map((country) => {
+                    const isActive = selectedCountry === country && !isOtherCountryMode;
 
-                  return (
-                    <button
-                      key={country}
-                      type="button"
-                      onClick={() => setSelectedCountry(country)}
-                      className={`rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
-                        isActive
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-border bg-muted/40 text-foreground hover:border-primary hover:text-primary'
-                      }`}
+                    return (
+                      <button
+                        key={country}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCountry(country);
+                          setShowOtherCountries(false);
+                          if (error) setError('');
+                        }}
+                        className={`rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                          isActive
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-border bg-muted/40 text-foreground hover:border-primary hover:text-primary'
+                        }`}
+                      >
+                        {country}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowOtherCountries(true);
+                      if (!otherCountries.includes(selectedCountry)) {
+                        setSelectedCountry('');
+                      }
+                      requestAnimationFrame(() => otherCountrySelectRef.current?.focus());
+                    }}
+                    className={`rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                      isOtherCountryMode
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border bg-muted/40 text-foreground hover:border-primary hover:text-primary'
+                    }`}
+                  >
+                    Autres pays
+                  </button>
+                </div>
+
+                {isOtherCountryMode && (
+                  <div>
+                    <label htmlFor="other-country" className="mb-2 block text-sm font-medium text-foreground">
+                      Choisir un pays
+                    </label>
+                    <select
+                      id="other-country"
+                      ref={otherCountrySelectRef}
+                      value={selectedCountry}
+                      onChange={(event) => {
+                        setSelectedCountry(event.target.value);
+                        if (error) setError('');
+                      }}
+                      aria-label="Choisir un autre pays de livraison"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                     >
-                      {country}
-                    </button>
-                  );
-                })}
+                      <option value="">Sélectionnez un pays</option>
+                      {otherCountries.map((country) => (
+                        <option key={country} value={country}>
+                          {country}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-3">
@@ -292,7 +404,9 @@ export default function NousSoutenirPage() {
                     <MapPin className="h-4 w-4" />
                   </div>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">Livraison : {selectedCountry}</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Livraison : {selectedCountry || 'À choisir'}
+                </p>
               </div>
 
               <button
