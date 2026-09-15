@@ -122,51 +122,39 @@ export default function FavoriteButton({
   };
 
   return (
-    <div className="mt-8 space-y-4 border-t border-border pt-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-foreground">
-            {isFrench ? 'Garder cet article' : 'Save this article'}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {isFrench
-              ? 'Enregistrez-le en favori pour retrouver la suite de cette rubrique.'
-              : 'Save it to favorites to keep reading from this section.'}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleToggleFavorite}
-          disabled={loading}
-          className={`inline-flex items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition-colors ${
-            favorited
-              ? 'border-primary bg-primary text-white hover:bg-primary/90'
-              : 'border-border bg-background text-foreground hover:bg-muted'
-          } disabled:cursor-not-allowed disabled:opacity-60`}
-        >
-          {favorited ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
-          {loading
-            ? '...'
-            : favorited
-              ? (isFrench ? 'Enregistré en favori' : 'Saved to favorites')
-              : (isFrench ? 'Enregistrer en favori' : 'Save to favorites')}
-        </button>
-      </div>
+    <div className="mt-6">
+      <button
+        type="button"
+        onClick={handleToggleFavorite}
+        disabled={loading}
+        className={`inline-flex w-fit items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+          favorited
+            ? 'border-primary bg-primary text-white hover:bg-primary/90'
+            : 'border-border bg-background text-foreground hover:bg-muted'
+        } disabled:cursor-not-allowed disabled:opacity-60`}
+      >
+        {favorited ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
+        {loading
+          ? '...'
+          : favorited
+            ? (isFrench ? 'Enregistré en favori' : 'Saved to favorites')
+            : (isFrench ? 'Enregistrer en favori' : 'Save to favorites')}
+      </button>
 
       {suggestion && (
         <a
           href={`/${locale}/${suggestion.slug}`}
-          className="flex gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/30"
+          className="mt-4 flex max-w-xl gap-3 rounded-xl border border-border bg-card p-3 transition hover:border-primary/30"
         >
           {suggestion.mainImageUrl && (
             <img
               src={suggestion.mainImageUrl}
               alt=""
-              className="h-20 w-28 shrink-0 rounded-xl object-cover"
+              className="h-16 w-20 shrink-0 rounded-lg object-cover"
             />
           )}
           <div className="min-w-0">
-            <p className="mb-1 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+            <p className="mb-1 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
               <Bell className="h-3.5 w-3.5" />
               {isFrench ? 'À lire aussi dans cette rubrique' : 'More from this section'}
             </p>
