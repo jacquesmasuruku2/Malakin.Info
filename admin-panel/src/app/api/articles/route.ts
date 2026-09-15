@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { syncArticleTags, tagsFromArticle } from '@/lib/tags';
 
 export async function GET() {
   try {
@@ -55,11 +56,22 @@ export async function POST(request: NextRequest) {
       include: {
         category: true,
         author: true,
+        articleTags: { include: { tag: true } },
+      },
+    });
+    await syncArticleTags(article.id, body.tags);
+    const withTags = await prisma.article.findUnique({
+      where: { id: article.id },
+      include: {
+        category: true,
+        author: true,
+        articleTags: { include: { tag: true } },
       },
     });
     return NextResponse.json({
-      ...article,
-      views: Number(article.views),
+      ...(withTags || article),
+      views: Number((withTags || article).views),
+      tags: tagsFromArticle(withTags || article),
     }, { status: 201 });
   } catch (error) {
     console.error('Error creating article:', error);

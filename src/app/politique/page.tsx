@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { Calendar, Clock, ArrowRight } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,18 +72,13 @@ export default async function PolitiquePage() {
                     </span>
                   </div>
                   <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
-                    {item.title}
+                    <Link href={`/${item.slug}`} className="hover:text-primary">
+                      {item.title}
+                    </Link>
                   </h3>
-                  <p className="text-muted-foreground line-clamp-2 mb-4">
+                  <p className="text-muted-foreground line-clamp-2">
                     {item.excerpt}
                   </p>
-                  <Link
-                    href={`/${item.slug}`}
-                    className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-                  >
-                    Lire la suite
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Link>
                 </div>
               </article>
             ))}

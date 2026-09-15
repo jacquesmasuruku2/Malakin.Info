@@ -26,7 +26,6 @@ export default async function Home({
   const normalizedLocale = getLocaleFromPathname(`/${locale}`);
   const messages = getMessages(normalizedLocale);
   const t = messages.home;
-  const tCommon = messages.common;
   let featuredArticles: any[] = [];
   let latestArticles: any[] = [];
   let currentLive: any = null;
@@ -242,17 +241,10 @@ export default async function Home({
                     </div>
                   </Link>
 
-                  <div className="flex flex-col gap-4 border-t border-border bg-card p-4 sm:flex-row sm:items-end sm:p-5">
-                    <p className="min-w-0 flex-1 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  <div className="border-t border-border bg-card p-4 sm:p-5">
+                    <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
                       {filteredFeaturedNews[0].excerpt}
                     </p>
-
-                    <Link
-                      href={`/${locale}/${filteredFeaturedNews[0].slug}`}
-                      className="inline-flex w-full shrink-0 items-center justify-center border border-foreground bg-foreground px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-background transition-colors hover:bg-secondary hover:text-secondary-foreground sm:w-auto"
-                    >
-                      {tCommon.readMore}
-                    </Link>
                   </div>
                 </div>
 

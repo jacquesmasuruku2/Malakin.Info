@@ -6,6 +6,7 @@ import WordEditor from '@/components/WordEditor';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
+import TagInput from '@/components/TagInput';
 
 export default function NewArticlePage() {
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function NewArticlePage() {
     externalLink: '',
     additionalImages: [] as string[],
     additionalImageDescriptions: [] as string[],
+    tags: [] as string[],
   });
 
   // A new article always starts with a clean form.
@@ -153,6 +155,7 @@ export default function NewArticlePage() {
       externalLink: '',
       additionalImages: [] as string[],
       additionalImageDescriptions: [] as string[],
+      tags: [] as string[],
     });
   };
 
@@ -586,6 +589,11 @@ export default function NewArticlePage() {
                     Si ce champ est rempli, les visiteurs seront redirigés vers cette URL au clic sur l'article.
                   </p>
                 </div>
+
+                <TagInput
+                  value={formData.tags}
+                  onChange={(tags) => setFormData({ ...formData, tags })}
+                />
 
                 <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
                   <input

@@ -3,6 +3,8 @@ import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, ArrowLeft } from 'lucide-react';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
+import ArticleTags from '@/components/ArticleTags';
+import { getArticleTags } from '@/lib/tags';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,10 +17,11 @@ export default async function PolitiqueArticlePage({
 
   const article = await prisma.article.findUnique({
     where: { slug },
-    include: {
-      category: true,
-      author: true,
-    },
+      include: {
+        category: true,
+        author: true,
+        articleTags: { include: { tag: true } },
+      },
   } as any) as any;
 
   if (!article) {
@@ -75,6 +78,7 @@ export default async function PolitiqueArticlePage({
           <p className="text-xl text-muted-foreground">
             {displayExcerpt}
           </p>
+          <ArticleTags tags={getArticleTags(article)} locale={locale} />
         </header>
 
         {article.mainImageUrl && (

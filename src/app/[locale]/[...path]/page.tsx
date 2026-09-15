@@ -20,6 +20,8 @@ import Paywall from '@/components/Paywall';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 import CategoryArticlesList from '@/components/CategoryArticlesList';
 import FavoriteButton from '@/components/FavoriteButton';
+import ArticleTags from '@/components/ArticleTags';
+import { getArticleTags } from '@/lib/tags';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       include: {
         category: true,
         author: true,
+        articleTags: { include: { tag: true } },
       },
     } as any) as any;
 
@@ -131,6 +134,7 @@ export default async function CatchAllArticlePage({
       include: {
         category: true,
         author: true,
+        articleTags: { include: { tag: true } },
       },
     } as any) as any;
 
@@ -360,6 +364,8 @@ export default async function CatchAllArticlePage({
                   {displayExcerpt}
                 </p>
               )}
+
+              <ArticleTags tags={getArticleTags(article)} locale={locale} />
 
               {article.mainImageUrl && (
                 <div className="mb-8 rounded-lg overflow-hidden">

@@ -91,16 +91,11 @@ export default async function CategoryArticlesList({
                     )}
                   </div>
                   <h2 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
-                    {item.title}
+                    <Link href={`/${locale}/${item.slug}`} className="hover:text-primary">
+                      {item.title}
+                    </Link>
                   </h2>
-                  <p className="text-muted-foreground line-clamp-2 mb-4">{item.excerpt}</p>
-                  <Link
-                    href={`/${locale}/${item.slug}`}
-                    className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-                  >
-                    {t(locale, 'readMore')}
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Link>
+                  <p className="text-muted-foreground line-clamp-2">{item.excerpt}</p>
                 </div>
               </article>
             ))}

@@ -279,6 +279,30 @@ export const copies = {
     ln: 'Tanga article oyo',
     rw: 'Soma iyi nkuru',
   },
+  tags: {
+    fr: 'Tags',
+    en: 'Tags',
+    es: 'Etiquetas',
+    sw: 'Lebo',
+    ln: 'Ba tag',
+    rw: 'Utubuto',
+  },
+  taggedArticles: {
+    fr: 'Tous les articles tagués',
+    en: 'All tagged articles',
+    es: 'Todos los artículos etiquetados',
+    sw: 'Makala yote yaliyowekewa lebo',
+    ln: 'Ba article nionso oyo ezali na tag',
+    rw: 'Inkuru zose zifite ikimenyetso',
+  },
+  noTaggedArticles: {
+    fr: 'Aucun article n’est encore tagué avec ce nom.',
+    en: 'No articles have been tagged with this name yet.',
+    es: 'Todavía no hay artículos con esta etiqueta.',
+    sw: 'Bado hakuna makala yenye lebo hii.',
+    ln: 'Article ezali naino te na kombo oyo.',
+    rw: 'Nta nkuru iracyafite iri zina.',
+  },
 } as const;
 
 export function t(locale: string | null | undefined, key: keyof typeof copies) {

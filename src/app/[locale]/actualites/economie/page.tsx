@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -74,18 +74,13 @@ export default async function EconomiePage({ params }: { params: Promise<{ local
                   </span>
                 </div>
                 <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
-                  {item.title}
-                </h3>
-                <p className="text-muted-foreground line-clamp-2 mb-4">
-                  {item.excerpt}
-                </p>
-                <Link
-                  href={`/${locale}/${item.slug}`}
-                  className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-                >
-                  Lire la suite
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Link>
+                    <Link href={`/${locale}/${item.slug}`} className="hover:text-primary">
+                      {item.title}
+                    </Link>
+                  </h3>
+                  <p className="text-muted-foreground line-clamp-2">
+                    {item.excerpt}
+                  </p>
               </div>
             </article>
           ))}

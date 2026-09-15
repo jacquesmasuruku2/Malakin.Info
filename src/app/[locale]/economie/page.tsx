@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { applyArticleLocales } from '@/lib/translation';
 import { getDateLocale, pickCopy, t } from '@/lib/copy';
@@ -44,7 +44,6 @@ export default async function EconomyPage({
     ln: 'Finance, ba marché, ba entreprise mpe transformation économique na Afrique mpe na mokili.',
     rw: 'Imari, isoko, ubucuruzi n’impinduka z’ubukungu mu Afurika no ku isi.',
   });
-  const readMore = t(locale, 'readMore');
   const emptyMessage = pickCopy(locale, {
     fr: 'Aucun article économique disponible pour le moment.',
     en: 'No economy articles available at the moment.',
@@ -95,11 +94,10 @@ export default async function EconomyPage({
                       <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />{article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</span>
                       <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{article.readTime ? `${article.readTime} min` : '5 min'}</span>
                     </div>
-                    <h3 className="font-heading text-2xl font-black leading-tight tracking-[-0.025em] text-foreground transition-colors group-hover:text-secondary">{article.title}</h3>
+                    <h3 className="font-heading text-2xl font-black leading-tight tracking-[-0.025em] text-foreground transition-colors group-hover:text-secondary">
+                      <Link href={`/${locale}/${article.slug}`}>{article.title}</Link>
+                    </h3>
                     {article.excerpt && <p className="mt-3 line-clamp-3 text-sm leading-6 text-muted-foreground">{article.excerpt}</p>}
-                    <Link href={`/${locale}/${article.slug}`} className="mt-5 inline-flex items-center text-[11px] font-bold uppercase tracking-[0.14em] text-foreground transition-colors hover:text-secondary">
-                      {readMore}<ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
                   </div>
                 </article>
               ))}

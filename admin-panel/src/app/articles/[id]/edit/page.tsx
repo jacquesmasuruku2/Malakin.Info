@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Save, Upload, X, Loader2 } from 'lucide-react';
 import { getApiUrl } from '@/lib/api';
+import TagInput from '@/components/TagInput';
 
 interface Article {
   id: string;
@@ -27,6 +28,7 @@ interface Article {
   externalLink: string | null;
   additionalImages: string[] | null;
   additionalImageDescriptions: string[] | null;
+  tags?: string[];
 }
 
 export default function EditArticlePage() {
@@ -61,6 +63,7 @@ export default function EditArticlePage() {
     externalLink: string;
     additionalImages: string[];
     additionalImageDescriptions: string[];
+    tags: string[];
   }>({
     title: '',
     slug: '',
@@ -79,6 +82,7 @@ export default function EditArticlePage() {
     externalLink: '',
     additionalImages: [],
     additionalImageDescriptions: [],
+    tags: [],
   });
 
   useEffect(() => {
@@ -133,6 +137,7 @@ export default function EditArticlePage() {
         externalLink: data.externalLink || '',
         additionalImages: data.additionalImages || [],
         additionalImageDescriptions: data.additionalImageDescriptions || [],
+        tags: data.tags || [],
       });
     } catch (error) {
       console.error('Failed to fetch article:', error);
@@ -632,6 +637,11 @@ export default function EditArticlePage() {
                     Si ce champ est rempli, les visiteurs seront redirigés vers cette URL au clic sur l'article.
                   </p>
                 </div>
+
+                <TagInput
+                  value={formData.tags}
+                  onChange={(tags) => setFormData({ ...formData, tags })}
+                />
 
                 <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
                   <input

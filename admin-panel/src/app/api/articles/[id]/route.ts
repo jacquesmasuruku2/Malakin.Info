@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { syncArticleTags, tagsFromArticle } from '@/lib/tags';
 
 export async function GET(
   request: NextRequest,
@@ -12,6 +13,7 @@ export async function GET(
       include: {
         category: true,
         author: true,
+        articleTags: { include: { tag: true } },
       },
     });
     if (!article) {
@@ -20,6 +22,7 @@ export async function GET(
     return NextResponse.json({
       ...article,
       views: Number(article.views),
+      tags: tagsFromArticle(article),
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch article' }, { status: 500 });
@@ -59,9 +62,21 @@ export async function PUT(
         author: true,
       },
     });
+    if (body.tags !== undefined) {
+      await syncArticleTags(id, body.tags);
+    }
+    const withTags = await prisma.article.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        author: true,
+        articleTags: { include: { tag: true } },
+      },
+    });
     return NextResponse.json({
-      ...article,
-      views: Number(article.views),
+      ...(withTags || article),
+      views: Number((withTags || article).views),
+      tags: tagsFromArticle(withTags || article),
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update article' }, { status: 500 });

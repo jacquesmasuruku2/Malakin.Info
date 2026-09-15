@@ -375,3 +375,186 @@ html.dark .article-body a:hover,
 html.dark .article-body a:hover :is(span, strong, b, em, i, u) {
   color: var(--secondary) !important;
 }
+
+.article-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0.85rem 0 1.6rem;
+}
+
+.article-tag-chip {
+  --i: 0;
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.42rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--secondary) 55%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 92%, #081C3D), var(--primary));
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 28%, transparent);
+  animation: tag-chip-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 90ms);
+  transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 0.22s ease;
+}
+
+.article-tag-chip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.42) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: tag-shimmer 2.8s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 180ms + 0.4s);
+  pointer-events: none;
+}
+
+.article-tag-chip:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--secondary) 38%, transparent);
+  color: #fff;
+}
+
+.article-tag-hash {
+  color: var(--secondary);
+  font-weight: 800;
+}
+
+.tag-page-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% 20%, color-mix(in srgb, var(--secondary) 28%, transparent), transparent 42%),
+    radial-gradient(circle at 88% 80%, color-mix(in srgb, var(--primary) 35%, transparent), transparent 38%),
+    linear-gradient(120deg, #081C3D, #0B3B8B 58%, #081C3D);
+}
+
+.tag-page-hero-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.2rem;
+  height: 4.2rem;
+  margin-bottom: 1rem;
+  border-radius: 1.1rem;
+  background: color-mix(in srgb, var(--secondary) 18%, transparent);
+  color: var(--secondary);
+  font-size: 2.2rem;
+  font-weight: 800;
+  animation: tag-hero-pulse 2.4s ease-in-out infinite;
+}
+
+.tag-page-title {
+  position: relative;
+  display: inline-block;
+}
+
+.tag-page-underline {
+  display: block;
+  height: 4px;
+  margin-top: 0.7rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--secondary), #fff, var(--secondary));
+  background-size: 200% 100%;
+  transform-origin: left;
+  animation: tag-underline 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both, tag-gold-flow 2.6s linear infinite;
+}
+
+.tag-listing-card {
+  --i: 0;
+  animation: tag-card-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 95ms);
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+.tag-listing-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 18px 40px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.tag-listing-card img {
+  transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.tag-listing-card:hover img {
+  transform: scale(1.07);
+}
+
+@keyframes tag-chip-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes tag-shimmer {
+  0%, 55% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes tag-hero-pulse {
+  0%, 100% {
+    transform: scale(1) rotate(-6deg);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--secondary) 40%, transparent);
+  }
+  50% {
+    transform: scale(1.08) rotate(0deg);
+    box-shadow: 0 0 0 12px color-mix(in srgb, var(--secondary) 0%, transparent);
+  }
+}
+
+@keyframes tag-underline {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes tag-gold-flow {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes tag-card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-tag-chip,
+  .article-tag-chip::after,
+  .tag-page-hero-mark,
+  .tag-page-underline,
+  .tag-listing-card,
+  .tag-listing-card img {
+    animation: none !important;
+    transition: none !important;
+  }
+}

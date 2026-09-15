@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight, Palette } from 'lucide-react';
+import { Calendar, Clock, Palette } from 'lucide-react';
 
 export default function ArtsPage() {
   const articles = [
@@ -67,18 +67,13 @@ export default function ArtsPage() {
                   </span>
                 </div>
                 <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
-                  {article.title}
-                </h3>
-                <p className="text-muted-foreground line-clamp-2 mb-4">
-                  {article.excerpt}
-                </p>
-                <Link
-                  href={`/culture/arts/${article.id}`}
-                  className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-                >
-                  Lire la suite
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Link>
+                    <Link href={`/culture/arts/${article.id}`} className="hover:text-primary">
+                      {article.title}
+                    </Link>
+                  </h3>
+                  <p className="text-muted-foreground line-clamp-2">
+                    {article.excerpt}
+                  </p>
               </div>
             </article>
           ))}

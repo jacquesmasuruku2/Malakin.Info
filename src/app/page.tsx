@@ -173,14 +173,16 @@ export default async function Home() {
                 className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="relative h-48">
-                  <img
-                    src={news.image}
-                    alt={news.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <span className="absolute top-4 left-4 px-3 py-1 bg-primary text-white text-xs font-medium rounded-full">
-                    {news.category}
-                  </span>
+                  <Link href={`/actualites/${news.id}`}>
+                    <img
+                      src={news.image}
+                      alt={news.title}
+                      className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                    />
+                    <span className="absolute top-4 left-4 px-3 py-1 bg-primary text-white text-xs font-medium rounded-full">
+                      {news.category}
+                    </span>
+                  </Link>
                 </div>
                 <div className="p-6">
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
@@ -194,18 +196,13 @@ export default async function Home() {
                     </span>
                   </div>
                   <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
-                    {news.title}
+                    <Link href={`/actualites/${news.id}`} className="hover:text-primary">
+                      {news.title}
+                    </Link>
                   </h3>
-                  <p className="text-muted-foreground line-clamp-2 mb-4">
+                  <p className="text-muted-foreground line-clamp-2">
                     {news.excerpt}
                   </p>
-                  <Link
-                    href={`/actualites/${news.id}`}
-                    className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-                  >
-                    Lire la suite
-                    <ArrowRight className="ml-2 w-4 h-4" />
-                  </Link>
                 </div>
               </article>
             ))}

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
@@ -277,18 +276,13 @@ export default async function ActualitesPage({
                         </div>
                         <ArticleAuthorLink author={item.author} locale={locale} className="text-xs text-muted-foreground" />
                         <h3 className="font-heading text-[1.5rem] font-black leading-tight tracking-[-0.03em] text-foreground transition-colors group-hover:text-secondary line-clamp-3">
-                          {item.title}
+                          <Link href={`/${locale}/${item.slug}`}>
+                            {item.title}
+                          </Link>
                         </h3>
                         <p className="mt-3 text-sm leading-relaxed text-muted-foreground line-clamp-3">
                           {item.excerpt}
                         </p>
-                        <Link
-                          href={`/${locale}/${item.slug}`}
-                          className="mt-4 inline-flex items-center text-[11px] font-bold uppercase tracking-[0.14em] text-foreground transition-colors hover:text-secondary"
-                        >
-                          {t(locale, 'readMore')}
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
                       </div>
                     </article>
                   ))}

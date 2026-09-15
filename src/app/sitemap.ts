@@ -70,7 +70,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }))
     )
 
-    return [...staticPages, ...articlePages, ...archiveYearPages]
+    const tags = await prisma.tag.findMany({
+      where: { articles: { some: {} } },
+      select: { slug: true, updatedAt: true },
+    })
+
+    const tagPages: MetadataRoute.Sitemap = tags.flatMap((tag) =>
+      locales.map((locale) => ({
+        url: `${SITE_URL}/${locale}/tag/${tag.slug}`,
+        lastModified: tag.updatedAt,
+        changeFrequency: 'weekly' as const,
+        priority: 0.6,
+      }))
+    )
+
+    return [...staticPages, ...articlePages, ...archiveYearPages, ...tagPages]
   } catch (error) {
     console.error('Error generating sitemap:', error)
     return staticPages

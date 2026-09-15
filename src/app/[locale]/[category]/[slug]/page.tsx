@@ -10,6 +10,8 @@ import AdSenseAd from '@/components/AdSenseAd';
 import { ADSENSE_SLOTS } from '@/lib/adsense';
 import ViewIncrementer from '@/components/ViewIncrementer';
 import FavoriteButton from '@/components/FavoriteButton';
+import ArticleTags from '@/components/ArticleTags';
+import { getArticleTags } from '@/lib/tags';
 import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
 import { SponsoredSection } from '@/components/SponsoredSection';
@@ -109,6 +111,7 @@ export default async function ArticlePage({
       include: {
         category: true,
         author: true,
+        articleTags: { include: { tag: true } },
       },
     } as any)) as any;
 
@@ -140,6 +143,7 @@ export default async function ArticlePage({
       include: {
         category: true,
         author: true,
+        articleTags: { include: { tag: true } },
       },
       take: 4,
       orderBy: {
@@ -241,6 +245,7 @@ export default async function ArticlePage({
             <h1 className={`${playfair.className} text-[2.25rem] font-bold leading-[1.08] tracking-[-0.03em] text-foreground md:text-[3.5rem]`}>
               {displayTitle}
             </h1>
+            <ArticleTags tags={getArticleTags(article)} locale={locale} />
           </header>
 
           <div className="grid w-full grid-cols-1 items-start gap-8 xl:grid-cols-[72px_minmax(0,1fr)_300px]">
