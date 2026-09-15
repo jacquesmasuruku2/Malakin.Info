@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Mail, X } from 'lucide-react';
 import {
   CONSENT_CATEGORIES,
@@ -16,8 +16,125 @@ const STORAGE_KEY = CONSENT_STORAGE_KEY;
 const PREFERENCES_KEY = CONSENT_PREFERENCES_KEY;
 const NEWSLETTER_PROMPT_KEY = 'malakinfo_newsletter_prompt_dismissed';
 const COOKIE_CONSENT_DELAY_MS = 2_000;
+const MOBILE_COOKIE_QUERY = '(max-width: 639px)';
+const MOBILE_COOKIE_ENTER_MS = 800;
+const MOBILE_COOKIE_VISIBLE_MS = 5_000;
+const MOBILE_COOKIE_SCROLL_DELTA = 28;
 const PREFERENCE_CATEGORIES = CONSENT_CATEGORIES;
 const defaultPreferences = DEFAULT_CONSENT_PREFERENCES;
+
+function useMobileCookieButton(enabled: boolean) {
+  const [revealed, setRevealed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const pinnedRef = useRef(false);
+  const hideTimerRef = useRef<number | undefined>(undefined);
+  const showTimerRef = useRef<number | undefined>(undefined);
+
+  const clearTimers = () => {
+    window.clearTimeout(hideTimerRef.current);
+    window.clearTimeout(showTimerRef.current);
+  };
+
+  const scheduleHide = useCallback(() => {
+    window.clearTimeout(hideTimerRef.current);
+    if (pinnedRef.current) return;
+    hideTimerRef.current = window.setTimeout(
+      () => setRevealed(false),
+      MOBILE_COOKIE_VISIBLE_MS
+    );
+  }, []);
+
+  const pinOpen = useCallback(() => {
+    pinnedRef.current = true;
+    clearTimers();
+    setRevealed(true);
+  }, []);
+
+  const unpin = useCallback(() => {
+    pinnedRef.current = false;
+    scheduleHide();
+  }, [scheduleHide]);
+
+  useEffect(() => {
+    if (!enabled) {
+      pinnedRef.current = false;
+      clearTimers();
+      setRevealed(false);
+      setIsMobile(window.matchMedia(MOBILE_COOKIE_QUERY).matches);
+      return;
+    }
+
+    let lastY = window.scrollY;
+    let ticking = false;
+    let mobileSession = false;
+    let ignoreHideUntil = 0;
+
+    const reveal = () => {
+      setRevealed(true);
+      ignoreHideUntil = Date.now() + 900;
+      if (!pinnedRef.current) scheduleHide();
+    };
+
+    const hide = () => {
+      if (pinnedRef.current || Date.now() < ignoreHideUntil) return;
+      window.clearTimeout(hideTimerRef.current);
+      setRevealed(false);
+    };
+
+    const setup = () => {
+      const mobile = window.matchMedia(MOBILE_COOKIE_QUERY).matches;
+      setIsMobile(mobile);
+
+      if (!mobile) {
+        mobileSession = false;
+        clearTimers();
+        setRevealed(true);
+        return;
+      }
+
+      if (mobileSession) return;
+      mobileSession = true;
+      clearTimers();
+      setRevealed(false);
+      lastY = window.scrollY;
+      showTimerRef.current = window.setTimeout(reveal, MOBILE_COOKIE_ENTER_MS);
+    };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        ticking = false;
+        if (!window.matchMedia(MOBILE_COOKIE_QUERY).matches || pinnedRef.current) return;
+
+        const y = Math.max(0, window.scrollY);
+        const delta = y - lastY;
+        lastY = y;
+        const atBottom =
+          y + window.innerHeight >= document.documentElement.scrollHeight - 180;
+
+        if (delta < -MOBILE_COOKIE_SCROLL_DELTA || atBottom) {
+          reveal();
+        } else if (delta > MOBILE_COOKIE_SCROLL_DELTA) {
+          hide();
+        }
+      });
+    };
+
+    setup();
+    const media = window.matchMedia(MOBILE_COOKIE_QUERY);
+    media.addEventListener('change', setup);
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => {
+      clearTimers();
+      media.removeEventListener('change', setup);
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, [enabled, scheduleHide]);
+
+  return { revealed, isMobile, pinOpen, unpin };
+}
 
 function buildSavedPreferences(raw: string | null) {
   if (!raw) {
@@ -376,6 +493,8 @@ export default function CookieConsentModal() {
   };
 
   const showCookieButton = !isVisible && !isPreferencesOpen && !isNewsletterPromptOpen;
+  const { revealed: cookieButtonRevealed, isMobile: isMobileCookieButton, pinOpen, unpin } =
+    useMobileCookieButton(showCookieButton);
 
   return (
     <>
@@ -383,9 +502,15 @@ export default function CookieConsentModal() {
         <button
           type="button"
           onClick={openCookieSettings}
+          onFocus={pinOpen}
+          onBlur={unpin}
           aria-label="Gérer les cookies"
           title="Gérer les cookies"
-          className="group fixed bottom-[5.75rem] left-3 z-[80] flex items-center rounded-full border border-black/5 bg-white shadow-[0_4px_18px_rgba(15,40,80,0.16)] transition hover:shadow-[0_8px_24px_rgba(15,40,80,0.22)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] sm:bottom-5 sm:left-5"
+          aria-hidden={isMobileCookieButton && !cookieButtonRevealed}
+          tabIndex={isMobileCookieButton && !cookieButtonRevealed ? -1 : 0}
+          className={`cookie-manage-btn group fixed bottom-[5.75rem] left-3 z-[80] flex items-center rounded-full border border-black/5 bg-white shadow-[0_4px_18px_rgba(15,40,80,0.16)] transition-shadow hover:shadow-[0_8px_24px_rgba(15,40,80,0.22)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] sm:bottom-5 sm:left-5 ${
+            cookieButtonRevealed ? 'is-shown' : 'is-tucked'
+          }`}
         >
           <span className="flex h-14 w-14 shrink-0 items-center justify-center">
             <CookieWidgetIcon />

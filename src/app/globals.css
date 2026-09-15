@@ -242,6 +242,36 @@
     animation: cookie-consent-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
+  .cookie-manage-btn {
+    transition:
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.4s ease,
+      box-shadow 0.2s ease;
+  }
+
+  @media (max-width: 639px) {
+    .cookie-manage-btn.is-tucked {
+      transform: translate3d(calc(-100% - 1.25rem), 0, 0);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .cookie-manage-btn.is-shown {
+      transform: translate3d(0, 0, 0);
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cookie-manage-btn {
+      transition: opacity 0.2s ease;
+    }
+
+    .cookie-manage-btn.is-tucked {
+      transform: none;
+    }
+  }
+
   .readable-content {
     max-width: 75ch;
     line-height: 1.8;
