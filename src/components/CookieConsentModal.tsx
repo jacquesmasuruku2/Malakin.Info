@@ -54,7 +54,7 @@ function CookieWidgetIcon() {
 }
 
 function choiceButtonClass(active: boolean) {
-  return `inline-flex min-h-11 flex-1 items-center justify-center rounded-full border px-3 py-2.5 text-sm font-semibold transition sm:min-w-[7.5rem] sm:flex-none ${
+  return `inline-flex min-h-11 flex-1 items-center justify-center rounded-md border px-3 py-2.5 text-sm font-semibold transition sm:min-w-[7.5rem] sm:flex-none ${
     active
       ? 'border-[#081c3d] bg-[#081c3d] text-white'
       : 'border-[#c5ced8] bg-white text-[#53606b] hover:bg-[#f7f3eb]'
@@ -82,7 +82,7 @@ function CookiePreferencesModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="cookie-consent-title"
-        className="flex max-h-[100dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-[#d4af37]/40 bg-[#f7f3eb] shadow-2xl shadow-[#081c3d]/30 sm:max-h-[min(92dvh,44rem)] sm:rounded-[28px]"
+        className="flex max-h-[100dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-lg border border-[#d4af37]/40 bg-[#f7f3eb] shadow-2xl shadow-[#081c3d]/30 sm:max-h-[min(92dvh,44rem)] sm:rounded-lg"
       >
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-[#081c3d]/10 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5">
           <div className="min-w-0 pr-2">
@@ -105,7 +105,7 @@ function CookiePreferencesModal({
           <button
             type="button"
             aria-label="Fermer la gestion du consentement"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#081c3d] text-white transition hover:bg-[#0b3b8b]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-[#081c3d] text-white transition hover:bg-[#0b3b8b]"
             onClick={onClose}
           >
             <X className="h-5 w-5" />
@@ -119,13 +119,13 @@ function CookiePreferencesModal({
             return (
               <div
                 key={category.key}
-                className="rounded-2xl border border-[#d4af37]/30 bg-white p-3.5 sm:p-4"
+                className="rounded-md border border-[#d4af37]/30 bg-white p-3.5 sm:p-4"
               >
                 <p className="text-sm font-semibold leading-snug text-[#081c3d] sm:text-base">
                   {category.label}
                 </p>
                 {category.required ? (
-                  <span className="mt-3 inline-flex rounded-full border border-[#d4af37] bg-[#fff8dc] px-4 py-2 text-sm font-semibold text-[#081c3d]">
+                  <span className="mt-3 inline-flex rounded-md border border-[#d4af37] bg-[#fff8dc] px-4 py-2 text-sm font-semibold text-[#081c3d]">
                     Requis
                   </span>
                 ) : (
@@ -156,21 +156,21 @@ function CookiePreferencesModal({
         <div className="grid shrink-0 gap-2 border-t border-[#081c3d]/10 bg-[#f7f3eb] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:grid-cols-3 sm:px-6">
           <button
             type="button"
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#081c3d] bg-white px-4 py-2.5 text-sm font-semibold text-[#081c3d]"
+            className="inline-flex min-h-11 items-center justify-center rounded-md border border-[#081c3d] bg-white px-4 py-2.5 text-sm font-semibold text-[#081c3d]"
             onClick={onRejectAll}
           >
             Refuser tout
           </button>
           <button
             type="button"
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#d4af37] bg-[#d4af37] px-4 py-2.5 text-sm font-semibold text-[#081c3d]"
+            className="inline-flex min-h-11 items-center justify-center rounded-md border border-[#d4af37] bg-[#d4af37] px-4 py-2.5 text-sm font-semibold text-[#081c3d]"
             onClick={onAcceptAll}
           >
             Accepter tout
           </button>
           <button
             type="button"
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#081c3d] px-4 py-2.5 text-sm font-semibold text-white sm:col-auto"
+            className="inline-flex min-h-11 items-center justify-center rounded-md bg-[#081c3d] px-4 py-2.5 text-sm font-semibold text-white sm:col-auto"
             onClick={onSave}
           >
             Enregistrer
