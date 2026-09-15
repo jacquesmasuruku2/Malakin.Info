@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRight, Check, CheckCircle2, Gift, Mail, MapPin, Newspaper, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, CheckCircle2, Gift, Mail, MapPin, ShieldCheck, Sparkles } from 'lucide-react';
 
 const digitalPlans = [
   { id: 'digital-1m', label: '1 MOIS', price: 6, period: '1 mois', badge: null },
@@ -15,24 +15,6 @@ const printPlans = [
 ];
 
 const countries = ['RDC', 'Canada', 'Autres pays'];
-
-const benefits = [
-  {
-    icon: Newspaper,
-    title: 'Journalisme indépendant',
-    text: 'Des reportages et analyses sans agenda politique ni confessionnel.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Accès illimité',
-    text: 'Lisez sur tous vos appareils, sans publicité intrusive dans l’abonnement.',
-  },
-  {
-    icon: Sparkles,
-    title: 'Soutien direct',
-    text: 'Votre contribution va à la rédaction, pas à un intermédiaire.',
-  },
-];
 
 function planCardClass(isSelected: boolean) {
   return `flex cursor-pointer items-center justify-between rounded-md border p-4 transition-colors ${
@@ -125,24 +107,6 @@ export default function NousSoutenirPage() {
             Choisissez votre formule de soutien à Malakinfo
           </p>
         </header>
-
-        <div className="mb-8 grid gap-4 sm:grid-cols-3">
-          {benefits.map((benefit) => {
-            const Icon = benefit.icon;
-            return (
-              <article
-                key={benefit.title}
-                className="rounded-lg border border-border bg-card p-5 shadow-sm"
-              >
-                <div className="mb-3 inline-flex rounded-md bg-primary/10 p-2 text-primary">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <h2 className="font-heading text-lg font-bold text-card-foreground">{benefit.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{benefit.text}</p>
-              </article>
-            );
-          })}
-        </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid gap-6 lg:grid-cols-[1.1fr_1.1fr_0.8fr]">
