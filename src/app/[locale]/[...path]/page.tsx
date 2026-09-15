@@ -391,7 +391,7 @@ export default async function CatchAllArticlePage({
               ) : (
                 <div className="premium-gate">
                   <div
-                    className="premium-preview premium-preview-fade text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]"
+                    className="article-body premium-preview premium-preview-fade text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]"
                     style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
                     dangerouslySetInnerHTML={{ __html: previewContent }}
                   />

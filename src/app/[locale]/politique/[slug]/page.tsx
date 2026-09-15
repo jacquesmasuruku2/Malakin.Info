@@ -87,7 +87,7 @@ export default async function PolitiqueArticlePage({
           </div>
         )}
 
-        <div className="prose prose-lg max-w-none mb-8">
+        <div className="article-body prose prose-lg max-w-none mb-8 text-foreground">
           <div dangerouslySetInnerHTML={{ __html: displayContent }} />
         </div>
       </article>

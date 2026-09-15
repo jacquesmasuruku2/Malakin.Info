@@ -251,7 +251,7 @@
     padding: 1.5rem;
   }
   .improved-contrast {
-    color: #0a1628;
+    color: var(--foreground);
   }
   .premium-preview-fade {
     position: relative;
@@ -321,4 +321,57 @@
 
   /* Prevent topbar buttons from showing inside card components */
   .card .topbar-btn, .post-card .topbar-btn, .article-card .topbar-btn { display: none !important; }
+}
+
+/* Article HTML from the CMS stays readable in both themes, including drop caps
+   and near-black inline colors coming from the editor. Unlayered so it can
+   override Tailwind gray utilities on the body copy. */
+.article-body {
+  color: var(--foreground);
+}
+
+.article-body :is(p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th, strong, b, em, figcaption) {
+  color: var(--foreground);
+}
+
+.article-body a {
+  color: var(--primary);
+}
+
+.article-body a:hover {
+  color: var(--secondary);
+}
+
+.article-dropcap {
+  position: relative;
+  margin-top: 0.12em;
+  color: var(--foreground);
+}
+
+.article-dropcap::first-letter {
+  float: left;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(4rem, 7vw, 7.8rem);
+  line-height: 0.7;
+  padding-right: 0.12em;
+  padding-top: 0.08em;
+  margin-right: 0.03em;
+  font-weight: 700;
+  letter-spacing: -0.08em;
+  color: var(--foreground);
+  transform: translateY(-0.03em);
+}
+
+html.dark .article-body :is(p, li, h1, h2, h3, h4, h5, h6, span, strong, b, em, i, u, blockquote, td, th, figcaption, div) {
+  color: var(--foreground) !important;
+}
+
+html.dark .article-body a,
+html.dark .article-body a :is(span, strong, b, em, i, u) {
+  color: var(--primary) !important;
+}
+
+html.dark .article-body a:hover,
+html.dark .article-body a:hover :is(span, strong, b, em, i, u) {
+  color: var(--secondary) !important;
 }

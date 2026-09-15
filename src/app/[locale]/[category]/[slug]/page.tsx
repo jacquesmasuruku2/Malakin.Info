@@ -233,12 +233,12 @@ export default async function ArticlePage({
 
         <main className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8">
           <header className="mb-8 w-full">
-            <div className="mb-3 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.12em] text-gray-500">
+            <div className="mb-3 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
               <span>{formattedDate}</span>
               <ArticleAuthorLink author={article.author} locale={locale} />
             </div>
 
-            <h1 className={`${playfair.className} text-[2.25rem] font-bold leading-[1.08] tracking-[-0.03em] text-gray-900 md:text-[3.5rem]`}>
+            <h1 className={`${playfair.className} text-[2.25rem] font-bold leading-[1.08] tracking-[-0.03em] text-foreground md:text-[3.5rem]`}>
               {displayTitle}
             </h1>
           </header>
@@ -264,7 +264,7 @@ export default async function ArticlePage({
                     className="block h-auto w-full object-cover"
                   />
                   {article.mainImageAlt && (
-                    <p className="px-2 pt-2 text-sm italic text-gray-500">{article.mainImageAlt}</p>
+                    <p className="px-2 pt-2 text-sm italic text-muted-foreground">{article.mainImageAlt}</p>
                   )}
                 </div>
               )}
@@ -280,7 +280,7 @@ export default async function ArticlePage({
                           className="block h-auto w-full object-cover"
                         />
                         {Array.isArray(article.additionalImageDescriptions) && article.additionalImageDescriptions[index] && (
-                          <p className="px-2 pt-2 text-sm italic text-gray-500">{article.additionalImageDescriptions[index]}</p>
+                          <p className="px-2 pt-2 text-sm italic text-muted-foreground">{article.additionalImageDescriptions[index]}</p>
                         )}
                       </div>
                     )
@@ -297,13 +297,13 @@ export default async function ArticlePage({
               </div>
 
               {premiumAccess ? (
-                <div className={`${playfair.className} text-[1.04rem] font-normal leading-[1.9] text-gray-800 md:text-[1.18rem]`}>
+                <div className={`${playfair.className} text-[1.04rem] font-normal leading-[1.9] text-foreground md:text-[1.18rem]`}>
                   <ReadAlsoRenderer content={displayContent} />
                 </div>
               ) : (
                 <div className="premium-gate">
                   <div
-                    className={`${playfair.className} premium-preview premium-preview-fade text-[1.04rem] leading-[1.9] text-gray-800 md:text-[1.18rem]`}
+                    className={`${playfair.className} article-body premium-preview premium-preview-fade text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]`}
                     dangerouslySetInnerHTML={{ __html: previewContent }}
                   />
                   {article.isPremium && (
@@ -346,7 +346,7 @@ export default async function ArticlePage({
 
         {relatedArticles.length > 0 && (
           <section className="mx-auto max-w-5xl px-4 pb-12 pt-12 md:px-6">
-            <h2 className="mb-6 text-xl font-bold text-gray-900 md:text-2xl">
+            <h2 className="mb-6 text-xl font-bold text-foreground md:text-2xl">
               {t.relatedArticles}
             </h2>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
@@ -356,7 +356,7 @@ export default async function ArticlePage({
                   href={`/${locale}/${related.slug}`}
                   className="group block"
                 >
-                  <article className="overflow-hidden bg-white">
+                  <article className="overflow-hidden bg-card">
                     {related.mainImageUrl && (
                       <div className="overflow-hidden bg-gray-100">
                         <img
@@ -367,10 +367,10 @@ export default async function ArticlePage({
                       </div>
                     )}
                     <div className="pt-3">
-                      <h3 className="text-base font-bold leading-snug text-gray-900 group-hover:text-red-700">
+                      <h3 className="text-base font-bold leading-snug text-foreground group-hover:text-primary">
                         {related.title}
                       </h3>
-                      <div className="mt-2 text-xs text-gray-500">
+                      <div className="mt-2 text-xs text-muted-foreground">
                         {related.publishedAt 
                           ? new Date(related.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
                               day: 'numeric', 
