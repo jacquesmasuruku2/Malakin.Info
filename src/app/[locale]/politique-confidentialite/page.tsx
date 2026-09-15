@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
 import {
   ABOUTADS_OPTOUT_URL,
   GOOGLE_ADS_SETTINGS_URL,
@@ -17,7 +18,12 @@ export const metadata: Metadata = {
   description: 'Politique de confidentialité de Malakinfo.com, y compris l’usage de Google AdSense, des cookies et des données personnelles.',
 };
 
-export default function PrivacyPolicyPage() {
+export default async function PrivacyPolicyPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -75,7 +81,7 @@ export default function PrivacyPolicyPage() {
               <li>Répondre aux demandes de contact</li>
               <li>Gérer les comptes utilisateurs</li>
               <li>Mesurer l’audience et la performance des contenus</li>
-              <li>Afficher des publicités, y compris des publicités personnalisées si vous y consentez</li>
+              <li>Afficher des publicités, y compris des publicités personnalisées (acceptées par défaut tant que vous n’avez pas personnalisé vos choix)</li>
               <li>Assurer la sécurité du site</li>
             </ul>
           </section>
@@ -83,7 +89,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Base légale</h2>
             <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-              <li>Votre consentement (newsletter, cookies analytiques et publicitaires)</li>
+              <li>Votre consentement (newsletter ; cookies analytiques et publicitaires, acceptés par défaut jusqu’à personnalisation ou refus)</li>
               <li>L’exécution d’un contrat (compte utilisateur, dons, partenariats)</li>
               <li>Le respect d’une obligation légale</li>
               <li>Notre intérêt légitime (sécurité, amélioration du service, journalisme)</li>
@@ -96,7 +102,7 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc pl-6 text-muted-foreground space-y-2">
               <li>L’équipe éditoriale et technique de {SITE_NAME}</li>
               <li>{HOSTING_PROVIDER.name} pour l’hébergement du site</li>
-              <li>Google (Analytics, Tag Manager, AdSense) lorsque vous y consentez</li>
+              <li>Google (Analytics, Tag Manager, AdSense) par défaut, sauf si vous refusez les cookies concernés</li>
               <li>Nos prestataires d’email, dans la limite nécessaire à l’envoi des messages</li>
             </ul>
             <p className="text-muted-foreground">Nous ne vendons pas vos données personnelles.</p>
@@ -105,7 +111,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Publicité et Google AdSense</h2>
             <p className="text-muted-foreground">
-              Des prestataires tiers, y compris Google, utilisent des cookies pour diffuser des annonces en fonction des visites antérieures de l’utilisateur sur ce site ou sur d’autres sites.
+              Des prestataires tiers, y compris Google, utilisent des cookies pour diffuser des annonces en fonction des visites antérieures de l’utilisateur sur ce site ou sur d’autres sites. Ces cookies publicitaires sont acceptés par défaut tant que vous n’avez pas personnalisé vos choix.
             </p>
             <p className="text-muted-foreground">
               L’utilisation de cookies publicitaires par Google permet à Google et à ses partenaires de diffuser des annonces aux utilisateurs en fonction de leur visite sur nos sites et/ou d’autres sites sur Internet.
@@ -134,15 +140,15 @@ export default function PrivacyPolicyPage() {
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Services tiers</h2>
             <h3 className="font-heading text-xl font-semibold text-foreground mb-3">Google Analytics</h3>
             <p className="text-muted-foreground">
-              Google Analytics nous aide à comprendre l’usage du site. Ces cookies ne sont déposés qu’avec votre consentement.
+              Google Analytics nous aide à comprendre l’usage du site. Ces cookies sont acceptés par défaut tant que vous n’avez pas personnalisé vos choix. Si vous les refusez, ils ne sont plus déposés.
             </p>
             <h3 className="font-heading text-xl font-semibold text-foreground mb-3 mt-6">Google Tag Manager</h3>
             <p className="text-muted-foreground">
-              Google Tag Manager nous permet de gérer les balises de suivi après recueil de votre consentement.
+              Google Tag Manager nous permet de gérer les balises de suivi. Les balises non essentielles suivent le même réglage par défaut, jusqu’à ce que vous les refusiez.
             </p>
             <h3 className="font-heading text-xl font-semibold text-foreground mb-3 mt-6">Google AdSense</h3>
             <p className="text-muted-foreground">
-              Google AdSense peut placer et lire des cookies, utiliser des balises web ou des adresses IP pour diffuser des publicités sur ce site.
+              Google AdSense peut placer et lire des cookies, utiliser des balises web ou des adresses IP pour diffuser des publicités sur ce site. Cette publicité est activée par défaut tant que vous n’avez pas personnalisé vos choix.
             </p>
           </section>
 
@@ -169,10 +175,24 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Cookies</h2>
             <p className="text-muted-foreground">
-              Une bannière de consentement vous permet d’accepter, de refuser ou de paramétrer les cookies. Le détail figure sur la page{' '}
-              <a href="/fr/cookies" className="text-primary hover:underline">
+              Tant que vous n’avez pas personnalisé vos choix, les cookies non essentiels (audience, publicité, personnalisation) sont <strong className="font-semibold text-foreground">acceptés par défaut</strong> et appliqués. Les cookies strictement nécessaires au fonctionnement du site restent toujours actifs.
+            </p>
+            <p className="text-muted-foreground mt-4">
+              Pour modifier ce réglage par défaut :
+            </p>
+            <ol className="list-decimal pl-6 text-muted-foreground space-y-2 mt-3">
+              <li>Cliquez sur le bouton rond en bas à gauche de n’importe quelle page (icône de cookie, « Gérer les cookies »).</li>
+              <li>Dans « Gestion du consentement », choisissez <strong className="font-semibold text-foreground">Refuser</strong> ou <strong className="font-semibold text-foreground">Accepter</strong> pour chaque catégorie, ou utilisez <strong className="font-semibold text-foreground">Refuser tout</strong> / <strong className="font-semibold text-foreground">Accepter tout</strong>.</li>
+              <li>Cliquez sur <strong className="font-semibold text-foreground">Enregistrer</strong>. Vos choix remplacent immédiatement le réglage par défaut.</li>
+            </ol>
+            <p className="text-muted-foreground mt-4">
+              Lors de votre première visite, une bannière peut aussi proposer d’accepter tous les cookies, de tout refuser ou d’ouvrir les paramètres. Fermer cette bannière sans personnaliser conserve l’acceptation par défaut.
+            </p>
+            <p className="text-muted-foreground mt-4">
+              Le détail des cookies, des durées et des prestataires figure sur la page{' '}
+              <Link href={`/${locale}/cookies`} className="text-primary hover:underline">
                 Politique de cookies
-              </a>
+              </Link>
               .
             </p>
           </section>

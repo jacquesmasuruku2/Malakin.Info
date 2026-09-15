@@ -24,14 +24,51 @@ export default function CookiesPolicyPage() {
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Qu’est-ce qu’un cookie ?</h2>
             <p className="text-muted-foreground">
-              Un cookie est un petit fichier texte déposé sur votre appareil lorsque vous visitez un site. Il permet de mémoriser vos préférences, de mesurer l’audience et, si vous y consentez, d’afficher des publicités.
+              Un cookie est un petit fichier texte déposé sur votre appareil lorsque vous visitez un site. Il permet de mémoriser vos préférences, de mesurer l’audience et d’afficher des publicités. Les cookies non essentiels sont acceptés par défaut tant que vous n’avez pas personnalisé vos choix.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Consentement par défaut</h2>
+            <p className="text-muted-foreground">
+              Tant que vous n’avez pas personnalisé vos choix, MalakInfo considère que les cookies non essentiels (mesure d’audience, publicité, personnalisation des contenus) sont <strong className="font-semibold text-foreground">acceptés par défaut</strong> et les applique. Les cookies strictement nécessaires au fonctionnement du site restent toujours actifs.
+            </p>
+            <p className="text-muted-foreground mt-3">
+              Vous pouvez à tout moment refuser tout ou partie de ces cookies, ou revenir à une acceptation complète, en suivant la procédure ci-dessous. Vos nouveaux choix remplacent alors le réglage par défaut et sont mémorisés sur votre appareil.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Comment modifier vos choix</h2>
+            <p className="text-muted-foreground mb-4">
+              Pour changer le consentement par défaut, procédez ainsi :
+            </p>
+            <ol className="list-decimal pl-6 text-muted-foreground space-y-3">
+              <li>
+                Sur n’importe quelle page du site, cliquez sur le bouton rond en bas à gauche de l’écran : icône de cookie bleu sur fond blanc. Au survol, le libellé « Gérer les cookies » s’affiche.
+              </li>
+              <li>
+                La fenêtre « Gestion du consentement » s’ouvre. Pour chaque catégorie, choisissez <strong className="font-semibold text-foreground">Refuser</strong> ou <strong className="font-semibold text-foreground">Accepter</strong>.
+              </li>
+              <li>
+                Vous pouvez aussi utiliser <strong className="font-semibold text-foreground">Refuser tout</strong> ou <strong className="font-semibold text-foreground">Accepter tout</strong> en bas de la fenêtre.
+              </li>
+              <li>
+                Cliquez sur <strong className="font-semibold text-foreground">Enregistrer</strong> pour appliquer et mémoriser vos choix. Ils sont pris en compte immédiatement (audience, publicité, etc.).
+              </li>
+              <li>
+                Lors de votre première visite, une bannière peut aussi apparaître. Elle propose les mêmes actions : accepter tous les cookies, tout refuser, ou ouvrir les paramètres. Fermer cette bannière sans personnaliser conserve l’acceptation par défaut.
+              </li>
+            </ol>
+            <p className="text-muted-foreground mt-4">
+              Vous pouvez également restreindre les cookies depuis les paramètres de votre navigateur, ou désactiver la publicité personnalisée Google via les liens de la section « Publicité Google » ci-dessous. Pour toute question, écrivez à {SITE_EMAIL}.
             </p>
           </section>
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Bannière de consentement</h2>
             <p className="text-muted-foreground">
-              MalakInfo affiche une bannière de consentement dès votre première visite. Vous pouvez accepter tous les cookies, les refuser, ou ouvrir les paramètres pour choisir catégorie par catégorie. Les cookies analytiques et publicitaires ne sont activés qu’après votre accord.
+              MalakInfo peut afficher une bannière de consentement lors de votre première visite. Tant que vous n’avez pas personnalisé vos réglages, les cookies analytiques et publicitaires sont activés par défaut. Si vous refusez une catégorie ou cliquez sur « Refuser tout », ce refus est enregistré et appliqué à la place du réglage par défaut.
             </p>
           </section>
 
@@ -56,7 +93,7 @@ export default function CookiesPolicyPage() {
                     <td className="border border-border px-4 py-2 text-muted-foreground">Mesure d’audience</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Analytique</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">24 heures à 2 ans</td>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">Oui</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Accepté par défaut, sauf refus</td>
                   </tr>
                   <tr>
                     <td className="border border-border px-4 py-2 text-muted-foreground">IDE, NID</td>
@@ -64,12 +101,20 @@ export default function CookiesPolicyPage() {
                     <td className="border border-border px-4 py-2 text-muted-foreground">Publicité, y compris personnalisée</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Publicitaire</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">6 mois à 1 an</td>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">Oui</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Accepté par défaut, sauf refus</td>
                   </tr>
                   <tr>
                     <td className="border border-border px-4 py-2 text-muted-foreground">malakinfo_cookie_consent</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">MalakInfo</td>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">Mémoriser votre choix de cookies</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Mémoriser que vos choix ont été personnalisés</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Nécessaire</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">12 mois</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Non</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">malakinfo_cookie_preferences</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">MalakInfo</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Mémoriser vos catégories de cookies acceptées ou refusées</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Nécessaire</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">12 mois</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Non</td>
@@ -106,9 +151,10 @@ export default function CookiesPolicyPage() {
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Gérer vos choix</h2>
             <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-              <li>Utiliser la bannière de consentement affichée sur le site</li>
-              <li>Modifier les paramètres de votre navigateur</li>
-              <li>Nous écrire à {SITE_EMAIL}</li>
+              <li>Cliquez sur le bouton cookie en bas à gauche de n’importe quelle page, puis enregistrez vos choix (voir la procédure détaillée ci-dessus)</li>
+              <li>Utilisez la bannière de consentement lors de votre première visite</li>
+              <li>Modifiez les paramètres de votre navigateur</li>
+              <li>Écrivez-nous à {SITE_EMAIL}</li>
             </ul>
           </section>
 

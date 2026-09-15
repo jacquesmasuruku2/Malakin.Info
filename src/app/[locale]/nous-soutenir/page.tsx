@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRight, Check, CheckCircle2, Gift, Mail, MapPin, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, CheckCircle2, Gift, Mail, MapPin, Newspaper, ShieldCheck, Sparkles } from 'lucide-react';
 
 const digitalPlans = [
   { id: 'digital-1m', label: '1 MOIS', price: 6, period: '1 mois', badge: null },
@@ -15,6 +15,38 @@ const printPlans = [
 ];
 
 const countries = ['RDC', 'Canada', 'Autres pays'];
+
+const benefits = [
+  {
+    icon: Newspaper,
+    title: 'Journalisme indépendant',
+    text: 'Des reportages et analyses sans agenda politique ni confessionnel.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Accès illimité',
+    text: 'Lisez sur tous vos appareils, sans publicité intrusive dans l’abonnement.',
+  },
+  {
+    icon: Sparkles,
+    title: 'Soutien direct',
+    text: 'Votre contribution va à la rédaction, pas à un intermédiaire.',
+  },
+];
+
+function planCardClass(isSelected: boolean) {
+  return `flex cursor-pointer items-center justify-between border p-4 transition-colors ${
+    isSelected
+      ? 'border-secondary bg-secondary/10'
+      : 'border-border bg-muted/40 hover:border-primary/40'
+  }`;
+}
+
+function radioClass(isSelected: boolean) {
+  return `flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border-2 ${
+    isSelected ? 'border-secondary bg-secondary' : 'border-muted-foreground/40 bg-card'
+  }`;
+}
 
 export default function NousSoutenirPage() {
   const [selectedDigitalPlan, setSelectedDigitalPlan] = useState('digital-1y');
@@ -42,7 +74,6 @@ export default function NousSoutenirPage() {
     setError('');
 
     try {
-      // Create Stripe checkout session directly
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
@@ -57,59 +88,76 @@ export default function NousSoutenirPage() {
         }),
       });
 
-      const { url, error } = await response.json();
+      const { url, error: checkoutError } = await response.json();
 
-      if (error) {
-        console.error('Error creating checkout session:', error);
+      if (checkoutError) {
+        console.error('Error creating checkout session:', checkoutError);
         setError('Erreur lors de la création de la session de paiement');
         setIsProcessing(false);
         return;
       }
 
-      // Redirect to Stripe Checkout URL directly
       if (url) {
         window.location.href = url;
       } else {
         setError('Erreur lors de la création de la session de paiement');
         setIsProcessing(false);
       }
-    } catch (error) {
-      console.error('Error during checkout:', error);
+    } catch (submitError) {
+      console.error('Error during checkout:', submitError);
       setError('Erreur lors du traitement du paiement');
       setIsProcessing(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f7f1] text-[#081C3D]">
+    <div className="min-h-screen bg-background text-foreground">
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
         <header className="mx-auto mb-10 max-w-4xl text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#e5d9a7] bg-[#fffaf0] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#5a4700]">
+          <div className="mb-4 inline-flex items-center gap-2 border border-secondary/40 bg-secondary/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-secondary">
             <Sparkles className="h-3.5 w-3.5" />
             Soutenez Malakinfo
           </div>
-          <h1 className="font-heading text-4xl font-bold tracking-[-0.03em] text-[#081C3D] sm:text-5xl lg:text-6xl">
+          <h1 className="font-heading text-4xl font-bold tracking-[-0.03em] text-foreground sm:text-5xl lg:text-6xl">
             Grands reportages, analyses et réflexions pour élargir vos horizons.
           </h1>
-          <p className="mt-4 text-base text-[#4A5568] sm:text-lg">
+          <p className="mt-4 text-base text-muted-foreground sm:text-lg">
             Choisissez votre formule de soutien à Malakinfo
           </p>
         </header>
 
+        <div className="mb-8 grid gap-4 sm:grid-cols-3">
+          {benefits.map((benefit) => {
+            const Icon = benefit.icon;
+            return (
+              <article
+                key={benefit.title}
+                className="border border-border bg-card p-5 shadow-sm"
+              >
+                <div className="mb-3 inline-flex bg-primary/10 p-2 text-primary">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h2 className="font-heading text-lg font-bold text-card-foreground">{benefit.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{benefit.text}</p>
+              </article>
+            );
+          })}
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid gap-6 lg:grid-cols-[1.1fr_1.1fr_0.8fr]">
-            <section className="rounded-[28px] border border-[#e9e4d6] bg-white p-5 shadow-[0_20px_50px_rgba(11,59,139,0.06)] sm:p-7">
+            <section className="border border-border bg-card p-5 shadow-sm sm:p-7">
               <div className="mb-6 flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#0B3B8B]">NUMÉRIQUE</p>
-                  <h2 className="mt-2 text-2xl font-bold text-[#081C3D]">Accès en ligne</h2>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">Numérique</p>
+                  <h2 className="mt-2 font-heading text-2xl font-bold text-card-foreground">Accès en ligne</h2>
                 </div>
-                <div className="rounded-full bg-[#eef3ff] p-2 text-[#0B3B8B]">
+                <div className="bg-primary/10 p-2 text-primary">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
               </div>
 
-              <p className="mb-6 text-sm text-[#4A5568]">
+              <p className="mb-6 text-sm text-muted-foreground">
                 Un accès numérique illimité sur tous vos appareils.
               </p>
 
@@ -118,37 +166,26 @@ export default function NousSoutenirPage() {
                   const isSelected = selectedDigitalPlan === plan.id && selectedPlanType === 'digital';
 
                   return (
-                    <label
-                      key={plan.id}
-                      className={`flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition-all ${
-                        isSelected
-                          ? 'border-[#D4AF37] bg-[#fffaf0] shadow-[0_10px_25px_rgba(212,175,55,0.18)]'
-                          : 'border-[#e7e5e0] bg-[#f9fafb] hover:border-[#d0d7e2]'
-                      }`}
-                    >
+                    <label key={plan.id} className={planCardClass(isSelected)}>
                       <div className="flex items-center gap-3">
-                        <div
-                          className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
-                            isSelected ? 'border-[#D4AF37] bg-[#D4AF37]' : 'border-[#9aa4b5] bg-white'
-                          }`}
-                        >
-                          {isSelected && <Check className="h-3 w-3 text-[#081C3D]" />}
+                        <div className={radioClass(isSelected)}>
+                          {isSelected && <Check className="h-3 w-3 text-secondary-foreground" />}
                         </div>
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-base font-semibold text-[#081C3D]">{plan.label}</span>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-base font-semibold text-foreground">{plan.label}</span>
                             {plan.badge && (
-                              <span className="rounded-full bg-[#F3E9C9] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-[#6d5705]">
+                              <span className="bg-secondary px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-secondary-foreground">
                                 {plan.badge}
                               </span>
                             )}
                           </div>
-                          <div className="text-sm text-[#4A5568]">{plan.period}</div>
+                          <div className="text-sm text-muted-foreground">{plan.period}</div>
                         </div>
                       </div>
 
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-[#081C3D]">{plan.price} $</div>
+                        <div className="text-2xl font-bold text-foreground">{plan.price} $</div>
                       </div>
 
                       <input
@@ -167,18 +204,18 @@ export default function NousSoutenirPage() {
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-[#e9e4d6] bg-[#fffdf8] p-5 shadow-[0_20px_50px_rgba(11,59,139,0.06)] sm:p-7">
+            <section className="border border-secondary/40 bg-card p-5 shadow-sm sm:p-7">
               <div className="mb-6 flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#0B3B8B]">NUMÉRIQUE + PAPIER</p>
-                  <h2 className="mt-2 text-2xl font-bold text-[#081C3D]">Abonnement complet</h2>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-secondary">Numérique + papier</p>
+                  <h2 className="mt-2 font-heading text-2xl font-bold text-card-foreground">Abonnement complet</h2>
                 </div>
-                <div className="rounded-full bg-[#fff1c2] p-2 text-[#6d5705]">
+                <div className="bg-secondary/15 p-2 text-secondary">
                   <Gift className="h-5 w-5" />
                 </div>
               </div>
 
-              <p className="mb-6 text-sm text-[#4A5568]">
+              <p className="mb-6 text-sm text-muted-foreground">
                 Le magazine livré chez vous et un accès numérique illimité sur tous vos appareils.
               </p>
 
@@ -191,10 +228,10 @@ export default function NousSoutenirPage() {
                       key={country}
                       type="button"
                       onClick={() => setSelectedCountry(country)}
-                      className={`rounded-full border px-3 py-2 text-sm font-medium transition-colors ${
+                      className={`border px-3 py-2 text-sm font-medium transition-colors ${
                         isActive
-                          ? 'border-[#0B3B8B] bg-[#0B3B8B] text-white'
-                          : 'border-[#dfe4ec] bg-white text-[#081C3D] hover:border-[#0B3B8B] hover:text-[#0B3B8B]'
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-border bg-muted/40 text-foreground hover:border-primary hover:text-primary'
                       }`}
                     >
                       {country}
@@ -208,30 +245,19 @@ export default function NousSoutenirPage() {
                   const isSelected = selectedPrintPlan === plan.id && selectedPlanType === 'print';
 
                   return (
-                    <label
-                      key={plan.id}
-                      className={`flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition-all ${
-                        isSelected
-                          ? 'border-[#D4AF37] bg-[#fffaf0] shadow-[0_10px_25px_rgba(212,175,55,0.18)]'
-                          : 'border-[#e7e5e0] bg-white hover:border-[#d0d7e2]'
-                      }`}
-                    >
+                    <label key={plan.id} className={planCardClass(isSelected)}>
                       <div className="flex items-center gap-3">
-                        <div
-                          className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
-                            isSelected ? 'border-[#D4AF37] bg-[#D4AF37]' : 'border-[#9aa4b5] bg-white'
-                          }`}
-                        >
-                          {isSelected && <Check className="h-3 w-3 text-[#081C3D]" />}
+                        <div className={radioClass(isSelected)}>
+                          {isSelected && <Check className="h-3 w-3 text-secondary-foreground" />}
                         </div>
                         <div>
-                          <div className="text-base font-semibold text-[#081C3D]">{plan.label}</div>
-                          <div className="text-sm text-[#4A5568]">{plan.period}</div>
+                          <div className="text-base font-semibold text-foreground">{plan.label}</div>
+                          <div className="text-sm text-muted-foreground">{plan.period}</div>
                         </div>
                       </div>
 
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-[#081C3D]">{plan.price} $</div>
+                        <div className="text-2xl font-bold text-foreground">{plan.price} $</div>
                       </div>
 
                       <input
@@ -250,30 +276,30 @@ export default function NousSoutenirPage() {
               </div>
             </section>
 
-            <aside className="rounded-[28px] border border-[#e9e4d6] bg-white p-5 shadow-[0_20px_50px_rgba(11,59,139,0.06)] sm:p-7">
+            <aside className="border border-border bg-card p-5 shadow-sm sm:p-7">
               <div className="mb-5 flex items-center gap-3">
-                <div className="rounded-full bg-[#0B3B8B]/10 p-2 text-[#0B3B8B]">
+                <div className="bg-primary/10 p-2 text-primary">
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
-                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-[#081C3D]">Finalisation</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground">Finalisation</p>
               </div>
 
-              <label className="mb-5 flex cursor-pointer items-start gap-3 rounded-2xl border border-[#e7e5e0] bg-[#f9fafb] p-4 text-sm text-[#081C3D] transition-colors hover:border-[#d4af37]">
+              <label className="mb-5 flex cursor-pointer items-start gap-3 border border-border bg-muted/40 p-4 text-sm text-foreground transition-colors hover:border-secondary">
                 <input
                   type="checkbox"
                   checked={isGift}
                   onChange={(event) => setIsGift(event.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-[#c8ccd6] text-[#0B3B8B] focus:ring-[#0B3B8B]"
+                  className="mt-0.5 h-4 w-4 rounded-sm border-input text-primary focus:ring-primary"
                 />
                 <span>J&apos;offre cet abonnement / don en cadeau</span>
               </label>
 
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-[#081C3D]">
-                  Adresse courriel <span className="text-[#b42318]">*</span>
+                <label className="block text-sm font-medium text-foreground">
+                  Adresse courriel <span className="text-destructive">*</span>
                 </label>
                 <div className="relative">
-                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#697586]" />
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     type="email"
                     value={email}
@@ -282,31 +308,33 @@ export default function NousSoutenirPage() {
                       if (error) setError('');
                     }}
                     placeholder="votre@email.com"
-                    className="w-full rounded-2xl border border-[#dfe4ec] bg-white py-3 pl-10 pr-4 text-sm text-[#081C3D] outline-none transition focus:border-[#0B3B8B] focus:ring-2 focus:ring-[#0B3B8B]/10"
+                    className="w-full border border-input bg-background py-3 pl-10 pr-4 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
                     aria-label="Adresse courriel"
                   />
                 </div>
               </div>
 
-              {error && <p className="mt-4 text-sm font-medium text-[#b42318]">{error}</p>}
+              {error && <p className="mt-4 text-sm font-medium text-destructive">{error}</p>}
 
-              <div className="mt-6 rounded-2xl border border-[#efeac4] bg-[#fffaf0] p-4">
+              <div className="mt-6 border border-secondary/30 bg-secondary/10 p-4">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6d5705]">Plan sélectionné</p>
-                    <p className="mt-2 text-lg font-bold text-[#081C3D]">{activePlan.label} · {activePlan.price} $</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary">Plan sélectionné</p>
+                    <p className="mt-2 text-lg font-bold text-foreground">
+                      {activePlan.label} · {activePlan.price} $
+                    </p>
                   </div>
-                  <div className="rounded-full bg-[#0B3B8B] p-2 text-white">
+                  <div className="bg-primary p-2 text-primary-foreground">
                     <MapPin className="h-4 w-4" />
                   </div>
                 </div>
-                <p className="mt-2 text-sm text-[#4A5568]">Livraison : {selectedCountry}</p>
+                <p className="mt-2 text-sm text-muted-foreground">Livraison : {selectedCountry}</p>
               </div>
 
               <button
                 type="submit"
                 disabled={isProcessing}
-                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#0B3B8B] px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#082a63] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-6 inline-flex w-full items-center justify-center gap-2 bg-primary px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.12em] text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isProcessing ? 'Traitement en cours...' : 'Prochaine étape'}
                 {!isProcessing && <ArrowRight className="h-4 w-4" />}

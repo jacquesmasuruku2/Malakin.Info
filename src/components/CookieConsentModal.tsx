@@ -2,29 +2,22 @@
 
 import { useEffect, useState } from 'react';
 import { Mail, X } from 'lucide-react';
-import { CONSENT_UPDATED_EVENT } from '@/lib/consent';
+import {
+  CONSENT_CATEGORIES,
+  CONSENT_PREFERENCES_KEY,
+  CONSENT_STORAGE_KEY,
+  CONSENT_UPDATED_EVENT,
+  DEFAULT_CONSENT_PREFERENCES,
+  readConsentPreferences,
+} from '@/lib/consent';
 import { subscribeToNewsletter } from '@/lib/newsletter-client';
 
-const STORAGE_KEY = 'malakinfo_cookie_consent';
-const PREFERENCES_KEY = 'malakinfo_cookie_preferences';
+const STORAGE_KEY = CONSENT_STORAGE_KEY;
+const PREFERENCES_KEY = CONSENT_PREFERENCES_KEY;
 const NEWSLETTER_PROMPT_KEY = 'malakinfo_newsletter_prompt_dismissed';
 const COOKIE_CONSENT_DELAY_MS = 2_000;
-
-const PREFERENCE_CATEGORIES = [
-  { key: 'improveServices', label: 'Développer et améliorer les services', required: false },
-  { key: 'adsPersonalization', label: 'Publicité et contenus personnalisés', required: false },
-  { key: 'deviceAnalytics', label: 'Analyser activement les caractéristiques de l\'appareil pour l\'identification', required: false },
-  { key: 'profilePersonalization', label: 'Créer des profils de contenus personnalisés', required: false },
-  { key: 'contentPerformance', label: 'Mesurer la performance des contenus', required: false },
-  { key: 'preciseLocation', label: 'Utiliser des données de géolocalisation précises', required: false },
-  { key: 'functionality', label: 'Fonctionnement', required: true },
-  { key: 'personalizedContent', label: 'Utiliser mes informations personnelles pour des contenus ciblés', required: false },
-];
-
-const defaultPreferences = PREFERENCE_CATEGORIES.reduce<Record<string, boolean>>((acc, item) => {
-  acc[item.key] = item.required ? true : false;
-  return acc;
-}, {});
+const PREFERENCE_CATEGORIES = CONSENT_CATEGORIES;
+const defaultPreferences = DEFAULT_CONSENT_PREFERENCES;
 
 function buildSavedPreferences(raw: string | null) {
   if (!raw) {
@@ -40,6 +33,32 @@ function buildSavedPreferences(raw: string | null) {
   } catch {
     return defaultPreferences;
   }
+}
+
+function CookieWidgetIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-8 w-8" aria-hidden>
+      <path
+        d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"
+        fill="none"
+        stroke="#2563EB"
+        strokeWidth="1.85"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="8.2" cy="10.3" r="1.05" fill="#2563EB" />
+      <circle cx="14.1" cy="9.2" r="0.85" fill="#2563EB" />
+      <circle cx="11.2" cy="15.4" r="1" fill="#2563EB" />
+    </svg>
+  );
+}
+
+function choiceButtonClass(active: boolean) {
+  return `inline-flex min-h-11 flex-1 items-center justify-center rounded-full border px-3 py-2.5 text-sm font-semibold transition sm:min-w-[7.5rem] sm:flex-none ${
+    active
+      ? 'border-[#081c3d] bg-[#081c3d] text-white'
+      : 'border-[#c5ced8] bg-white text-[#53606b] hover:bg-[#f7f3eb]'
+  }`;
 }
 
 function CookiePreferencesModal({
@@ -58,107 +77,103 @@ function CookiePreferencesModal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-4xl max-h-[calc(100vh-4rem)] overflow-y-auto rounded-[28px] border border-[#d4af37]/40 bg-[#f7f3eb] p-6 shadow-2xl shadow-[#081c3d]/30 sm:p-8">
-        <div className="flex items-start justify-between gap-4">
-          <div className="max-w-[calc(100%-3rem)]">
-            <p className="text-xs uppercase tracking-[0.3em] text-[#0b3b8b]">MalakInfo</p>
-            <h2 className="mt-3 text-2xl font-semibold text-[#081c3d] sm:text-3xl">
-              Bienvenue chez MalakInfo - Gestion du consentement
+    <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cookie-consent-title"
+        className="flex max-h-[100dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-[#d4af37]/40 bg-[#f7f3eb] shadow-2xl shadow-[#081c3d]/30 sm:max-h-[min(92dvh,44rem)] sm:rounded-[28px]"
+      >
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-[#081c3d]/10 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6 sm:pt-5">
+          <div className="min-w-0 pr-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#0b3b8b]">MalakInfo</p>
+            <h2 id="cookie-consent-title" className="mt-2 text-xl font-semibold leading-tight text-[#081c3d] sm:text-2xl">
+              Gestion du consentement
             </h2>
-            <p className="mt-4 text-sm leading-7 text-[#53606b] sm:text-base">
-              Nos partenaires et nous déposons des cookies et utilisons des informations non sensibles de votre appareil pour améliorer nos services, analyser notre audience et afficher du contenu adapté. Vous pouvez personnaliser vos choix ci-dessous.
+            <p className="mt-2 text-sm leading-6 text-[#53606b]">
+              Choisissez les cookies que vous acceptez. Vos choix sont appliqués dès que vous les enregistrez.
             </p>
             <a
-              href="https://malakinfo.com/fr/politique-confidentialite"
+              href="/fr/politique-confidentialite"
               target="_blank"
               rel="noreferrer"
-              className="mt-4 inline-flex text-sm font-medium text-[#0b3b8b] underline underline-offset-4 transition hover:text-[#d4af37]"
+              className="mt-2 inline-flex text-sm font-medium text-[#0b3b8b] underline underline-offset-4"
             >
-              Voir la politique de confidentialité
+              Politique de confidentialité
             </a>
           </div>
           <button
             type="button"
             aria-label="Fermer la gestion du consentement"
-            className="rounded-full bg-[#081c3d] px-3 py-2 text-sm font-medium text-white transition hover:bg-[#0b3b8b]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#081c3d] text-white transition hover:bg-[#0b3b8b]"
             onClick={onClose}
           >
-            ×
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="mt-8 space-y-4">
-          {PREFERENCE_CATEGORIES.map((category) => (
-            <div
-              key={category.key}
-              className="rounded-[22px] border border-[#d4af37]/30 bg-white/80 p-4 sm:p-5"
-            >
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-base font-semibold text-[#081c3d]">{category.label}</p>
-                  {category.required && (
-                    <span className="mt-2 inline-flex rounded-full bg-[#d4af37] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#081c3d]">
-                      REQUIS
-                    </span>
-                  )}
-                </div>
-                {!category.required ? (
-                  <div className="flex flex-wrap items-center gap-2">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
+          {PREFERENCE_CATEGORIES.map((category) => {
+            const accepted = Boolean(preferences[category.key]);
+
+            return (
+              <div
+                key={category.key}
+                className="rounded-2xl border border-[#d4af37]/30 bg-white p-3.5 sm:p-4"
+              >
+                <p className="text-sm font-semibold leading-snug text-[#081c3d] sm:text-base">
+                  {category.label}
+                </p>
+                {category.required ? (
+                  <span className="mt-3 inline-flex rounded-full border border-[#d4af37] bg-[#fff8dc] px-4 py-2 text-sm font-semibold text-[#081c3d]">
+                    Requis
+                  </span>
+                ) : (
+                  <div className="mt-3 grid grid-cols-2 gap-2">
                     <button
                       type="button"
-                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                        preferences[category.key]
-                          ? 'border-[#b9c2ce] bg-white text-[#53606b] hover:bg-[#f7f3eb]'
-                          : 'border-[#081c3d] bg-[#081c3d] text-white hover:bg-[#0b3b8b]'
-                      }`}
+                      aria-pressed={!accepted}
+                      className={choiceButtonClass(!accepted)}
                       onClick={() => onSetPreference(category.key, false)}
                     >
                       Refuser
                     </button>
                     <button
                       type="button"
-                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                        preferences[category.key]
-                          ? 'border-[#081c3d] bg-[#081c3d] text-white hover:bg-[#0b3b8b]'
-                          : 'border-[#b9c2ce] bg-white text-[#53606b] hover:bg-[#f7f3eb]'
-                      }`}
+                      aria-pressed={accepted}
+                      className={choiceButtonClass(accepted)}
                       onClick={() => onSetPreference(category.key, true)}
                     >
                       Accepter
                     </button>
                   </div>
-                ) : (
-                  <span className="rounded-full border border-[#d4af37] bg-[#fff8dc] px-4 py-2 text-sm font-semibold text-[#081c3d]">
-                    Requis
-                  </span>
                 )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <div className="grid shrink-0 gap-2 border-t border-[#081c3d]/10 bg-[#f7f3eb] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:grid-cols-3 sm:px-6">
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-full border border-[#081c3d] bg-white px-5 py-3 text-sm font-semibold text-[#081c3d] transition hover:bg-[#eaf0f8]"
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#081c3d] bg-white px-4 py-2.5 text-sm font-semibold text-[#081c3d]"
             onClick={onRejectAll}
           >
             Refuser tout
           </button>
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-full border border-[#d4af37] bg-[#d4af37] px-5 py-3 text-sm font-semibold text-[#081c3d] transition hover:bg-[#e4c65c]"
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#d4af37] bg-[#d4af37] px-4 py-2.5 text-sm font-semibold text-[#081c3d]"
             onClick={onAcceptAll}
           >
             Accepter tout
           </button>
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-full bg-[#081c3d] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0b3b8b]"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#081c3d] px-4 py-2.5 text-sm font-semibold text-white sm:col-auto"
             onClick={onSave}
           >
-            Enregistrer mes préférences
+            Enregistrer
           </button>
         </div>
       </div>
@@ -235,20 +250,23 @@ export default function CookieConsentModal() {
   }, [hasConsent, isVisible, isPreferencesOpen, isNewsletterPromptOpen]);
 
   useEffect(() => {
-    if (!isNewsletterPromptOpen) return;
+    if (!isPreferencesOpen && !isNewsletterPromptOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        closeNewsletterPrompt();
+      if (event.key !== 'Escape') return;
+      if (isPreferencesOpen) {
+        savePreferences(preferences, true);
+        return;
       }
+      closeNewsletterPrompt();
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isNewsletterPromptOpen]);
+  }, [isNewsletterPromptOpen, isPreferencesOpen, preferences]);
 
   useEffect(() => {
-    if (isPreferencesOpen) {
+    if (isPreferencesOpen || isNewsletterPromptOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -257,16 +275,22 @@ export default function CookieConsentModal() {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isVisible, isPreferencesOpen]);
+  }, [isPreferencesOpen, isNewsletterPromptOpen]);
 
-  const savePreferences = (nextPreferences: Record<string, boolean>) => {
+  const savePreferences = (nextPreferences: Record<string, boolean>, close = true) => {
+    const next = {
+      ...nextPreferences,
+      functionality: true,
+    };
     window.localStorage.setItem(STORAGE_KEY, 'configured');
-    window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(nextPreferences));
+    window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(next));
     window.dispatchEvent(new Event(CONSENT_UPDATED_EVENT));
     setHasConsent(true);
-    setPreferences(nextPreferences);
-    setIsVisible(false);
-    setIsPreferencesOpen(false);
+    setPreferences(next);
+    if (close) {
+      setIsVisible(false);
+      setIsPreferencesOpen(false);
+    }
   };
 
   const handleNewsletterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -339,19 +363,39 @@ export default function CookieConsentModal() {
   };
 
   const handleSave = () => {
-    savePreferences(preferences);
+    savePreferences(preferences, true);
   };
 
   const handlePreferenceChange = (key: string, value: boolean) => {
-    setPreferences((current) => ({ ...current, [key]: value }));
+    savePreferences({ ...preferences, [key]: value }, false);
   };
 
-  if (!isVisible && !isPreferencesOpen && !isNewsletterPromptOpen) {
-    return null;
-  }
+  const openCookieSettings = () => {
+    setPreferences(readConsentPreferences());
+    setIsPreferencesOpen(true);
+  };
+
+  const showCookieButton = !isVisible && !isPreferencesOpen && !isNewsletterPromptOpen;
 
   return (
     <>
+      {showCookieButton && (
+        <button
+          type="button"
+          onClick={openCookieSettings}
+          aria-label="Gérer les cookies"
+          title="Gérer les cookies"
+          className="group fixed bottom-[5.75rem] left-3 z-[80] flex items-center rounded-full border border-black/5 bg-white shadow-[0_4px_18px_rgba(15,40,80,0.16)] transition hover:shadow-[0_8px_24px_rgba(15,40,80,0.22)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] sm:bottom-5 sm:left-5"
+        >
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center">
+            <CookieWidgetIcon />
+          </span>
+          <span className="max-w-0 overflow-hidden whitespace-nowrap text-sm font-semibold text-[#0B3B8B] opacity-0 transition-all duration-200 group-hover:max-w-[11rem] group-hover:pr-4 group-hover:opacity-100 group-focus-visible:max-w-[11rem] group-focus-visible:pr-4 group-focus-visible:opacity-100">
+            Gérer les cookies
+          </span>
+        </button>
+      )}
+
       {isVisible && !isPreferencesOpen && (
         <div className="pointer-events-none fixed inset-x-0 bottom-[5.5rem] z-[70] max-h-[calc(100svh-6.5rem)] overflow-y-auto px-3 pb-1 sm:inset-x-auto sm:bottom-0 sm:left-3 sm:max-h-none sm:max-w-[430px] sm:overflow-visible sm:px-0 sm:pb-3">
           <div className="pointer-events-auto cookie-consent-enter w-full rounded-[3px] border border-[#d4af37] bg-[#081c3d] p-4 text-white shadow-2xl shadow-[#081c3d]/40 sm:p-5">
@@ -372,7 +416,7 @@ export default function CookieConsentModal() {
                 type="button"
                 aria-label="Fermer la fenêtre de consentement"
                 className="rounded-full bg-[#d4af37] px-3 py-2 text-sm font-medium text-[#081c3d] transition hover:bg-[#e4c65c]"
-                onClick={() => handleConsent('false')}
+                onClick={() => handleConsent('true')}
               >
                 ×
               </button>
@@ -403,7 +447,7 @@ export default function CookieConsentModal() {
                 type="button"
                 className="inline-flex items-center justify-center rounded-[2px] bg-white px-4 py-3 text-sm font-bold text-[#081c3d] transition hover:bg-[#f7f3eb]"
                 onClick={() => {
-                  setPreferences(buildSavedPreferences(window.localStorage.getItem(PREFERENCES_KEY)));
+                  setPreferences(readConsentPreferences());
                   setIsPreferencesOpen(true);
                 }}
               >
@@ -421,18 +465,18 @@ export default function CookieConsentModal() {
           onSave={handleSave}
           onAcceptAll={handleAcceptAll}
           onRejectAll={handleRejectAll}
-          onClose={() => setIsPreferencesOpen(false)}
+          onClose={() => savePreferences(preferences, true)}
         />
       )}
 
       {isNewsletterPromptOpen && (
         <div
-          className="newsletter-backdrop fixed inset-0 z-[60] flex items-center justify-center bg-[#07111c]/80 px-4 py-6 backdrop-blur-sm"
+          className="newsletter-backdrop fixed inset-0 z-[85] flex cursor-pointer items-end justify-center bg-[#07111c]/80 px-3 py-3 backdrop-blur-sm sm:items-center sm:px-4 sm:py-6"
           onClick={closeNewsletterPrompt}
           role="presentation"
         >
           <div
-            className="newsletter-card-enter relative max-h-[calc(100svh-1rem)] w-full max-w-4xl overflow-y-auto border border-[#d7cdbb] bg-[#f7f3eb] shadow-2xl"
+            className="newsletter-card-enter relative flex max-h-[calc(100svh-1.5rem)] w-full max-w-4xl cursor-auto flex-col overflow-hidden border border-[#d7cdbb] bg-[#f7f3eb] shadow-2xl sm:max-h-[calc(100svh-3rem)]"
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -442,40 +486,49 @@ export default function CookieConsentModal() {
               type="button"
               onClick={closeNewsletterPrompt}
               aria-label="Fermer l'inscription à la newsletter"
-              className="newsletter-close absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#081c3d] bg-white/90 text-[#081c3d] transition hover:bg-[#081c3d] hover:text-white pointer-events-auto"
+              className="newsletter-close absolute right-3 top-3 z-30 flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-[#081c3d] bg-white text-[#081c3d] shadow-md transition hover:bg-[#081c3d] hover:text-white sm:right-4 sm:top-4"
             >
               <X className="h-5 w-5" />
             </button>
 
-            <div className="grid md:grid-cols-[1fr_0.85fr]">
-              <div className="newsletter-copy order-2 p-4 sm:p-10 md:order-1 md:p-12">
-                <p className="newsletter-stagger text-[11px] font-bold uppercase tracking-[0.28em] text-[#c56b36]">La lettre MalakInfo</p>
-                <h2 id="newsletter-prompt-title" className="newsletter-stagger mt-2 font-heading text-2xl font-bold leading-[1.05] text-[#081c3d] sm:mt-4 sm:text-5xl">
-                  L&apos;essentiel de l&apos;actualité africaine.
-                </h2>
-                <div className="newsletter-rule mt-3 h-px w-14 bg-[#c56b36] sm:mt-5" />
-                <p className="newsletter-stagger mt-3 max-w-xl text-sm leading-5 text-[#53606b] sm:mt-5 sm:text-lg sm:leading-7">
-                  Recevez nos informations les plus importantes, nos analyses et nos dossiers directement dans votre boîte mail.
-                </p>
-                <p className="newsletter-stagger mt-2 text-xs font-medium text-[#081c3d] sm:mt-4 sm:text-sm">
-                  Une lecture claire, fiable et indépendante. Sans bruit inutile.
-                </p>
-              </div>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              <div className="grid md:grid-cols-[1fr_0.85fr]">
+                <div className="newsletter-copy order-2 p-4 sm:p-10 md:order-1 md:p-12">
+                  <p className="newsletter-stagger text-[11px] font-bold uppercase tracking-[0.28em] text-[#c56b36]">La lettre MalakInfo</p>
+                  <h2 id="newsletter-prompt-title" className="newsletter-stagger mt-2 font-heading text-2xl font-bold leading-[1.05] text-[#081c3d] sm:mt-4 sm:text-5xl">
+                    L&apos;essentiel de l&apos;actualité africaine.
+                  </h2>
+                  <div className="newsletter-rule mt-3 h-px w-14 bg-[#c56b36] sm:mt-5" />
+                  <p className="newsletter-stagger mt-3 max-w-xl text-sm leading-5 text-[#53606b] sm:mt-5 sm:text-lg sm:leading-7">
+                    Recevez nos informations les plus importantes, nos analyses et nos dossiers directement dans votre boîte mail.
+                  </p>
+                  <p className="newsletter-stagger mt-2 text-xs font-medium text-[#081c3d] sm:mt-4 sm:text-sm">
+                    Une lecture claire, fiable et indépendante. Sans bruit inutile.
+                  </p>
+                </div>
 
-              <div className="newsletter-form-panel relative order-1 flex min-h-0 items-end overflow-hidden bg-[#0b315e] p-4 sm:p-10 md:order-2 md:min-h-0">
-                <img src="/images/logo.png" alt="MalakInfo" className="newsletter-logo absolute left-1/2 top-1/2 w-[80%] -translate-x-1/2 -translate-y-1/2 opacity-10 grayscale brightness-0 invert" />
-                <div className="relative z-10 w-full">
-                  <div className="newsletter-icon newsletter-stagger mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-[#d4af37] text-[#081c3d] sm:mb-5 sm:h-11 sm:w-11"><Mail className="h-4 w-4 sm:h-5 sm:w-5" /></div>
-                  <h3 className="newsletter-stagger text-lg font-bold leading-6 text-white sm:text-xl">Restez au cœur de l&apos;information.</h3>
-                  <p className="newsletter-stagger mt-1 text-xs leading-4 text-blue-100 sm:mt-2 sm:text-sm sm:leading-6">Inscription gratuite. Vous pouvez vous désabonner à tout moment.</p>
+                <div className="newsletter-form-panel relative order-1 flex min-h-0 items-end overflow-hidden bg-[#0b315e] p-4 pt-16 sm:p-10 sm:pt-10 md:order-2 md:min-h-0">
+                  <img src="/images/logo.png" alt="" className="newsletter-logo pointer-events-none absolute left-1/2 top-1/2 w-[80%] -translate-x-1/2 -translate-y-1/2 opacity-10 grayscale brightness-0 invert" />
+                  <div className="relative z-10 w-full">
+                    <div className="newsletter-icon newsletter-stagger mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-[#d4af37] text-[#081c3d] sm:mb-5 sm:h-11 sm:w-11"><Mail className="h-4 w-4 sm:h-5 sm:w-5" /></div>
+                    <h3 className="newsletter-stagger text-lg font-bold leading-6 text-white sm:text-xl">Restez au cœur de l&apos;information.</h3>
+                    <p className="newsletter-stagger mt-1 text-xs leading-4 text-blue-100 sm:mt-2 sm:text-sm sm:leading-6">Inscription gratuite. Vous pouvez vous désabonner à tout moment.</p>
 
-                  <form onSubmit={handleNewsletterSubmit} className="newsletter-stagger mt-4 space-y-2 sm:mt-6 sm:space-y-3">
-                    <input type="email" value={newsletterEmail} onChange={(event) => setNewsletterEmail(event.target.value)} placeholder="Votre adresse e-mail" required className="newsletter-input w-full border border-white/20 bg-white px-3 py-2 text-xs text-[#081c3d] outline-none placeholder:text-slate-400 focus:border-[#d4af37] sm:px-4 sm:py-3 sm:text-sm" />
-                    <button type="submit" disabled={isNewsletterSubmitting} className="newsletter-submit w-full bg-[#d4af37] px-3 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-[#081c3d] transition hover:bg-[#e4c65c] disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-3 sm:text-sm sm:tracking-[0.12em]">
-                      {isNewsletterSubmitting ? 'Inscription...' : 'Recevoir la newsletter'}
-                    </button>
-                  </form>
-                  {newsletterStatus && <p className={`mt-3 text-sm ${newsletterStatus.type === 'success' ? 'text-emerald-200' : 'text-red-200'}`}>{newsletterStatus.text}</p>}
+                    <form onSubmit={handleNewsletterSubmit} className="newsletter-stagger mt-4 space-y-2 sm:mt-6 sm:space-y-3">
+                      <input type="email" value={newsletterEmail} onChange={(event) => setNewsletterEmail(event.target.value)} placeholder="Votre adresse e-mail" required className="newsletter-input w-full border border-white/20 bg-white px-3 py-2 text-xs text-[#081c3d] outline-none placeholder:text-slate-400 focus:border-[#d4af37] sm:px-4 sm:py-3 sm:text-sm" />
+                      <button type="submit" disabled={isNewsletterSubmitting} className="newsletter-submit w-full bg-[#d4af37] px-3 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-[#081c3d] transition hover:bg-[#e4c65c] disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-3 sm:text-sm sm:tracking-[0.12em]">
+                        {isNewsletterSubmitting ? 'Inscription...' : 'Recevoir la newsletter'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={closeNewsletterPrompt}
+                        className="w-full py-2.5 text-xs font-semibold text-blue-100 underline decoration-blue-100/40 underline-offset-4 touch-manipulation sm:text-sm"
+                      >
+                        Plus tard
+                      </button>
+                    </form>
+                    {newsletterStatus && <p className={`mt-3 text-sm ${newsletterStatus.type === 'success' ? 'text-emerald-200' : 'text-red-200'}`}>{newsletterStatus.text}</p>}
+                  </div>
                 </div>
               </div>
             </div>

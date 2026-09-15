@@ -1,15 +1,17 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Conditions d\'utilisation - Malakinfo.com',
   description: 'Conditions d\'utilisation du site Malakinfo.com',
 };
 
-export default function TermsOfUsePage({ 
-  params 
-}: { 
-  params: Promise<{ locale: string }> 
+export default async function TermsOfUsePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -107,7 +109,10 @@ export default function TermsOfUsePage({
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Protection des données personnelles</h2>
             <p className="text-muted-foreground">
-              La collecte et le traitement de vos données personnelles sont régis par notre politique de confidentialité. Pour en savoir plus, consultez notre page <a href="/politique-confidentialite" className="text-primary hover:underline">Politique de confidentialité</a>.
+              La collecte et le traitement de vos données personnelles sont régis par notre politique de confidentialité. Tant que vous n’avez pas personnalisé vos choix, les cookies non essentiels sont acceptés par défaut. Pour les modifier, cliquez sur le bouton cookie en bas à gauche, enregistrez vos préférences, puis consultez la{' '}
+              <Link href={`/${locale}/politique-confidentialite`} className="text-primary hover:underline">Politique de confidentialité</Link>
+              {' '}et la{' '}
+              <Link href={`/${locale}/cookies`} className="text-primary hover:underline">Politique de cookies</Link>.
             </p>
           </section>
 

@@ -5,7 +5,7 @@ export const SITE_EMAIL = 'contact@malakinfo.com';
 export const SITE_PHONE = '+243 998 258 441';
 export const SITE_ADDRESS = 'Kinshasa, République Démocratique du Congo';
 export const PUBLICATION_DIRECTOR = 'Ezekiel Matumona';
-export const LEGAL_UPDATED_AT = '13 septembre 2026';
+export const LEGAL_UPDATED_AT = '15 septembre 2026';
 
 export const HOSTING_PROVIDER = {
   name: 'RackNerd LLC',

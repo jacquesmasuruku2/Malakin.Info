@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
 import {
   HOSTING_PROVIDER,
   LEGAL_UPDATED_AT,
@@ -14,7 +15,12 @@ export const metadata: Metadata = {
   description: 'Mentions légales du site Malakinfo.com',
 };
 
-export default function LegalNoticesPage() {
+export default async function LegalNoticesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -88,10 +94,13 @@ export default function LegalNoticesPage() {
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Données personnelles et cookies</h2>
             <p className="text-muted-foreground">
-              Le traitement des données est décrit dans la{' '}
-              <a href="/fr/politique-confidentialite" className="text-primary hover:underline">politique de confidentialité</a>
+              Tant que vous n’avez pas personnalisé vos choix, les cookies non essentiels (audience, publicité, personnalisation) sont acceptés par défaut. Pour les modifier : cliquez sur le bouton cookie en bas à gauche de n’importe quelle page, choisissez Refuser ou Accepter pour chaque catégorie (ou Refuser tout / Accepter tout), puis cliquez sur Enregistrer.
+            </p>
+            <p className="text-muted-foreground mt-4">
+              Le traitement des données et la procédure complète sont décrits dans la{' '}
+              <Link href={`/${locale}/politique-confidentialite`} className="text-primary hover:underline">politique de confidentialité</Link>
               {' '}et la{' '}
-              <a href="/fr/cookies" className="text-primary hover:underline">politique de cookies</a>.
+              <Link href={`/${locale}/cookies`} className="text-primary hover:underline">politique de cookies</Link>.
             </p>
           </section>
 
