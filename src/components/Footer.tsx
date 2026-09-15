@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 import { Mail, Phone, MapPin, ArrowUp, Heart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
+import { t as tCopy } from '@/lib/copy';
+import { subscribeToNewsletter } from '@/lib/newsletter-client';
 
 const headingClass = 'mb-5 text-[13px] font-semibold uppercase tracking-[0.12em] text-[#d4af37]';
 const textLinkClass = 'text-[15px] text-white/85 transition-colors hover:text-[#d4af37]';
@@ -49,31 +51,33 @@ export default function Footer() {
     setNewsletterStatus(null);
 
     try {
-      const response = await fetch('/api/newsletter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          consent: true,
-          interests: ['actualites', 'economie', 'culture', 'sport', 'tech'],
-        }),
-      });
+      const result = await subscribeToNewsletter(email);
 
-      const data = await response.json();
+      if (result.status === 'already_subscribed') {
+        setNewsletterStatus({
+          type: 'error',
+          text: tCopy(locale, 'newsletterAlreadySubscribed'),
+        });
+        return;
+      }
 
-      if (!response.ok) {
-        throw new Error(data?.error || 'Erreur lors de l’inscription.');
+      if (result.status === 'error') {
+        setNewsletterStatus({
+          type: 'error',
+          text: result.message || tCopy(locale, 'newsletterError'),
+        });
+        return;
       }
 
       setNewsletterStatus({
         type: 'success',
-        text: locale === 'fr' ? 'Merci, vous êtes inscrit à la newsletter.' : 'Thank you, you are subscribed to the newsletter.',
+        text: tCopy(locale, 'newsletterThanks'),
       });
       setNewsletterEmail('');
-    } catch (error) {
+    } catch {
       setNewsletterStatus({
         type: 'error',
-        text: error instanceof Error ? error.message : (locale === 'fr' ? 'Une erreur est survenue.' : 'An error occurred.'),
+        text: tCopy(locale, 'newsletterError'),
       });
     } finally {
       setIsNewsletterSubmitting(false);

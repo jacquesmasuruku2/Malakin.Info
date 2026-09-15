@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Mail, X } from 'lucide-react';
 import { CONSENT_UPDATED_EVENT } from '@/lib/consent';
+import { subscribeToNewsletter } from '@/lib/newsletter-client';
 
 const STORAGE_KEY = 'malakinfo_cookie_consent';
 const PREFERENCES_KEY = 'malakinfo_cookie_preferences';
@@ -274,18 +275,23 @@ export default function CookieConsentModal() {
     setNewsletterStatus(null);
 
     try {
-      const response = await fetch('/api/newsletter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: newsletterEmail.trim(),
-          consent: true,
-          interests: ['actualites', 'economie', 'culture', 'sport', 'tech'],
-        }),
-      });
-      const data = await response.json().catch(() => ({}));
+      const result = await subscribeToNewsletter(newsletterEmail.trim());
 
-      if (!response.ok) throw new Error(data?.error || 'Une erreur est survenue.');
+      if (result.status === 'already_subscribed') {
+        setNewsletterStatus({
+          type: 'error',
+          text: 'Cet email est déjà inscrit à la newsletter.',
+        });
+        return;
+      }
+
+      if (result.status === 'error') {
+        setNewsletterStatus({
+          type: 'error',
+          text: result.message || 'Une erreur est survenue. Veuillez réessayer.',
+        });
+        return;
+      }
 
       try {
         window.localStorage.setItem(NEWSLETTER_PROMPT_KEY, 'true');
@@ -295,10 +301,10 @@ export default function CookieConsentModal() {
       settleNewsletterPrompt();
       setNewsletterStatus({ type: 'success', text: 'Merci, vous êtes inscrit à la newsletter MalakInfo.' });
       window.setTimeout(() => setIsNewsletterPromptOpen(false), 1400);
-    } catch (error) {
+    } catch {
       setNewsletterStatus({
         type: 'error',
-        text: error instanceof Error ? error.message : 'Une erreur est survenue. Veuillez réessayer.',
+        text: 'Une erreur est survenue. Veuillez réessayer.',
       });
     } finally {
       setIsNewsletterSubmitting(false);

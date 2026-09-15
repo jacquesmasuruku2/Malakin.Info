@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { t } from '@/lib/copy';
+import { subscribeToNewsletter } from '@/lib/newsletter-client';
 
 interface NewsletterSignupInlineProps {
   locale?: string;
@@ -37,20 +38,22 @@ export default function NewsletterSignupInline({
     setStatus(null);
 
     try {
-      const response = await fetch('/api/newsletter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: trimmedEmail,
-          consent: true,
-          interests: ['actualites', 'economie', 'culture', 'sport', 'tech'],
-        }),
-      });
+      const result = await subscribeToNewsletter(trimmedEmail);
 
-      const data = await response.json().catch(() => ({}));
+      if (result.status === 'already_subscribed') {
+        setStatus({
+          type: 'error',
+          text: t(locale, 'newsletterAlreadySubscribed'),
+        });
+        return;
+      }
 
-      if (!response.ok) {
-        throw new Error(data?.error || t(locale, 'newsletterError'));
+      if (result.status === 'error') {
+        setStatus({
+          type: 'error',
+          text: result.message || t(locale, 'newsletterError'),
+        });
+        return;
       }
 
       setStatus({
@@ -58,13 +61,10 @@ export default function NewsletterSignupInline({
         text: t(locale, 'newsletterThanks'),
       });
       setEmail('');
-    } catch (error) {
+    } catch {
       setStatus({
         type: 'error',
-        text:
-          error instanceof Error
-            ? error.message
-            : t(locale, 'newsletterError'),
+        text: t(locale, 'newsletterError'),
       });
     } finally {
       setIsSubmitting(false);

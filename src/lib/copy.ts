@@ -239,6 +239,14 @@ export const copies = {
     ln: 'Matondi, okoti na newsletter.',
     rw: 'Murakoze, mwiyandikishije kuri newsletter.',
   },
+  newsletterAlreadySubscribed: {
+    fr: 'Cet email est déjà inscrit à la newsletter.',
+    en: 'This email is already subscribed to the newsletter.',
+    es: 'Este correo ya está suscrito al boletín.',
+    sw: 'Barua pepe hii tayari imesajiliwa kwenye jarida.',
+    ln: 'Email oyo ekoti na newsletter déjà.',
+    rw: 'Iyi imeri yamaze kwiyandikisha kuri newsletter.',
+  },
   newsletterError: {
     fr: 'Une erreur est survenue.',
     en: 'An error occurred.',
@@ -246,6 +254,30 @@ export const copies = {
     sw: 'Hitilafu imetokea.',
     ln: 'Erreur ekomi.',
     rw: 'Hari ikosa ryabaye.',
+  },
+  fromFavorites: {
+    fr: 'Depuis vos favoris',
+    en: 'From your favorites',
+    es: 'Desde tus favoritos',
+    sw: 'Kutoka kwa vipendwa vyako',
+    ln: 'Uta na ba favori na yo',
+    rw: 'Kuva mu byo ukunda',
+  },
+  close: {
+    fr: 'Fermer',
+    en: 'Close',
+    es: 'Cerrar',
+    sw: 'Funga',
+    ln: 'Fungola',
+    rw: 'Funga',
+  },
+  readThisArticle: {
+    fr: 'Lire cet article',
+    en: 'Read this article',
+    es: 'Leer este artículo',
+    sw: 'Soma makala hii',
+    ln: 'Tanga article oyo',
+    rw: 'Soma iyi nkuru',
   },
 } as const;
 

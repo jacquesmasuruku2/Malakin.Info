@@ -11,6 +11,7 @@ import {
   showCategoryNotification,
   type SuggestedArticle,
 } from '@/lib/followed-categories';
+import { copies, pickCopy } from '@/lib/copy';
 
 export default function FollowedCategoryNotifier() {
   const pathname = usePathname();
@@ -50,33 +51,59 @@ export default function FollowedCategoryNotifier() {
 
   if (!visible || !suggestion) return null;
 
-  const isFrench = locale === 'fr';
-
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md sm:left-auto sm:right-5">
-      <div className="relative overflow-hidden rounded-2xl border border-[#e8e2d4] bg-white p-4 shadow-[0_16px_40px_rgba(8,28,61,0.16)]">
-        <button
-          type="button"
-          onClick={() => setVisible(false)}
-          className="absolute right-3 top-3 rounded-full p-1 text-muted-foreground hover:bg-muted"
-          aria-label={isFrench ? 'Fermer' : 'Close'}
-        >
-          <X className="h-4 w-4" />
-        </button>
-        <p className="mb-2 inline-flex items-center gap-1.5 pr-6 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
-          <Bell className="h-3.5 w-3.5" />
-          {isFrench ? `Depuis vos favoris · ${categoryTitle}` : `From your favorites · ${categoryTitle}`}
-        </p>
-        <a href={`/${locale}/${suggestion.slug}`} className="block pr-4" onClick={() => setVisible(false)}>
-          <p className="font-semibold leading-snug text-foreground">{suggestion.title}</p>
-          {suggestion.excerpt && (
-            <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{suggestion.excerpt}</p>
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed bottom-24 left-4 right-4 z-[70] mx-auto max-w-sm sm:bottom-6 sm:left-auto sm:right-5"
+    >
+      <article className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-[0_18px_50px_rgba(0,0,0,0.35)]">
+        <div className="flex items-start gap-3 px-4 pb-2 pt-3">
+          {suggestion.mainImageUrl ? (
+            <img
+              src={suggestion.mainImageUrl}
+              alt=""
+              className="mt-0.5 h-11 w-11 shrink-0 rounded-xl object-cover"
+            />
+          ) : (
+            <span className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-white">
+              <Bell className="h-5 w-5" aria-hidden />
+            </span>
           )}
-          <span className="mt-3 inline-flex text-sm font-medium text-primary">
-            {isFrench ? 'Lire cet article' : 'Read this article'}
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+              MalakInfo · {categoryTitle}
+            </p>
+            <p className="mt-0.5 text-xs font-medium text-foreground/75">
+              {pickCopy(locale, copies.fromFavorites)}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setVisible(false)}
+            className="shrink-0 rounded-full p-1.5 text-foreground/70 hover:bg-muted hover:text-foreground"
+            aria-label={pickCopy(locale, copies.close)}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <a
+          href={`/${locale}/${suggestion.slug}`}
+          className="block px-4 pb-4"
+          onClick={() => setVisible(false)}
+        >
+          <p className="text-[15px] font-bold leading-snug text-foreground">{suggestion.title}</p>
+          {suggestion.excerpt && (
+            <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-foreground/80">
+              {suggestion.excerpt}
+            </p>
+          )}
+          <span className="mt-3 inline-flex rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-primary-foreground">
+            {pickCopy(locale, copies.readThisArticle)}
           </span>
         </a>
-      </div>
+      </article>
     </div>
   );
 }
