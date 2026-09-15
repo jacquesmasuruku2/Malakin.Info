@@ -9,7 +9,6 @@ import SearchBar from './SearchBar';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 import LanguageSwitcher from './LanguageSwitcher';
-import ThemeToggle from './ThemeToggle';
 import { logoutLocalSession } from '@/lib/theme';
 import { useAccountUser } from '@/lib/use-account-user';
 
@@ -348,13 +347,11 @@ export default function Navigation() {
               <Link href={`/${locale}/nous-soutenir`} className="rounded-full bg-[#0b3b8b] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#082a63]">
                 {t.subscribe}
               </Link>
-              <ThemeToggle />
               <LanguageSwitcher />
 
             </div>
 
             <div className="relative z-[70] flex items-center space-x-2 md:hidden">
-              <ThemeToggle />
               <LanguageSwitcher />
               {activeUser ? (
                 <Link
