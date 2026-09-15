@@ -35,10 +35,10 @@ export default function ReadAlso({ title, url, accentColor = '#2563eb' }: ReadAl
         </div>
 
         {/* Content Card */}
-        <div className="bg-white rounded-lg border border-gray-200 shadow-md p-6">
+        <div className="rounded-lg border border-border bg-card p-6 shadow-md">
           <Link 
             href={url}
-            className="flex items-center gap-2 font-bold text-lg hover:underline transition-colors"
+            className="flex items-center gap-2 text-lg font-bold text-foreground transition-colors hover:underline"
             style={linkStyle}
           >
             <ArrowRight className="w-5 h-5 flex-shrink-0" />

@@ -243,8 +243,8 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
       </p>
 
       <div className="relative mt-4">
-        <div className="absolute left-4 top-0 h-3.5 w-3.5 -translate-y-1/2 rotate-45 border-l-[2px] border-t-[2px] border-[#d52e96] bg-[#e9e9e9]" />
-        <div className="overflow-hidden rounded-[12px] bg-[#e9e9e9] px-5 py-4 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)] sm:px-6">
+        <div className="absolute left-4 top-0 h-3.5 w-3.5 -translate-y-1/2 rotate-45 border-l-[2px] border-t-[2px] border-[#d52e96] bg-muted" />
+        <div className="overflow-hidden rounded-[12px] border border-border bg-muted px-5 py-4 sm:px-6">
           <p className="text-[1.02rem] leading-[1.7] text-foreground whitespace-pre-line" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
             {comment.content}
           </p>

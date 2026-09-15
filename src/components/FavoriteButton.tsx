@@ -156,7 +156,7 @@ export default function FavoriteButton({
       {suggestion && (
         <a
           href={`/${locale}/${suggestion.slug}`}
-          className="flex gap-4 rounded-2xl border border-[#e8e2d4] bg-white p-4 shadow-[0_8px_24px_rgba(8,28,61,0.06)] transition hover:border-primary/30"
+          className="flex gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/30"
         >
           {suggestion.mainImageUrl && (
             <img

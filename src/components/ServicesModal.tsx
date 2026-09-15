@@ -22,12 +22,21 @@ function MenuTree({
   expandedCategory,
   setExpandedCategory,
   closeServices,
+  compact = false,
 }: {
   sections: MenuSection[];
   expandedCategory: string | null;
   setExpandedCategory: (title: string | null) => void;
   closeServices: () => void;
+  compact?: boolean;
 }) {
+  const titleClass = compact
+    ? 'px-2.5 py-2.5 text-[13px] font-bold uppercase tracking-[0.08em]'
+    : 'px-3 py-3 text-sm font-bold uppercase tracking-wide';
+  const itemClass = compact
+    ? 'block rounded-md px-2.5 py-2 text-[13px] leading-snug text-foreground transition-colors hover:bg-muted hover:text-secondary'
+    : 'block rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted hover:text-secondary';
+
   return (
     <div className="space-y-0">
       {sections.map((category) => {
@@ -37,7 +46,7 @@ function MenuTree({
               key={category.href || category.title}
               href={category.href}
               onClick={closeServices}
-              className="block px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] border-b border-gray-200 transition-colors"
+              className={`block border-b border-border text-foreground transition-colors hover:text-secondary ${titleClass}`}
             >
               {category.title}
             </Link>
@@ -46,31 +55,31 @@ function MenuTree({
 
         const isExpanded = expandedCategory === category.title;
         return (
-          <div key={category.title} className="border-b border-gray-200">
+          <div key={category.title} className="border-b border-border">
             <button
               type="button"
-              className="w-full flex items-center justify-between px-3 py-4 text-base font-bold uppercase tracking-wide text-[#081C3D] hover:text-[#D4AF37] transition-colors"
+              className={`flex w-full items-center justify-between text-foreground transition-colors hover:text-secondary ${titleClass}`}
               onClick={() => setExpandedCategory(isExpanded ? null : category.title)}
             >
               <span>{category.title}</span>
               <ChevronRight
-                className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
+                className={`h-4 w-4 shrink-0 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
               />
             </button>
 
             <div
               className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                isExpanded ? 'max-h-[min(20rem,45vh)] opacity-100' : 'max-h-0 opacity-0'
+                isExpanded ? 'max-h-[min(16rem,40vh)] opacity-100' : 'max-h-0 opacity-0'
               }`}
             >
               {isExpanded && category.items && (
-                <div className="pl-4 pr-3 py-2 space-y-1 bg-gray-50 max-h-[min(20rem,45vh)] overflow-y-auto">
+                <div className="max-h-[min(16rem,40vh)] space-y-0.5 overflow-y-auto bg-muted px-2 py-1.5">
                   {category.items.map((item) => (
                     <Link
                       key={`${item.href}-${item.name}`}
                       href={item.href}
                       onClick={closeServices}
-                      className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
+                      className={itemClass}
                     >
                       {item.name}
                     </Link>
@@ -250,38 +259,44 @@ export default function ServicesModal() {
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black/50 z-[60] md:hidden transition-opacity duration-300 ${
-          isServicesOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        className={`fixed inset-0 z-[60] bg-black/50 transition-opacity duration-300 md:hidden ${
+          isServicesOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={closeServices}
       />
 
-      <div className={`fixed bottom-0 left-0 right-0 z-[70] md:hidden transition-transform duration-300 ease-out ${
-        isServicesOpen ? 'translate-y-0' : 'translate-y-full'
-      }`}>
-        <div className="bg-white rounded-none max-h-[80vh] overflow-y-auto">
-          <div className="sticky top-0 bg-white p-4 border-b-2 border-[#D4AF37] flex justify-between items-center">
-            <h3 className="text-[#081C3D] font-bold uppercase tracking-wide">{t.servicesMalakin}</h3>
+      <div
+        className={`fixed inset-x-0 bottom-0 z-[70] md:hidden transition-transform duration-300 ease-out ${
+          isServicesOpen ? 'translate-y-0' : 'translate-y-full'
+        }`}
+      >
+        <div className="flex max-h-[min(92dvh,100%)] flex-col overflow-hidden rounded-t-2xl border-t border-border bg-background pb-[max(0.75rem,env(safe-area-inset-bottom))] text-foreground">
+          <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b-2 border-secondary bg-background px-3 py-2.5">
+            <h3 className="min-w-0 truncate text-[13px] font-bold uppercase tracking-[0.08em] text-foreground">
+              {t.servicesMalakin}
+            </h3>
             <button
               type="button"
               onClick={closeServices}
-              className="flex items-center gap-2 text-[#081C3D] hover:text-[#D4AF37] transition-colors"
+              className="inline-flex shrink-0 items-center gap-1.5 text-foreground transition-colors hover:text-secondary"
             >
-              <span className="text-sm font-bold uppercase">{t.close.toUpperCase()}</span>
-              <X className="w-6 h-6" />
+              <span className="text-[11px] font-bold uppercase">{t.close.toUpperCase()}</span>
+              <X className="h-5 w-5" />
             </button>
           </div>
 
-          <div className="grid gap-3 p-4 grid-cols-2">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-3 py-3">
             <div>
-              <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">{t.services}</h4>
-              <div className="grid gap-2">
+              <h4 className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                {t.services}
+              </h4>
+              <div className="grid grid-cols-2 gap-1.5">
                 {servicesItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={closeServices}
-                    className="block min-h-[44px] items-center px-3 py-2.5 bg-gray-50 rounded-lg text-sm text-[#081C3D] hover:bg-[#D4AF37] hover:text-white transition-all duration-200"
+                    className="flex min-h-10 items-center rounded-lg bg-muted px-2.5 py-2 text-[12px] leading-snug text-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground"
                   >
                     {item.name}
                   </Link>
@@ -290,12 +305,15 @@ export default function ServicesModal() {
             </div>
 
             <div>
-              <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">Malakinfo Services</h4>
+              <h4 className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                Malakinfo Services
+              </h4>
               <MenuTree
                 sections={menuCategories}
                 expandedCategory={expandedCategory}
                 setExpandedCategory={setExpandedCategory}
                 closeServices={closeServices}
+                compact
               />
             </div>
           </div>
@@ -303,34 +321,39 @@ export default function ServicesModal() {
       </div>
 
       <div className="hidden md:block">
-        <div className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 ${
-          isServicesOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`} onClick={closeServices} />
-        <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[760px] max-w-[90vw] bg-white border border-gray-200 rounded-none shadow-2xl p-6 z-[70] max-h-[80vh] overflow-y-auto transition-all duration-300 ease-out ${
-          isServicesOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'
-        }`}>
-          <div className="flex justify-between items-center mb-4 border-b-2 border-[#D4AF37] pb-4">
-            <h3 className="text-[#081C3D] font-bold uppercase tracking-wide">{t.servicesMalakin}</h3>
+        <div
+          className={`fixed inset-0 z-[60] bg-black/50 transition-opacity duration-300 ${
+            isServicesOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+          }`}
+          onClick={closeServices}
+        />
+        <div
+          className={`fixed left-1/2 top-1/2 z-[70] w-[min(760px,92vw)] max-h-[min(80vh,40rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-card p-5 text-foreground shadow-2xl transition-all duration-300 ease-out sm:p-6 ${
+            isServicesOpen ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0'
+          }`}
+        >
+          <div className="mb-4 flex items-center justify-between gap-3 border-b-2 border-secondary pb-4">
+            <h3 className="text-base font-bold uppercase tracking-wide text-foreground">{t.servicesMalakin}</h3>
             <button
               type="button"
-              className="flex items-center gap-2 text-[#081C3D] hover:text-[#D4AF37] transition-colors"
+              className="inline-flex items-center gap-2 text-foreground transition-colors hover:text-secondary"
               onClick={closeServices}
             >
               <span className="text-sm font-bold uppercase">{t.close.toUpperCase()}</span>
-              <X className="w-5 h-5" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
           <div className="grid gap-8 md:grid-cols-2">
             <div>
-              <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">{t.services}</h4>
-              <div className="space-y-2">
+              <h4 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted-foreground">{t.services}</h4>
+              <div className="space-y-1">
                 {servicesItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={closeServices}
-                    className="block px-3 py-2 text-sm text-[#081C3D] hover:text-[#D4AF37] transition-colors"
+                    className="block rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted hover:text-secondary"
                   >
                     {item.name}
                   </Link>
@@ -339,7 +362,7 @@ export default function ServicesModal() {
             </div>
 
             <div>
-              <h4 className="text-[#081C3D] font-bold text-sm uppercase tracking-wide mb-3">Malakinfo Services</h4>
+              <h4 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted-foreground">Malakinfo Services</h4>
               <MenuTree
                 sections={menuCategories}
                 expandedCategory={expandedCategory}
