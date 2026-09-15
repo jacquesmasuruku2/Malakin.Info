@@ -3,11 +3,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { localeFromPathname, pickCopy, t } from '@/lib/copy';
+import { getMessages } from '@/lib/i18n';
 
 export default function ConnexionPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const locale = localeFromPathname(pathname);
+  const messages = getMessages(locale);
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/';
   const scrollToComments = searchParams.get('scroll_to_comments') === 'true';
@@ -79,10 +84,10 @@ export default function ConnexionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 py-12 px-4">
-      <div className="mx-auto max-w-md rounded-sm bg-white p-6 shadow-sm md:p-8">
-        <h1 className="mb-6 border-b border-gray-300 pb-2 text-3xl font-extrabold text-gray-900">
-          Connexion
+    <div className="min-h-screen bg-muted py-12 px-4">
+      <div className="mx-auto max-w-md rounded-sm bg-card p-6 shadow-sm md:p-8 border border-border">
+        <h1 className="mb-6 border-b border-border pb-2 text-3xl font-extrabold text-foreground">
+          {messages.nav.login}
         </h1>
 
         {error && (
@@ -96,7 +101,7 @@ export default function ConnexionPage() {
           <button
             onClick={handleGoogleSignIn}
             disabled={googleLoading}
-            className="flex items-center justify-center gap-2 rounded-sm border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center justify-center gap-2 rounded-sm border border-border bg-card px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -104,7 +109,7 @@ export default function ConnexionPage() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            {googleLoading ? 'Connexion...' : 'Google'}
+            {googleLoading ? t(locale, 'loading') : 'Google'}
           </button>
 
           <button
@@ -120,21 +125,21 @@ export default function ConnexionPage() {
 
         <div className="mb-6 flex items-center justify-center">
           <div className="h-px flex-1 bg-gray-200" />
-          <span className="px-4 text-sm font-medium text-gray-500">ou</span>
+          <span className="px-4 text-sm font-medium text-muted-foreground">{pickCopy(locale, { fr: 'ou', en: 'or', es: 'o', sw: 'au', ln: 'to', rw: 'cyangwa' })}</span>
           <div className="h-px flex-1 bg-gray-200" />
         </div>
 
         <div className="mx-auto max-w-sm">
           <div className="mb-4 text-left">
-            <h2 className="text-lg font-bold text-gray-900">Se connecter avec un mot de passe</h2>
+            <h2 className="text-lg font-bold text-foreground">{pickCopy(locale, { fr: 'Se connecter avec un mot de passe', en: 'Sign in with a password', es: 'Iniciar sesión con una contraseña', sw: 'Ingia kwa nenosiri', ln: 'Kota na mot de passe', rw: 'Injira ukoresheje ijambo ry’ibanga' })}</h2>
           </div>
 
           <div className="mb-4 space-y-2 text-left text-sm text-gray-700">
             <p>
-              Vous n&apos;avez pas de compte ? <a href="/fr/compte/inscription" className="font-medium text-primary underline hover:text-primary/80">Créez-en un.</a>
+              Vous n&apos;avez pas de compte ? <a href={`/${locale}/compte/inscription`} className="font-medium text-primary underline hover:text-primary/80">{pickCopy(locale, { fr: 'Créez-en un.', en: 'Create one.', es: 'Crea una.', sw: 'Unda moja.', ln: 'Sala moko.', rw: 'Yifungure.' })}</a>
             </p>
-            <a href="/fr/compte/connexion" className="block font-bold text-primary hover:text-primary/80">
-              Connectez-vous sans mot de passe.
+            <a href={`/${locale}/compte/connexion`} className="block font-bold text-primary hover:text-primary/80">
+              {pickCopy(locale, { fr: 'Connectez-vous sans mot de passe.', en: 'Sign in without a password.', es: 'Inicia sesión sin contraseña.', sw: 'Ingia bila nenosiri.', ln: 'Kota sans mot de passe.', rw: 'Injira utakoresheje ijambo ry’ibanga.' })}
             </a>
           </div>
 
@@ -146,14 +151,14 @@ export default function ConnexionPage() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder=" "
-                className="peer w-full rounded-sm border border-gray-300 bg-white px-3 pt-5 pb-1.5 font-mono text-sm text-gray-700 placeholder:text-transparent focus:border-primary focus:outline-none"
+                className="peer w-full rounded-sm border border-border bg-background px-3 pt-5 pb-1.5 font-mono text-sm text-foreground placeholder:text-transparent focus:border-primary focus:outline-none"
                 required
               />
               <label
                 htmlFor="email"
                 className="pointer-events-none absolute left-3 top-2.5 text-xs font-medium text-gray-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-[11px] peer-focus:text-primary"
               >
-                Adresse e-mail
+                {pickCopy(locale, { fr: 'Adresse e-mail', en: 'Email address', es: 'Correo electrónico', sw: 'Barua pepe', ln: 'Adresse email', rw: 'Imeri' })}
               </label>
             </div>
 
@@ -165,14 +170,14 @@ export default function ConnexionPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder=" "
-                  className="peer w-full rounded-sm border border-gray-300 bg-white px-3 pt-5 pb-1.5 pr-11 font-mono text-sm text-gray-700 placeholder:text-transparent focus:border-primary focus:outline-none"
+                  className="peer w-full rounded-sm border border-border bg-background px-3 pt-5 pb-1.5 pr-11 font-mono text-sm text-foreground placeholder:text-transparent focus:border-primary focus:outline-none"
                   required
                 />
                 <label
                   htmlFor="password"
                   className="pointer-events-none absolute left-3 top-2.5 text-xs font-medium text-gray-500 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-[11px] peer-focus:text-primary"
                 >
-                  Mot de passe
+                  {pickCopy(locale, { fr: 'Mot de passe', en: 'Password', es: 'Contraseña', sw: 'Nenosiri', ln: 'Mot de passe', rw: 'Ijambo ry’ibanga' })}
                 </label>
                 <button
                   type="button"
@@ -184,8 +189,8 @@ export default function ConnexionPage() {
                 </button>
               </div>
               <div className="text-right">
-                <Link href="/compte/mot-de-passe-oublie" className="text-xs text-primary hover:text-primary/80">
-                  Mot de passe oublié ?
+                <Link href={`/${locale}/compte/mot-de-passe-oublie`} className="text-xs text-primary hover:text-primary/80">
+                  {pickCopy(locale, { fr: 'Mot de passe oublié ?', en: 'Forgot password?', es: '¿Olvidaste tu contraseña?', sw: 'Umesahau nenosiri?', ln: 'Obosani mot de passe?', rw: 'Wibagiwe ijambo ry’ibanga?' })}
                 </Link>
               </div>
             </div>
@@ -196,7 +201,7 @@ export default function ConnexionPage() {
                 disabled={loading}
                 className="flex items-center gap-2 rounded-md bg-primary px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span>{loading ? 'Connexion...' : 'Confirmer'}</span>
+                <span>{loading ? t(locale, 'loading') : pickCopy(locale, { fr: 'Confirmer', en: 'Confirm', es: 'Confirmar', sw: 'Thibitisha', ln: 'Kondima', rw: 'Emeza' })}</span>
                 <span aria-hidden="true">→</span>
               </button>
             </div>

@@ -262,29 +262,78 @@ export async function getCategoryTranslations(categoryId: string) {
   };
 }
 
-export async function applyArticleLocales<T extends { id: string; title: string; excerpt: string }>(
-  articles: T[],
+export async function applyCategoryLocales<T extends { id: string; title: string }>(
+  categories: T[],
   locale: string
 ): Promise<T[]> {
+  if (!categories.length || locale === 'fr') {
+    return categories;
+  }
+
+  const translations = await prisma.categoryTranslation.findMany({
+    where: {
+      locale,
+      categoryId: { in: categories.map((category) => category.id) },
+    },
+    select: { categoryId: true, title: true },
+  });
+
+  if (translations.length === 0) {
+    return categories;
+  }
+
+  const translated = new Map(translations.map((item) => [item.categoryId, item.title]));
+  return categories.map((category) => {
+    const title = translated.get(category.id);
+    return title ? { ...category, title } : category;
+  });
+}
+
+export async function applyArticleLocales<
+  T extends {
+    id: string;
+    title: string;
+    excerpt: string;
+    category?: { id?: string; title?: string } | null;
+  },
+>(articles: T[], locale: string): Promise<T[]> {
   if (!articles.length || locale === 'fr') {
     return articles;
   }
 
-  const translations = await prisma.articleTranslation.findMany({
-    where: {
-      locale,
-      articleId: { in: articles.map((article) => article.id) },
-    },
-    select: { articleId: true, title: true, excerpt: true },
-  });
-
-  if (translations.length === 0) {
-    return articles;
-  }
+  const [translations, categoryTranslations] = await Promise.all([
+    prisma.articleTranslation.findMany({
+      where: {
+        locale,
+        articleId: { in: articles.map((article) => article.id) },
+      },
+      select: { articleId: true, title: true, excerpt: true },
+    }),
+    prisma.categoryTranslation.findMany({
+      where: {
+        locale,
+        categoryId: {
+          in: articles
+            .map((article) => article.category?.id)
+            .filter((id): id is string => Boolean(id)),
+        },
+      },
+      select: { categoryId: true, title: true },
+    }),
+  ]);
 
   const translated = new Map(translations.map((item) => [item.articleId, item]));
+  const translatedCategories = new Map(categoryTranslations.map((item) => [item.categoryId, item.title]));
+
   return articles.map((article) => {
     const match = translated.get(article.id);
-    return match ? { ...article, title: match.title, excerpt: match.excerpt } : article;
+    const categoryTitle = article.category?.id ? translatedCategories.get(article.category.id) : undefined;
+    return {
+      ...article,
+      ...(match ? { title: match.title, excerpt: match.excerpt } : {}),
+      ...(article.category && categoryTitle
+        ? { category: { ...article.category, title: categoryTitle } }
+        : {}),
+    };
   });
 }

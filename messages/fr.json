@@ -48,7 +48,15 @@
   "home": {
     "featuredNews": "À la une",
     "latestNews": "Dernières actualités",
-    "categories": "Catégories"
+    "categories": "Catégories",
+    "latestFeed": "Dernières Infos",
+    "stayInformed": "Restez informé",
+    "newsletterSubtitle": "Abonnez-vous à notre newsletter pour recevoir les dernières actualités.",
+    "subscribe": "S'abonner",
+    "noArticlesInCategory": "Aucune actualité pour cette catégorie pour le moment.",
+    "watchNow": "Regarder maintenant",
+    "live": "EN DIRECT",
+    "onAir": "en ligne"
   },
   "article": {
     "backTo": "Retour à",

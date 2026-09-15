@@ -7,10 +7,13 @@ import { usePathname } from 'next/navigation';
 import { authFetch } from '@/lib/client-auth';
 import { logoutLocalSession, persistLocalUser } from '@/lib/theme';
 import { useAccountUser } from '@/lib/use-account-user';
+import { getMessages } from '@/lib/i18n';
+import { getDateLocale, pickCopy, t, tAccount } from '@/lib/copy';
 
 export default function ProfilePage() {
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'fr';
+  const messages = getMessages(locale);
   const { user: accountUser, ready } = useAccountUser();
   const [user, setUser] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -136,13 +139,13 @@ export default function ProfilePage() {
   };
 
   if (!ready || !user) {
-    return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
+    return <div className="min-h-screen flex items-center justify-center">{t(locale, 'loading')}</div>;
   }
 
   const menuItems = [
     {
       icon: MessageSquare,
-      label: 'Mes commentaires',
+      label: messages.nav.myComments,
       count: user._count?.comments || 0,
       href: `/${locale}/compte/commentaires`,
       color: 'text-blue-600',
@@ -150,7 +153,7 @@ export default function ProfilePage() {
     },
     {
       icon: Heart,
-      label: 'Mes likes',
+      label: messages.nav.myLikes,
       count: user._count?.likes || 0,
       href: `/${locale}/compte/likes`,
       color: 'text-red-600',
@@ -158,7 +161,7 @@ export default function ProfilePage() {
     },
     {
       icon: Bookmark,
-      label: 'Favoris',
+      label: messages.nav.favorites,
       count: user._count?.favorites || 0,
       href: `/${locale}/compte/favoris`,
       color: 'text-yellow-600',
@@ -166,7 +169,14 @@ export default function ProfilePage() {
     },
     {
       icon: DollarSign,
-      label: 'Mes dons',
+      label: pickCopy(locale, {
+        fr: 'Mes dons',
+        en: 'My donations',
+        es: 'Mis donaciones',
+        sw: 'Michango yangu',
+        ln: 'Ba don na ngai',
+        rw: 'Impano zanjye',
+      }),
       count: user._count?.donations || 0,
       href: `/${locale}/compte/dons`,
       color: 'text-green-600',
@@ -174,7 +184,7 @@ export default function ProfilePage() {
     },
     {
       icon: Settings,
-      label: 'Paramètres',
+      label: messages.nav.settings,
       count: null,
       href: `/${locale}/compte/parametres`,
       color: 'text-gray-600',
@@ -240,7 +250,7 @@ export default function ProfilePage() {
                 </p>
                 <p className="text-sm text-muted-foreground mt-2 flex items-center justify-center sm:justify-start gap-2">
                   <Calendar className="w-4 h-4" />
-                  Membre depuis {user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : 'Récent'}
+                  Membre depuis {user.createdAt ? new Date(user.createdAt).toLocaleDateString(getDateLocale(locale), { month: 'long', year: 'numeric' }) : pickCopy(locale, { fr: 'Récent', en: 'Recently', es: 'Reciente', sw: 'Hivi karibuni', ln: 'Sika', rw: 'Vuba' })}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -249,32 +259,32 @@ export default function ProfilePage() {
                   className="flex items-center gap-2 px-4 py-2 border border-border rounded-md hover:bg-muted transition-colors"
                 >
                   {isEditing ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
-                  {isEditing ? 'Annuler' : 'Modifier'}
+                  {isEditing ? pickCopy(locale, { fr: 'Annuler', en: 'Cancel', es: 'Cancelar', sw: 'Ghairi', ln: 'Tika', rw: 'Hagarika' }) : pickCopy(locale, { fr: 'Modifier', en: 'Edit', es: 'Editar', sw: 'Hariri', ln: 'Bongola', rw: 'Hindura' })}
                 </button>
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-2 px-4 py-2 border border-red-600 text-red-600 rounded-md hover:bg-red-50 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  Déconnexion
+                  {tAccount(locale, 'logout')}
                 </button>
               </div>
             </div>
 
             {/* Bio */}
             <div className="mb-8">
-              <h2 className="text-lg font-semibold text-foreground mb-2">À propos</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-2">{messages.common.about}</h2>
               {isEditing ? (
                 <textarea
                   value={formData.bio}
                   onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                  placeholder="Parlez-nous de vous..."
+                  placeholder={pickCopy(locale, { fr: 'Parlez-nous de vous...', en: 'Tell us about yourself...', es: 'Cuéntanos sobre ti...', sw: 'Tuambie kukuhusu...', ln: 'Loba na biso mpo na yo...', rw: 'Tuvugire ibyawe...' })}
                   className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                   rows={4}
                 />
               ) : (
                 <p className="text-muted-foreground">
-                  {user.bio || 'Aucune biographie renseignée.'}
+                  {user.bio || pickCopy(locale, { fr: 'Aucune biographie renseignée.', en: 'No biography yet.', es: 'Todavía no hay biografía.', sw: 'Bado hakuna wasifu.', ln: 'Biographie ezali naino te.', rw: 'Nta cv irimo.' })}
                 </p>
               )}
             </div>
@@ -283,25 +293,25 @@ export default function ProfilePage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
               <div className="bg-muted/50 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-primary">{user._count?.comments || 0}</p>
-                <p className="text-sm text-muted-foreground">Commentaires</p>
+                <p className="text-sm text-muted-foreground">{messages.nav.myComments}</p>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-primary">{user._count?.likes || 0}</p>
-                <p className="text-sm text-muted-foreground">Likes</p>
+                <p className="text-sm text-muted-foreground">{messages.nav.myLikes}</p>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-primary">{user._count?.favorites || 0}</p>
-                <p className="text-sm text-muted-foreground">Favoris</p>
+                <p className="text-sm text-muted-foreground">{messages.nav.favorites}</p>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-primary">{user._count?.donations || 0}</p>
-                <p className="text-sm text-muted-foreground">Dons</p>
+                <p className="text-sm text-muted-foreground">{pickCopy(locale, { fr: 'Dons', en: 'Donations', es: 'Donaciones', sw: 'Michango', ln: 'Ba don', rw: 'Impano' })}</p>
               </div>
             </div>
 
             {/* Menu Items */}
             <div className="space-y-3 mb-8">
-              <h2 className="text-lg font-semibold text-foreground mb-4">Mon compte</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-4">{pickCopy(locale, { fr: 'Mon compte', en: 'My account', es: 'Mi cuenta', sw: 'Akaunti yangu', ln: 'Compte na ngai', rw: 'Konti yanjye' })}</h2>
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -334,7 +344,7 @@ export default function ProfilePage() {
                 className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
               >
                 <Save className="w-4 h-4" />
-                Enregistrer les modifications
+                {tAccount(locale, 'saveChanges')}
               </button>
             )}
           </div>

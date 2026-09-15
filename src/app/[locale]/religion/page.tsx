@@ -1,6 +1,9 @@
 import Link from 'next/link';
-import { Calendar, ArrowRight, BookOpen, Music, Calendar as CalendarIcon, Heart } from 'lucide-react';
+import { Calendar, ArrowRight } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
+import { applyArticleLocales } from '@/lib/translation';
+import { getDateLocale, pickCopy, t } from '@/lib/copy';
+import { getMessages } from '@/lib/i18n';
 
 async function getReligionArticles() {
   try {
@@ -32,29 +35,19 @@ async function getReligionArticles() {
   }
 }
 
-export default async function ReligionPage() {
-  const articles = await getReligionArticles();
-
-  const categories = [
-    { name: 'Méditations', href: '/fr/religion/meditations', icon: BookOpen, count: articles.filter((a: any) => a.category.slug === 'meditations').length },
-    { name: 'Homélies', href: '/fr/religion/homelies', icon: Heart, count: articles.filter((a: any) => a.category.slug === 'homelies').length },
-    { name: 'Musiques Sacrées', href: '/fr/religion/musiques-sacrees', icon: Music, count: articles.filter((a: any) => a.category.slug === 'musiques-sacrees').length },
-    { name: 'Agenda Religieux', href: '/fr/religion/agenda-religieux', icon: CalendarIcon, count: 0 },
-  ];
-
-  const messageDuTemps = [
-    { name: 'William Branham', href: '/fr/religion/message-du-temps/branham', count: articles.length },
-    { name: 'Les 7 Âges de l\'Église', href: '/fr/religion/message-du-temps/les-7-ages-de-l-eglise', count: 0 },
-    { name: 'Autres Messages', href: '/fr/religion/message-du-temps/autres-messages', count: 0 },
-  ];
+export default async function ReligionPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const messages = getMessages(locale);
+  let articles = await getReligionArticles();
+  articles = await applyArticleLocales(articles, locale);
 
   const featuredContent = articles.slice(0, 6).map((article: any) => ({
     id: article.id,
-    category: article.category.title,
+    category: article.category?.title || messages.nav.religion,
     title: article.title,
     excerpt: article.excerpt,
     image: article.mainImageUrl || 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=800&h=400&fit=crop',
-    date: new Date(article.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+    date: new Date(article.publishedAt).toLocaleDateString(getDateLocale(locale), { day: 'numeric', month: 'long', year: 'numeric' }),
     readTime: article.readTime || '5 min',
     slug: article.slug,
   }));
@@ -65,9 +58,16 @@ export default async function ReligionPage() {
     <div className="flex flex-col">
       <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="font-heading text-4xl font-bold mb-4">Religion</h1>
+          <h1 className="font-heading text-4xl font-bold mb-4">{messages.nav.religion}</h1>
           <p className="text-xl text-gray-200">
-            Méditations, homélies, musiques sacrées et agenda religieux pour nourrir votre foi
+            {pickCopy(locale, {
+              fr: 'Méditations, homélies, musiques sacrées et agenda religieux pour nourrir votre foi',
+              en: 'Meditations, homilies, sacred music and a religious calendar to nourish your faith',
+              es: 'Meditaciones, homilías, músicas sagradas y agenda religiosa para alimentar la fe',
+              sw: 'Tafakari, mahubiri, muziki mtakatifu na kalenda ya kidini',
+              ln: 'Ba méditation, ba homélie, ba musique sacrée mpe agenda religieux',
+              rw: 'Ibitaro, ubuhamya, umuziki wera n’ ingengabihe y’idini',
+            })}
           </p>
         </div>
       </section>
@@ -76,10 +76,10 @@ export default async function ReligionPage() {
         <div className="grid grid-cols-1 gap-8">
           <div className="space-y-8">
             <div>
-              <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
+              <h2 className="font-heading text-2xl font-bold mb-6 text-foreground">{t(locale, 'featured')}</h2>
               {featuredContent.length === 0 ? (
                 <p className="rounded-lg border border-dashed border-border bg-card p-8 text-muted-foreground">
-                  Aucun article religieux n’est encore publié.
+                  {t(locale, 'noArticles')}
                 </p>
               ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -89,7 +89,7 @@ export default async function ReligionPage() {
                     className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="relative h-48">
-                      <Link href={`/fr/${content.slug}`}>
+                      <Link href={`/${locale}/${content.slug}`}>
                         <img
                           src={content.image}
                           alt={content.title}
@@ -115,10 +115,10 @@ export default async function ReligionPage() {
                         {content.excerpt}
                       </p>
                       <Link
-                        href={`/fr/${content.slug}`}
+                        href={`/${locale}/${content.slug}`}
                         className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                       >
-                        Lire
+                        {t(locale, 'read')}
                         <ArrowRight className="ml-2 w-4 h-4" />
                       </Link>
                     </div>

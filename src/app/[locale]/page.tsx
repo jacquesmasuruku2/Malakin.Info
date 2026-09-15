@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { ArrowRight, Calendar, Clock, TrendingUp, Radio } from 'lucide-react';
+import { ArrowRight, Radio } from 'lucide-react';
 import AdSenseAd from '@/components/AdSenseAd';
 import NewsletterSignupInline from '@/components/NewsletterSignupInline';
 import { ADSENSE_SLOTS } from '@/lib/adsense';
@@ -9,6 +9,7 @@ import { withRetry } from '@/lib/database';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 import RadioOnAirWidget from '@/components/RadioOnAirWidget';
 import { applyArticleLocales } from '@/lib/translation';
+import { getDateLocale, t as ui } from '@/lib/copy';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,11 +96,11 @@ export default async function Home({
     id: article.id,
     slug: article.slug,
     categorySlug: article.category?.slug || 'actualites',
-    category: article.category?.title || (locale === 'fr' ? 'Actualités' : 'News'),
+    category: article.category?.title || ui(normalizedLocale, 'news'),
     title: article.title,
     excerpt: article.excerpt,
     image: article.mainImageUrl || 'https://images.unsplash.com/photo-1541872703-74c5963631df?w=800&h=400&fit=crop',
-    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(getDateLocale(normalizedLocale), { day: 'numeric', month: 'long', year: 'numeric' }) : '',
     readTime: article.readTime ? `${article.readTime} min` : '5 min',
     author: article.author,
   }));
@@ -108,10 +109,10 @@ export default async function Home({
     id: article.id,
     slug: article.slug,
     categorySlug: article.category?.slug || 'actualites',
-    category: article.category?.title || (locale === 'fr' ? 'Actualités' : 'News'),
+    category: article.category?.title || ui(normalizedLocale, 'news'),
     title: article.title,
     excerpt: article.excerpt,
-    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(getDateLocale(normalizedLocale), { day: 'numeric', month: 'long', year: 'numeric' }) : '',
     readTime: article.readTime ? `${article.readTime} min` : '3 min',
     author: article.author,
     image: article.mainImageUrl || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=300&fit=crop',
@@ -152,13 +153,13 @@ export default async function Home({
             <Link href={`/${locale}/medias/live/${currentLive.id}`} className="hidden md:flex items-center justify-between py-4">
               <div className="flex items-center gap-3">
                 <span className="px-3 py-1 bg-white text-red-600 text-sm font-bold rounded-full animate-pulse">
-                  {locale === 'fr' ? '🔴 EN DIRECT' : '🔴 LIVE'}
+                  🔴 {t.live}
                 </span>
                 <span className="font-semibold">{currentLive.title}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Radio className="w-4 h-4" />
-                <span>{locale === 'fr' ? 'Regarder maintenant' : 'Watch now'}</span>
+                <span>{t.watchNow}</span>
                 <ArrowRight className="w-4 h-4" />
               </div>
             </Link>
@@ -166,7 +167,7 @@ export default async function Home({
             <Link href={`/${locale}/medias/live/${currentLive.id}`} className="md:hidden block">
               <div className="py-3 marquee-track">
                 <span className="marquee-content text-sm font-semibold">
-                  {`${locale === 'fr' ? '🔴 EN DIRECT' : '🔴 LIVE'} — ${currentLive.title} — ${locale === 'fr' ? 'Regarder maintenant' : 'Watch now'}`}
+                  {`🔴 ${t.live} — ${currentLive.title} — ${t.watchNow}`}
                 </span>
               </div>
             </Link>
@@ -178,7 +179,7 @@ export default async function Home({
           <div className="mx-auto flex max-w-7xl justify-center px-3 py-5 sm:px-6">
             <RadioOnAirWidget
               name={activeRadio.name || 'Radio MalakInfo'}
-              onlineLabel={locale === 'fr' ? 'en ligne' : 'on air'}
+              onlineLabel={t.onAir}
             />
           </div>
         </section>
@@ -186,7 +187,7 @@ export default async function Home({
 
       {/* Main Editorial Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8 border-b border-gray-200 pb-4">
+        <div className="mb-8 border-b border-border pb-4">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {categoryFilters.map((item) => {
               const isActive = selectedCategory === item.slug || (!selectedCategory && item.slug === 'all');
@@ -196,8 +197,8 @@ export default async function Home({
                   href={item.href}
                   className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
                     isActive
-                      ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#081C3D]'
-                      : 'border-gray-200 bg-white text-gray-700 hover:border-[#081C3D] hover:text-[#081C3D]'
+                      ? 'border-secondary bg-secondary/10 text-foreground'
+                      : 'border-border bg-card text-muted-foreground hover:border-foreground hover:text-foreground'
                   }`}
                 >
                   {item.name}
@@ -210,10 +211,10 @@ export default async function Home({
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
           <div className="lg:col-span-7">
             {filteredFeaturedNews.length > 0 && (
-              <article className="mb-8 border-b border-gray-200 pb-8">
-                <div className="overflow-hidden border border-gray-200 bg-white">
+              <article className="mb-8 border-b border-border pb-8">
+                <div className="overflow-hidden border border-border bg-card">
                   <Link href={`/${locale}/${filteredFeaturedNews[0].slug}`} className="group block">
-                    <div className="relative h-72 sm:h-80 md:h-[30rem] overflow-hidden bg-gray-100">
+                    <div className="relative h-72 sm:h-80 md:h-[30rem] overflow-hidden bg-muted">
                       <img
                         src={filteredFeaturedNews[0].image}
                         alt={filteredFeaturedNews[0].title}
@@ -222,8 +223,8 @@ export default async function Home({
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
                       <div className="absolute inset-x-0 top-0 p-4 sm:p-6">
-                        <span className="inline-flex items-center bg-[#D4AF37] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[#081C3D]">
-                          {locale === 'fr' ? 'À la Une' : 'Top Story'}
+                        <span className="inline-flex items-center bg-secondary px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-secondary-foreground">
+                          {t.featuredNews}
                         </span>
                       </div>
 
@@ -241,32 +242,32 @@ export default async function Home({
                     </div>
                   </Link>
 
-                  <div className="flex flex-col gap-4 border-t border-gray-200 bg-white p-4 sm:flex-row sm:items-end sm:p-5">
-                    <p className="min-w-0 flex-1 text-sm leading-relaxed text-gray-700 sm:text-base">
+                  <div className="flex flex-col gap-4 border-t border-border bg-card p-4 sm:flex-row sm:items-end sm:p-5">
+                    <p className="min-w-0 flex-1 text-sm leading-relaxed text-muted-foreground sm:text-base">
                       {filteredFeaturedNews[0].excerpt}
                     </p>
 
                     <Link
                       href={`/${locale}/${filteredFeaturedNews[0].slug}`}
-                      className="inline-flex w-full shrink-0 items-center justify-center border border-[#081C3D] bg-[#081C3D] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#D4AF37] hover:text-[#081C3D] sm:w-auto"
+                      className="inline-flex w-full shrink-0 items-center justify-center border border-foreground bg-foreground px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-background transition-colors hover:bg-secondary hover:text-secondary-foreground sm:w-auto"
                     >
-                      {locale === 'fr' ? 'Lire plus' : 'Read more'}
+                      {tCommon.readMore}
                     </Link>
                   </div>
                 </div>
 
                 {filteredFeaturedNews.length > 1 && (
-                  <div className="mt-6 grid gap-4 border-t border-gray-200 pt-5 md:grid-cols-2">
+                  <div className="mt-6 grid gap-4 border-t border-border pt-5 md:grid-cols-2">
                     {filteredFeaturedNews.slice(1, 3).map((story) => (
                       <Link
                         key={story.id}
                         href={`/${locale}/${story.slug}`}
-                        className="group block border-l border-gray-200 pl-4 first:border-l-0 first:pl-0"
+                        className="group block border-l border-border pl-4 first:border-l-0 first:pl-0"
                       >
-                        <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#D4AF37]">
+                        <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-secondary">
                           {story.category}
                         </div>
-                        <h2 className="font-heading text-xl font-bold leading-snug text-[#081C3D] group-hover:text-[#D4AF37] transition-colors">
+                        <h2 className="font-heading text-xl font-bold leading-snug text-foreground group-hover:text-secondary transition-colors">
                           {story.title}
                         </h2>
                       </Link>
@@ -277,17 +278,17 @@ export default async function Home({
             )}
 
             <div className="mb-8">
-              <h2 className="font-heading text-xl font-bold text-[#081C3D] mb-6 uppercase tracking-wide border-l-4 border-[#D4AF37] pl-3">
+              <h2 className="font-heading text-xl font-bold text-foreground mb-6 uppercase tracking-wide border-l-4 border-secondary pl-3">
                 {selectedCategory && selectedCategory !== 'all'
-                  ? categoryFilters.find((item) => item.slug === selectedCategory)?.name || (locale === 'fr' ? 'Actualités' : 'News')
-                  : locale === 'fr' ? 'Dernières actualités' : 'Latest news'}
+                  ? categoryFilters.find((item) => item.slug === selectedCategory)?.name || tNav.news
+                  : t.latestNews}
               </h2>
               {filteredLatestNews.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {filteredLatestNews.slice(0, 6).map((news) => (
                     <article
                       key={news.id}
-                      className="group overflow-hidden border border-gray-200 bg-white transition-all duration-200 hover:-translate-y-1 hover:border-[#D4AF37] hover:shadow-[0_10px_30px_rgba(8,28,61,0.08)]"
+                      className="group overflow-hidden border border-border bg-card text-card-foreground transition-all duration-200 hover:-translate-y-1 hover:border-secondary"
                     >
                       <Link href={`/${locale}/${news.slug}`} className="block">
                         <div className="relative h-52 overflow-hidden">
@@ -296,31 +297,31 @@ export default async function Home({
                             alt={news.title}
                             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
-                          <span className="absolute bottom-3 left-3 px-2 py-1 bg-[#0B3B8B] text-[10px] font-bold uppercase tracking-[0.12em] text-white">
+                          <span className="absolute bottom-3 left-3 px-2 py-1 bg-primary text-[10px] font-bold uppercase tracking-[0.12em] text-primary-foreground">
                             {news.category}
                           </span>
                         </div>
                       </Link>
                       <div className="p-4">
-                        <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
-                          <span className="text-[#D4AF37]">{news.date}</span>
+                        <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                          <span className="text-secondary">{news.date}</span>
                         </div>
                         <Link href={`/${locale}/${news.slug}`} className="block">
-                          <h3 className="font-heading text-xl font-bold leading-tight text-[#081C3D] hover:text-[#D4AF37] transition-colors line-clamp-3 cursor-pointer">
+                          <h3 className="font-heading text-xl font-bold leading-tight text-foreground hover:text-secondary transition-colors line-clamp-3 cursor-pointer">
                             {news.title}
                           </h3>
                         </Link>
-                        <p className="mt-3 text-sm leading-relaxed text-gray-600 line-clamp-3">
+                        <p className="mt-3 text-sm leading-relaxed text-muted-foreground line-clamp-3">
                           {(news as any).excerpt || ''}
                         </p>
-                        <ArticleAuthorLink author={news.author} locale={locale} className="mt-4 text-xs text-gray-500" />
+                        <ArticleAuthorLink author={news.author} locale={locale} className="mt-4 text-xs text-muted-foreground" />
                       </div>
                     </article>
                   ))}
                 </div>
               ) : (
-                <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-gray-600">
-                  {locale === 'fr' ? 'Aucune actualité pour cette catégorie pour le moment.' : 'No articles available for this category yet.'}
+                <div className="rounded-xl border border-dashed border-border bg-muted p-8 text-center text-muted-foreground">
+                  {t.noArticlesInCategory}
                 </div>
               )}
             </div>
@@ -328,10 +329,10 @@ export default async function Home({
 
           <div className="lg:col-span-3">
             <div className="sticky top-20">
-              <div className="bg-white border border-gray-200">
-                <div className="flex items-center justify-between gap-3 bg-[#0B3B8B] px-4 py-2 text-white">
+              <div className="bg-card border border-border">
+                <div className="flex items-center justify-between gap-3 bg-primary px-4 py-2 text-primary-foreground">
                   <h3 className="font-heading flex items-center text-lg font-bold uppercase tracking-wide">
-                      {locale === 'fr' ? 'Dernières Infos' : 'Latest News'}
+                      {t.latestFeed}
                       <span className="ml-2 animate-pulse">›</span>
                   </h3>
                 </div>
@@ -340,27 +341,27 @@ export default async function Home({
                     <RadioOnAirWidget
                       compact
                       name={activeRadio.name || 'Radio MalakInfo'}
-                      onlineLabel={locale === 'fr' ? 'en ligne' : 'on air'}
+                      onlineLabel={t.onAir}
                     />
                   </div>
                 ) : null}
-                <div className="divide-y divide-gray-200">
+                <div className="divide-y divide-border">
                   {filteredLatestNews.slice(0, 8).map((news) => (
                     <article
                       key={news.id}
-                      className="px-3 py-2 hover:bg-gray-50 transition-colors"
+                      className="px-3 py-2 hover:bg-muted transition-colors"
                     >
                       <div className="flex items-start gap-2 sm:gap-3 min-w-0">
-                        <span className="text-[#D4AF37] font-bold text-[10px] sm:text-xs whitespace-nowrap pt-0.5">
-                          {new Date().toLocaleTimeString(locale === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                        <span className="text-secondary font-bold text-[10px] sm:text-xs whitespace-nowrap pt-0.5">
+                          {new Date().toLocaleTimeString(getDateLocale(normalizedLocale), { hour: '2-digit', minute: '2-digit' })}
                         </span>
                         <div className="min-w-0 flex-1">
                           <Link href={`/${locale}/${news.slug}`} className="block">
-                            <h4 className="font-heading font-semibold text-[#081C3D] text-sm hover:text-[#D4AF37] transition-colors line-clamp-3 leading-snug m-0">
+                            <h4 className="font-heading font-semibold text-foreground text-sm hover:text-secondary transition-colors line-clamp-3 leading-snug m-0">
                               {news.title}
                             </h4>
                           </Link>
-                          <span className="text-[10px] sm:text-xs text-gray-500 mt-1 block">
+                          <span className="text-[10px] sm:text-xs text-muted-foreground mt-1 block">
                             {news.category}
                           </span>
                         </div>
@@ -379,13 +380,13 @@ export default async function Home({
       </div>
 
       {/* Newsletter Section */}
-      <section className="border-t border-gray-200 bg-gray-100 py-12">
+      <section className="border-t border-border bg-muted py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <NewsletterSignupInline
-            locale={locale}
-            title={locale === 'fr' ? 'Restez informé' : 'Stay informed'}
-            subtitle={locale === 'fr' ? 'Abonnez-vous à notre newsletter pour recevoir les dernières actualités.' : 'Subscribe to our newsletter to receive the latest news.'}
-            buttonText={locale === 'fr' ? 'S\'abonner' : 'Subscribe'}
+            locale={normalizedLocale}
+            title={t.stayInformed}
+            subtitle={t.newsletterSubtitle}
+            buttonText={t.subscribe}
           />
         </div>
       </section>

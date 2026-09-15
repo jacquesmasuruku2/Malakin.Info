@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowRight, Calendar, Clock } from 'lucide-react';
 import { getCategoryArticles } from '@/lib/get-category-articles';
 import { applyArticleLocales } from '@/lib/translation';
+import { getDateLocale, t } from '@/lib/copy';
 
 type CategoryArticlesListProps = {
   locale: string;
@@ -22,7 +23,6 @@ export default async function CategoryArticlesList({
 }: CategoryArticlesListProps) {
   const { articles: rawArticles } = await getCategoryArticles(slugs);
   const articles = await applyArticleLocales(rawArticles, locale);
-  const isFrench = locale === 'fr';
 
   return (
     <div className="flex flex-col">
@@ -30,7 +30,7 @@ export default async function CategoryArticlesList({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {backHref && (
             <Link href={backHref} className="text-gray-300 hover:text-white mb-4 inline-block">
-              ← {backLabel || (isFrench ? "Retour à l'accueil" : 'Back to home')}
+              ← {backLabel || t(locale, 'backHome')}
             </Link>
           )}
           <h1 className="font-heading text-4xl font-bold mb-4">{title}</h1>
@@ -42,20 +42,16 @@ export default async function CategoryArticlesList({
         {articles.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center">
             <p className="text-lg font-medium text-foreground">
-              {isFrench
-                ? 'Aucun article n’est encore publié dans cette rubrique.'
-                : 'No articles have been published in this section yet.'}
+              {t(locale, 'noArticlesInSection')}
             </p>
             <p className="mt-2 text-muted-foreground">
-              {isFrench
-                ? 'Revenez bientôt ou parcourez les dernières actualités.'
-                : 'Please check back soon or browse the latest news.'}
+              {t(locale, 'checkBackSoon')}
             </p>
             <Link
               href={`/${locale}/actualites`}
               className="mt-6 inline-flex items-center text-primary hover:text-primary/80 font-medium"
             >
-              {isFrench ? 'Voir les actualités' : 'See the news'}
+              {t(locale, 'seeNews')}
               <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
           </div>
@@ -81,7 +77,7 @@ export default async function CategoryArticlesList({
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {new Date(item.publishedAt).toLocaleDateString(isFrench ? 'fr-FR' : 'en-US', {
+                      {new Date(item.publishedAt).toLocaleDateString(getDateLocale(locale), {
                         day: 'numeric',
                         month: 'long',
                         year: 'numeric',
@@ -102,7 +98,7 @@ export default async function CategoryArticlesList({
                     href={`/${locale}/${item.slug}`}
                     className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                   >
-                    {isFrench ? 'Lire la suite' : 'Read more'}
+                    {t(locale, 'readMore')}
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Link>
                 </div>

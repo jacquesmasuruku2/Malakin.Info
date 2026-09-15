@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { Bell, Shield, Globe, Save, LogOut, Moon, Sun } from 'lucide-react';
 import { getLanguageOptions, getLocalizedPath } from '@/lib/i18n';
+import { localeFromPathname, t, tAccount } from '@/lib/copy';
 import { authFetch } from '@/lib/client-auth';
 import { useAccountUser } from '@/lib/use-account-user';
 import { applyTheme, logoutLocalSession, type SiteTheme } from '@/lib/theme';
@@ -13,6 +14,7 @@ export default function SettingsPage() {
   const { user, ready } = useAccountUser();
   const pathname = usePathname();
   const router = useRouter();
+  const locale = localeFromPathname(pathname);
   const languageOptions = getLanguageOptions();
   const [formData, setFormData] = useState({
     emailNewsletter: false,
@@ -118,17 +120,17 @@ export default function SettingsPage() {
   };
 
   if (!ready || loading) {
-    return <div className="min-h-screen flex items-center justify-center">Chargement...</div>;
+    return <div className="min-h-screen flex items-center justify-center">{t(locale, 'loading')}</div>;
   }
 
   if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4">
         <div className="max-w-md rounded-2xl border border-border bg-card p-8 text-center">
-          <h1 className="mb-2 text-2xl font-bold text-foreground">Connexion requise</h1>
-          <p className="mb-4 text-muted-foreground">Connectez-vous pour gérer la langue et le thème du site.</p>
+          <h1 className="mb-2 text-2xl font-bold text-foreground">{tAccount(locale, 'loginRequired')}</h1>
+          <p className="mb-4 text-muted-foreground">{tAccount(locale, 'loginRequiredHint')}</p>
           <a href={`/${pathname.split('/')[1] || 'fr'}/compte/connexion`} className="inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
-            Se connecter
+            {tAccount(locale, 'signIn')}
           </a>
         </div>
       </div>
@@ -139,21 +141,21 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-muted/30 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Paramètres</h1>
-          <p className="text-muted-foreground">Gérez vos préférences de compte</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">{tAccount(locale, 'settings')}</h1>
+          <p className="text-muted-foreground">{tAccount(locale, 'settingsSubtitle')}</p>
         </div>
 
         <div className="space-y-6">
           <div className="bg-card rounded-lg p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
               <Bell className="w-5 h-5" />
-              Notifications
+              {tAccount(locale, 'notifications')}
             </h2>
             <div className="space-y-4">
               <label className="flex items-center justify-between cursor-pointer">
                 <div>
-                  <p className="font-medium text-foreground">Newsletter par email</p>
-                  <p className="text-sm text-muted-foreground">Recevoir les actualités par email</p>
+                  <p className="font-medium text-foreground">{tAccount(locale, 'emailNewsletter')}</p>
+                  <p className="text-sm text-muted-foreground">{tAccount(locale, 'emailNewsletterHint')}</p>
                 </div>
                 <input
                   type="checkbox"
@@ -164,8 +166,8 @@ export default function SettingsPage() {
               </label>
               <label className="flex items-center justify-between cursor-pointer">
                 <div>
-                  <p className="font-medium text-foreground">Digest quotidien</p>
-                  <p className="text-sm text-muted-foreground">Résumé quotidien des articles</p>
+                  <p className="font-medium text-foreground">{tAccount(locale, 'dailyDigest')}</p>
+                  <p className="text-sm text-muted-foreground">{tAccount(locale, 'dailyDigestHint')}</p>
                 </div>
                 <input
                   type="checkbox"
@@ -180,7 +182,7 @@ export default function SettingsPage() {
           <div className="bg-card rounded-lg p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
               <Globe className="w-5 h-5" />
-              Langue
+              {tAccount(locale, 'language')}
             </h2>
             <div className="space-y-2">
               {languageOptions.map((option) => (
@@ -202,7 +204,7 @@ export default function SettingsPage() {
           <div className="bg-card rounded-lg p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
               {formData.theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-              Thème
+              {tAccount(locale, 'theme')}
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 ${formData.theme === 'light' ? 'border-primary bg-primary/5' : 'border-border'}`}>
@@ -214,7 +216,7 @@ export default function SettingsPage() {
                   onChange={() => handleThemeChange('light')}
                   className="w-4 h-4 text-primary border-border focus:ring-primary"
                 />
-                <span className="text-foreground">Clair</span>
+                <span className="text-foreground">{tAccount(locale, 'light')}</span>
               </label>
               <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 ${formData.theme === 'dark' ? 'border-primary bg-primary/5' : 'border-border'}`}>
                 <input
@@ -225,7 +227,7 @@ export default function SettingsPage() {
                   onChange={() => handleThemeChange('dark')}
                   className="w-4 h-4 text-primary border-border focus:ring-primary"
                 />
-                <span className="text-foreground">Sombre bleu / noir</span>
+                <span className="text-foreground">{tAccount(locale, 'dark')}</span>
               </label>
             </div>
           </div>
@@ -233,17 +235,17 @@ export default function SettingsPage() {
           <div className="bg-card rounded-lg p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
               <Shield className="w-5 h-5" />
-              Sécurité
+              {tAccount(locale, 'security')}
             </h2>
             <div className="space-y-4">
               <button className="text-primary hover:text-primary/80 font-medium">
-                Changer mon mot de passe
+                {tAccount(locale, 'changePassword')}
               </button>
               <button className="text-primary hover:text-primary/80 font-medium">
-                Activer l'authentification à deux facteurs
+                {tAccount(locale, 'enable2fa')}
               </button>
               <button className="text-red-600 hover:text-red-700 font-medium">
-                Supprimer mon compte
+                {tAccount(locale, 'deleteAccount')}
               </button>
             </div>
           </div>
@@ -255,14 +257,14 @@ export default function SettingsPage() {
               className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
-              {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
+              {saving ? tAccount(locale, 'saving') : tAccount(locale, 'saveChanges')}
             </button>
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 px-6 py-3 border border-red-600 text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
             >
               <LogOut className="w-4 h-4" />
-              Déconnexion
+              {tAccount(locale, 'logout')}
             </button>
           </div>
         </div>

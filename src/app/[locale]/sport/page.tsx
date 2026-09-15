@@ -1,6 +1,9 @@
 import Link from 'next/link';
-import { Calendar, ArrowRight, Trophy, Circle, Activity, Flag } from 'lucide-react';
+import { Calendar, ArrowRight } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
+import { applyArticleLocales } from '@/lib/translation';
+import { getDateLocale, pickCopy, t } from '@/lib/copy';
+import { getMessages } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,9 +13,9 @@ export default async function SportPage({
   params: Promise<{ locale: string }> 
 }) {
   const { locale } = await params;
+  const messages = getMessages(locale);
 
-  // Fetch articles from sport category
-  const articles = await prisma.article.findMany({
+  let articles: any[] = await prisma.article.findMany({
     where: {
       category: {
         slug: 'sport',
@@ -28,31 +31,25 @@ export default async function SportPage({
     take: 12,
   } as any);
 
-  // Subcategories with their counts (based on article titles)
-  const categories = [
-    { name: 'Football', href: `/${locale}/sport/football`, icon: Trophy, count: articles.filter((a: any) => a.title.toLowerCase().includes('football') || a.title.toLowerCase().includes('can')).length },
-    { name: 'Basketball', href: `/${locale}/sport/basket`, icon: Circle, count: articles.filter((a: any) => a.title.toLowerCase().includes('basket') || a.title.toLowerCase().includes('nba')).length },
-    { name: 'Athlétisme', href: `/${locale}/sport/athletisme`, icon: Activity, count: articles.filter((a: any) => a.title.toLowerCase().includes('athlétisme') || a.title.toLowerCase().includes('athlète')).length },
-    { name: 'Événements', href: `/${locale}/sport/evenements`, icon: Flag, count: articles.filter((a: any) => a.title.toLowerCase().includes('championnat') || a.title.toLowerCase().includes('compétition')).length },
-  ];
+  articles = await applyArticleLocales(articles, locale);
 
   const featuredSport = articles.slice(0, 3).map((article: any) => ({
     id: article.id,
-    category: article.category?.title || 'Sport',
+    category: article.category?.title || messages.nav.sport,
     categorySlug: article.category?.slug || 'sport',
     title: article.title,
     excerpt: article.excerpt,
     image: article.mainImageUrl,
-    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(getDateLocale(locale), { day: 'numeric', month: 'long', year: 'numeric' }) : '',
     readTime: article.readTime || '5 min',
     slug: article.slug,
   }));
 
   const latestSport = articles.slice(3, 7).map((article: any) => ({
     id: article.id,
-    category: article.category?.title || 'Sport',
+    category: article.category?.title || messages.nav.sport,
     title: article.title,
-    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(getDateLocale(locale), { day: 'numeric', month: 'long', year: 'numeric' }) : '',
     readTime: article.readTime || '5 min',
     slug: article.slug,
     categorySlug: article.category?.slug || 'sport',
@@ -62,9 +59,16 @@ export default async function SportPage({
     <div className="flex flex-col">
       <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="font-heading text-4xl font-bold mb-4">Sport</h1>
+          <h1 className="font-heading text-4xl font-bold mb-4">{messages.nav.sport}</h1>
           <p className="text-xl text-gray-200">
-            Football, basketball, athlétisme : toute l\'actualité sportive africaine
+            {pickCopy(locale, {
+              fr: "Football, basketball, athlétisme : toute l'actualité sportive africaine",
+              en: 'Football, basketball, athletics: all African sports news',
+              es: 'Fútbol, baloncesto, atletismo: toda la actualidad deportiva africana',
+              sw: 'Soka, mpira wa kikapu, riadha: habari zote za michezo ya Afrika',
+              ln: 'Football, basketball, athlétisme: sango nionso ya sport ya Afrique',
+              rw: 'Umupira w’amaguru, umupira w’amaboko, imikino y’imigenderanire: amakuru yose y’imikino y’Afurika',
+            })}
           </p>
         </div>
       </section>
@@ -75,7 +79,7 @@ export default async function SportPage({
             {articles.length > 0 ? (
               <>
                 <div>
-                  <h2 className="font-heading text-2xl font-bold mb-6">À la une</h2>
+                  <h2 className="font-heading text-2xl font-bold mb-6 text-foreground">{t(locale, 'featured')}</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {featuredSport.map((item: any) => (
                       <article
@@ -114,7 +118,7 @@ export default async function SportPage({
                             href={`/${locale}/${item.slug}`}
                             className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                           >
-                            Lire
+                            {t(locale, 'read')}
                             <ArrowRight className="ml-2 w-4 h-4" />
                           </Link>
                         </div>
@@ -124,7 +128,7 @@ export default async function SportPage({
                 </div>
 
                 <div>
-                  <h2 className="font-heading text-2xl font-bold mb-6">Dernières actualités</h2>
+                  <h2 className="font-heading text-2xl font-bold mb-6 text-foreground">{t(locale, 'latestNews')}</h2>
                   <div className="space-y-4">
                     {latestSport.map((item: any) => (
                       <article
@@ -153,7 +157,7 @@ export default async function SportPage({
               </>
             ) : (
               <div className="bg-card rounded-lg p-12 text-center">
-                <p className="text-muted-foreground text-lg">Aucun article disponible pour le moment.</p>
+                <p className="text-muted-foreground text-lg">{t(locale, 'noArticles')}</p>
               </div>
             )}
           </div>

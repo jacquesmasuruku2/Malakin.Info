@@ -1,18 +1,26 @@
 import CategoryArticlesList from '@/components/CategoryArticlesList';
+import { pickCopy, t } from '@/lib/copy';
+import { getMessages } from '@/lib/i18n';
 
 export default async function SecuritePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const messages = getMessages(locale);
 
   return (
     <CategoryArticlesList
       locale={locale}
       slugs={['securite']}
-      title={locale === 'fr' ? 'Sécurité' : 'Security'}
-      description={locale === 'fr'
-        ? 'Actualité sécurité, défense et maintien de l’ordre.'
-        : 'Security, defense and public-order news.'}
+      title={messages.nav.security}
+      description={pickCopy(locale, {
+        fr: 'Actualité sécurité, défense et maintien de l’ordre.',
+        en: 'Security, defense and public-order news.',
+        es: 'Actualidad de seguridad, defensa y orden público.',
+        sw: 'Habari za usalama, ulinzi na utulivu.',
+        ln: 'Sango ya sécurité, défense mpe bobateli ya kimya.',
+        rw: 'Amakuru y’umutekano, zirikana n’umutekano rusange.',
+      })}
       backHref={`/${locale}/actualites`}
-      backLabel={locale === 'fr' ? 'Retour aux actualités' : 'Back to news'}
+      backLabel={t(locale, 'allNews')}
     />
   );
 }

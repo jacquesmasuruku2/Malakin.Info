@@ -12,7 +12,9 @@ import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
 import { SponsoredSection } from '@/components/SponsoredSection';
 import ViewIncrementer from '@/components/ViewIncrementer';
-import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
+import { getArticleTranslation, getCategoryTranslation, applyArticleLocales } from '@/lib/translation';
+import { getMessages } from '@/lib/i18n';
+import { getDateLocale, pickCopy, t as ui } from '@/lib/copy';
 import { getPremiumPreviewContent, hasPremiumAccess } from '@/lib/premium-access';
 import Paywall from '@/components/Paywall';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
@@ -119,19 +121,9 @@ export default async function CatchAllArticlePage({
   params: Promise<{ locale: string; path: string[] }> 
 }) {
   const { locale, path } = await params;
-
-  // Extract the slug from the path (last segment)
+  const messages = getMessages(locale);
+  const tArticle = messages.article;
   const slug = path[path.length - 1];
-
-  // Translations
-  const t = {
-    backTo: locale === 'fr' ? 'Retour à' : 'Back to',
-    readTime: locale === 'fr' ? 'min de lecture' : 'min read',
-    share: locale === 'fr' ? 'Partager' : 'Share',
-    relatedArticles: locale === 'fr' ? 'Articles similaires' : 'Related Articles',
-    seeAllArticles: locale === 'fr' ? 'Voir tous les articles de cet auteur' : 'See all articles by this author',
-    teamMalakin: locale === 'fr' ? 'Équipe Malakinfo' : 'Malakinfo Team',
-  };
 
   try {
     const article = await prisma.article.findUnique({
@@ -157,12 +149,17 @@ export default async function CatchAllArticlePage({
               description={
                 translatedCategory.description
                 || category.description
-                || (locale === 'fr'
-                  ? 'Retrouvez les articles de cette rubrique.'
-                  : 'Browse articles from this section.')
+                || pickCopy(locale, {
+                  fr: 'Retrouvez les articles de cette rubrique.',
+                  en: 'Browse articles from this section.',
+                  es: 'Consulta los artículos de esta sección.',
+                  sw: 'Tazama makala za sehemu hii.',
+                  ln: 'Tala ba article ya eteni oyo.',
+                  rw: 'Soma inkuru z’iki cyiciro.',
+                })
               }
               backHref={`/${locale}/actualites`}
-              backLabel={locale === 'fr' ? 'Retour aux actualités' : 'Back to news'}
+              backLabel={ui(locale, 'allNews')}
             />
           );
         }
@@ -232,20 +229,23 @@ export default async function CatchAllArticlePage({
       },
     };
 
-    const relatedArticles: any[] = await prisma.article.findMany({
-      where: {
-        categoryId: article.categoryId,
-        id: { not: article.id },
-      },
-      include: {
-        category: true,
-        author: true,
-      },
-      take: 4,
-      orderBy: {
-        publishedAt: 'desc',
-      },
-    } as any) as any;
+    const relatedArticles: any[] = await applyArticleLocales(
+      await prisma.article.findMany({
+        where: {
+          categoryId: article.categoryId,
+          id: { not: article.id },
+        },
+        include: {
+          category: true,
+          author: true,
+        },
+        take: 4,
+        orderBy: {
+          publishedAt: 'desc',
+        },
+      } as any) as any,
+      locale
+    );
 
     const sponsoredFromDb = await prisma.sponsoredArticle.findMany({
       where: {
@@ -287,14 +287,14 @@ export default async function CatchAllArticlePage({
     }));
 
     const formattedDate = article.publishedAt 
-      ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
+      ? new Date(article.publishedAt).toLocaleDateString(getDateLocale(locale), { 
           day: 'numeric', 
           month: 'long', 
           year: 'numeric' 
         }) 
       : '';
 
-    const readTime = article.readTime ? `${article.readTime} ${t.readTime}` : `5 ${t.readTime}`;
+    const readTime = article.readTime ? `${article.readTime} ${tArticle.readTime}` : `5 ${tArticle.readTime}`;
 
     return (
       <>
@@ -432,7 +432,7 @@ export default async function CatchAllArticlePage({
         {relatedArticles.length > 0 && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 border-t border-border">
             <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground mb-6 sm:mb-8">
-              {t.relatedArticles}
+              {tArticle.relatedArticles}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {relatedArticles.map((related: any) => (
@@ -461,7 +461,7 @@ export default async function CatchAllArticlePage({
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Calendar className="w-3 h-3" />
                         {related.publishedAt 
-                          ? new Date(related.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
+                          ? new Date(related.publishedAt).toLocaleDateString(getDateLocale(locale), { 
                               day: 'numeric', 
                               month: 'short' 
                             }) 

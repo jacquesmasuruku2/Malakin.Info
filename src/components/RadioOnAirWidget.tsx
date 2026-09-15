@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Headphones, Pause, Play } from 'lucide-react';
-import { RADIO_STATE_EVENT, RADIO_TOGGLE_EVENT } from '@/lib/radio-events';
+import { RADIO_STATE_EVENT, RADIO_TOGGLE_EVENT, getRadioPlaying } from '@/lib/radio-events';
 import { getLocaleFromPathname } from '@/lib/i18n';
 
 const BAR_HEIGHTS = [10, 16, 22, 28, 22, 16, 10];
@@ -26,7 +26,7 @@ export default function RadioOnAirWidget({
   const locale = getLocaleFromPathname(pathname || '/fr');
   const resolvedLabel = onlineLabel ?? (locale === 'fr' ? 'en ligne' : 'on air');
   const [stationName, setStationName] = useState(name || 'Radio MalakInfo');
-  const [internalPlaying, setInternalPlaying] = useState(false);
+  const [internalPlaying, setInternalPlaying] = useState(getRadioPlaying);
   const isPlaying = isPlayingProp ?? internalPlaying;
   const bars = compact ? COMPACT_BAR_HEIGHTS : BAR_HEIGHTS;
 
@@ -57,6 +57,7 @@ export default function RadioOnAirWidget({
       setInternalPlaying(customEvent.detail?.isPlaying === true);
     };
 
+    setInternalPlaying(getRadioPlaying());
     window.addEventListener(RADIO_STATE_EVENT, handleRadioState);
     return () => window.removeEventListener(RADIO_STATE_EVENT, handleRadioState);
   }, [isPlayingProp]);
@@ -76,7 +77,7 @@ export default function RadioOnAirWidget({
         }`}
       >
         {isPlaying ? (
-          <Pause className={`fill-current ${compact ? 'h-3 w-3 sm:h-4 sm:w-4' : 'h-3.5 w-3.5 sm:h-5 sm:w-5'}`} />
+          <Pause className={compact ? 'h-3.5 w-3.5 sm:h-5 sm:w-5' : 'h-4 w-4 sm:h-6 sm:w-6'} strokeWidth={2.4} />
         ) : (
           <Play className={`ml-0.5 fill-current ${compact ? 'h-3 w-3 sm:h-4 sm:w-4' : 'h-3.5 w-3.5 sm:h-5 sm:w-5'}`} />
         )}

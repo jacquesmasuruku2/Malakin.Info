@@ -1,6 +1,9 @@
 import Link from 'next/link';
-import { Calendar, ArrowRight, BookOpen, ListChecks, FileText, GraduationCap } from 'lucide-react';
+import { Calendar, ArrowRight } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
+import { applyArticleLocales } from '@/lib/translation';
+import { getDateLocale, pickCopy, t } from '@/lib/copy';
+import { getMessages } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,9 +13,9 @@ export default async function InfosPratiquesPage({
   params: Promise<{ locale: string }> 
 }) {
   const { locale } = await params;
+  const messages = getMessages(locale);
 
-  // Fetch articles from infos-pratiques category
-  const articles = await prisma.article.findMany({
+  let articles: any[] = await prisma.article.findMany({
     where: {
       category: {
         slug: 'infos-pratiques',
@@ -28,12 +31,7 @@ export default async function InfosPratiquesPage({
     take: 12,
   } as any);
 
-  const categories = [
-    { name: 'Guides', href: `/${locale}/infos-pratiques/guides`, icon: BookOpen, count: articles.filter((a: any) => a.title.toLowerCase().includes('guide')).length },
-    { name: 'Tutoriels', href: `/${locale}/infos-pratiques/tutoriels`, icon: FileText, count: articles.filter((a: any) => a.title.toLowerCase().includes('tutoriel')).length },
-    { name: 'Checklists', href: `/${locale}/infos-pratiques/checklists`, icon: ListChecks, count: articles.filter((a: any) => a.title.toLowerCase().includes('checklist')).length },
-    { name: 'Ressources Éducatives', href: `/${locale}/infos-pratiques/ressources-educatives`, icon: GraduationCap, count: articles.filter((a: any) => a.title.toLowerCase().includes('ressource') || a.title.toLowerCase().includes('formation')).length },
-  ];
+  articles = await applyArticleLocales(articles, locale);
 
   const guides = articles.slice(0, 8).map((article: any) => ({
     id: article.id,
@@ -42,7 +40,7 @@ export default async function InfosPratiquesPage({
     title: article.title,
     description: article.excerpt,
     image: article.mainImageUrl,
-    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(getDateLocale(locale), { day: 'numeric', month: 'long', year: 'numeric' }) : '',
     readTime: article.readTime || '5 min',
     slug: article.slug,
   }));
@@ -51,9 +49,16 @@ export default async function InfosPratiquesPage({
     <div className="flex flex-col">
       <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="font-heading text-4xl font-bold mb-4">Infos Pratiques</h1>
+          <h1 className="font-heading text-4xl font-bold mb-4">{messages.nav.practicalInfo}</h1>
           <p className="text-xl text-gray-200">
-            Guides, tutoriels et ressources pour vous accompagner au quotidien
+            {pickCopy(locale, {
+              fr: 'Guides, tutoriels et ressources pour vous accompagner au quotidien',
+              en: 'Guides, tutorials and resources to help you every day',
+              es: 'Guías, tutoriales y recursos para acompañarte cada día',
+              sw: 'Miongozo, mafunzo na rasilimali za kila siku',
+              ln: 'Ba guide, ba tutoriel mpe ba ressource mpo na mokolo na mokolo',
+              rw: 'Amabwiriza, amahugurwa n’ibikoresho bya buri munsi',
+            })}
           </p>
         </div>
       </section>
@@ -96,7 +101,7 @@ export default async function InfosPratiquesPage({
                     href={`/${locale}/${guide.slug}`}
                     className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
                   >
-                    Accéder
+                    {t(locale, 'read')}
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Link>
                 </div>
@@ -104,7 +109,7 @@ export default async function InfosPratiquesPage({
             ))
           ) : (
             <div className="col-span-2 bg-card rounded-lg p-12 text-center">
-              <p className="text-muted-foreground text-lg">Aucun article disponible pour le moment.</p>
+              <p className="text-muted-foreground text-lg">{t(locale, 'noArticles')}</p>
             </div>
           )}
         </div>

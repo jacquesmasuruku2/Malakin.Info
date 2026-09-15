@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { WifiOff } from 'lucide-react';
 import Hls from 'hls.js';
 import RadioOnAirWidget from '@/components/RadioOnAirWidget';
-import { RADIO_STATE_EVENT, RADIO_TOGGLE_EVENT } from '@/lib/radio-events';
+import { RADIO_STATE_EVENT, RADIO_TOGGLE_EVENT, broadcastRadioPlaying } from '@/lib/radio-events';
 
 export { RADIO_STATE_EVENT, RADIO_TOGGLE_EVENT };
 
@@ -161,17 +161,21 @@ export default function RadioPlayer() {
       hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
         if (wantsPlaybackRef.current && audioRef.current) {
           void audioRef.current.play().catch(() => {
+            wantsPlaybackRef.current = false;
             setError('Lecture impossible. Vérifiez l’URL du flux ou le réseau.');
             setIsBuffering(false);
             setIsPlaying(false);
+            broadcastRadioPlaying(false);
           });
         }
       });
       hlsRef.current.on(Hls.Events.ERROR, (_event, data) => {
         if (!data.fatal) return;
+        wantsPlaybackRef.current = false;
         setError('Le flux audio est indisponible ou invalide.');
         setIsBuffering(false);
         setIsPlaying(false);
+        broadcastRadioPlaying(false);
       });
       return () => {
         hlsRef.current?.detachMedia();
@@ -199,18 +203,23 @@ export default function RadioPlayer() {
   useEffect(() => {
     const handleToggleRadio = async () => {
       if (!audioRef.current) return;
+      setIsDesktopOpen(true);
 
-      if (isPlaying) {
+      if (wantsPlaybackRef.current) {
         wantsPlaybackRef.current = false;
         audioRef.current.pause();
         hlsRef.current?.stopLoad();
         setIsPlaying(false);
+        setIsBuffering(false);
+        broadcastRadioPlaying(false);
         return;
       }
 
       try {
         wantsPlaybackRef.current = true;
+        setIsPlaying(true);
         setIsBuffering(true);
+        broadcastRadioPlaying(true);
         hlsRef.current?.startLoad();
         await audioRef.current.play();
       } catch {
@@ -225,22 +234,33 @@ export default function RadioPlayer() {
       window.removeEventListener(RADIO_TOGGLE_EVENT, handleToggleRadio);
       window.removeEventListener('malakinfo-radio-toggle', handleToggleRadio);
     };
-  }, [isPlaying]);
+  }, []);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const handleWaiting = () => setIsBuffering(true);
+    const handleWaiting = () => {
+      if (wantsPlaybackRef.current) setIsBuffering(true);
+    };
     const handlePlaying = () => {
       setIsBuffering(false);
       setIsPlaying(true);
+      wantsPlaybackRef.current = true;
+      broadcastRadioPlaying(true);
       setError(null);
     };
-    const handlePause = () => setIsPlaying(false);
+    const handlePause = () => {
+      if (wantsPlaybackRef.current) return;
+      setIsPlaying(false);
+      setIsBuffering(false);
+      broadcastRadioPlaying(false);
+    };
     const handleError = () => {
+      wantsPlaybackRef.current = false;
       setIsBuffering(false);
       setIsPlaying(false);
+      broadcastRadioPlaying(false);
       setError('Le flux audio est indisponible ou invalide.');
     };
 
@@ -282,16 +302,24 @@ export default function RadioPlayer() {
 
     // Set action handlers
     const handlePlay = async () => {
+      wantsPlaybackRef.current = true;
+      setIsPlaying(true);
+      broadcastRadioPlaying(true);
       await audio.play();
     };
 
     const handlePause = () => {
+      wantsPlaybackRef.current = false;
       audio.pause();
+      setIsPlaying(false);
+      broadcastRadioPlaying(false);
     };
 
     const handleStop = () => {
+      wantsPlaybackRef.current = false;
       audio.pause();
       setIsPlaying(false);
+      broadcastRadioPlaying(false);
     };
 
     navigator.mediaSession.setActionHandler('play', handlePlay);
@@ -316,41 +344,34 @@ export default function RadioPlayer() {
     if (!audioRef.current) return;
 
     try {
-      if (isPlaying) {
+      if (wantsPlaybackRef.current) {
         wantsPlaybackRef.current = false;
         audioRef.current.pause();
         hlsRef.current?.stopLoad();
         setIsPlaying(false);
+        setIsBuffering(false);
+        broadcastRadioPlaying(false);
         return;
       }
 
       wantsPlaybackRef.current = true;
+      setIsPlaying(true);
       setIsBuffering(true);
+      broadcastRadioPlaying(true);
       hlsRef.current?.startLoad();
       await audioRef.current.play();
     } catch {
       setError('Lecture impossible. Vérifiez l’URL du flux ou le réseau.');
+      wantsPlaybackRef.current = false;
       setIsBuffering(false);
       setIsPlaying(false);
+      broadcastRadioPlaying(false);
     }
   };
 
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent(RADIO_STATE_EVENT, { detail: { isPlaying } }));
+    broadcastRadioPlaying(isPlaying);
   }, [isPlaying]);
-
-  useEffect(() => {
-    const handleRadioToggle = () => {
-      setIsDesktopOpen(true);
-    };
-
-    window.addEventListener(RADIO_TOGGLE_EVENT, handleRadioToggle);
-    window.addEventListener('malakinfo-radio-toggle', handleRadioToggle);
-    return () => {
-      window.removeEventListener(RADIO_TOGGLE_EVENT, handleRadioToggle);
-      window.removeEventListener('malakinfo-radio-toggle', handleRadioToggle);
-    };
-  }, []);
 
   if (!station?.streamUrl) {
     return null;

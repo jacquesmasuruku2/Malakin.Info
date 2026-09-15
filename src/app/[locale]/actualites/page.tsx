@@ -1,10 +1,11 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
-import { applyArticleLocales } from '@/lib/translation';
+import { applyArticleLocales, applyCategoryLocales } from '@/lib/translation';
+import { getDateLocale, t, pickCopy } from '@/lib/copy';
 import { getArchiveYears, isValidArchiveYear, yearRange } from '@/lib/archives';
 
 function actualitesHref(locale: string, options: { page?: number; year?: number | null }) {
@@ -38,11 +39,11 @@ function YearFilter({
     <nav className={className} aria-label={locale === 'fr' ? 'Filtrer par année' : 'Filter by year'}>
       {selectedYear ? (
         <Link href={actualitesHref(locale, {})} className="rounded-lg bg-muted px-4 py-2 transition-colors hover:bg-muted/80">
-          {locale === 'fr' ? 'Toutes' : 'All'}
+          {t(locale, 'all')}
         </Link>
       ) : (
         <span aria-current="page" className="rounded-lg bg-primary px-4 py-2 text-primary-foreground">
-          {locale === 'fr' ? 'Toutes' : 'All'}
+          {t(locale, 'all')}
         </span>
       )}
       {years.map((year) => (
@@ -104,6 +105,7 @@ export default async function ActualitesPage({
   ]);
 
   const articles = await applyArticleLocales(articlesResult || [], locale);
+  const categories = await applyCategoryLocales(categoriesResult || [], locale);
   const totalArticles = totalArticlesResult || 0;
   const totalPages = Math.max(1, Math.ceil(totalArticles / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -112,7 +114,6 @@ export default async function ActualitesPage({
     redirect(actualitesHref(locale, { page: safeCurrentPage, year: selectedYear }));
   }
 
-  const categories = categoriesResult || [];
   const articleCounts = articleCountsResult || [];
   const articleCountMap = new Map(
     articleCounts.map((item) => [item.categoryId, item._count.categoryId])
@@ -141,12 +142,12 @@ export default async function ActualitesPage({
   // Format articles for display
   const news: { id: string; category: string; categorySlug: string; title: string; excerpt: string; image: string | null; date: string; readTime: string; slug: string; author: any }[] = articles.map((article: any) => ({
     id: article.id,
-    category: article.category?.title || 'Actualités',
+    category: article.category?.title || t(locale, 'news'),
     categorySlug: article.category?.slug || 'actualites',
     title: article.title,
     excerpt: article.excerpt,
     image: article.mainImageUrl,
-    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(getDateLocale(locale), { day: 'numeric', month: 'long', year: 'numeric' }) : '',
     readTime: article.readTime || '5 min',
     slug: article.slug,
     author: article.author,
@@ -157,9 +158,16 @@ export default async function ActualitesPage({
       {/* Header */}
       <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="font-heading text-4xl font-bold mb-4">Actualités</h1>
+          <h1 className="font-heading text-4xl font-bold mb-4">{t(locale, 'news')}</h1>
           <p className="text-xl text-gray-200">
-            Suivez l'actualité africaine et internationale en temps réel
+            {pickCopy(locale, {
+              fr: "Suivez l'actualité africaine et internationale en temps réel",
+              en: 'Follow African and international news in real time',
+              es: 'Sigue la actualidad africana e internacional en tiempo real',
+              sw: 'Fuata habari za Afrika na za kimataifa kwa wakati halisi',
+              ln: 'Landá sango ya Afrique mpe ya mokili na tango yango',
+              rw: 'Kurikira amakuru y’Afurika n’ay’isi mu gihe nyacyo',
+            })}
           </p>
         </div>
       </section>
@@ -171,9 +179,9 @@ export default async function ActualitesPage({
             <div className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg p-6 mb-6">
               <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
                 <span className="w-3 h-3 bg-white rounded-full animate-pulse"></span>
-                Événements en direct
+                {t(locale, 'liveEvents')}
               </h2>
-              <p className="text-red-100">Suivez nos diffusions en direct</p>
+              <p className="text-red-100">{t(locale, 'followLives')}</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {liveEvents.map((live: any) => (
@@ -192,7 +200,7 @@ export default async function ActualitesPage({
                       <span className={`absolute top-4 left-4 px-3 py-1 text-white text-xs font-medium rounded-full ${
                         live.status === 'LIVE' ? 'bg-red-600 animate-pulse' : 'bg-blue-600'
                       }`}>
-                        {live.status === 'LIVE' ? 'EN DIRECT' : 'PROGRAMMÉ'}
+                        {live.status === 'LIVE' ? t(locale, 'live') : t(locale, 'scheduled')}
                       </span>
                     </div>
                   )}
@@ -206,7 +214,7 @@ export default async function ActualitesPage({
                       </p>
                     )}
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span>{new Date(live.startTime).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+                      <span>{new Date(live.startTime).toLocaleDateString(getDateLocale(locale), {
                         day: 'numeric',
                         month: 'short',
                         hour: '2-digit',
@@ -215,7 +223,7 @@ export default async function ActualitesPage({
                       {live.viewerCount > 0 && (
                         <span className="flex items-center gap-1">
                           <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                          {live.viewerCount} spectateurs
+                          {live.viewerCount} {t(locale, 'viewers')}
                         </span>
                       )}
                     </div>
@@ -230,15 +238,15 @@ export default async function ActualitesPage({
           <div>
             {news.length > 0 ? (
               <>
-                <div className="mb-8 border-b border-gray-200 pb-6">
+                <div className="mb-8 border-b border-border pb-6">
                   <div className="flex items-center justify-between gap-3">
-                    <h2 className="font-heading text-2xl font-black uppercase tracking-[0.06em] text-[#081C3D]">
+                    <h2 className="font-heading text-2xl font-black uppercase tracking-[0.06em] text-foreground">
                       {selectedYear
-                        ? (locale === 'fr' ? `Actualités ${selectedYear}` : `${selectedYear} news`)
-                        : (locale === 'fr' ? 'Dernières infos' : 'Latest news')}
+                        ? `${t(locale, 'news')} ${selectedYear}`
+                        : t(locale, 'latestStories')}
                     </h2>
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#D4AF37]">
-                      {locale === 'fr' ? 'Edition locale' : 'Local edition'}
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-secondary">
+                      {t(locale, 'localEdition')}
                     </span>
                   </div>
                 </div>
@@ -247,7 +255,7 @@ export default async function ActualitesPage({
                   {news.map((item) => (
                     <article
                       key={item.id}
-                      className="group overflow-hidden border border-gray-200 bg-white transition-all duration-200 hover:-translate-y-1 hover:border-[#D4AF37] hover:shadow-[0_16px_32px_rgba(8,28,61,0.08)]"
+                      className="group overflow-hidden border border-border bg-card text-card-foreground transition-all duration-200 hover:-translate-y-1 hover:border-secondary"
                     >
                       {item.image && (
                         <Link href={`/${locale}/${item.slug}`} className="relative block h-52 overflow-hidden">
@@ -256,29 +264,29 @@ export default async function ActualitesPage({
                             alt={item.title}
                             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
-                          <span className="absolute bottom-3 left-3 inline-flex items-center bg-[#081C3D] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">
+                          <span className="absolute bottom-3 left-3 inline-flex items-center bg-foreground px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-background">
                             {item.category}
                           </span>
                         </Link>
                       )}
                       <div className="p-5">
-                        <div className="mb-3 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                        <div className="mb-3 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                           <span>{item.date}</span>
-                          <span className="text-[#D4AF37]">•</span>
+                          <span className="text-secondary">•</span>
                           <span>{item.readTime}</span>
                         </div>
-                        <ArticleAuthorLink author={item.author} locale={locale} className="text-xs text-gray-500" />
-                        <h3 className="font-heading text-[1.5rem] font-black leading-tight tracking-[-0.03em] text-[#081C3D] transition-colors group-hover:text-[#D4AF37] line-clamp-3">
+                        <ArticleAuthorLink author={item.author} locale={locale} className="text-xs text-muted-foreground" />
+                        <h3 className="font-heading text-[1.5rem] font-black leading-tight tracking-[-0.03em] text-foreground transition-colors group-hover:text-secondary line-clamp-3">
                           {item.title}
                         </h3>
-                        <p className="mt-3 text-sm leading-relaxed text-gray-600 line-clamp-3">
+                        <p className="mt-3 text-sm leading-relaxed text-muted-foreground line-clamp-3">
                           {item.excerpt}
                         </p>
                         <Link
                           href={`/${locale}/${item.slug}`}
-                          className="mt-4 inline-flex items-center text-[11px] font-bold uppercase tracking-[0.14em] text-[#081C3D] transition-colors hover:text-[#D4AF37]"
+                          className="mt-4 inline-flex items-center text-[11px] font-bold uppercase tracking-[0.14em] text-foreground transition-colors hover:text-secondary"
                         >
-                          Lire la suite
+                          {t(locale, 'readMore')}
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </div>
@@ -290,7 +298,7 @@ export default async function ActualitesPage({
                   <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label={locale === 'fr' ? 'Pagination des actualités' : 'News pagination'}>
                     {safeCurrentPage > 1 ? (
                       <Link href={actualitesHref(locale, { page: safeCurrentPage - 1, year: selectedYear })} className="rounded-lg bg-muted px-4 py-2 transition-colors hover:bg-muted/80">
-                        {locale === 'fr' ? 'Précédent' : 'Previous'}
+                        {t(locale, 'previous')}
                       </Link>
                     ) : (
                       <span className="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-muted-foreground/50">{locale === 'fr' ? 'Précédent' : 'Previous'}</span>
@@ -308,7 +316,7 @@ export default async function ActualitesPage({
 
                     {safeCurrentPage < totalPages ? (
                       <Link href={actualitesHref(locale, { page: safeCurrentPage + 1, year: selectedYear })} className="rounded-lg bg-muted px-4 py-2 transition-colors hover:bg-muted/80">
-                        {locale === 'fr' ? 'Suivant' : 'Next'}
+                        {t(locale, 'next')}
                       </Link>
                     ) : (
                       <span className="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-muted-foreground/50">{locale === 'fr' ? 'Suivant' : 'Next'}</span>
@@ -329,8 +337,15 @@ export default async function ActualitesPage({
               <div className="bg-card rounded-lg p-12 text-center">
                 <p className="text-muted-foreground text-lg">
                   {selectedYear
-                    ? (locale === 'fr' ? `Aucune actualité pour ${selectedYear}.` : `No articles for ${selectedYear}.`)
-                    : (locale === 'fr' ? 'Aucune actualité disponible pour le moment.' : 'No articles available yet.')}
+                    ? pickCopy(locale, {
+                        fr: `Aucune actualité pour ${selectedYear}.`,
+                        en: `No articles for ${selectedYear}.`,
+                        es: `No hay artículos de ${selectedYear}.`,
+                        sw: `Hakuna makala ya ${selectedYear}.`,
+                        ln: `Article ezali te mpo na ${selectedYear}.`,
+                        rw: `Nta nkuru za ${selectedYear}.`,
+                      })
+                    : t(locale, 'noArticles')}
                 </p>
                 <YearFilter
                   locale={locale}
