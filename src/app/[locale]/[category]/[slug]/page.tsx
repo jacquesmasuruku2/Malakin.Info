@@ -20,6 +20,7 @@ import Paywall from '@/components/Paywall';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 import { getPremiumPreviewContent, hasPremiumAccess } from '@/lib/premium-access';
 import { withRetry } from '@/lib/database';
+import ArticleListingGrid from '@/components/ArticleListingGrid';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -348,45 +349,11 @@ export default async function ArticlePage({
         )}
 
         {relatedArticles.length > 0 && (
-          <section className="mx-auto max-w-5xl px-4 pb-12 pt-12 md:px-6">
+          <section className="mx-auto max-w-6xl px-4 pb-12 pt-12 md:px-6">
             <h2 className="mb-6 text-xl font-bold text-foreground md:text-2xl">
               {t.relatedArticles}
             </h2>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-              {relatedArticles.map((related: any) => (
-                <Link
-                  key={related.id}
-                  href={`/${locale}/${related.slug}`}
-                  className="group block"
-                >
-                  <article className="overflow-hidden bg-card">
-                    {related.mainImageUrl && (
-                      <div className="overflow-hidden bg-gray-100">
-                        <img
-                          src={related.mainImageUrl}
-                          alt={related.title}
-                          className="h-40 w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                        />
-                      </div>
-                    )}
-                    <div className="pt-3">
-                      <h3 className="text-base font-bold leading-snug text-foreground group-hover:text-primary">
-                        {related.title}
-                      </h3>
-                      <div className="mt-2 text-xs text-muted-foreground">
-                        {related.publishedAt 
-                          ? new Date(related.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
-                              day: 'numeric', 
-                              month: 'short',
-                              year: 'numeric'
-                            }) 
-                          : ''}
-                      </div>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
+            <ArticleListingGrid articles={relatedArticles} locale={locale} />
           </section>
         )}
       </div>

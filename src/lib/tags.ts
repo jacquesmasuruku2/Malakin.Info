@@ -243,8 +243,8 @@ export function linkifyArticleTags(
 
 export function prepareArticleHtml(
   html: string,
-  tags: ArticleTagItem[] = [],
-  locale = 'fr'
+  _tags: ArticleTagItem[] = [],
+  _locale = 'fr'
 ): string {
-  return linkifyArticleTags(wrapImagesWithCaptions(html), tags, locale);
+  return wrapImagesWithCaptions(html);
 }

@@ -5,8 +5,9 @@ import { ArrowRight } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
 import { applyArticleLocales } from '@/lib/translation';
-import { getDateLocale, t } from '@/lib/copy';
+import { t } from '@/lib/copy';
 import { foldTagKey, slugifyTag } from '@/lib/tags';
+import ArticleListingGrid from '@/components/ArticleListingGrid';
 
 export const dynamic = 'force-dynamic';
 
@@ -195,41 +196,7 @@ export default async function TagPage({
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
-            {articles.map((item) => (
-              <article key={item.id} className="tag-story min-w-0">
-                <Link href={`/${locale}/${item.slug}`} className="block group">
-                  {item.mainImageUrl ? (
-                    <div className="mb-3 aspect-[16/10] overflow-hidden bg-muted">
-                      <img
-                        src={item.mainImageUrl}
-                        alt={item.mainImageAlt || item.title}
-                        className="h-full w-full object-cover transition-opacity duration-200 group-hover:opacity-90"
-                      />
-                    </div>
-                  ) : null}
-                  {item.category?.title ? (
-                    <span className="mb-1.5 inline-block bg-primary px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
-                      {item.category.title}
-                    </span>
-                  ) : null}
-                  <time
-                    dateTime={new Date(item.publishedAt).toISOString()}
-                    className="block text-xs text-muted-foreground mb-1"
-                  >
-                    {new Date(item.publishedAt).toLocaleDateString(getDateLocale(locale), {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                    })}
-                  </time>
-                  <h2 className="text-[1.05rem] font-bold leading-snug text-foreground group-hover:text-primary line-clamp-3">
-                    {item.title}
-                  </h2>
-                </Link>
-              </article>
-            ))}
-          </div>
+          <ArticleListingGrid articles={articles} locale={locale} />
         )}
       </div>
     </div>

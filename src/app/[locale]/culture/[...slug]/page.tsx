@@ -13,6 +13,7 @@ import ViewIncrementer from '@/components/ViewIncrementer';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 import FavoriteButton from '@/components/FavoriteButton';
 import { getArticleTags } from '@/lib/tags';
+import ArticleListingGrid from '@/components/ArticleListingGrid';
 
 export const dynamic = 'force-dynamic';
 
@@ -236,48 +237,11 @@ export default async function CultureCatchAllPage({
         )}
 
         {relatedArticles.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 border-t border-border">
+          <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 border-t border-border">
             <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground mb-6 sm:mb-8">
               {t.relatedArticles}
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {relatedArticles.map((related: any) => (
-                <Link
-                  key={related.id}
-                  href={`/${locale}/${related.slug}`}
-                  className="group"
-                >
-                  <article className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    {related.mainImageUrl && (
-                      <div className="h-32 sm:h-40 overflow-hidden">
-                        <img
-                          src={related.mainImageUrl}
-                          alt={related.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    )}
-                    <div className="p-3 sm:p-4">
-                      <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded mb-2">
-                        {related.category?.title || 'Actualités'}
-                      </span>
-                      <h3 className="font-heading font-semibold text-foreground mb-2 text-sm sm:text-base line-clamp-2 group-hover:text-primary transition-colors">
-                        {related.title}
-                      </h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Calendar className="w-3 h-3" />
-                        {related.publishedAt 
-                          ? new Date(related.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
-                              day: 'numeric', 
-                              month: 'short' 
-                            }) 
-                          : ''}
-                      </div>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
+            <ArticleListingGrid articles={relatedArticles} locale={locale} />
           </section>
         )}
 

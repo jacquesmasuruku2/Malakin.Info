@@ -1,80 +1,56 @@
 import Link from 'next/link';
-import { Calendar, Clock, Book } from 'lucide-react';
+import ArticleListingGrid from '@/components/ArticleListingGrid';
 
-export default function AutresMessagesPage() {
-  const messages = [
+export default async function AutresMessagesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
+  const items = [
     {
       id: 1,
-      author: 'Smith Wigglesworth',
       title: 'La Puissance de la Foi',
-      excerpt: 'Enseignements sur la foi qui déplace les montagnes et les miracles.',
       date: '27 Juin 2026',
-      readTime: '12 min',
     },
     {
       id: 2,
-      author: 'A.A. Allen',
       title: 'Le Réveil Spirituel',
-      excerpt: 'Messages sur le besoin de réveil dans l\'Église moderne.',
       date: '26 Juin 2026',
-      readTime: '15 min',
     },
     {
       id: 3,
-      author: 'Kathryn Kuhlman',
       title: 'La Guérison Divine',
-      excerpt: 'Témoignages et enseignements sur la guérison par la foi.',
       date: '25 Juin 2026',
-      readTime: '10 min',
     },
   ];
 
-  return (
-    <div className="flex flex-col">
-      <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/religion" className="text-gray-300 hover:text-white mb-4 inline-block">
-            ← Retour à Religion
-          </Link>
-          <h1 className="font-heading text-4xl font-bold mb-4">Autres Messages</h1>
-          <p className="text-xl text-gray-200">
-            Enseignements d\'autres serviteurs de Dieu et messages spirituels
-          </p>
-        </div>
-      </section>
+  const articles = items.map((item) => ({
+    id: String(item.id),
+    slug: String(item.id),
+    title: item.title,
+    dateLabel: item.date,
+    categoryTitle: 'Autres Messages',
+  }));
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {messages.map((message) => (
-            <article
-              key={message.id}
-              className="bg-card rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow border-l-4 border-primary"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <Book className="w-5 h-5 text-primary" />
-                <span className="text-sm font-medium text-primary">Par {message.author}</span>
-              </div>
-              <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                <Link href={`/religion/message-du-temps/autres-messages/${message.id}`} className="hover:text-primary transition-colors">
-                  {message.title}
-                </Link>
-              </h3>
-              <p className="text-muted-foreground mb-4 line-clamp-2">
-                {message.excerpt}
-              </p>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  {message.date}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  {message.readTime}
-                </span>
-              </div>
-            </article>
-          ))}
-        </div>
+  return (
+    <div className="tag-page bg-background">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 sm:pt-14">
+        <Link
+          href={`/${locale}/religion`}
+          className="mb-8 inline-block text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← Retour à Religion
+        </Link>
+        <h1 className="font-heading text-3xl sm:text-4xl font-bold text-foreground tracking-tight mb-3 sm:mb-4">
+          Autres Messages
+        </h1>
+        <p className="text-base sm:text-lg text-muted-foreground mb-8 sm:mb-10 max-w-3xl">
+          Enseignements d&apos;autres serviteurs de Dieu et messages spirituels
+        </p>
+
+        <ArticleListingGrid
+          articles={articles}
+          locale={locale}
+          hrefFor={(item) => `/${locale}/religion/message-du-temps/autres-messages/${item.slug}`}
+        />
       </div>
     </div>
   );

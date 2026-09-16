@@ -1,73 +1,56 @@
 import Link from 'next/link';
-import { Calendar, Heart } from 'lucide-react';
+import ArticleListingGrid from '@/components/ArticleListingGrid';
 
-export default function TemoignagesPage() {
-  const testimonies = [
+export default async function TemoignagesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
+  const items = [
     {
       id: 1,
       title: 'Guérison miraculeuse - Témoignage de Marie K.',
-      excerpt: 'Témoignage de guérison suite à la prière pendant une campagne de William Branham.',
       date: '1955',
-      location: 'Durban, Afrique du Sud',
     },
     {
       id: 2,
       title: 'Conversion radicales - Témoignage de Jean M.',
-      excerpt: 'Comment la vie de cet homme a été transformée par l\'écoute des sermons.',
       date: '1960',
-      location: 'Kinshasa, RDC',
     },
     {
       id: 3,
       title: 'Vision et révélation - Témoignage de Pierre L.',
-      excerpt: 'Expérience personnelle de vision divine lors d\'une réunion de prière.',
       date: '1962',
-      location: 'Lagos, Nigeria',
     },
   ];
 
-  return (
-    <div className="flex flex-col">
-      <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/religion/message-du-temps/branham" className="text-gray-300 hover:text-white mb-4 inline-block">
-            ← Retour à William Branham
-          </Link>
-          <h1 className="font-heading text-4xl font-bold mb-4">Témoignages</h1>
-          <p className="text-xl text-gray-200">
-            Témoignages de guérisons, conversions et expériences spirituelles
-          </p>
-        </div>
-      </section>
+  const articles = items.map((item) => ({
+    id: String(item.id),
+    slug: String(item.id),
+    title: item.title,
+    dateLabel: item.date,
+    categoryTitle: 'Témoignages',
+  }));
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {testimonies.map((testimony) => (
-            <article
-              key={testimony.id}
-              className="bg-card rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow border-l-4 border-primary"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <Heart className="w-5 h-5 text-primary" />
-                <span className="text-sm font-medium text-primary">{testimony.date}</span>
-              </div>
-              <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                <Link href={`/religion/message-du-temps/branham/temoignages/${testimony.id}`} className="hover:text-primary transition-colors">
-                  {testimony.title}
-                </Link>
-              </h3>
-              <p className="text-muted-foreground mb-4 line-clamp-2">
-                {testimony.excerpt}
-              </p>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  {testimony.location}
-                </span>
-              </div>
-            </article>
-          ))}
-        </div>
+  return (
+    <div className="tag-page bg-background">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 sm:pt-14">
+        <Link
+          href={`/${locale}/religion/message-du-temps/branham`}
+          className="mb-8 inline-block text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← Retour à William Branham
+        </Link>
+        <h1 className="font-heading text-3xl sm:text-4xl font-bold text-foreground tracking-tight mb-3 sm:mb-4">
+          Témoignages
+        </h1>
+        <p className="text-base sm:text-lg text-muted-foreground mb-8 sm:mb-10 max-w-3xl">
+          Témoignages de guérisons, conversions et expériences spirituelles
+        </p>
+
+        <ArticleListingGrid
+          articles={articles}
+          locale={locale}
+          hrefFor={(item) => `/${locale}/religion/message-du-temps/branham/temoignages/${item.slug}`}
+        />
       </div>
     </div>
   );
