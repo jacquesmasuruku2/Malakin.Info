@@ -505,30 +505,40 @@ html.dark .article-body a:hover :is(span, strong, b, em, i, u) {
 .article-body a.article-inline-tag,
 .article-body a[href*="/tag/"],
 a.article-inline-tag {
-  color: inherit;
-  font-weight: 700;
-  text-decoration: none !important;
-  background: color-mix(in srgb, var(--secondary) 72%, #ffe08a);
-  padding: 0 0.12em;
-  border-radius: 1px;
-  border-bottom: none;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
+  color: inherit !important;
+  font-weight: inherit;
+  background: none !important;
+  padding: 0;
+  border-radius: 0;
+  text-decoration: underline !important;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  text-decoration-color: currentColor;
 }
 
 .article-body a.article-inline-tag:hover,
 .article-body a[href*="/tag/"]:hover,
 a.article-inline-tag:hover {
-  color: inherit;
-  background: var(--secondary);
+  color: var(--secondary) !important;
+  background: none !important;
+  text-decoration-color: var(--secondary) !important;
+  text-decoration-thickness: 2px;
 }
 
 html.dark .article-body a.article-inline-tag,
 html.dark .article-body a[href*="/tag/"],
 html.dark .article-body a.article-inline-tag :is(span, strong, b, em, i, u),
 html.dark .article-body a[href*="/tag/"] :is(span, strong, b, em, i, u) {
-  color: var(--foreground) !important;
-  background: color-mix(in srgb, var(--secondary) 58%, transparent);
+  color: inherit !important;
+  background: none !important;
+}
+
+html.dark .article-body a.article-inline-tag:hover,
+html.dark .article-body a[href*="/tag/"]:hover,
+html.dark .article-body a.article-inline-tag:hover :is(span, strong, b, em, i, u),
+html.dark .article-body a[href*="/tag/"]:hover :is(span, strong, b, em, i, u) {
+  color: var(--secondary) !important;
+  background: none !important;
 }
 
 .tag-page-hero {
@@ -661,4 +671,30 @@ html.dark .article-body a[href*="/tag/"] :is(span, strong, b, em, i, u) {
     animation: none !important;
     transition: none !important;
   }
+}
+
+.article-body a.article-inline-tag,
+.article-body a[href*="/tag/"] {
+  color: inherit !important;
+  font-weight: inherit !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  text-decoration: underline !important;
+  text-decoration-thickness: 1px !important;
+  text-underline-offset: 0.18em !important;
+  text-decoration-color: currentColor !important;
+}
+
+.article-body a.article-inline-tag:hover,
+.article-body a[href*="/tag/"]:hover,
+.article-body a.article-inline-tag:hover :is(span, strong, b, em, i, u),
+.article-body a[href*="/tag/"]:hover :is(span, strong, b, em, i, u) {
+  color: var(--secondary) !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  text-decoration-color: var(--secondary) !important;
+  text-decoration-thickness: 2px !important;
 }

@@ -20,7 +20,6 @@ import Paywall from '@/components/Paywall';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 import CategoryArticlesList from '@/components/CategoryArticlesList';
 import FavoriteButton from '@/components/FavoriteButton';
-import ArticleTags from '@/components/ArticleTags';
 import { getArticleTags, prepareArticleHtml } from '@/lib/tags';
 
 export const dynamic = 'force-dynamic';
@@ -364,8 +363,6 @@ export default async function CatchAllArticlePage({
                   {displayExcerpt}
                 </p>
               )}
-
-              <ArticleTags tags={getArticleTags(article)} locale={locale} />
 
               {article.mainImageUrl && (
                 <div className="mb-8 rounded-lg overflow-hidden">

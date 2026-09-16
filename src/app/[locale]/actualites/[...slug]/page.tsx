@@ -12,7 +12,6 @@ import { SponsoredSection } from '@/components/SponsoredSection';
 import ViewIncrementer from '@/components/ViewIncrementer';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 import FavoriteButton from '@/components/FavoriteButton';
-import ArticleTags from '@/components/ArticleTags';
 import { getArticleTags } from '@/lib/tags';
 
 export const dynamic = 'force-dynamic';
@@ -185,8 +184,6 @@ export default async function ActualitesCatchAllPage({
                   {displayExcerpt}
                 </p>
               )}
-
-              <ArticleTags tags={getArticleTags(article)} locale={locale} />
 
               {article.mainImageUrl && (
                 <div className="mb-8 rounded-lg overflow-hidden">

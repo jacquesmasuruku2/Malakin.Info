@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, ArrowLeft, Share2, Bookmark } from 'lucide-react';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
-import ArticleTags from '@/components/ArticleTags';
 import { getArticleTags, prepareArticleHtml } from '@/lib/tags';
 
 export default async function SanteArticlePage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
@@ -59,7 +58,6 @@ export default async function SanteArticlePage({ params }: { params: Promise<{ l
           <p className="text-xl text-muted-foreground">
             {displayExcerpt}
           </p>
-          <ArticleTags tags={getArticleTags(article)} locale={locale} />
         </header>
 
         {article.mainImageUrl && (
