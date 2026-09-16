@@ -297,9 +297,19 @@ export default function NewArticlePage() {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Contenu *
                   </label>
-                  <WordEditor 
-                    content={formData.content} 
-                    onChange={(content) => setFormData({ ...formData, content })} 
+                  <WordEditor
+                    content={formData.content}
+                    onChange={(content) => setFormData({ ...formData, content })}
+                    locale={formData.defaultLocale}
+                    onAddTag={(name) => {
+                      setFormData((prev) => {
+                        const exists = prev.tags.some(
+                          (tag) => tag.toLowerCase() === name.toLowerCase()
+                        );
+                        if (exists) return prev;
+                        return { ...prev, tags: [...prev.tags, name] };
+                      });
+                    }}
                   />
                 </div>
               </div>

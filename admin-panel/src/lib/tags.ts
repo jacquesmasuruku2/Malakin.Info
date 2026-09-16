@@ -1,13 +1,31 @@
 import { prisma } from '@/lib/prisma';
 
-export function slugifyTag(name: string): string {
-  return name
+export function cleanTagName(name: string): string {
+  return name.trim().replace(/^#+/, '').replace(/,+$/g, '').trim();
+}
+
+export function foldTagKey(value: string): string {
+  let decoded = value;
+  try {
+    decoded = decodeURIComponent(value);
+  } catch {
+    decoded = value;
+  }
+
+  return decoded
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
-    .trim()
     .replace(/['’]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+export function slugifyTag(name: string): string {
+  return cleanTagName(name)
+    .toLowerCase()
+    .replace(/['’]/g, '')
+    .replace(/[^\p{L}\p{N}]+/gu, '-')
     .replace(/^-+|-+$/g, '');
 }
 
@@ -18,7 +36,7 @@ export function normalizeTagNames(input: unknown): string[] {
   const names: string[] = [];
 
   for (const value of input) {
-    const name = String(value || '').trim();
+    const name = cleanTagName(String(value || ''));
     const slug = slugifyTag(name);
     if (!name || !slug || seen.has(slug)) continue;
     seen.add(slug);
@@ -35,11 +53,21 @@ export async function syncArticleTags(articleId: string, tagNames: unknown) {
 
   for (const name of names) {
     const slug = slugifyTag(name);
-    const tag = await prisma.tag.upsert({
-      where: { slug },
-      create: { name, slug },
-      update: { name },
+    const folded = foldTagKey(slug);
+    const existing = await prisma.tag.findFirst({
+      where: {
+        OR: [{ slug }, { slug: folded }],
+      },
     });
+
+    const tag = existing
+      ? await prisma.tag.update({
+          where: { id: existing.id },
+          data: { name },
+        })
+      : await prisma.tag.create({
+          data: { name, slug },
+        });
 
     await prisma.articleTag.create({
       data: { articleId, tagId: tag.id },

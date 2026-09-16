@@ -11,7 +11,7 @@ import { ADSENSE_SLOTS } from '@/lib/adsense';
 import ViewIncrementer from '@/components/ViewIncrementer';
 import FavoriteButton from '@/components/FavoriteButton';
 import ArticleTags from '@/components/ArticleTags';
-import { getArticleTags, linkifyArticleTags } from '@/lib/tags';
+import { getArticleTags, prepareArticleHtml } from '@/lib/tags';
 import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
 import { SponsoredSection } from '@/components/SponsoredSection';
@@ -309,7 +309,7 @@ export default async function ArticlePage({
                 <div className="premium-gate">
                   <div
                     className={`${playfair.className} article-body premium-preview premium-preview-fade text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]`}
-                    dangerouslySetInnerHTML={{ __html: linkifyArticleTags(previewContent, getArticleTags(article), locale) }}
+                    dangerouslySetInnerHTML={{ __html: prepareArticleHtml(previewContent, getArticleTags(article), locale) }}
                   />
                   {article.isPremium && (
                     <Paywall

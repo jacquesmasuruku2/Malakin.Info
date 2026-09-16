@@ -7,7 +7,10 @@ import TextAlign from '@tiptap/extension-text-align';
 import Link from '@tiptap/extension-link';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
-import Image from '@tiptap/extension-image';
+import { ReadAlsoExtension } from '@/lib/tiptap/ReadAlsoExtension';
+import ReadAlsoModal from '@/components/ReadAlsoModal';
+import { ImageWithCaption } from '@/lib/tiptap/ImageWithCaption';
+import { cleanTagName, slugifyTag } from '@/lib/tags';
 import { useState, useEffect, useRef } from 'react';
 import { 
   Scissors, 
@@ -43,14 +46,15 @@ import {
   ExternalLink,
   Link as LinkIcon,
   Unlink,
+  Hash,
   X
 } from 'lucide-react';
-import { ReadAlsoExtension } from '@/lib/tiptap/ReadAlsoExtension';
-import ReadAlsoModal from '@/components/ReadAlsoModal';
 
 interface WordEditorProps {
   content: string | Record<string, unknown> | null | undefined;
   onChange: (content: string) => void;
+  locale?: string;
+  onAddTag?: (name: string) => void;
 }
 
 const INLINE_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
@@ -71,7 +75,7 @@ async function uploadBlogImage(file: File): Promise<string | null> {
   return data?.success && data.url ? String(data.url) : null;
 }
 
-export default function WordEditor({ content, onChange }: WordEditorProps) {
+export default function WordEditor({ content, onChange, locale = 'fr', onAddTag }: WordEditorProps) {
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
   const [zoom, setZoom] = useState(100);
@@ -114,7 +118,7 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
       Color.configure({
         types: ['textStyle'],
       }),
-      Image.configure({
+      ImageWithCaption.configure({
         inline: false,
         allowBase64: false,
         HTMLAttributes: {
@@ -188,8 +192,14 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
           continue;
         }
 
-        const alt = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ');
-        currentEditor.chain().focus().setImage({ src, alt }).run();
+        const suggested = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
+        const caption = window.prompt(
+          "Description de l'image (légende affichée sous la photo) :",
+          suggested
+        );
+        if (caption === null) continue;
+        const text = caption.trim() || suggested;
+        currentEditor.chain().focus().setImage({ src, alt: text }).updateAttributes('image', { caption: text, alt: text }).run();
       }
     } finally {
       setUploadingInlineImage(false);
@@ -251,6 +261,45 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
     if (editor) {
       editor.chain().focus().unsetLink().run();
     }
+  };
+
+  const handleTagSelection = () => {
+    if (!editor) return;
+
+    const { from, to, empty } = editor.state.selection;
+    if (empty) {
+      window.alert('Sélectionnez un nom dans le texte, par exemple Félix Tshisekedi.');
+      return;
+    }
+
+    const selected = cleanTagName(
+      editor.state.doc.textBetween(from, to, ' ').replace(/\s+/g, ' ')
+    );
+
+    if (selected.length < 2) return;
+
+    onAddTag?.(selected);
+    const slug = slugifyTag(selected);
+    if (!slug) return;
+
+    const localeSafe = (locale || 'fr').replace(/[^a-z-]/gi, '') || 'fr';
+    editor.chain().focus().extendMarkRange('link').setLink({ href: `/${localeSafe}/tag/${slug}/` }).run();
+  };
+
+  const handleImageCaption = () => {
+    if (!editor || !editor.isActive('image')) {
+      window.alert("Sélectionnez une image dans le texte pour ajouter sa description.");
+      return;
+    }
+
+    const attrs = editor.getAttributes('image') as { alt?: string; caption?: string };
+    const next = window.prompt(
+      "Description de l'image (légende sous la photo) :",
+      attrs.caption || attrs.alt || ''
+    );
+    if (next === null) return;
+    const text = next.trim();
+    editor.chain().focus().updateAttributes('image', { caption: text, alt: text }).run();
   };
 
   const handleTextColorChange = (color: string) => {
@@ -429,6 +478,16 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
                 >
                   <Unlink className="w-4 h-4" />
                 </button>
+                {onAddTag && (
+                  <button
+                    type="button"
+                    onClick={handleTagSelection}
+                    className="p-1 hover:bg-blue-100 rounded transition-colors"
+                    title="Taguer la sélection (lien vers /tag/…)"
+                  >
+                    <Hash className="w-4 h-4" />
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => imageInputRef.current?.click()}
@@ -437,6 +496,14 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
                   title="Insérer une image dans le texte"
                 >
                   {uploadingInlineImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleImageCaption}
+                  className={`p-1 rounded ${editor.isActive('image') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
+                  title="Description / légende de l'image"
+                >
+                  <FileText className="w-4 h-4" />
                 </button>
               </div>
               <div className="flex gap-1 relative">
@@ -669,6 +736,35 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
               {uploadingInlineImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
               <span className="text-sm">{uploadingInlineImage ? 'Envoi…' : 'Image'}</span>
             </button>
+            <button
+              type="button"
+              onClick={handleImageCaption}
+              className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2"
+              title="Description / légende de l'image"
+            >
+              <FileText className="w-4 h-4" />
+              <span className="text-sm">Légende</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleImageCaption}
+              className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2"
+              title="Description / légende de l'image"
+            >
+              <FileText className="w-4 h-4" />
+              <span className="text-sm">Légende</span>
+            </button>
+            {onAddTag && (
+              <button
+                type="button"
+                onClick={handleTagSelection}
+                className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2"
+                title="Taguer la sélection"
+              >
+                <Hash className="w-4 h-4" />
+                <span className="text-sm">Taguer</span>
+              </button>
+            )}
             <button type="button" className="p-2 hover:bg-blue-100 rounded transition-colors" title="Insérer un lien">
               <Search className="w-4 h-4" />
             </button>

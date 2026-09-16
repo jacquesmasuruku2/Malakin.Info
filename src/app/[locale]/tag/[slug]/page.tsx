@@ -6,15 +6,34 @@ import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
 import { applyArticleLocales } from '@/lib/translation';
 import { getDateLocale, t } from '@/lib/copy';
+import { foldTagKey } from '@/lib/tags';
 
 export const dynamic = 'force-dynamic';
 
-async function getTaggedArticles(slug: string) {
-  const tag = await withRetry(() =>
-    prisma.tag.findUnique({
-      where: { slug },
+async function getTaggedArticles(rawSlug: string) {
+  let slug = rawSlug;
+  try {
+    slug = decodeURIComponent(rawSlug);
+  } catch {
+    slug = rawSlug;
+  }
+  const folded = foldTagKey(slug);
+
+  let tag = await withRetry(() =>
+    prisma.tag.findFirst({
+      where: {
+        OR: [{ slug }, { slug: folded }],
+      },
     })
   );
+
+  if (!tag) {
+    const tags = await withRetry(() => prisma.tag.findMany());
+    tag =
+      (tags || []).find(
+        (item) => foldTagKey(item.slug) === folded || foldTagKey(item.name) === folded
+      ) || null;
+  }
 
   if (!tag) return null;
 

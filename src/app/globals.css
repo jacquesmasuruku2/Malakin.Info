@@ -374,19 +374,36 @@
   width: 100%;
   max-width: 100%;
   height: auto;
-  margin: 1.5rem 0;
+  margin: 0.45rem 0 0;
 }
 
-.article-body figure {
-  margin: 1.75rem 0;
+.article-body figure,
+.article-body figure.article-inline-figure {
+  margin: 0.55rem 0 0.7rem;
+}
+
+.article-body figure img,
+.article-body figure .article-inline-image {
+  margin: 0;
 }
 
 .article-body figcaption {
-  margin-top: 0.45rem;
+  margin: 0.4rem 0 0;
   font-size: 0.9rem;
+  line-height: 1.45;
   font-style: italic;
   color: var(--muted-foreground);
-  text-align: center;
+  text-align: left;
+}
+
+.article-body p:has(+ figure),
+.article-body p:has(+ img) {
+  margin-bottom: 0.4rem;
+}
+
+.article-body figure + p,
+.article-body img + p {
+  margin-top: 0.55rem;
 }
 
 .article-dropcap {
@@ -475,17 +492,32 @@ html.dark .article-body a:hover :is(span, strong, b, em, i, u) {
 }
 
 .article-body a.article-inline-tag,
+.article-body a[href*="/tag/"],
 a.article-inline-tag {
-  color: var(--primary);
+  color: inherit;
   font-weight: 700;
-  text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--secondary) 75%, transparent);
+  text-decoration: none !important;
+  background: color-mix(in srgb, var(--secondary) 72%, #ffe08a);
+  padding: 0 0.12em;
+  border-radius: 1px;
+  border-bottom: none;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 .article-body a.article-inline-tag:hover,
+.article-body a[href*="/tag/"]:hover,
 a.article-inline-tag:hover {
-  color: var(--secondary);
-  border-bottom-color: var(--secondary);
+  color: inherit;
+  background: var(--secondary);
+}
+
+html.dark .article-body a.article-inline-tag,
+html.dark .article-body a[href*="/tag/"],
+html.dark .article-body a.article-inline-tag :is(span, strong, b, em, i, u),
+html.dark .article-body a[href*="/tag/"] :is(span, strong, b, em, i, u) {
+  color: var(--foreground) !important;
+  background: color-mix(in srgb, var(--secondary) 58%, transparent);
 }
 
 .tag-page-hero {

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { ArticleTagItem } from '@/lib/tags';
+import { tagPath, type ArticleTagItem } from '@/lib/tags';
 
 export default function ArticleTags({
   tags,
@@ -15,7 +15,7 @@ export default function ArticleTags({
       {tags.map((tag, index) => (
         <Link
           key={tag.slug}
-          href={`/${locale}/tag/${tag.slug}`}
+          href={tagPath(locale, tag.slug)}
           className="article-tag-chip"
           style={{ ['--i' as string]: index }}
         >

@@ -21,7 +21,7 @@ import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 import CategoryArticlesList from '@/components/CategoryArticlesList';
 import FavoriteButton from '@/components/FavoriteButton';
 import ArticleTags from '@/components/ArticleTags';
-import { getArticleTags, linkifyArticleTags } from '@/lib/tags';
+import { getArticleTags, prepareArticleHtml } from '@/lib/tags';
 
 export const dynamic = 'force-dynamic';
 
@@ -399,7 +399,7 @@ export default async function CatchAllArticlePage({
                   <div
                     className="article-body premium-preview premium-preview-fade text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]"
                     style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
-                    dangerouslySetInnerHTML={{ __html: linkifyArticleTags(previewContent, getArticleTags(article), locale) }}
+                    dangerouslySetInnerHTML={{ __html: prepareArticleHtml(previewContent, getArticleTags(article), locale) }}
                   />
                   {article.isPremium && (
                     <Paywall

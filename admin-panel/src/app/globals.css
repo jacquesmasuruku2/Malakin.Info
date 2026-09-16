@@ -251,5 +251,31 @@ textarea {
   display: block;
   max-width: 100%;
   height: auto;
-  margin: 1.25rem auto;
+  margin: 0.45rem auto 0;
+}
+
+.ProseMirror figure,
+.ProseMirror figure.article-inline-figure {
+  margin: 0.55rem 0 0.7rem;
+}
+
+.ProseMirror figure img {
+  margin: 0 auto;
+}
+
+.ProseMirror figcaption {
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  font-style: italic;
+  color: #4b5563;
+  text-align: left;
+}
+
+.ProseMirror a[href*="/tag/"] {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  background: #e8c04a;
+  padding: 0 0.12em;
 }

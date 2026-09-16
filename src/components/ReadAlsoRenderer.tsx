@@ -1,7 +1,7 @@
 'use client';
 
 import ReadAlso from './ReadAlso';
-import { linkifyArticleTags, type ArticleTagItem } from '@/lib/tags';
+import { prepareArticleHtml, type ArticleTagItem } from '@/lib/tags';
 
 interface ReadAlsoRendererProps {
   content: string;
@@ -9,7 +9,7 @@ interface ReadAlsoRendererProps {
   locale?: string;
 }
 
-const proseClasses = "article-body prose prose-lg w-full min-w-0 max-w-none !max-w-none break-words text-[1.02rem] leading-[1.9] text-foreground md:text-[1.12rem] prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-[-0.02em] prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-5 prose-p:mt-0 prose-p:first-of-type:font-bold prose-p:first-of-type:text-[1.08em] prose-p:first-of-type:leading-[1.8] prose-p:first-of-type:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-img:my-6 prose-img:h-auto prose-img:max-w-full prose-img:rounded-none prose-img:shadow-none prose-table:block prose-table:max-w-full prose-table:overflow-x-auto prose-pre:max-w-full prose-pre:overflow-x-auto prose-iframe:max-w-full prose-strong:text-foreground prose-blockquote:border-l-2 prose-blockquote:border-border prose-blockquote:pl-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-1";
+const proseClasses = "article-body prose prose-lg w-full min-w-0 max-w-none !max-w-none break-words text-[1.02rem] leading-[1.9] text-foreground md:text-[1.12rem] prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-[-0.02em] prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-5 prose-p:mt-0 prose-p:first-of-type:font-bold prose-p:first-of-type:text-[1.08em] prose-p:first-of-type:leading-[1.8] prose-p:first-of-type:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-img:my-2 prose-img:h-auto prose-img:max-w-full prose-img:rounded-none prose-img:shadow-none prose-figure:my-3 prose-figcaption:mt-2 prose-figcaption:text-left prose-figcaption:text-sm prose-figcaption:italic prose-figcaption:text-muted-foreground prose-table:block prose-table:max-w-full prose-table:overflow-x-auto prose-pre:max-w-full prose-pre:overflow-x-auto prose-iframe:max-w-full prose-strong:text-foreground prose-blockquote:border-l-2 prose-blockquote:border-border prose-blockquote:pl-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-1";
 
 const hasParagraphContent = (html: string) => /<(p|blockquote|li)\b/i.test(html);
 
@@ -51,7 +51,7 @@ export default function ReadAlsoRenderer({
     return null;
   }
 
-  const html = linkifyArticleTags(content, tags, locale);
+  const html = prepareArticleHtml(content, tags, locale);
   const hasBrowserDom = typeof window !== 'undefined' && typeof DOMParser !== 'undefined';
 
   if (!hasBrowserDom) {

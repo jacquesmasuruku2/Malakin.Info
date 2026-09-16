@@ -360,6 +360,16 @@ export default function EditArticlePage() {
                   <WordEditor
                     content={formData.content}
                     onChange={(content) => setFormData({ ...formData, content })}
+                    locale={formData.defaultLocale}
+                    onAddTag={(name) => {
+                      setFormData((prev) => {
+                        const exists = prev.tags.some(
+                          (tag) => tag.toLowerCase() === name.toLowerCase()
+                        );
+                        if (exists) return prev;
+                        return { ...prev, tags: [...prev.tags, name] };
+                      });
+                    }}
                   />
                 </div>
               </div>

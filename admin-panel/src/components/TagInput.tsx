@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
+import { cleanTagName } from '@/lib/tags';
 
 type TagInputProps = {
   value: string[];
@@ -36,18 +37,18 @@ export default function TagInput({ value, onChange }: TagInputProps) {
   }, []);
 
   const addTag = (raw: string) => {
-    const name = raw.trim().replace(/,+$/g, '').trim();
+    const name = cleanTagName(raw);
     if (!name) return;
-    const exists = value.some((tag) => tag.toLowerCase() === name.toLowerCase());
+    const exists = value.some((tag) => cleanTagName(tag).toLowerCase() === name.toLowerCase());
     if (!exists) onChange([...value, name]);
     setDraft('');
     setOpen(false);
   };
 
   const filteredSuggestions = useMemo(() => {
-    const query = draft.trim().toLowerCase();
+    const query = cleanTagName(draft).toLowerCase();
     return suggestions
-      .filter((name) => !value.some((tag) => tag.toLowerCase() === name.toLowerCase()))
+      .filter((name) => !value.some((tag) => cleanTagName(tag).toLowerCase() === name.toLowerCase()))
       .filter((name) => !query || name.toLowerCase().includes(query))
       .slice(0, 8);
   }, [draft, suggestions, value]);
@@ -92,7 +93,7 @@ export default function TagInput({ value, onChange }: TagInputProps) {
             }
           }}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-          placeholder="Donald Trump, Kenya…"
+          placeholder="#Tshisekedi, Félix Tshisekedi…"
         />
         {open && filteredSuggestions.length > 0 && (
           <ul className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
@@ -114,8 +115,8 @@ export default function TagInput({ value, onChange }: TagInputProps) {
         )}
       </div>
       <p className="text-sm text-gray-500 mt-2">
-        Appuyez sur Entrée pour ajouter un nom. Les visiteurs verront tous les articles tagués sur
-        /tag/donald-trump/.
+        Ajoutez n’importe quel tag manuellement (#Égypte, #Tshisekedi) puis Entrée. Dans l’article, le mot
+        est surligné et mène à /fr/tag/égypte/.
       </p>
     </div>
   );
