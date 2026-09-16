@@ -245,3 +245,11 @@ textarea {
     margin-top: 1.25rem;
   }
 }
+
+.ProseMirror img,
+.ProseMirror img.article-inline-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.25rem auto;
+}

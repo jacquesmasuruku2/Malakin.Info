@@ -7,6 +7,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import Link from '@tiptap/extension-link';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
+import Image from '@tiptap/extension-image';
 import { useState, useEffect, useRef } from 'react';
 import { 
   Scissors, 
@@ -32,6 +33,8 @@ import {
   ZoomIn,
   ZoomOut,
   FileText,
+  Image as ImageIcon,
+  Loader2,
   Heading1,
   Heading2,
   Heading3,
@@ -50,6 +53,24 @@ interface WordEditorProps {
   onChange: (content: string) => void;
 }
 
+const INLINE_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+
+function isImageFile(file: File) {
+  return INLINE_IMAGE_TYPES.includes(file.type);
+}
+
+async function uploadBlogImage(file: File): Promise<string | null> {
+  const body = new FormData();
+  body.append('file', file);
+  body.append('folder', 'Images_blogs');
+
+  const response = await fetch('/api/upload', { method: 'POST', body });
+  if (!response.ok) return null;
+
+  const data = await response.json();
+  return data?.success && data.url ? String(data.url) : null;
+}
+
 export default function WordEditor({ content, onChange }: WordEditorProps) {
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
@@ -66,6 +87,10 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
   const [highlightColor, setHighlightColor] = useState('#ffff00');
   const toolbarRef = useRef<HTMLDivElement>(null);
   const previousScrollY = useRef(0);
+  const editorRef = useRef<ReturnType<typeof useEditor>>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const insertImageFilesRef = useRef<(files: FileList | File[]) => Promise<void>>(async () => {});
+  const [uploadingInlineImage, setUploadingInlineImage] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -90,9 +115,36 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
       Color.configure({
         types: ['textStyle'],
       }),
+      Image.configure({
+        inline: false,
+        allowBase64: false,
+        HTMLAttributes: {
+          class: 'article-inline-image',
+        },
+      }),
       ReadAlsoExtension,
     ],
     content: content,
+    editorProps: {
+      handlePaste(_view, event) {
+        const files = event.clipboardData?.files;
+        if (!files?.length) return false;
+        const images = Array.from(files).filter(isImageFile);
+        if (!images.length) return false;
+        event.preventDefault();
+        void insertImageFilesRef.current(images);
+        return true;
+      },
+      handleDrop(_view, event) {
+        const files = event.dataTransfer?.files;
+        if (!files?.length) return false;
+        const images = Array.from(files).filter(isImageFile);
+        if (!images.length) return false;
+        event.preventDefault();
+        void insertImageFilesRef.current(images);
+        return true;
+      },
+    },
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
       onChange(html);
@@ -122,6 +174,35 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
 
     updateCounts(editor.getText());
   }, [editor, content]);
+
+  const insertImageFiles = async (files: FileList | File[]) => {
+    const images = Array.from(files).filter(isImageFile);
+    if (!images.length) return;
+
+    setUploadingInlineImage(true);
+    try {
+      for (const file of images) {
+        const src = await uploadBlogImage(file);
+        const currentEditor = editorRef.current;
+        if (!src || !currentEditor) {
+          alert("Erreur lors de l'upload de l'image");
+          continue;
+        }
+
+        const alt = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ');
+        currentEditor.chain().focus().setImage({ src, alt }).run();
+      }
+    } finally {
+      setUploadingInlineImage(false);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+    }
+  };
+
+  insertImageFilesRef.current = insertImageFiles;
+
+  useEffect(() => {
+    editorRef.current = editor;
+  }, [editor]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -353,6 +434,15 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
                 >
                   <Unlink className="w-4 h-4" />
                 </button>
+                <button
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  disabled={uploadingInlineImage}
+                  className="p-1 hover:bg-blue-100 rounded transition-colors disabled:opacity-50"
+                  title="Insérer une image dans le texte"
+                >
+                  {uploadingInlineImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                </button>
               </div>
               <div className="flex gap-1 relative">
                 <button
@@ -574,8 +664,15 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
               <ExternalLink className="w-4 h-4" />
               <span className="text-sm">À lire aussi</span>
             </button>
-            <button type="button" className="p-2 hover:bg-blue-100 rounded transition-colors" title="Insérer une image">
-              <FileText className="w-4 h-4" />
+            <button
+              type="button"
+              onClick={() => imageInputRef.current?.click()}
+              disabled={uploadingInlineImage}
+              className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2 disabled:opacity-50"
+              title="Insérer une image dans le texte"
+            >
+              {uploadingInlineImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+              <span className="text-sm">{uploadingInlineImage ? 'Envoi…' : 'Image'}</span>
             </button>
             <button type="button" className="p-2 hover:bg-blue-100 rounded transition-colors" title="Insérer un lien">
               <Search className="w-4 h-4" />
@@ -656,6 +753,19 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
         isOpen={isReadAlsoModalOpen}
         onClose={() => setIsReadAlsoModalOpen(false)}
         onInsert={handleInsertReadAlso}
+      />
+
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+        multiple
+        className="hidden"
+        onChange={(event) => {
+          if (event.target.files?.length) {
+            void insertImageFiles(event.target.files);
+          }
+        }}
       />
 
       {/* Link Modal */}
