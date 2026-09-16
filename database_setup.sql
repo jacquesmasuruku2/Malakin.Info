@@ -268,6 +268,8 @@ CREATE TABLE IF NOT EXISTS "JobOffer" (
     "slug" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "requirements" TEXT,
+    "details" JSONB DEFAULT '{}',
+    "imageUrl" TEXT,
     "location" TEXT,
     "type" TEXT NOT NULL,
     "salary" TEXT,

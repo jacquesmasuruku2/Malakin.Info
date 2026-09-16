@@ -156,7 +156,12 @@ export default function JobOfferEditPage() {
       router.push('/job-offers');
     } catch (error) {
       console.error(isNew ? 'Failed to create job offer:' : 'Failed to update job offer:', error);
-      alert(isNew ? 'Erreur lors de la création de l\'offre' : 'Erreur lors de la mise à jour de l\'offre');
+      const message = error instanceof Error ? error.message : '';
+      alert(
+        isNew
+          ? `Erreur lors de la création de l'offre${message ? ` : ${message}` : ''}`
+          : `Erreur lors de la mise à jour de l'offre${message ? ` : ${message}` : ''}`
+      );
     } finally {
       setSaving(false);
     }

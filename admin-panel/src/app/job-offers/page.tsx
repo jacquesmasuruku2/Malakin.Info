@@ -18,7 +18,6 @@ import {
   Star
 } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
-import { getApiUrl } from '@/lib/api';
 
 interface JobOffer {
   id: string;
@@ -66,7 +65,7 @@ export default function JobOffersPage() {
       if (filterStatus !== 'all') params.append('status', filterStatus);
       if (filterType !== 'all') params.append('type', filterType);
       
-      const response = await fetch(getApiUrl(`/api/job-offers?${params.toString()}`));
+      const response = await fetch(`/api/job-offers?${params.toString()}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -87,7 +86,7 @@ export default function JobOffersPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await fetch(getApiUrl(`/api/job-offers/${id}`), {
+      const response = await fetch(`/api/job-offers/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete job offer');

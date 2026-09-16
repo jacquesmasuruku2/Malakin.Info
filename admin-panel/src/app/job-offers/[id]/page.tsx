@@ -5,7 +5,6 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Save, Image as ImageIcon, Eye, Edit } from 'lucide-react';
-import { getApiUrl } from '@/lib/api';
 import WordEditor from '@/components/WordEditor';
 
 interface JobOffer {
@@ -57,7 +56,7 @@ export default function EditJobOfferPage() {
 
   const fetchJobOffer = async () => {
     try {
-      const response = await fetch(getApiUrl(`/api/job-offers/${params.id}`));
+      const response = await fetch(`/api/job-offers/${params.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch job offer');
       }
@@ -122,7 +121,7 @@ export default function EditJobOfferPage() {
     };
 
     try {
-      const response = await fetch(getApiUrl(`/api/job-offers/${params.id}`), {
+      const response = await fetch(`/api/job-offers/${params.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +130,8 @@ export default function EditJobOfferPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update job offer');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.details || 'Failed to update job offer');
       }
 
       router.push('/job-offers');

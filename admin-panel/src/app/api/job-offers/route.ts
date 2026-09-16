@@ -121,10 +121,14 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(jobOffer, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating job offer:', error);
+    const message =
+      error?.code === 'P2002'
+        ? 'Une offre avec ce slug existe déjà'
+        : error?.message || 'Failed to create job offer';
     return NextResponse.json(
-      { error: 'Failed to create job offer', details: String(error) },
+      { error: message, details: String(error) },
       { status: 500 }
     );
   }
