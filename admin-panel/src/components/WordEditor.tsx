@@ -10,7 +10,7 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import { ReadAlsoExtension } from '@/lib/tiptap/ReadAlsoExtension';
 import ReadAlsoModal from '@/components/ReadAlsoModal';
 import { ImageWithCaption } from '@/lib/tiptap/ImageWithCaption';
-import { cleanTagName, slugifyTag } from '@/lib/tags';
+import { cleanTagName, slugifyTag } from '@/lib/tag-name';
 import { useState, useEffect, useRef } from 'react';
 import { 
   Scissors, 

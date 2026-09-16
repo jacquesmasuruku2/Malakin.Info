@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
-import { cleanTagName } from '@/lib/tags';
+import { cleanTagName } from '@/lib/tag-name';
 
 type TagInputProps = {
   value: string[];
