@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { Calendar, Clock, ArrowRight, Hash } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
 import { applyArticleLocales } from '@/lib/translation';
@@ -22,6 +22,10 @@ function titleFromSlug(slug: string) {
   const name = decodeTagSlug(slug).replace(/-/g, ' ').trim();
   if (!name) return slug;
   return name.replace(/(^|\s)\S/g, (chunk) => chunk.toUpperCase());
+}
+
+function displayTagName(name: string) {
+  return name === name.toLowerCase() ? titleFromSlug(name) : name;
 }
 
 function likeNeedle(value: string) {
@@ -143,9 +147,11 @@ export async function generateMetadata({
     return { title: 'Tag | Malakinfo' };
   }
 
+  const tagTitle = displayTagName(data.tag.name);
+
   return {
-    title: data.tag.name,
-    description: `${t(locale, 'taggedArticles')} : ${data.tag.name}`,
+    title: tagTitle,
+    description: `${t(locale, 'taggedArticles')} : ${tagTitle}`,
   };
 }
 
@@ -162,35 +168,22 @@ export default async function TagPage({
   }
 
   const articles = await applyArticleLocales(data.articles, locale);
-  const countLabel =
-    locale === 'fr'
-      ? `${articles.length} article${articles.length > 1 ? 's' : ''} tagué${articles.length > 1 ? 's' : ''}`
-      : `${articles.length} tagged article${articles.length > 1 ? 's' : ''}`;
 
   return (
-    <div className="flex flex-col">
-      <section className="tag-page-hero text-white py-14">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href={`/${locale}`} className="block text-white/70 hover:text-white mb-8 w-fit">
-            ← {t(locale, 'backHome')}
-          </Link>
-          <div className="tag-page-hero-mark" aria-hidden="true">
-            <Hash className="w-8 h-8" />
-          </div>
-          <p className="uppercase tracking-[0.22em] text-sm text-secondary mb-3">{t(locale, 'tags')}</p>
-          <h1 className="tag-page-title font-heading text-4xl md:text-5xl font-bold">
-            {data.tag.name}
-            <span className="tag-page-underline" />
-          </h1>
-          <p className="text-xl text-white/80 mt-5">
-            {t(locale, 'taggedArticles')} · {countLabel}
-          </p>
-        </div>
-      </section>
+    <div className="tag-page bg-background">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 sm:pt-14">
+        <Link
+          href={`/${locale}`}
+          className="mb-8 inline-block text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← {t(locale, 'backHome')}
+        </Link>
+        <h1 className="font-heading text-3xl sm:text-4xl font-bold text-foreground tracking-tight mb-8 sm:mb-10">
+          {displayTagName(data.tag.name)}
+        </h1>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {articles.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center">
+          <div className="py-10">
             <p className="text-lg font-medium text-foreground">{t(locale, 'noTaggedArticles')}</p>
             <p className="mt-2 text-muted-foreground">{t(locale, 'checkBackSoon')}</p>
             <Link
@@ -202,53 +195,38 @@ export default async function TagPage({
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {articles.map((item, index) => (
-              <article
-                key={item.id}
-                className="tag-listing-card bg-card rounded-lg overflow-hidden shadow-sm border border-border"
-                style={{ ['--i' as string]: index }}
-              >
-                {item.mainImageUrl && (
-                  <div className="relative h-48 overflow-hidden">
-                    <Link href={`/${locale}/${item.slug}`}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
+            {articles.map((item) => (
+              <article key={item.id} className="tag-story min-w-0">
+                <Link href={`/${locale}/${item.slug}`} className="block group">
+                  {item.mainImageUrl ? (
+                    <div className="mb-3 aspect-[16/10] overflow-hidden bg-muted">
                       <img
                         src={item.mainImageUrl}
                         alt={item.mainImageAlt || item.title}
-                        className="w-full h-full object-cover"
+                        className="h-full w-full object-cover transition-opacity duration-200 group-hover:opacity-90"
                       />
-                    </Link>
-                  </div>
-                )}
-                <div className="p-6">
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {new Date(item.publishedAt).toLocaleDateString(getDateLocale(locale), {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })}
-                    </span>
-                    {item.readTime && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {item.readTime}
-                      </span>
-                    )}
-                  </div>
-                  {item.category?.title && (
-                    <span className="inline-block mb-3 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
+                    </div>
+                  ) : null}
+                  {item.category?.title ? (
+                    <span className="mb-1.5 inline-block bg-primary px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
                       {item.category.title}
                     </span>
-                  )}
-                  <h2 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
-                    <Link href={`/${locale}/${item.slug}`} className="hover:text-primary">
-                      {item.title}
-                    </Link>
+                  ) : null}
+                  <time
+                    dateTime={new Date(item.publishedAt).toISOString()}
+                    className="block text-xs text-muted-foreground mb-1"
+                  >
+                    {new Date(item.publishedAt).toLocaleDateString(getDateLocale(locale), {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })}
+                  </time>
+                  <h2 className="text-[1.05rem] font-bold leading-snug text-foreground group-hover:text-primary line-clamp-3">
+                    {item.title}
                   </h2>
-                  <p className="text-muted-foreground line-clamp-2">{item.excerpt}</p>
-                </div>
+                </Link>
               </article>
             ))}
           </div>
