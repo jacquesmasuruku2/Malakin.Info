@@ -307,6 +307,15 @@ export default function CookieConsentModal() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isNewsletterSubmitting, setIsNewsletterSubmitting] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(MOBILE_COOKIE_QUERY);
+    const sync = () => setIsMobileViewport(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
 
   useEffect(() => {
     const consent = window.localStorage.getItem(STORAGE_KEY);
@@ -492,7 +501,11 @@ export default function CookieConsentModal() {
     setIsPreferencesOpen(true);
   };
 
-  const showCookieButton = !isVisible && !isPreferencesOpen && !isNewsletterPromptOpen;
+  const showCookieButton =
+    !isVisible &&
+    !isPreferencesOpen &&
+    !isNewsletterPromptOpen &&
+    !(isMobileViewport && hasConsent);
   const { revealed: cookieButtonRevealed, isMobile: isMobileCookieButton, pinOpen, unpin } =
     useMobileCookieButton(showCookieButton);
 

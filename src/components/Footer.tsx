@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Mail, Phone, MapPin, ArrowUp, Heart } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
 import { t as tCopy } from '@/lib/copy';
 import { subscribeToNewsletter } from '@/lib/newsletter-client';
@@ -20,6 +20,7 @@ export default function Footer() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isNewsletterSubmitting, setIsNewsletterSubmitting] = useState(false);
+  const scrollTopHideTimer = useRef<number | undefined>(undefined);
 
   const locale = getLocaleFromPathname(pathname);
   const messages = getMessages(locale);
@@ -27,11 +28,39 @@ export default function Footer() {
   const nav = messages.nav;
 
   useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 500);
+    const hideAfterIdle = () => {
+      window.clearTimeout(scrollTopHideTimer.current);
+      scrollTopHideTimer.current = window.setTimeout(() => {
+        setShowScrollTop(false);
+      }, 3000);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    const revealOnTouch = () => {
+      if (window.scrollY <= 120) {
+        setShowScrollTop(false);
+        return;
+      }
+      setShowScrollTop(true);
+      hideAfterIdle();
+    };
+
+    const onScroll = () => {
+      if (window.scrollY <= 120) {
+        setShowScrollTop(false);
+        window.clearTimeout(scrollTopHideTimer.current);
+      }
+    };
+
+    window.addEventListener('pointerdown', revealOnTouch, { passive: true });
+    window.addEventListener('touchstart', revealOnTouch, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => {
+      window.clearTimeout(scrollTopHideTimer.current);
+      window.removeEventListener('pointerdown', revealOnTouch);
+      window.removeEventListener('touchstart', revealOnTouch);
+      window.removeEventListener('scroll', onScroll);
+    };
   }, []);
 
   const scrollToTop = () => {
