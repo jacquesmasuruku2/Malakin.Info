@@ -87,7 +87,6 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
   const [highlightColor, setHighlightColor] = useState('#ffff00');
   const toolbarRef = useRef<HTMLDivElement>(null);
   const previousScrollY = useRef(0);
-  const editorRef = useRef<ReturnType<typeof useEditor>>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const insertImageFilesRef = useRef<(files: FileList | File[]) => Promise<void>>(async () => {});
   const [uploadingInlineImage, setUploadingInlineImage] = useState(false);
@@ -177,14 +176,14 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
 
   const insertImageFiles = async (files: FileList | File[]) => {
     const images = Array.from(files).filter(isImageFile);
-    if (!images.length) return;
+    if (!images.length || !editor) return;
 
+    const currentEditor = editor;
     setUploadingInlineImage(true);
     try {
       for (const file of images) {
         const src = await uploadBlogImage(file);
-        const currentEditor = editorRef.current;
-        if (!src || !currentEditor) {
+        if (!src) {
           alert("Erreur lors de l'upload de l'image");
           continue;
         }
@@ -199,10 +198,6 @@ export default function WordEditor({ content, onChange }: WordEditorProps) {
   };
 
   insertImageFilesRef.current = insertImageFiles;
-
-  useEffect(() => {
-    editorRef.current = editor;
-  }, [editor]);
 
   useEffect(() => {
     const handleScroll = () => {
