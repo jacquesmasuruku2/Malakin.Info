@@ -115,8 +115,8 @@ export default function TagInput({ value, onChange }: TagInputProps) {
         )}
       </div>
       <p className="text-sm text-gray-500 mt-2">
-        Ajoutez n’importe quel tag manuellement (#Égypte, #Tshisekedi) puis Entrée. Dans l’article, le mot
-        est surligné et mène à /fr/tag/égypte/.
+        Tapez le nom (Égypte, Tshisekedi…), puis Entrée : une pastille bleue doit apparaître.
+        Ensuite cliquez sur Enregistrer. Sans enregistrement, la page /fr/tag/… n’existe pas encore.
       </p>
     </div>
   );

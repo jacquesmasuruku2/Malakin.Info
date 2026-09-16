@@ -6,23 +6,80 @@ import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
 import { applyArticleLocales } from '@/lib/translation';
 import { getDateLocale, t } from '@/lib/copy';
-import { foldTagKey } from '@/lib/tags';
+import { foldTagKey, slugifyTag } from '@/lib/tags';
 
 export const dynamic = 'force-dynamic';
 
-async function getTaggedArticles(rawSlug: string) {
-  let slug = rawSlug;
+function decodeTagSlug(rawSlug: string) {
   try {
-    slug = decodeURIComponent(rawSlug);
+    return decodeURIComponent(rawSlug);
   } catch {
-    slug = rawSlug;
+    return rawSlug;
   }
+}
+
+function titleFromSlug(slug: string) {
+  const name = decodeTagSlug(slug).replace(/-/g, ' ').trim();
+  if (!name) return slug;
+  return name.replace(/(^|\s)\S/g, (chunk) => chunk.toUpperCase());
+}
+
+function likeNeedle(value: string) {
+  const cleaned = value.replace(/[\\%_]/g, '').trim();
+  if (!cleaned) return '';
+  return `%/tag/${cleaned}%`;
+}
+
+async function findArticlesMentioningTag(slug: string, folded: string) {
+  const needles = [...new Set([likeNeedle(slug), likeNeedle(folded)])].filter(Boolean);
+  const ids = new Set<string>();
+
+  for (const needle of needles) {
+    try {
+      const rows = await withRetry(() => prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM "Article"
+        WHERE CAST("content" AS STRING) ILIKE ${needle}
+        UNION
+        SELECT "articleId" AS id FROM "ArticleTranslation"
+        WHERE CAST("content" AS STRING) ILIKE ${needle}
+      `);
+      for (const row of rows || []) ids.add(row.id);
+    } catch {
+      try {
+        const rows = await withRetry(() => prisma.$queryRaw<{ id: string }[]>`
+          SELECT id FROM "Article"
+          WHERE CAST("content" AS TEXT) ILIKE ${needle}
+        `);
+        for (const row of rows || []) ids.add(row.id);
+      } catch {
+        // Content is JSON; skip this fallback if the database rejects the cast.
+      }
+    }
+  }
+
+  if (!ids.size) return [];
+
+  return (
+    (await withRetry(() =>
+      prisma.article.findMany({
+        where: { id: { in: [...ids] } },
+        include: {
+          category: true,
+          author: true,
+        },
+      })
+    )) || []
+  );
+}
+
+async function getTaggedArticles(rawSlug: string) {
+  const slug = decodeTagSlug(rawSlug);
   const folded = foldTagKey(slug);
 
   let tag = await withRetry(() =>
     prisma.tag.findFirst({
       where: {
-        OR: [{ slug }, { slug: folded }],
+        OR: [{ slug }, { slug: folded }, { slug: slugifyTag(slug) }],
       },
     })
   );
@@ -35,28 +92,43 @@ async function getTaggedArticles(rawSlug: string) {
       ) || null;
   }
 
-  if (!tag) return null;
-
-  const links = await withRetry(() =>
-    prisma.articleTag.findMany({
-      where: { tagId: tag.id },
-      include: {
-        article: {
+  const linked = tag
+    ? await withRetry(() =>
+        prisma.articleTag.findMany({
+          where: { tagId: tag.id },
           include: {
-            category: true,
-            author: true,
+            article: {
+              include: {
+                category: true,
+                author: true,
+              },
+            },
           },
-        },
-      },
-    })
-  );
+        })
+      )
+    : [];
 
-  const articles = (links || [])
-    .map((link) => link.article)
-    .filter(Boolean)
+  const byRelation = (linked || []).map((link) => link.article).filter(Boolean);
+  const byContent = await findArticlesMentioningTag(slug, folded);
+  const seen = new Set<string>();
+  const articles = [...byRelation, ...byContent]
+    .filter((article) => {
+      if (!article?.id || seen.has(article.id)) return false;
+      seen.add(article.id);
+      return true;
+    })
     .sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt));
 
-  return { tag, articles };
+  if (!tag && !articles.length) return null;
+
+  return {
+    tag: tag || {
+      id: `virtual-${folded || slug}`,
+      name: titleFromSlug(slug),
+      slug: slugifyTag(slug) || folded || slug,
+    },
+    articles,
+  };
 }
 
 export async function generateMetadata({

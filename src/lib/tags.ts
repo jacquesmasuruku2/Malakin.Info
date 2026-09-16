@@ -34,7 +34,7 @@ export function slugifyTag(name: string): string {
 
 export function tagPath(locale: string, slug: string): string {
   const localeSafe = locale.replace(/[^a-z-]/gi, '') || 'fr';
-  return `/${localeSafe}/tag/${slug}/`;
+  return `/${localeSafe}/tag/${slug}`;
 }
 
 export function getArticleTags(article: {
@@ -112,33 +112,89 @@ function findTagForMatch(text: string, tags: ArticleTagItem[]): ArticleTagItem |
   });
 }
 
+function readQuotedAttr(html: string, name: string): string {
+  const quoted = html.match(new RegExp(`\\b${name}=(?:"([^"]*)"|'([^']*)')`, 'i'));
+  return (quoted?.[1] || quoted?.[2] || '').trim();
+}
+
+function plainText(html: string): string {
+  return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function isCaptionCandidate(html: string): boolean {
+  if (!html || /<(img|figure|ul|ol|blockquote|h[1-6]|table)\b/i.test(html)) return false;
+  const text = plainText(html);
+  if (text.length < 2 || text.length > 160) return false;
+  const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean);
+  if (sentences.length > 2) return false;
+  if (sentences.length === 2 && text.length > 110) return false;
+  return true;
+}
+
+function captionMarkup(inner: string): string {
+  return `<figcaption class="article-image-caption">${inner}</figcaption>`;
+}
+
+function figureOpenTag(attrs: string): string {
+  if (/class=/i.test(attrs)) return `<figure${attrs}>`;
+  return `<figure class="article-inline-figure"${attrs}>`;
+}
+
 export function wrapImagesWithCaptions(html: string): string {
   if (!html) return html;
 
-  const readAlt = (image: string) => {
-    const quoted = image.match(/\balt=(?:"([^"]*)"|'([^']*)')/i);
-    return (quoted?.[1] || quoted?.[2] || '').trim();
-  };
+  const readCaptionAttr = (block: string) =>
+    readQuotedAttr(block, 'data-caption') || readQuotedAttr(block, 'alt');
 
-  const withStandaloneImages = html.replace(
-    /<p(\b[^>]*)>\s*(<img\b[^>]*>)\s*(?:<\/p>)?/gi,
-    '<figure class="article-inline-figure">$2</figure>'
+  let next = html.replace(
+    /<p\b[^>]*>\s*(<img\b[^>]*>)\s*<\/p>/gi,
+    '<figure class="article-inline-figure">$1</figure>'
   );
 
-  return withStandaloneImages.replace(
-    /(<figure\b[\s\S]*?<\/figure>)|(<img\b[^>]*>)/gi,
-    (match, figure: string | undefined, image: string | undefined) => {
-      if (figure) {
-        if (/<figcaption\b/i.test(figure)) return figure;
-        const alt = readAlt(figure);
-        if (!alt) return figure;
-        return figure.replace(/<\/figure>/i, `<figcaption>${alt}</figcaption></figure>`);
+  next = next.replace(/(<figure\b[\s\S]*?<\/figure>)|(<img\b[^>]*>)/gi, (match, figure?: string, image?: string) => {
+    if (figure) return figure;
+    if (!image) return match;
+    return `<figure class="article-inline-figure">${image}</figure>`;
+  });
+
+  return next.replace(
+    /<figure\b([^>]*)>([\s\S]*?)<\/figure>(\s*<p\b[^>]*>([\s\S]*?)<\/p>)?/gi,
+    (_match, attrs: string, inner: string, followingParagraph?: string, paragraphInner?: string) => {
+      let body = inner;
+      let captionInner = '';
+
+      const existingCaption = body.match(/<figcaption\b[^>]*>([\s\S]*?)<\/figcaption>/i);
+      if (existingCaption) {
+        captionInner = existingCaption[1];
+        body = body.replace(existingCaption[0], '');
       }
 
-      if (!image) return match;
-      const alt = readAlt(image);
-      if (!alt) return `<figure class="article-inline-figure">${image}</figure>`;
-      return `<figure class="article-inline-figure">${image}<figcaption>${alt}</figcaption></figure>`;
+      const innerParagraph = body.match(/<p\b[^>]*>([\s\S]*?)<\/p>/i);
+      if (!captionInner && innerParagraph && isCaptionCandidate(innerParagraph[1])) {
+        captionInner = innerParagraph[1];
+        body = body.replace(innerParagraph[0], '');
+      }
+
+      if (!captionInner && followingParagraph && isCaptionCandidate(paragraphInner || '')) {
+        captionInner = paragraphInner || '';
+        followingParagraph = '';
+      } else if (
+        captionInner &&
+        followingParagraph &&
+        plainText(captionInner) === plainText(paragraphInner || '')
+      ) {
+        followingParagraph = '';
+      }
+
+      if (!captionInner) {
+        captionInner = readCaptionAttr(body);
+      }
+
+      const figureHtml = captionInner
+        ? `${figureOpenTag(attrs)}${body.trim()}${captionMarkup(captionInner)}</figure>`
+        : `${figureOpenTag(attrs)}${body.trim()}</figure>`;
+
+      return `${figureHtml}${followingParagraph || ''}`;
     }
   );
 }

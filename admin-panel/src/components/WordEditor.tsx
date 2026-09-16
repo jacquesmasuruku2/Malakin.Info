@@ -283,7 +283,7 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
     if (!slug) return;
 
     const localeSafe = (locale || 'fr').replace(/[^a-z-]/gi, '') || 'fr';
-    editor.chain().focus().extendMarkRange('link').setLink({ href: `/${localeSafe}/tag/${slug}/` }).run();
+    editor.chain().focus().extendMarkRange('link').setLink({ href: `/${localeSafe}/tag/${slug}` }).run();
   };
 
   const handleImageCaption = () => {

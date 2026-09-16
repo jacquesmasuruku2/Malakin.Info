@@ -1,10 +1,13 @@
 import { prisma } from '@/lib/prisma';
-import { foldTagKey, normalizeTagNames, slugifyTag } from '@/lib/tag-name';
+import { foldTagKey, normalizeTagNames, slugifyTag, tagNamesFromContent } from '@/lib/tag-name';
 
-export { cleanTagName, foldTagKey, normalizeTagNames, slugifyTag } from '@/lib/tag-name';
+export { cleanTagName, foldTagKey, normalizeTagNames, slugifyTag, tagNamesFromContent } from '@/lib/tag-name';
 
-export async function syncArticleTags(articleId: string, tagNames: unknown) {
-  const names = normalizeTagNames(tagNames);
+export async function syncArticleTags(articleId: string, tagNames: unknown, content?: unknown) {
+  const names = normalizeTagNames([
+    ...(Array.isArray(tagNames) ? tagNames : []),
+    ...tagNamesFromContent(content),
+  ]);
 
   await prisma.articleTag.deleteMany({ where: { articleId } });
 

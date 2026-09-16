@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         articleTags: { include: { tag: true } },
       },
     });
-    await syncArticleTags(article.id, body.tags);
+    await syncArticleTags(article.id, body.tags, body.content);
     const withTags = await prisma.article.findUnique({
       where: { id: article.id },
       include: {

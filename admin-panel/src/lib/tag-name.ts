@@ -43,3 +43,34 @@ export function normalizeTagNames(input: unknown): string[] {
 
   return names;
 }
+
+export function tagNamesFromContent(content: unknown): string[] {
+  const html =
+    typeof content === 'string'
+      ? content
+      : content == null
+        ? ''
+        : JSON.stringify(content);
+
+  const names: string[] = [];
+  const seen = new Set<string>();
+  const pattern = /\/tag\/([^"'/?#\s>]+)/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(html))) {
+    let slug = match[1].replace(/\/+$/, '');
+    try {
+      slug = decodeURIComponent(slug);
+    } catch {
+      // keep the raw slug
+    }
+
+    const name = cleanTagName(slug).replace(/-/g, ' ');
+    const key = slugifyTag(name);
+    if (!name || !key || seen.has(key)) continue;
+    seen.add(key);
+    names.push(name);
+  }
+
+  return names;
+}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { syncArticleTags, tagsFromArticle } from '@/lib/tags';
+import { tagNamesFromContent } from '@/lib/tag-name';
 
 export async function GET(
   request: NextRequest,
@@ -64,7 +65,12 @@ export async function PUT(
       },
     });
     if (body.tags !== undefined) {
-      await syncArticleTags(id, body.tags);
+      await syncArticleTags(id, body.tags, body.content);
+    } else {
+      const extracted = tagNamesFromContent(body.content);
+      if (extracted.length) {
+        await syncArticleTags(id, [...tagsFromArticle(article), ...extracted], body.content);
+      }
     }
     const withTags = await prisma.article.findUnique({
       where: { id },
