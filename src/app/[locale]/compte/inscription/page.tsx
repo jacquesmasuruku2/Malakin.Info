@@ -3,9 +3,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { localeFromPathname } from '@/lib/copy';
 
 export default function InscriptionPage() {
+  const pathname = usePathname();
+  const locale = localeFromPathname(pathname);
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || `/${locale}/compte/profil`;
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -50,7 +57,7 @@ export default function InscriptionPage() {
       const data = await response.json();
 
       if (response.ok) {
-        window.location.href = '/compte/connexion';
+        window.location.href = `/${locale}/compte/connexion?redirect=${encodeURIComponent(redirectUrl)}`;
       } else {
         setError(data.error || 'Une erreur est survenue');
       }
@@ -64,7 +71,7 @@ export default function InscriptionPage() {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
-      await signIn('google', { callbackUrl: '/fr/compte/profil' });
+      await signIn('google', { callbackUrl: redirectUrl });
     } catch (error) {
       setError('Erreur lors de la connexion avec Google');
       setGoogleLoading(false);

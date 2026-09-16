@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { resolveCurrentUser } from '@/lib/current-user';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': 'https://dashboard.malakinfo.com',
@@ -8,17 +9,7 @@ const corsHeaders = {
   'Access-Control-Allow-Credentials': 'true',
 };
 
-// Helper function to add CORS headers
-function cors(response: NextResponse) {
-  response.headers.set('Access-Control-Allow-Origin', 'https://dashboard.malakinfo.com');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  response.headers.set('Access-Control-Allow-Credentials', 'true');
-  return response;
-}
-
-// Handle OPTIONS request for CORS preflight
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, { headers: corsHeaders });
 }
 
@@ -60,6 +51,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await resolveCurrentUser(request);
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Vous devez être connecté pour postuler.' },
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
     const body = await request.json();
     const {
       jobOfferId,
@@ -70,18 +69,40 @@ export async function POST(request: NextRequest) {
       resumeUrl,
     } = body;
 
-    if (!jobOfferId || !name || !email) {
+    const applicantName = (typeof name === 'string' && name.trim()) || currentUser.name;
+    const applicantEmail = (typeof email === 'string' && email.trim()) || currentUser.email;
+
+    if (!jobOfferId || !applicantName || !applicantEmail) {
       return NextResponse.json(
         { error: 'Job offer ID, name, and email are required' },
         { status: 400, headers: corsHeaders }
       );
     }
 
+    const jobOffer = await prisma.jobOffer.findUnique({
+      where: { id: jobOfferId },
+      select: { id: true, deadline: true },
+    });
+
+    if (!jobOffer) {
+      return NextResponse.json(
+        { error: 'Offre introuvable' },
+        { status: 404, headers: corsHeaders }
+      );
+    }
+
+    if (jobOffer.deadline && new Date(jobOffer.deadline) < new Date()) {
+      return NextResponse.json(
+        { error: 'Cette offre a expiré' },
+        { status: 410, headers: corsHeaders }
+      );
+    }
+
     const application = await prisma.jobApplication.create({
       data: {
         jobOfferId,
-        name,
-        email,
+        name: applicantName,
+        email: applicantEmail,
         phone,
         coverLetter,
         resumeUrl,
@@ -107,4 +128,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

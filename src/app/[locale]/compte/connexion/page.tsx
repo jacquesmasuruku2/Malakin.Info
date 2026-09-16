@@ -136,7 +136,7 @@ export default function ConnexionPage() {
 
           <div className="mb-4 space-y-2 text-left text-sm text-gray-700">
             <p>
-              Vous n&apos;avez pas de compte ? <a href={`/${locale}/compte/inscription`} className="font-medium text-primary underline hover:text-primary/80">{pickCopy(locale, { fr: 'Créez-en un.', en: 'Create one.', es: 'Crea una.', sw: 'Unda moja.', ln: 'Sala moko.', rw: 'Yifungure.' })}</a>
+              Vous n&apos;avez pas de compte ? <a href={`/${locale}/compte/inscription?redirect=${encodeURIComponent(redirectUrl)}`} className="font-medium text-primary underline hover:text-primary/80">{pickCopy(locale, { fr: 'Créez-en un.', en: 'Create one.', es: 'Crea una.', sw: 'Unda moja.', ln: 'Sala moko.', rw: 'Yifungure.' })}</a>
             </p>
             <a href={`/${locale}/compte/connexion`} className="block font-bold text-primary hover:text-primary/80">
               {pickCopy(locale, { fr: 'Connectez-vous sans mot de passe.', en: 'Sign in without a password.', es: 'Inicia sesión sin contraseña.', sw: 'Ingia bila nenosiri.', ln: 'Kota sans mot de passe.', rw: 'Injira utakoresheje ijambo ry’ibanga.' })}

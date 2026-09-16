@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import {
   ArrowLeft,
   Briefcase,
@@ -10,6 +12,8 @@ import {
   MapPin,
   Send,
 } from 'lucide-react';
+import { useAccountUser } from '@/lib/use-account-user';
+import { authFetch } from '@/lib/client-auth';
 
 interface JobOffer {
   id: string;
@@ -65,6 +69,11 @@ export default function JobOfferDetail({
   jobOffer: JobOffer;
 }) {
   const isFrench = locale === 'fr';
+  const pathname = usePathname();
+  const { user, ready } = useAccountUser();
+  const isAuthenticated = ready && !!user;
+  const returnUrl = `${pathname}#postuler`;
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -88,39 +97,78 @@ export default function JobOfferDetail({
       year: 'numeric',
     });
 
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      name: prev.name || user.name || '',
+      email: prev.email || user.email || '',
+    }));
+
+    if (typeof window !== 'undefined' && window.location.hash === '#postuler') {
+      setShowForm(true);
+    }
+  }, [isAuthenticated, user]);
+
+  const openApplicationForm = () => {
+    if (!ready) return;
+    if (!isAuthenticated) {
+      window.location.href = `/${locale}/compte/connexion?redirect=${encodeURIComponent(returnUrl)}`;
+      return;
+    }
+    setShowForm(true);
+    setError('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      openApplicationForm();
+      return;
+    }
+
     setSubmitting(true);
     setError('');
 
     try {
-      const response = await fetch('/api/job-applications', {
+      const response = await authFetch('/api/job-applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           jobOfferId: jobOffer.id,
           ...formData,
+          name: formData.name || user?.name || '',
+          email: formData.email || user?.email || '',
         }),
       });
 
+      if (response.status === 401) {
+        window.location.href = `/${locale}/compte/connexion?redirect=${encodeURIComponent(returnUrl)}`;
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error('Failed to submit application');
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || 'Failed to submit application');
       }
 
       setSuccess(true);
       setShowForm(false);
       setFormData({
-        name: '',
-        email: '',
+        name: user?.name || '',
+        email: user?.email || '',
         phone: '',
         coverLetter: '',
         resumeUrl: '',
       });
-    } catch {
+    } catch (err) {
       setError(
-        isFrench
-          ? 'Erreur lors de la soumission de la candidature.'
-          : 'Something went wrong while submitting your application.'
+        err instanceof Error && err.message && !err.message.includes('Failed to submit')
+          ? err.message
+          : isFrench
+            ? 'Erreur lors de la soumission de la candidature.'
+            : 'Something went wrong while submitting your application.'
       );
     } finally {
       setSubmitting(false);
@@ -281,9 +329,13 @@ export default function JobOfferDetail({
               {isFrench ? 'Postuler à cette offre' : 'Apply for this role'}
             </h2>
             <p className="mt-3 max-w-xl text-base leading-7 text-slate-600">
-              {isFrench
-                ? 'Remplissez le formulaire pour soumettre votre candidature.'
-                : 'Open the form to submit your application.'}
+              {isAuthenticated
+                ? isFrench
+                  ? 'Remplissez le formulaire pour soumettre votre candidature.'
+                  : 'Open the form to submit your application.'
+                : isFrench
+                  ? 'Connectez-vous ou créez un compte pour accéder au formulaire de candidature.'
+                  : 'Sign in or create an account to access the application form.'}
             </p>
 
             {success ? (
@@ -292,10 +344,36 @@ export default function JobOfferDetail({
                   ? 'Votre candidature a été envoyée. Merci pour votre intérêt.'
                   : 'Your application has been sent. Thank you for your interest.'}
               </p>
+            ) : !ready ? (
+              <p className="mt-8 text-sm text-slate-500">
+                {isFrench ? 'Vérification de votre session…' : 'Checking your session…'}
+              </p>
+            ) : !isAuthenticated ? (
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <Link
+                  href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(returnUrl)}`}
+                  className="inline-flex items-center gap-2 bg-[#0b3b8b] px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#081c3d]"
+                >
+                  {isFrench ? 'Se connecter' : 'Sign in'}
+                </Link>
+                <Link
+                  href={`/${locale}/compte/inscription?redirect=${encodeURIComponent(returnUrl)}`}
+                  className="inline-flex items-center gap-2 border border-[#081c3d]/25 px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#081c3d] transition hover:border-[#d4af37] hover:text-[#0b3b8b]"
+                >
+                  {isFrench ? 'Créer un compte' : 'Create account'}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => signIn('google', { callbackUrl: returnUrl })}
+                  className="px-2 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500 transition hover:text-[#081c3d]"
+                >
+                  Google
+                </button>
+              </div>
             ) : !showForm ? (
               <button
                 type="button"
-                onClick={() => setShowForm(true)}
+                onClick={openApplicationForm}
                 className="mt-8 inline-flex items-center gap-2 bg-[#0b3b8b] px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#081c3d]"
               >
                 <Send className="h-4 w-4" />
