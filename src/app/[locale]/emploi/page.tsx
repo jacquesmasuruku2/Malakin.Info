@@ -1,179 +1,184 @@
 import Link from 'next/link';
-import { Calendar, ArrowRight, Briefcase, GraduationCap, Heart, Building, FileText } from 'lucide-react';
+import { ArrowRight, Briefcase, Calendar, MapPin } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
 
 export const dynamic = 'force-dynamic';
 
-export default async function EmploiPage({ 
-  params 
-}: { 
-  params: Promise<{ locale: string }> 
+function stripHtml(html: string) {
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function formatDate(value: Date | string, locale: string) {
+  return new Date(value).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
+export default async function EmploiPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const isFrench = locale === 'fr';
 
-  // Fetch job offers from database
-  const jobOffers = await withRetry(() => prisma.jobOffer.findMany({
-    where: {
-      publishedAt: {
-        lte: new Date(),
-      },
-    },
-    orderBy: {
-      publishedAt: 'desc',
-    },
-    take: 20,
-  })) || [];
+  const jobOffers =
+    (await withRetry(() =>
+      prisma.jobOffer.findMany({
+        where: { publishedAt: { lte: new Date() } },
+        orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
+        take: 40,
+      })
+    )) || [];
 
-  const categories = [
-    { name: 'Santé', href: `/${locale}/emploi/offres/sante`, icon: Heart, count: jobOffers.filter((j: any) => j.type?.toLowerCase().includes('santé') || j.title?.toLowerCase().includes('santé')).length },
-    { name: 'Éducation', href: `/${locale}/emploi/offres/education`, icon: GraduationCap, count: jobOffers.filter((j: any) => j.type?.toLowerCase().includes('éducation') || j.title?.toLowerCase().includes('enseignant') || j.title?.toLowerCase().includes('professeur')).length },
-    { name: 'Technologie', href: `/${locale}/emploi/offres/technologie`, icon: Briefcase, count: jobOffers.filter((j: any) => j.type?.toLowerCase().includes('technologie') || j.title?.toLowerCase().includes('développeur') || j.title?.toLowerCase().includes('it')).length },
-    { name: 'Finance', href: `/${locale}/emploi/offres/finance`, icon: Building, count: jobOffers.filter((j: any) => j.type?.toLowerCase().includes('finance') || j.title?.toLowerCase().includes('banque') || j.title?.toLowerCase().includes('financier')).length },
-    { name: 'Gouvernance', href: `/${locale}/emploi/offres/gouvernance`, icon: FileText, count: jobOffers.filter((j: any) => j.type?.toLowerCase().includes('gouvernance') || j.title?.toLowerCase().includes('ministère')).length },
-    { name: 'ONG Humanitaire', href: `/${locale}/emploi/offres/ong-humanitaire`, icon: Heart, count: jobOffers.filter((j: any) => j.type?.toLowerCase().includes('ong') || j.title?.toLowerCase().includes('humanitaire')).length },
-  ];
-
-  const featuredJobs = jobOffers.slice(0, 3).map((job: any) => ({
-    id: job.id,
-    category: job.type || 'Général',
-    company: 'Entreprise',
-    title: job.title,
-    location: job.location || 'Non spécifié',
-    type: job.type || 'Temps plein',
-    salary: job.salary || 'Non spécifié',
-    description: job.description || '',
-    posted: job.publishedAt ? new Date(job.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
-    urgent: job.featured || false,
-    slug: job.slug,
-  }));
-
-  const latestJobs = jobOffers.slice(3, 8).map((job: any) => ({
-    id: job.id,
-    category: job.type || 'Général',
-    company: 'Entreprise',
-    title: job.title,
-    location: job.location || 'Non spécifié',
-    posted: job.publishedAt ? new Date(job.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '',
-    slug: job.slug,
-  }));
+  const heroImage =
+    jobOffers.find((job) => job.imageUrl)?.imageUrl ||
+    'https://media.malakinfo.com/images_blogs/Kinshasa.png';
 
   return (
-    <div className="flex flex-col">
-      <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="font-heading text-4xl font-bold mb-4">Emploi</h1>
-          <p className="text-xl text-gray-200">
-            Offres d\'emploi, conseils carrière et bourses : trouvez votre opportunité en Afrique
+    <div className="min-h-screen bg-[#f4f6f9]">
+      <section className="relative isolate overflow-hidden bg-[#081c3d] text-white">
+        <div
+          className="absolute inset-0 scale-105 bg-cover bg-center opacity-35"
+          style={{ backgroundImage: `url(${heroImage})` }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 bg-[linear-gradient(120deg,rgba(8,28,61,0.96)_12%,rgba(11,59,139,0.78)_58%,rgba(8,28,61,0.88)_100%)]"
+          aria-hidden
+        />
+        <div
+          className="absolute -right-16 top-10 h-64 w-64 rounded-full bg-[#d4af37]/15 blur-3xl motion-safe:animate-[pulse_7s_ease-in-out_infinite]"
+          aria-hidden
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+          <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.28em] text-[#d4af37]">
+            MalakInfo Emploi
           </p>
+          <h1 className="font-heading text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
+            {isFrench ? 'Emploi' : 'Careers'}
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-blue-100/90 sm:text-lg">
+            {isFrench
+              ? 'Opportunités éditoriales et professionnelles publiées par MalakInfo.'
+              : 'Editorial and professional opportunities published by MalakInfo.'}
+          </p>
+          <a
+            href="#offres"
+            className="mt-8 inline-flex items-center gap-2 border border-[#d4af37]/70 bg-[#d4af37] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-[#081c3d] transition hover:bg-white"
+          >
+            {isFrench ? 'Voir les offres' : 'Browse openings'}
+            <ArrowRight className="h-4 w-4" />
+          </a>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 gap-8">
-          <div className="space-y-8">
-            <div>
-              <h2 className="font-heading text-2xl font-bold mb-6">Offres en vedette</h2>
-              <div className="space-y-4">
-                {featuredJobs.length > 0 ? (
-                  featuredJobs.map((job) => (
-                    <article
-                      key={job.id}
-                      className="bg-card rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow border-l-4 border-primary"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full">
-                            {job.category}
-                          </span>
-                          {job.urgent && (
-                            <span className="px-3 py-1 bg-red-500 text-white text-xs font-medium rounded-full animate-pulse">
-                              Urgent
-                            </span>
-                          )}
+      <main id="offres" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+        <div className="mb-10 flex flex-col gap-3 border-b border-[#081c3d]/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#0b3b8b]">
+              {isFrench ? 'Ouvertures' : 'Openings'}
+            </p>
+            <h2 className="mt-2 font-heading text-3xl font-bold text-[#081c3d] sm:text-4xl">
+              {isFrench ? 'Offres d’emploi' : 'Job offers'}
+            </h2>
+          </div>
+          <p className="text-sm text-slate-500">
+            {jobOffers.length === 0
+              ? isFrench
+                ? 'Aucune offre pour le moment'
+                : 'No openings yet'
+              : isFrench
+                ? `${jobOffers.length} offre${jobOffers.length > 1 ? 's' : ''} publiée${jobOffers.length > 1 ? 's' : ''}`
+                : `${jobOffers.length} opening${jobOffers.length > 1 ? 's' : ''}`}
+          </p>
+        </div>
+
+        {jobOffers.length === 0 ? (
+          <div className="border border-dashed border-slate-300 bg-white/70 px-6 py-20 text-center text-slate-600">
+            {isFrench
+              ? 'Aucune offre d’emploi disponible pour le moment. Revenez bientôt.'
+              : 'No job offers are available right now. Check back soon.'}
+          </div>
+        ) : (
+          <div className="grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+            {jobOffers.map((job, index) => {
+              const excerpt = stripHtml(job.description || '').slice(0, 140);
+              const href = `/${locale}/emploi/${job.slug}`;
+
+              return (
+                <article
+                  key={job.id}
+                  className="group motion-safe:animate-[fadeInUp_0.55s_ease_both]"
+                  style={{ animationDelay: `${Math.min(index, 8) * 60}ms` }}
+                >
+                  <Link href={href} className="block">
+                    <div className="relative mb-4 aspect-[16/10] overflow-hidden bg-[#081c3d]">
+                      {job.imageUrl ? (
+                        <img
+                          src={job.imageUrl}
+                          alt=""
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgba(212,175,55,0.28),transparent_45%),linear-gradient(160deg,#0b3b8b,#081c3d)]">
+                          <Briefcase className="h-10 w-10 text-[#d4af37]" />
                         </div>
-                        <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Calendar className="w-4 h-4" />
-                          {job.posted}
+                      )}
+                      {job.featured ? (
+                        <span className="absolute bottom-3 left-3 bg-[#d4af37] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#081c3d]">
+                          {isFrench ? 'Vedette' : 'Featured'}
                         </span>
-                      </div>
-                      
-                      <p className="text-sm text-muted-foreground mb-2">{job.company}</p>
-                      
-                      <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                        {job.title}
-                      </h3>
-                      
-                      <p className="text-muted-foreground mb-4 line-clamp-2">
-                        {job.description}
+                      ) : null}
+                    </div>
+
+                    <span className="mb-2 inline-block bg-[#0b3b8b] px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+                      {job.type}
+                    </span>
+
+                    <time
+                      dateTime={new Date(job.publishedAt).toISOString()}
+                      className="mb-1.5 flex items-center gap-1.5 text-xs text-slate-500"
+                    >
+                      <Calendar className="h-3.5 w-3.5" />
+                      {formatDate(job.publishedAt, locale)}
+                    </time>
+
+                    <h3 className="font-heading text-[1.25rem] font-bold leading-snug text-[#081c3d] transition-colors group-hover:text-[#0b3b8b]">
+                      {job.title}
+                    </h3>
+
+                    {excerpt ? (
+                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">
+                        {excerpt}
+                        {excerpt.length >= 140 ? '…' : ''}
                       </p>
-                      
-                      <div className="flex flex-wrap items-center gap-4 mb-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Building className="w-4 h-4" />
+                    ) : null}
+
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                      {job.location ? (
+                        <span className="inline-flex items-center gap-1">
+                          <MapPin className="h-3.5 w-3.5" />
                           {job.location}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Briefcase className="w-4 h-4" />
-                          {job.type}
-                        </span>
-                        <span>{job.salary}</span>
-                      </div>
-                      
-                      <Link
-                        href={`/${locale}/emploi/${job.slug}`}
-                        className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-                      >
-                        Postuler
-                        <ArrowRight className="ml-2 w-4 h-4" />
-                      </Link>
-                    </article>
-                  ))
-                ) : (
-                  <div className="bg-card rounded-lg p-12 text-center">
-                    <p className="text-muted-foreground text-lg">Aucune offre d'emploi disponible pour le moment.</p>
-                  </div>
-                )}
-              </div>
-            </div>
+                      ) : null}
+                      {job.salary ? <span>{job.salary}</span> : null}
+                    </div>
 
-            <div>
-              <h2 className="font-heading text-2xl font-bold mb-6">Dernières offres</h2>
-              <div className="space-y-4">
-                {latestJobs.length > 0 ? (
-                  latestJobs.map((job) => (
-                    <article
-                      key={job.id}
-                      className="flex gap-4 p-4 bg-card rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex-1">
-                        <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded mb-2">
-                          {job.category}
-                        </span>
-                        <h3 className="font-heading font-semibold text-foreground mb-1">
-                          {job.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground mb-2">{job.company}</p>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            {job.posted}
-                          </span>
-                          <span>{job.location}</span>
-                        </div>
-                      </div>
-                    </article>
-                  ))
-                ) : (
-                  <div className="bg-card rounded-lg p-12 text-center">
-                    <p className="text-muted-foreground text-lg">Aucune offre d'emploi disponible pour le moment.</p>
-                  </div>
-                )}
-              </div>
-            </div>
+                    <span className="mt-4 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#0b3b8b] transition group-hover:gap-3 group-hover:text-[#b88f18]">
+                      {isFrench ? 'Voir l’offre' : 'View opening'}
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
+                  </Link>
+                </article>
+              );
+            })}
           </div>
-        </div>
-      </div>
+        )}
+      </main>
     </div>
   );
 }

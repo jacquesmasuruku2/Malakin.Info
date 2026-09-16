@@ -545,6 +545,17 @@ html.dark .article-body a[href*="/tag/"]:hover :is(span, strong, b, em, i, u) {
   overflow-wrap: anywhere;
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes tag-chip-in {
   from {
     opacity: 0;
