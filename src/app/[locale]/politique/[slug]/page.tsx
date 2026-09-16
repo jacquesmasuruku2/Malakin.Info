@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, ArrowLeft } from 'lucide-react';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 import ArticleTags from '@/components/ArticleTags';
-import { getArticleTags } from '@/lib/tags';
+import { getArticleTags, linkifyArticleTags } from '@/lib/tags';
 
 export const dynamic = 'force-dynamic';
 
@@ -92,7 +92,7 @@ export default async function PolitiqueArticlePage({
         )}
 
         <div className="article-body prose prose-lg max-w-none mb-8 text-foreground">
-          <div dangerouslySetInnerHTML={{ __html: displayContent }} />
+          <div dangerouslySetInnerHTML={{ __html: linkifyArticleTags(displayContent, getArticleTags(article), locale) }} />
         </div>
       </article>
     </div>

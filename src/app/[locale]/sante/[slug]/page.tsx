@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, ArrowLeft, Share2, Bookmark } from 'lucide-react';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 import ArticleTags from '@/components/ArticleTags';
-import { getArticleTags } from '@/lib/tags';
+import { getArticleTags, linkifyArticleTags } from '@/lib/tags';
 
 export default async function SanteArticlePage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params;
@@ -73,7 +73,7 @@ export default async function SanteArticlePage({ params }: { params: Promise<{ l
         )}
 
         <div className="article-body prose prose-lg max-w-none mb-8 text-foreground">
-          <div dangerouslySetInnerHTML={{ __html: displayContent }} />
+          <div dangerouslySetInnerHTML={{ __html: linkifyArticleTags(displayContent, getArticleTags(article), locale) }} />
         </div>
 
         <div className="flex items-center gap-4 border-t border-border pt-6">

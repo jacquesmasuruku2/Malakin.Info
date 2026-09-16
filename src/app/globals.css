@@ -457,6 +457,20 @@ html.dark .article-body a:hover :is(span, strong, b, em, i, u) {
   font-weight: 800;
 }
 
+.article-body a.article-inline-tag,
+a.article-inline-tag {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--secondary) 75%, transparent);
+}
+
+.article-body a.article-inline-tag:hover,
+a.article-inline-tag:hover {
+  color: var(--secondary);
+  border-bottom-color: var(--secondary);
+}
+
 .tag-page-hero {
   position: relative;
   overflow: hidden;

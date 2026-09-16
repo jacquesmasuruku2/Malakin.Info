@@ -211,7 +211,7 @@ export default async function CultureCatchAllPage({
               </div>
 
               <div style={{ fontFamily: '"Playfair Display", Georgia, serif' }} className="text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]">
-                <ReadAlsoRenderer content={displayContent} />
+                <ReadAlsoRenderer content={displayContent} tags={getArticleTags(article)} locale={locale} />
               </div>
 
               <FavoriteButton

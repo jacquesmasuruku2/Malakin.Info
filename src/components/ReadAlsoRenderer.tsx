@@ -1,9 +1,12 @@
 'use client';
 
 import ReadAlso from './ReadAlso';
+import { linkifyArticleTags, type ArticleTagItem } from '@/lib/tags';
 
 interface ReadAlsoRendererProps {
   content: string;
+  tags?: ArticleTagItem[];
+  locale?: string;
 }
 
 const proseClasses = "article-body prose prose-lg w-full min-w-0 max-w-none !max-w-none break-words text-[1.02rem] leading-[1.9] text-foreground md:text-[1.12rem] prose-headings:font-bold prose-headings:text-foreground prose-headings:tracking-[-0.02em] prose-h2:mt-8 prose-h2:mb-4 prose-h3:mt-6 prose-h3:mb-3 prose-p:mb-5 prose-p:mt-0 prose-p:first-of-type:font-bold prose-p:first-of-type:text-[1.08em] prose-p:first-of-type:leading-[1.8] prose-p:first-of-type:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-img:my-6 prose-img:h-auto prose-img:max-w-full prose-img:rounded-none prose-img:shadow-none prose-table:block prose-table:max-w-full prose-table:overflow-x-auto prose-pre:max-w-full prose-pre:overflow-x-auto prose-iframe:max-w-full prose-strong:text-foreground prose-blockquote:border-l-2 prose-blockquote:border-border prose-blockquote:pl-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-1";
@@ -39,18 +42,23 @@ const addDropCap = (html: string) => {
   }
 };
 
-export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
+export default function ReadAlsoRenderer({
+  content,
+  tags = [],
+  locale = 'fr',
+}: ReadAlsoRendererProps) {
   if (!content) {
     return null;
   }
 
+  const html = linkifyArticleTags(content, tags, locale);
   const hasBrowserDom = typeof window !== 'undefined' && typeof DOMParser !== 'undefined';
 
   if (!hasBrowserDom) {
     return (
       <>
         <div
-          dangerouslySetInnerHTML={{ __html: content }}
+          dangerouslySetInnerHTML={{ __html: html }}
           className={proseClasses}
           style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
         />
@@ -59,14 +67,14 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
   }
 
   const parser = new DOMParser();
-  const doc = parser.parseFromString(content, 'text/html');
+  const doc = parser.parseFromString(html, 'text/html');
   const blocks = Array.from(doc.querySelectorAll('div[data-type="read-also"]'));
 
   if (blocks.length === 0) {
     return (
       <>
         <div
-          dangerouslySetInnerHTML={{ __html: addDropCap(content) }}
+          dangerouslySetInnerHTML={{ __html: addDropCap(html) }}
           className={proseClasses}
           style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
         />
@@ -80,10 +88,10 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
 
   blocks.forEach((block, index) => {
     const rawBlock = block.outerHTML;
-    const blockIndex = content.indexOf(rawBlock, cursor);
+    const blockIndex = html.indexOf(rawBlock, cursor);
 
     if (blockIndex > cursor) {
-      const beforeContent = content.slice(cursor, blockIndex);
+      const beforeContent = html.slice(cursor, blockIndex);
       if (beforeContent.trim() && !dropCapApplied && hasParagraphContent(beforeContent)) {
         dropCapApplied = true;
         elements.push(
@@ -122,7 +130,7 @@ export default function ReadAlsoRenderer({ content }: ReadAlsoRendererProps) {
     cursor = blockIndex >= 0 ? blockIndex + rawBlock.length : cursor;
   });
 
-  const remainingContent = content.slice(cursor);
+  const remainingContent = html.slice(cursor);
   if (remainingContent.trim()) {
     if (!dropCapApplied && hasParagraphContent(remainingContent)) {
       dropCapApplied = true;

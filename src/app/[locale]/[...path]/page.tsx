@@ -21,7 +21,7 @@ import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 import CategoryArticlesList from '@/components/CategoryArticlesList';
 import FavoriteButton from '@/components/FavoriteButton';
 import ArticleTags from '@/components/ArticleTags';
-import { getArticleTags } from '@/lib/tags';
+import { getArticleTags, linkifyArticleTags } from '@/lib/tags';
 
 export const dynamic = 'force-dynamic';
 
@@ -392,14 +392,14 @@ export default async function CatchAllArticlePage({
 
               {premiumAccess ? (
                 <div style={{ fontFamily: '"Playfair Display", Georgia, serif' }} className="text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]">
-                  <ReadAlsoRenderer content={displayContent} />
+                  <ReadAlsoRenderer content={displayContent} tags={getArticleTags(article)} locale={locale} />
                 </div>
               ) : (
                 <div className="premium-gate">
                   <div
                     className="article-body premium-preview premium-preview-fade text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]"
                     style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
-                    dangerouslySetInnerHTML={{ __html: previewContent }}
+                    dangerouslySetInnerHTML={{ __html: linkifyArticleTags(previewContent, getArticleTags(article), locale) }}
                   />
                   {article.isPremium && (
                     <Paywall
