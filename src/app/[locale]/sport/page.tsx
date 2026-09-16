@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, ArrowRight } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { applyArticleLocales } from '@/lib/translation';
 import { getDateLocale, pickCopy, t } from '@/lib/copy';
@@ -109,18 +109,13 @@ export default async function SportPage({
                             <span>{item.readTime}</span>
                           </div>
                           <h3 className="font-heading text-xl font-semibold text-foreground mb-2 line-clamp-2">
-                            {item.title}
+                            <Link href={`/${locale}/${item.slug}`} className="hover:text-primary transition-colors">
+                              {item.title}
+                            </Link>
                           </h3>
-                          <p className="text-muted-foreground line-clamp-2 mb-4">
+                          <p className="text-muted-foreground line-clamp-2">
                             {item.excerpt}
                           </p>
-                          <Link
-                            href={`/${locale}/${item.slug}`}
-                            className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-                          >
-                            {t(locale, 'read')}
-                            <ArrowRight className="ml-2 w-4 h-4" />
-                          </Link>
                         </div>
                       </article>
                     ))}
@@ -140,7 +135,9 @@ export default async function SportPage({
                             {item.category}
                           </span>
                           <h3 className="font-heading font-semibold text-foreground mb-2 line-clamp-2">
-                            {item.title}
+                            <Link href={`/${locale}/${item.slug}`} className="hover:text-primary transition-colors">
+                              {item.title}
+                            </Link>
                           </h3>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">

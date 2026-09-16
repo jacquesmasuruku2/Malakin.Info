@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight, BookOpen } from 'lucide-react';
+import { Calendar, Clock, BookOpen } from 'lucide-react';
 
 export default function MeditationsPage() {
   const meditations = [
@@ -63,7 +63,9 @@ export default function MeditationsPage() {
                 <span className="text-sm font-medium text-primary">{meditation.verse}</span>
               </div>
               <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                {meditation.title}
+                <Link href={`/religion/meditations/${meditation.id}`} className="hover:text-primary transition-colors">
+                  {meditation.title}
+                </Link>
               </h3>
               <p className="text-muted-foreground mb-4 line-clamp-2">
                 {meditation.excerpt}
@@ -78,13 +80,6 @@ export default function MeditationsPage() {
                   {meditation.readTime}
                 </span>
               </div>
-              <Link
-                href={`/religion/meditations/${meditation.id}`}
-                className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-              >
-                Lire la méditation
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
             </article>
           ))}
         </div>

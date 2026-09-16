@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, ArrowRight, FileText, Building, Church, Heart, GraduationCap } from 'lucide-react';
+import { Calendar, Building, Church, Heart, GraduationCap } from 'lucide-react';
 
 export default function CommuniquesPage() {
   const categories = [
@@ -104,20 +104,14 @@ export default function CommuniquesPage() {
               <p className="text-sm text-muted-foreground mb-2">{communique.organization}</p>
 
               <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                {communique.title}
+                <Link href={`/communiques/${communique.id}`} className="hover:text-primary transition-colors">
+                  {communique.title}
+                </Link>
               </h3>
 
-              <p className="text-muted-foreground mb-4 line-clamp-2">
+              <p className="text-muted-foreground line-clamp-2">
                 {communique.excerpt}
               </p>
-
-              <Link
-                href={`/communiques/${communique.id}`}
-                className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-              >
-                Lire le communiqué complet
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
             </article>
           ))}
         </div>

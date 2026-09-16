@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, ArrowRight, Heart } from 'lucide-react';
+import { Calendar, Heart } from 'lucide-react';
 
 export default function TemoignagesPage() {
   const testimonies = [
@@ -52,7 +52,9 @@ export default function TemoignagesPage() {
                 <span className="text-sm font-medium text-primary">{testimony.date}</span>
               </div>
               <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                {testimony.title}
+                <Link href={`/religion/message-du-temps/branham/temoignages/${testimony.id}`} className="hover:text-primary transition-colors">
+                  {testimony.title}
+                </Link>
               </h3>
               <p className="text-muted-foreground mb-4 line-clamp-2">
                 {testimony.excerpt}
@@ -63,13 +65,6 @@ export default function TemoignagesPage() {
                   {testimony.location}
                 </span>
               </div>
-              <Link
-                href={`/religion/message-du-temps/branham/temoignages/${testimony.id}`}
-                className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-              >
-                Lire le témoignage
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
             </article>
           ))}
         </div>

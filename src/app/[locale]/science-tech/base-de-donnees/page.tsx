@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight, Database } from 'lucide-react';
+import { Calendar, Clock, Database } from 'lucide-react';
 
 export default function BaseDeDonneesPage() {
   const articles = [
@@ -65,12 +65,14 @@ export default function BaseDeDonneesPage() {
                 </span>
               </div>
               <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                {article.title}
+                <Link href={`/science-tech/base-de-donnees/${article.id}`} className="hover:text-primary transition-colors">
+                  {article.title}
+                </Link>
               </h3>
               <p className="text-muted-foreground mb-4 line-clamp-2">
                 {article.excerpt}
               </p>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
                   {article.date}
@@ -80,13 +82,6 @@ export default function BaseDeDonneesPage() {
                   {article.readTime}
                 </span>
               </div>
-              <Link
-                href={`/science-tech/base-de-donnees/${article.id}`}
-                className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-              >
-                Lire l'article
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
             </article>
           ))}
         </div>

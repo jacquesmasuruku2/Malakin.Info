@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight, Book } from 'lucide-react';
+import { Calendar, Clock, Book } from 'lucide-react';
 
 export default function AutresMessagesPage() {
   const messages = [
@@ -55,7 +55,9 @@ export default function AutresMessagesPage() {
                 <span className="text-sm font-medium text-primary">Par {message.author}</span>
               </div>
               <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                {message.title}
+                <Link href={`/religion/message-du-temps/autres-messages/${message.id}`} className="hover:text-primary transition-colors">
+                  {message.title}
+                </Link>
               </h3>
               <p className="text-muted-foreground mb-4 line-clamp-2">
                 {message.excerpt}
@@ -70,13 +72,6 @@ export default function AutresMessagesPage() {
                   {message.readTime}
                 </span>
               </div>
-              <Link
-                href={`/religion/message-du-temps/autres-messages/${message.id}`}
-                className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-              >
-                Lire le message
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
             </article>
           ))}
         </div>

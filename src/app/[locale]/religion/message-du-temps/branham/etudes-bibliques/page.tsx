@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight, BookOpen } from 'lucide-react';
+import { Clock, BookOpen } from 'lucide-react';
 
 export default function EtudesBibliquesPage() {
   const studies = [
@@ -59,7 +59,9 @@ export default function EtudesBibliquesPage() {
                 <span className="text-sm font-medium text-accent">{study.date}</span>
               </div>
               <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                {study.title}
+                <Link href={`/religion/message-du-temps/branham/etudes-bibliques/${study.id}`} className="hover:text-primary transition-colors">
+                  {study.title}
+                </Link>
               </h3>
               <p className="text-muted-foreground mb-4 line-clamp-2">
                 {study.excerpt}
@@ -70,13 +72,6 @@ export default function EtudesBibliquesPage() {
                   {study.readTime}
                 </span>
               </div>
-              <Link
-                href={`/religion/message-du-temps/branham/etudes-bibliques/${study.id}`}
-                className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-              >
-                Lire l\'étude
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
             </article>
           ))}
         </div>

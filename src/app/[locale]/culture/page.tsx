@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, ArrowRight } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { applyArticleLocales } from '@/lib/translation';
 import { getDateLocale, pickCopy, t } from '@/lib/copy';
@@ -119,18 +119,13 @@ export default async function CulturePage({
                             <span>{item.readTime}</span>
                           </div>
                           <h3 className="font-heading text-[1.5rem] font-black leading-tight tracking-[-0.03em] text-foreground transition-colors group-hover:text-secondary line-clamp-3">
-                            {item.title}
+                            <Link href={`/${locale}/${item.slug}`}>
+                              {item.title}
+                            </Link>
                           </h3>
                           <p className="mt-3 text-sm leading-relaxed text-muted-foreground line-clamp-3">
                             {item.excerpt}
                           </p>
-                          <Link
-                            href={`/${locale}/${item.slug}`}
-                            className="mt-4 inline-flex items-center text-[11px] font-bold uppercase tracking-[0.14em] text-foreground transition-colors hover:text-secondary"
-                          >
-                            {t(locale, 'read')}
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </Link>
                         </div>
                       </article>
                     ))}
@@ -150,7 +145,9 @@ export default async function CulturePage({
                             {item.category}
                           </span>
                           <h3 className="font-heading font-semibold text-foreground mb-2 line-clamp-2">
-                            {item.title}
+                            <Link href={`/${locale}/${item.slug}`} className="hover:text-primary transition-colors">
+                              {item.title}
+                            </Link>
                           </h3>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight, Book } from 'lucide-react';
+import { Calendar, Clock, Book } from 'lucide-react';
 
 export default function BranhamPage() {
   const categories = [
@@ -87,7 +87,9 @@ export default function BranhamPage() {
                       <span className="text-sm font-medium text-primary">{item.category}</span>
                     </div>
                     <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                      {item.title}
+                      <Link href={`/religion/message-du-temps/branham/${item.id}`} className="hover:text-primary transition-colors">
+                        {item.title}
+                      </Link>
                     </h3>
                     <p className="text-muted-foreground mb-4 line-clamp-2">
                       {item.excerpt}
@@ -102,13 +104,6 @@ export default function BranhamPage() {
                         {item.readTime}
                       </span>
                     </div>
-                    <Link
-                      href={`/religion/message-du-temps/branham/${item.id}`}
-                      className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-                    >
-                      Lire
-                      <ArrowRight className="ml-2 w-4 h-4" />
-                    </Link>
                   </article>
                 ))}
               </div>

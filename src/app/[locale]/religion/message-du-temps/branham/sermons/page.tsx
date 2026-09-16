@@ -48,11 +48,12 @@ export default async function SermonsPage({ params }: { params: Promise<{ locale
           <div className="space-y-4">
             {articles.map((article) => (
               <article key={article.id} className="border border-border bg-card p-6">
-                <h2 className="font-heading text-xl font-semibold text-foreground mb-2">{article.title}</h2>
-                <p className="text-muted-foreground mb-4">{article.excerpt}</p>
-                <Link href={`/${locale}/${article.slug}`} className="text-primary hover:underline font-medium">
-                  Lire l’article
-                </Link>
+                <h2 className="font-heading text-xl font-semibold text-foreground mb-2">
+                  <Link href={`/${locale}/${article.slug}`} className="hover:text-primary transition-colors">
+                    {article.title}
+                  </Link>
+                </h2>
+                <p className="text-muted-foreground">{article.excerpt}</p>
               </article>
             ))}
           </div>

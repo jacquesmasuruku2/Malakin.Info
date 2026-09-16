@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight, Book } from 'lucide-react';
+import { Calendar, Clock, Book } from 'lucide-react';
 
 export default function GuidesPage() {
   const guides = [
@@ -57,7 +57,9 @@ export default function GuidesPage() {
                 </span>
               </div>
               <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                {guide.title}
+                <Link href={`/infos-pratiques/guides/${guide.id}`} className="hover:text-primary transition-colors">
+                  {guide.title}
+                </Link>
               </h3>
               <p className="text-muted-foreground mb-4 line-clamp-2">
                 {guide.excerpt}
@@ -72,13 +74,6 @@ export default function GuidesPage() {
                   {guide.readTime}
                 </span>
               </div>
-              <Link
-                href={`/infos-pratiques/guides/${guide.id}`}
-                className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-              >
-                Lire le guide
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
             </article>
           ))}
         </div>

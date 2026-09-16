@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight, BarChart3 } from 'lucide-react';
+import { Calendar, Clock, BarChart3 } from 'lucide-react';
 
 export default function AnalyseDeDonneesPage() {
   const articles = [
@@ -65,7 +65,9 @@ export default function AnalyseDeDonneesPage() {
                 </span>
               </div>
               <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                {article.title}
+                <Link href={`/science-tech/analyse-de-donnees/${article.id}`} className="hover:text-primary transition-colors">
+                  {article.title}
+                </Link>
               </h3>
               <p className="text-muted-foreground mb-4 line-clamp-2">
                 {article.excerpt}
@@ -80,13 +82,6 @@ export default function AnalyseDeDonneesPage() {
                   {article.readTime}
                 </span>
               </div>
-              <Link
-                href={`/science-tech/analyse-de-donnees/${article.id}`}
-                className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-              >
-                Lire l'article
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
             </article>
           ))}
         </div>

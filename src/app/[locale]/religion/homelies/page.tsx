@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight, Heart } from 'lucide-react';
+import { Calendar, Clock, Heart } from 'lucide-react';
 
 export default function HomeliesPage() {
   const homelies = [
@@ -55,7 +55,9 @@ export default function HomeliesPage() {
                 <span className="text-sm font-medium text-accent">Par {homelie.preacher}</span>
               </div>
               <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                {homelie.title}
+                <Link href={`/religion/homelies/${homelie.id}`} className="hover:text-primary transition-colors">
+                  {homelie.title}
+                </Link>
               </h3>
               <p className="text-muted-foreground mb-4 line-clamp-2">
                 {homelie.excerpt}
@@ -70,13 +72,6 @@ export default function HomeliesPage() {
                   {homelie.readTime}
                 </span>
               </div>
-              <Link
-                href={`/religion/homelies/${homelie.id}`}
-                className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-              >
-                Lire l'homélie
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
             </article>
           ))}
         </div>

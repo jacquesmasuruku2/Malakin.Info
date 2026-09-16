@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { applyArticleLocales } from '@/lib/translation';
 import { getDateLocale, pickCopy, t } from '@/lib/copy';
@@ -140,29 +140,22 @@ export default async function ScienceTechPage({
                           </span>
                         </div>
                         <h3 className="font-heading text-lg font-semibold text-foreground mb-2">
-                          {item.title}
+                          <Link href={`/${locale}/${item.slug}`} className="hover:text-primary transition-colors">
+                            {item.title}
+                          </Link>
                         </h3>
                         <p className="text-muted-foreground line-clamp-2 mb-4">
                           {item.excerpt}
                         </p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              {item.date}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-4 h-4" />
-                              {item.readTime}
-                            </span>
-                          </div>
-                          <Link
-                            href={`/${locale}/${item.slug}`}
-                            className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-                          >
-                            {t(locale, 'read')}
-                            <ArrowRight className="ml-2 w-4 h-4" />
-                          </Link>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            {item.date}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {item.readTime}
+                          </span>
                         </div>
                       </article>
                     ))}

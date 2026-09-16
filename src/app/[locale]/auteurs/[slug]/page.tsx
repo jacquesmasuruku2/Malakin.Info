@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, Clock, ArrowRight, User, BookOpen } from 'lucide-react';
+import { Calendar, Clock, User, BookOpen } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { withRetry } from '@/lib/database';
@@ -104,11 +104,13 @@ export default async function AuthorPage({ params }: { params: Promise<{ locale:
               >
                 <div className="flex items-start gap-4">
                   {article.mainImageUrl && (
-                    <img
-                      src={article.mainImageUrl}
-                      alt={article.mainImageAlt || article.title}
-                      className="w-32 h-32 object-cover rounded-lg flex-shrink-0"
-                    />
+                    <Link href={`/${locale}/${article.category.slug}/${article.slug}`} className="flex-shrink-0">
+                      <img
+                        src={article.mainImageUrl}
+                        alt={article.mainImageAlt || article.title}
+                        className="w-32 h-32 object-cover rounded-lg hover:opacity-90 transition-opacity"
+                      />
+                    </Link>
                   )}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -149,13 +151,6 @@ export default async function AuthorPage({ params }: { params: Promise<{ locale:
                         {article.views.toString()} vues
                       </span>
                     </div>
-                    <Link
-                      href={`/${locale}/${article.category.slug}/${article.slug}`}
-                      className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm mt-4"
-                    >
-                      Lire l'article
-                      <ArrowRight className="ml-2 w-4 h-4" />
-                    </Link>
                   </div>
                 </div>
               </article>

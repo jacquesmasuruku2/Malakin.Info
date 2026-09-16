@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Calendar, ArrowRight, Church } from 'lucide-react';
+import { Calendar, Church } from 'lucide-react';
 
 export default function ReligieuxPage() {
   const communiques = [
@@ -54,20 +54,14 @@ export default function ReligieuxPage() {
               </div>
               
               <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                {communique.title}
+                <Link href={`/communiques/religieux/${communique.id}`} className="hover:text-primary transition-colors">
+                  {communique.title}
+                </Link>
               </h3>
               
-              <p className="text-muted-foreground mb-4 line-clamp-2">
+              <p className="text-muted-foreground line-clamp-2">
                 {communique.excerpt}
               </p>
-              
-              <Link
-                href={`/communiques/religieux/${communique.id}`}
-                className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-              >
-                Lire le communiqué complet
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
             </article>
           ))}
         </div>
