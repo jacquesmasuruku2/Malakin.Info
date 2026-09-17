@@ -21,6 +21,7 @@ import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 import { getPremiumPreviewContent, hasPremiumAccess } from '@/lib/premium-access';
 import { withRetry } from '@/lib/database';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
+import ArticleDateMeta from '@/components/ArticleDateMeta';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -206,14 +207,6 @@ export default async function ArticlePage({
       categoryBadge: item.categoryBadge || 'Publicité',
     }));
 
-    const formattedDate = article.publishedAt 
-      ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
-          day: 'numeric', 
-          month: 'long', 
-          year: 'numeric' 
-        }) 
-      : '';
-
     const readTime = article.readTime ? `${article.readTime} ${t.readTime}` : `5 ${t.readTime}`;
 
     // Use translated content if available, otherwise fallback to original
@@ -246,7 +239,11 @@ export default async function ArticlePage({
               </Link>
             ) : null}
             <div className="mb-3 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-              <span>{formattedDate}</span>
+              <ArticleDateMeta
+                locale={locale}
+                publishedAt={article.publishedAt}
+                updatedAt={article.updatedAt}
+              />
               <ArticleAuthorLink author={article.author} locale={locale} />
             </div>
 

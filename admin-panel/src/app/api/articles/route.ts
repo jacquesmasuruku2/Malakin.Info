@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { syncArticleTags, tagsFromArticle } from '@/lib/tags';
 import { ensureArticlePublicImages } from '@/lib/r2';
+import { revalidatePublicArticle } from '@/lib/revalidate-site';
 
 export async function GET() {
   try {
@@ -71,6 +72,10 @@ export async function POST(request: NextRequest) {
       },
     });
     const saved = withTags || article;
+    await revalidatePublicArticle({
+      slug: saved.slug,
+      categorySlug: saved.category?.slug,
+    });
     return NextResponse.json({
       ...saved,
       views: Number(saved.views),

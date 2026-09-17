@@ -14,6 +14,7 @@ import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation
 import FavoriteButton from '@/components/FavoriteButton';
 import { getArticleTags } from '@/lib/tags';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
+import ArticleDateMeta from '@/components/ArticleDateMeta';
 
 export const revalidate = 60;
 
@@ -113,14 +114,6 @@ export default async function ActualitesCatchAllPage({
       categoryBadge: item.categoryBadge || 'Publicité',
     }));
 
-    const formattedDate = article.publishedAt 
-      ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { 
-          day: 'numeric', 
-          month: 'long', 
-          year: 'numeric' 
-        }) 
-      : '';
-
     const readTime = article.readTime ? `${article.readTime} ${t.readTime}` : `5 ${t.readTime}`;
     const displayTitle = translatedArticle.title || article.title;
     const displayExcerpt = translatedArticle.excerpt || article.excerpt;
@@ -177,7 +170,11 @@ export default async function ActualitesCatchAllPage({
               <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground sm:mb-8 sm:gap-x-4 sm:text-sm">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  {formattedDate}
+                  <ArticleDateMeta
+                    locale={locale}
+                    publishedAt={article.publishedAt}
+                    updatedAt={article.updatedAt}
+                  />
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

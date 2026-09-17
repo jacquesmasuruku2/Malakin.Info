@@ -14,7 +14,7 @@ import { SponsoredSection } from '@/components/SponsoredSection';
 import ViewIncrementer from '@/components/ViewIncrementer';
 import { getArticleTranslation, getCategoryTranslation, applyArticleLocales } from '@/lib/translation';
 import { getMessages } from '@/lib/i18n';
-import { getDateLocale, pickCopy, t as ui } from '@/lib/copy';
+import { pickCopy, t as ui } from '@/lib/copy';
 import { getPremiumPreviewContent, hasPremiumAccess } from '@/lib/premium-access';
 import Paywall from '@/components/Paywall';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
@@ -22,6 +22,7 @@ import CategoryArticlesList from '@/components/CategoryArticlesList';
 import FavoriteButton from '@/components/FavoriteButton';
 import { getArticleTags, prepareArticleHtml } from '@/lib/tags';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
+import ArticleDateMeta from '@/components/ArticleDateMeta';
 
 export const revalidate = 60;
 
@@ -290,14 +291,6 @@ export default async function CatchAllArticlePage({
       categoryBadge: item.categoryBadge || 'Publicité',
     }));
 
-    const formattedDate = article.publishedAt 
-      ? new Date(article.publishedAt).toLocaleDateString(getDateLocale(locale), { 
-          day: 'numeric', 
-          month: 'long', 
-          year: 'numeric' 
-        }) 
-      : '';
-
     const readTime = article.readTime ? `${article.readTime} ${tArticle.readTime}` : `5 ${tArticle.readTime}`;
 
     return (
@@ -350,7 +343,11 @@ export default async function CatchAllArticlePage({
               <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground sm:mb-8 sm:gap-x-4 sm:text-sm">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  {formattedDate}
+                  <ArticleDateMeta
+                    locale={locale}
+                    publishedAt={article.publishedAt}
+                    updatedAt={article.updatedAt}
+                  />
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

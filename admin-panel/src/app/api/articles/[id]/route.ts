@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { syncArticleTags, tagsFromArticle } from '@/lib/tags';
 import { tagNamesFromContent } from '@/lib/tag-name';
 import { ensureArticlePublicImages } from '@/lib/r2';
+import { revalidatePublicArticle } from '@/lib/revalidate-site';
 
 export async function GET(
   request: NextRequest,
@@ -49,7 +50,7 @@ export async function PUT(
         categoryId: body.categoryId,
         authorId: body.authorId || null,
         defaultLocale: body.defaultLocale || 'fr',
-        publishedAt: body.publishedAt ? new Date(body.publishedAt) : new Date(),
+        ...(body.publishedAt ? { publishedAt: new Date(body.publishedAt) } : {}),
         featured: body.featured,
         isPremium: body.isPremium,
         premiumPrice: body.premiumPrice ? parseFloat(body.premiumPrice) : null,
@@ -83,6 +84,10 @@ export async function PUT(
       },
     });
     const saved = withTags || article;
+    await revalidatePublicArticle({
+      slug: saved.slug,
+      categorySlug: saved.category?.slug,
+    });
     return NextResponse.json({
       ...saved,
       views: Number(saved.views),
@@ -99,8 +104,16 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    const existing = await prisma.article.findUnique({
+      where: { id },
+      include: { category: true },
+    });
     await prisma.article.delete({
       where: { id },
+    });
+    await revalidatePublicArticle({
+      slug: existing?.slug,
+      categorySlug: existing?.category?.slug,
     });
     return NextResponse.json({ message: 'Article deleted successfully' });
   } catch (error) {

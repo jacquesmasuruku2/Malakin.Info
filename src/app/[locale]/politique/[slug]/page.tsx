@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, ArrowLeft } from 'lucide-react';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 import { getArticleTags, prepareArticleHtml } from '@/lib/tags';
+import ArticleDateMeta from '@/components/ArticleDateMeta';
 
 export const revalidate = 60;
 
@@ -56,13 +57,11 @@ export default async function PolitiqueArticlePage({
           <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
             <span className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              {article.publishedAt
-                ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                  })
-                : ''}
+              <ArticleDateMeta
+                locale={locale}
+                publishedAt={article.publishedAt}
+                updatedAt={article.updatedAt}
+              />
             </span>
             <span className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
