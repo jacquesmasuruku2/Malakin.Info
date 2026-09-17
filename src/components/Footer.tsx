@@ -7,13 +7,14 @@ import { useState, useEffect, useRef } from 'react';
 import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
 import { t as tCopy } from '@/lib/copy';
 import { subscribeToNewsletter } from '@/lib/newsletter-client';
+import type { FooterPartner } from '@/lib/footer-partners';
 
 const headingClass = 'mb-5 text-[13px] font-semibold uppercase tracking-[0.12em] text-[#d4af37]';
 const textLinkClass = 'text-[15px] text-white/85 transition-colors hover:text-[#d4af37]';
 const chipClass =
   'inline-flex items-center rounded-full border border-white/25 px-3.5 py-1.5 text-[13px] text-white/90 transition-colors hover:border-[#d4af37] hover:text-[#d4af37]';
 
-export default function Footer() {
+export default function Footer({ partners = [] }: { partners?: FooterPartner[] }) {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -264,10 +265,6 @@ export default function Footer() {
                 </Link>
               ))}
             </div>
-            <p className="mt-6 flex items-center gap-2 text-sm text-white/70">
-              <Heart className="h-4 w-4 text-[#e63946]" />
-              Soutenez l'information indépendante
-            </p>
           </div>
 
           <div>
@@ -373,12 +370,60 @@ export default function Footer() {
           </span>
         </div>
 
-        <div className="border-t border-white/15 py-5 text-xs text-white/50">
-          <p className="flex flex-wrap items-center justify-end gap-2">
+        <div className="flex flex-col gap-5 border-t border-white/15 py-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold tracking-wide text-white">MalakInfo</p>
+            <p className="mt-1 text-xs text-white/50">
+              {locale === 'fr'
+                ? 'Médias & partenaires premium'
+                : 'Media & premium partners'}
+            </p>
+          </div>
+
+          <div className="flex flex-1 flex-wrap items-center justify-start gap-x-8 gap-y-4 sm:justify-center lg:px-8">
+            {partners.length > 0 ? (
+              partners.map((partner) => {
+                const logo = (
+                  <img
+                    src={partner.imageUrl}
+                    alt={partner.companyName}
+                    title={partner.companyName}
+                    className="h-8 w-auto max-w-[120px] object-contain opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0 sm:h-9"
+                  />
+                );
+
+                return partner.websiteUrl ? (
+                  <a
+                    key={partner.id}
+                    href={partner.websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer sponsored"
+                    className="inline-flex items-center"
+                    aria-label={partner.companyName}
+                  >
+                    {logo}
+                  </a>
+                ) : (
+                  <span key={partner.id} className="inline-flex items-center">
+                    {logo}
+                  </span>
+                );
+              })
+            ) : (
+              <Link
+                href={`/${locale}/partenariats`}
+                className="text-xs uppercase tracking-[0.14em] text-white/45 transition hover:text-[#d4af37]"
+              >
+                {locale === 'fr' ? 'Espace partenaires' : 'Partner space'}
+              </Link>
+            )}
+          </div>
+
+          <p className="flex flex-wrap items-center gap-2 text-xs text-white/50 sm:justify-end">
             <span>© {currentYear} MalakInfo.com</span>
             <span>{t.copyright}</span>
             <span>{t.madeWith}</span>
-            <Heart className="w-3 h-3 text-[#e63946] inline" />
+            <Heart className="inline h-3 w-3 text-[#e63946]" />
           </p>
         </div>
       </div>
