@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { LEGAL_UPDATED_AT, SITE_EMAIL } from '@/lib/site-legal';
 
 export const metadata: Metadata = {
   title: 'Conditions d\'utilisation - Malakinfo.com',
@@ -25,12 +26,15 @@ export default async function TermsOfUsePage({
             <p className="text-muted-foreground">
               Malakinfo.com est un site d'information dédié à informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel. Le site propose des articles, des actualités, des analyses et des contenus multimédias sur divers sujets : politique, économie, culture, sport, religion, science et technologie.
             </p>
+            <p className="text-muted-foreground mt-4">
+              Il propose également des fonctionnalités complémentaires : alertes de nouvelles publications (sur le site et, avec votre accord, via les notifications du navigateur), espace compte, rubrique emploi avec candidatures et messagerie recruteur, ainsi que des services multimédias.
+            </p>
           </section>
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Accès au site</h2>
             <p className="text-muted-foreground">
-              L'accès à ce site est gratuit et ouvert à tous les utilisateurs. Toutefois, certaines fonctionnalités peuvent nécessiter la création d'un compte utilisateur ou l'acceptation de conditions spécifiques.
+              L'accès à ce site est gratuit et ouvert à tous les utilisateurs. Toutefois, certaines fonctionnalités peuvent nécessiter la création d'un compte utilisateur ou l'acceptation de conditions spécifiques (par exemple pour postuler à une offre d’emploi ou suivre une candidature).
             </p>
             <p className="text-muted-foreground">
               Nous nous réservons le droit de restreindre l'accès à tout ou partie du site sans préavis, pour des raisons de maintenance, de mise à jour ou pour tout autre motif jugé nécessaire.
@@ -62,6 +66,20 @@ export default async function TermsOfUsePage({
             </p>
             <p className="text-muted-foreground">
               Nous nous réservons le droit de suspendre ou de supprimer votre compte en cas de violation de ces conditions d'utilisation.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Notifications</h2>
+            <p className="text-muted-foreground">
+              Le site peut vous informer des nouvelles publications au moyen d’une alerte affichée dans l’interface. Si vous l’autorisez explicitement, votre navigateur pourra également afficher des notifications système. Vous pouvez refuser ou désactiver ces notifications à tout moment via les paramètres de votre navigateur ou de votre appareil.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Offres d’emploi et candidatures</h2>
+            <p className="text-muted-foreground">
+              La rubrique emploi permet de consulter des offres et, pour les utilisateurs connectés, de candidater et d’échanger avec le recruteur depuis l’espace compte. Vous vous engagez à fournir des informations exactes et à utiliser cette messagerie de manière loyale et respectueuse.
             </p>
           </section>
 
@@ -150,13 +168,13 @@ export default async function TermsOfUsePage({
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Contact</h2>
             <p className="text-muted-foreground">
-              Pour toute question relative à ces conditions d'utilisation, vous pouvez nous contacter à l'adresse : contact@malakinfo.com
+              Pour toute question relative à ces conditions d'utilisation, vous pouvez nous contacter à l'adresse : {SITE_EMAIL}
             </p>
           </section>
 
           <section className="border-t border-border pt-6">
             <p className="text-sm text-muted-foreground">
-              Date de dernière mise à jour : {new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+              Date de dernière mise à jour : {LEGAL_UPDATED_AT}
             </p>
           </section>
         </div>

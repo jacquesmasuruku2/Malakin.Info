@@ -73,6 +73,13 @@ export default function CookiesPolicyPage() {
           </section>
 
           <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Notifications et stockage local</h2>
+            <p className="text-muted-foreground">
+              Indépendamment des cookies, MalakInfo peut utiliser le stockage local du navigateur et, avec votre permission, l’API de notifications ainsi qu’un service worker pour vous alerter des nouvelles publications. Ces mécanismes ne déposent pas de cookies publicitaires ; l’activation des notifications système nécessite votre accord explicite et peut être révoquée dans les paramètres du navigateur.
+            </p>
+          </section>
+
+          <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Tableau des cookies</h2>
             <div className="overflow-x-auto">
               <table className="min-w-full border border-border">

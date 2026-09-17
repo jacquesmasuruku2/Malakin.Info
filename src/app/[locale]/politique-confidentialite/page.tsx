@@ -70,6 +70,8 @@ export default async function PrivacyPolicyPage({
               <li>Nom et prénom (formulaire de contact, compte)</li>
               <li>Adresse email</li>
               <li>Contenu des messages, commentaires et candidatures</li>
+              <li>Données liées aux candidatures d’emploi (profil, messages échangés avec le recruteur via votre espace compte)</li>
+              <li>Préférences de notifications stockées localement sur votre appareil (activation ou refus des alertes de publication)</li>
             </ul>
           </section>
 
@@ -80,6 +82,8 @@ export default async function PrivacyPolicyPage({
               <li>Envoyer la newsletter avec votre consentement</li>
               <li>Répondre aux demandes de contact</li>
               <li>Gérer les comptes utilisateurs</li>
+              <li>Informer des nouvelles publications via des alertes sur le site et, si vous l’autorisez, des notifications du navigateur</li>
+              <li>Gérer les offres d’emploi, les candidatures et les échanges avec les recruteurs</li>
               <li>Mesurer l’audience et la performance des contenus</li>
               <li>Afficher des publicités, y compris des publicités personnalisées (acceptées par défaut tant que vous n’avez pas personnalisé vos choix)</li>
               <li>Assurer la sécurité du site</li>
@@ -87,12 +91,29 @@ export default async function PrivacyPolicyPage({
           </section>
 
           <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Notifications de publication</h2>
+            <p className="text-muted-foreground">
+              {SITE_NAME} peut afficher une carte d’information sur le site lorsqu’une nouvelle publication est disponible. Avec votre accord explicite (permission du navigateur), nous pouvons aussi vous envoyer des notifications système pour signaler ces nouveautés.
+            </p>
+            <p className="text-muted-foreground mt-4">
+              Ces notifications reposent sur les API du navigateur et, le cas échéant, un service worker enregistré sur votre appareil. Elles ne sont activées qu’après votre consentement. Vous pouvez les refuser ou les désactiver à tout moment via les paramètres de votre navigateur ou de votre appareil. Aucune donnée de notification n’est vendue à des tiers.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Compte, candidatures et messagerie</h2>
+            <p className="text-muted-foreground">
+              Lorsque vous créez un compte, vous pouvez notamment suivre vos candidatures aux offres d’emploi publiées sur le site et échanger des messages avec le recruteur depuis votre espace personnel. Ces données sont utilisées uniquement pour traiter votre candidature et assurer le suivi de la conversation.
+            </p>
+          </section>
+
+          <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Base légale</h2>
             <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-              <li>Votre consentement (newsletter ; cookies analytiques et publicitaires, acceptés par défaut jusqu’à personnalisation ou refus)</li>
-              <li>L’exécution d’un contrat (compte utilisateur, dons, partenariats)</li>
+              <li>Votre consentement (newsletter ; notifications navigateur ; cookies analytiques et publicitaires, acceptés par défaut jusqu’à personnalisation ou refus)</li>
+              <li>L’exécution d’un contrat (compte utilisateur, candidatures à une offre d’emploi, dons, partenariats)</li>
               <li>Le respect d’une obligation légale</li>
-              <li>Notre intérêt légitime (sécurité, amélioration du service, journalisme)</li>
+              <li>Notre intérêt légitime (sécurité, amélioration du service, journalisme, information sur les nouvelles publications via l’interface du site)</li>
             </ul>
           </section>
 
@@ -158,6 +179,8 @@ export default async function PrivacyPolicyPage({
               <li>Données de contact : 3 ans après le dernier échange</li>
               <li>Newsletter : jusqu’à désabonnement</li>
               <li>Compte utilisateur : jusqu’à suppression du compte</li>
+              <li>Candidatures et messages liés aux offres d’emploi : durée nécessaire au traitement, puis archivage ou suppression selon nos besoins légitimes</li>
+              <li>Préférences de notifications : jusqu’à suppression locale ou révocation de la permission navigateur</li>
               <li>Données analytiques : 26 mois</li>
             </ul>
           </section>

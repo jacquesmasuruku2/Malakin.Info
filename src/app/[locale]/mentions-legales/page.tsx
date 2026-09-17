@@ -92,12 +92,31 @@ export default async function LegalNoticesPage({
           </section>
 
           <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Fonctionnalités du site</h2>
+            <p className="text-muted-foreground">
+              Outre la consultation des articles, {SITE_NAME} propose notamment :
+            </p>
+            <ul className="list-disc pl-6 text-muted-foreground space-y-2 mt-3">
+              <li>Des alertes sur le site et, avec votre accord, des notifications du navigateur pour signaler les nouvelles publications</li>
+              <li>Un espace compte permettant de gérer votre profil</li>
+              <li>Une rubrique emploi avec offres, candidatures et échanges avec le recruteur</li>
+              <li>Des services multimédias (radio, contenus culturels et autres rubriques éditoriales)</li>
+            </ul>
+            <p className="text-muted-foreground mt-4">
+              L’usage de ces fonctionnalités est détaillé dans les{' '}
+              <Link href={`/${locale}/conditions-utilisation`} className="text-primary hover:underline">conditions d’utilisation</Link>
+              {' '}et la{' '}
+              <Link href={`/${locale}/politique-confidentialite`} className="text-primary hover:underline">politique de confidentialité</Link>.
+            </p>
+          </section>
+
+          <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Données personnelles et cookies</h2>
             <p className="text-muted-foreground">
               Tant que vous n’avez pas personnalisé vos choix, les cookies non essentiels (audience, publicité, personnalisation) sont acceptés par défaut. Pour les modifier : cliquez sur le bouton cookie en bas à gauche de n’importe quelle page, choisissez Refuser ou Accepter pour chaque catégorie (ou Refuser tout / Accepter tout), puis cliquez sur Enregistrer.
             </p>
             <p className="text-muted-foreground mt-4">
-              Le traitement des données et la procédure complète sont décrits dans la{' '}
+              Le site peut également utiliser des notifications (interface et/ou navigateur) pour vous informer des nouvelles publications, uniquement avec votre permission lorsque le navigateur le demande. Le traitement des données et la procédure complète sont décrits dans la{' '}
               <Link href={`/${locale}/politique-confidentialite`} className="text-primary hover:underline">politique de confidentialité</Link>
               {' '}et la{' '}
               <Link href={`/${locale}/cookies`} className="text-primary hover:underline">politique de cookies</Link>.
