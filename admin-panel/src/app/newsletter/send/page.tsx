@@ -93,6 +93,35 @@ export default function NewsletterSendPage() {
     [articles, selectedIds],
   );
 
+  const publishDataImage = async (dataUrl: string, articleId?: string) => {
+    const response = await fetch('/api/images/publish-data-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dataUrl, articleId }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data?.url) {
+      throw new Error(data?.error || 'Impossible de publier l’image sur Cloudflare');
+    }
+    return String(data.url);
+  };
+
+  const resolveArticlesForEmail = async (items: NewsletterArticleOption[]) => {
+    const resolved: NewsletterArticleOption[] = [];
+    for (const article of items) {
+      if (article.mainImageUrl?.startsWith('data:image')) {
+        const url = await publishDataImage(article.mainImageUrl, article.id);
+        setArticles((current) =>
+          current.map((item) => (item.id === article.id ? { ...item, mainImageUrl: url } : item)),
+        );
+        resolved.push({ ...article, mainImageUrl: url });
+      } else {
+        resolved.push(article);
+      }
+    }
+    return resolved;
+  };
+
   const htmlPreview = useMemo(() => {
     if (mode === 'articles' && (selectedArticles.length < 1 || selectedArticles.length > 6)) {
       return '';
@@ -136,7 +165,15 @@ export default function NewsletterSendPage() {
     setStatus(null);
 
     try {
-      const sanitizedHtml = htmlPreview.replace(/src=["']data:image\/[^"']+["']/gi, 'src=""');
+      let htmlForSend = htmlPreview;
+
+      if (mode === 'articles') {
+        const resolvedArticles = await resolveArticlesForEmail(selectedArticles);
+        htmlForSend = generateMalakinfoNewsletterHtml(resolvedArticles);
+      }
+
+      const sanitizedHtml = htmlForSend; // server will also convert any leftover data: images
+
       const sendingToAllActive =
         recipientMode === 'include' &&
         selectedEmails.length > 0 &&

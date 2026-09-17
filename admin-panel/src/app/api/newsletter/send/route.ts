@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { isSmtpConfigured, sendNewsletterEmail } from '@/lib/email';
+import { replaceDataImagesInHtml } from '@/lib/r2';
 
 export const maxDuration = 300;
 export const runtime = 'nodejs';
@@ -20,13 +21,10 @@ interface Body {
   excludeEmails?: string[];
 }
 
-function stripOversizedDataUris(html: string) {
-  return html.replace(/src=["']data:image\/[^"']+["']/gi, 'src=""');
-}
-
 async function sendLocally(body: Body) {
   const { subject, html: rawHtml, text, filter } = body;
-  const html = stripOversizedDataUris(rawHtml || '');
+  // Convert any leftover base64 images to Cloudflare HTTPS URLs (email-safe).
+  const html = await replaceDataImagesInHtml(rawHtml || '');
 
   if (!subject || !html) {
     return NextResponse.json({ error: 'Sujet et contenu requis' }, { status: 400 });
@@ -36,7 +34,7 @@ async function sendLocally(body: Body) {
     return NextResponse.json(
       {
         error:
-          'Le contenu HTML de la newsletter est trop volumineux. Utilisez des images en URL HTTPS (pas en base64).',
+          'Le contenu HTML de la newsletter est trop volumineux. Les images doivent être en URL HTTPS Cloudflare (pas en base64).',
       },
       { status: 413 },
     );

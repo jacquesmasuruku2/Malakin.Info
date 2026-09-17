@@ -50,10 +50,20 @@ export async function POST(request: NextRequest) {
     const imageUrl = await uploadImageToR2(file, folder);
     console.log('[Upload API] Upload successful, URL:', imageUrl);
 
-    const response = NextResponse.json({ 
-      success: true, 
+    if (!imageUrl || imageUrl.startsWith('data:')) {
+      return NextResponse.json(
+        {
+          error:
+            'Upload R2 a échoué : aucune URL HTTPS publique. Vérifiez R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY et R2_BUCKET_NAME.',
+        },
+        { status: 500 },
+      );
+    }
+
+    const response = NextResponse.json({
+      success: true,
       url: imageUrl,
-      method: imageUrl.startsWith('data:') ? 'base64' : 'r2'
+      method: 'r2',
     });
 
     // Add CORS headers for production

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { syncArticleTags, tagsFromArticle } from '@/lib/tags';
 import { tagNamesFromContent } from '@/lib/tag-name';
+import { ensureArticlePublicImages } from '@/lib/r2';
 
 export async function GET(
   request: NextRequest,
@@ -36,7 +37,8 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
+    const rawBody = await request.json();
+    const body = await ensureArticlePublicImages(rawBody);
     const article = await prisma.article.update({
       where: { id },
       data: {

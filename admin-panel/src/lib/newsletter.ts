@@ -25,6 +25,15 @@ const normalizeText = (value: string | null | undefined, maxLength = 200) => {
   return text.length > maxLength ? `${text.slice(0, maxLength).trim()}...` : text;
 };
 
+/** Email clients block data:image URLs — only HTTPS (or http) sources are safe. */
+export function emailSafeImageUrl(url: string | null | undefined, fallback: string) {
+  if (!url) return fallback;
+  const trimmed = url.trim();
+  if (/^data:/i.test(trimmed)) return fallback;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return fallback;
+}
+
 const buildArticleUrl = (article: NewsletterArticle) => {
   const baseUrl = 'https://malakinfo.com';
   const locale = 'fr';
@@ -163,7 +172,10 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
   const secondary = orderedArticles.slice(1);
 
   const heroUrl = buildArticleUrl(hero);
-  const heroImage = hero.mainImageUrl || 'https://placehold.co/1200x700/0f172a/ffffff?text=Malakinfo';
+  const heroImage = emailSafeImageUrl(
+    hero.mainImageUrl,
+    'https://placehold.co/1200x700/0f172a/ffffff?text=Malakinfo',
+  );
   const heroCategory = hero.category?.title || 'Actualités';
   const heroExcerpt = normalizeText(hero.excerpt, 220);
   const footerSocialLinks = [
@@ -195,7 +207,10 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
 
   const secondaryCards = secondary.map((article) => {
     const articleUrl = buildArticleUrl(article);
-    const image = article.mainImageUrl || 'https://placehold.co/600x400/dc2626/ffffff?text=Malakinfo';
+    const image = emailSafeImageUrl(
+      article.mainImageUrl,
+      'https://placehold.co/600x400/dc2626/ffffff?text=Malakinfo',
+    );
     const category = article.category?.title || 'Actualités';
     const title = escapeHtml(article.title);
     const excerpt = escapeHtml(normalizeText(article.excerpt, 120));

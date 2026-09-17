@@ -187,6 +187,11 @@ export default function NewArticlePage() {
       const data = await response.json();
       
       if (data.success && data.url) {
+        if (String(data.url).startsWith('data:')) {
+          throw new Error(
+            'L’image a été enregistrée en base64 (incompatible email). Vérifiez les credentials Cloudflare R2.',
+          );
+        }
         if (isMainImage) {
           setFormData({ ...formData, mainImageUrl: data.url });
         } else {
@@ -195,10 +200,16 @@ export default function NewArticlePage() {
             additionalImages: [...formData.additionalImages, data.url] 
           });
         }
+      } else {
+        throw new Error(data.error || 'Upload failed');
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Erreur lors de l\'upload de l\'image');
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Erreur lors de l\'upload de l\'image',
+      );
     } finally {
       setUploadingImage(false);
       setUploadProgress(0);

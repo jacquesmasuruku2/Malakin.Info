@@ -72,7 +72,10 @@ async function uploadBlogImage(file: File): Promise<string | null> {
   if (!response.ok) return null;
 
   const data = await response.json();
-  return data?.success && data.url ? String(data.url) : null;
+  if (!data?.success || !data.url || String(data.url).startsWith('data:')) {
+    return null;
+  }
+  return String(data.url);
 }
 
 export default function WordEditor({ content, onChange, locale = 'fr', onAddTag }: WordEditorProps) {
