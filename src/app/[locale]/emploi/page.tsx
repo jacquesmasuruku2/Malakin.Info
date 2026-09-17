@@ -39,7 +39,7 @@ export default async function EmploiPage({
     'https://media.malakinfo.com/images_blogs/Kinshasa.png';
 
   return (
-    <div className="min-h-screen bg-[#f4f6f9]">
+    <div className="min-h-screen bg-background text-foreground">
       <section className="relative isolate overflow-hidden bg-[#081c3d] text-white">
         <div
           className="absolute inset-0 scale-105 bg-cover bg-center opacity-35"
@@ -77,16 +77,16 @@ export default async function EmploiPage({
       </section>
 
       <main id="offres" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-        <div className="mb-10 flex flex-col gap-3 border-b border-[#081c3d]/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-10 flex flex-col gap-3 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#0b3b8b]">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">
               {isFrench ? 'Ouvertures' : 'Openings'}
             </p>
-            <h2 className="mt-2 font-heading text-3xl font-bold text-[#081c3d] sm:text-4xl">
+            <h2 className="mt-2 font-heading text-3xl font-bold text-foreground sm:text-4xl">
               {isFrench ? 'Offres d’emploi' : 'Job offers'}
             </h2>
           </div>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             {jobOffers.length === 0
               ? isFrench
                 ? 'Aucune offre pour le moment'
@@ -98,7 +98,7 @@ export default async function EmploiPage({
         </div>
 
         {jobOffers.length === 0 ? (
-          <div className="border border-dashed border-slate-300 bg-white/70 px-6 py-20 text-center text-slate-600">
+          <div className="border border-dashed border-border bg-card/70 px-6 py-20 text-center text-muted-foreground">
             {isFrench
               ? 'Aucune offre d’emploi disponible pour le moment. Revenez bientôt.'
               : 'No job offers are available right now. Check back soon.'}
@@ -135,30 +135,30 @@ export default async function EmploiPage({
                       ) : null}
                     </div>
 
-                    <span className="mb-2 inline-block bg-[#0b3b8b] px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+                    <span className="mb-2 inline-block bg-primary px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primary-foreground">
                       {job.type}
                     </span>
 
                     <time
                       dateTime={new Date(job.publishedAt).toISOString()}
-                      className="mb-1.5 flex items-center gap-1.5 text-xs text-slate-500"
+                      className="mb-1.5 flex items-center gap-1.5 text-xs text-muted-foreground"
                     >
                       <Calendar className="h-3.5 w-3.5" />
                       {formatDate(job.publishedAt, locale)}
                     </time>
 
-                    <h3 className="font-heading text-[1.25rem] font-bold leading-snug text-[#081c3d] transition-colors group-hover:text-[#0b3b8b]">
+                    <h3 className="font-heading text-[1.25rem] font-bold leading-snug text-foreground transition-colors group-hover:text-primary">
                       {job.title}
                     </h3>
 
                     {excerpt ? (
-                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">
+                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">
                         {excerpt}
                         {excerpt.length >= 140 ? '…' : ''}
                       </p>
                     ) : null}
 
-                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                       {job.location ? (
                         <span className="inline-flex items-center gap-1">
                           <MapPin className="h-3.5 w-3.5" />
@@ -168,7 +168,7 @@ export default async function EmploiPage({
                       {job.salary ? <span>{job.salary}</span> : null}
                     </div>
 
-                    <span className="mt-4 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#0b3b8b] transition group-hover:gap-3 group-hover:text-[#b88f18]">
+                    <span className="mt-4 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-primary transition group-hover:gap-3 group-hover:text-secondary">
                       {isFrench ? 'Voir l’offre' : 'View opening'}
                       <ArrowRight className="h-3.5 w-3.5" />
                     </span>

@@ -47,15 +47,15 @@ function ContentBlock({
   if (!content?.trim()) return null;
 
   return (
-    <section className="border-t border-[#081c3d]/10 pt-10 first:border-t-0 first:pt-0">
-      <h2 className="font-heading text-2xl font-bold text-[#081c3d] sm:text-3xl">{title}</h2>
+    <section className="border-t border-border pt-10 first:border-t-0 first:pt-0">
+      <h2 className="font-heading text-2xl font-bold text-foreground sm:text-3xl">{title}</h2>
       {html || looksLikeHtml(content) ? (
         <div
-          className="prose prose-slate mt-5 max-w-none prose-headings:font-heading prose-headings:text-[#081c3d] prose-a:text-[#0b3b8b] prose-strong:text-[#081c3d]"
+          className="prose prose-slate mt-5 max-w-none dark:prose-invert prose-headings:font-heading prose-headings:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
           dangerouslySetInnerHTML={{ __html: content }}
         />
       ) : (
-        <div className="mt-5 whitespace-pre-line text-base leading-8 text-slate-700">{content}</div>
+        <div className="mt-5 whitespace-pre-line text-base leading-8 text-muted-foreground">{content}</div>
       )}
     </section>
   );
@@ -198,10 +198,10 @@ export default function JobOfferDetail({
   ] as const;
 
   const fieldClass =
-    'w-full border-0 border-b border-[#081c3d]/20 bg-transparent px-0 py-3 text-[#081c3d] outline-none transition placeholder:text-slate-400 focus:border-[#d4af37]';
+    'w-full border-0 border-b border-border bg-transparent px-0 py-3 text-foreground outline-none transition placeholder:text-muted-foreground focus:border-secondary';
 
   return (
-    <div className="min-h-screen bg-[#f4f6f9]">
+    <div className="min-h-screen bg-background text-foreground">
       <section className="relative isolate min-h-[52vh] overflow-hidden bg-[#081c3d] text-white sm:min-h-[58vh]">
         {jobOffer.imageUrl ? (
           <div
@@ -265,7 +265,7 @@ export default function JobOfferDetail({
 
       <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
         {isExpired && jobOffer.deadline ? (
-          <p className="mb-10 border-l-2 border-[#e63946] pl-4 text-sm font-medium text-[#e63946]">
+          <p className="mb-10 border-l-2 border-destructive pl-4 text-sm font-medium text-destructive">
             {isFrench
               ? `Cette offre a expiré le ${formatDate(jobOffer.deadline)}.`
               : `This opening expired on ${formatDate(jobOffer.deadline)}.`}
@@ -297,23 +297,23 @@ export default function JobOfferDetail({
           )}
         </div>
 
-        <dl className="mt-12 grid gap-6 border-t border-[#081c3d]/10 pt-8 text-sm sm:grid-cols-2">
+        <dl className="mt-12 grid gap-6 border-t border-border pt-8 text-sm sm:grid-cols-2">
           {jobOffer.publishedAt ? (
             <div>
-              <dt className="flex items-center gap-2 text-slate-500">
+              <dt className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 {isFrench ? 'Publication' : 'Published'}
               </dt>
-              <dd className="mt-1 font-medium text-[#081c3d]">{formatDate(jobOffer.publishedAt)}</dd>
+              <dd className="mt-1 font-medium text-foreground">{formatDate(jobOffer.publishedAt)}</dd>
             </div>
           ) : null}
           {jobOffer.deadline ? (
             <div>
-              <dt className="flex items-center gap-2 text-slate-500">
+              <dt className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-4 w-4" />
                 {isFrench ? 'Date limite' : 'Deadline'}
               </dt>
-              <dd className={`mt-1 font-medium ${isExpired ? 'text-[#e63946]' : 'text-[#081c3d]'}`}>
+              <dd className={`mt-1 font-medium ${isExpired ? 'text-destructive' : 'text-foreground'}`}>
                 {formatDate(jobOffer.deadline)}
               </dd>
             </div>
@@ -321,14 +321,14 @@ export default function JobOfferDetail({
         </dl>
 
         {!isExpired ? (
-          <section id="postuler" className="mt-16 border-t border-[#081c3d]/15 pt-12">
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#0b3b8b]">
+          <section id="postuler" className="mt-16 border-t border-border pt-12">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">
               {isFrench ? 'Candidature' : 'Application'}
             </p>
-            <h2 className="mt-3 font-heading text-3xl font-bold text-[#081c3d]">
+            <h2 className="mt-3 font-heading text-3xl font-bold text-foreground">
               {isFrench ? 'Postuler à cette offre' : 'Apply for this role'}
             </h2>
-            <p className="mt-3 max-w-xl text-base leading-7 text-slate-600">
+            <p className="mt-3 max-w-xl text-base leading-7 text-muted-foreground">
               {isAuthenticated
                 ? isFrench
                   ? 'Remplissez le formulaire pour soumettre votre candidature.'
@@ -340,40 +340,40 @@ export default function JobOfferDetail({
 
             {success ? (
               <div className="mt-8 space-y-4">
-                <p className="border-l-2 border-[#d4af37] pl-4 text-sm font-medium text-[#081c3d]">
+                <p className="border-l-2 border-secondary pl-4 text-sm font-medium text-foreground">
                   {isFrench
                     ? 'Votre candidature a été envoyée. Merci pour votre intérêt.'
                     : 'Your application has been sent. Thank you for your interest.'}
                 </p>
                 <Link
                   href={`/${locale}/compte/candidatures`}
-                  className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#0b3b8b] hover:text-[#b88f18]"
+                  className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-primary hover:text-secondary"
                 >
                   {isFrench ? 'Suivre ma candidature' : 'Track my application'}
                 </Link>
               </div>
             ) : !ready ? (
-              <p className="mt-8 text-sm text-slate-500">
+              <p className="mt-8 text-sm text-muted-foreground">
                 {isFrench ? 'Vérification de votre session…' : 'Checking your session…'}
               </p>
             ) : !isAuthenticated ? (
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Link
                   href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(returnUrl)}`}
-                  className="inline-flex items-center gap-2 bg-[#0b3b8b] px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#081c3d]"
+                  className="inline-flex items-center gap-2 bg-primary px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.16em] text-primary-foreground transition hover:opacity-90"
                 >
                   {isFrench ? 'Se connecter' : 'Sign in'}
                 </Link>
                 <Link
                   href={`/${locale}/compte/inscription?redirect=${encodeURIComponent(returnUrl)}`}
-                  className="inline-flex items-center gap-2 border border-[#081c3d]/25 px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#081c3d] transition hover:border-[#d4af37] hover:text-[#0b3b8b]"
+                  className="inline-flex items-center gap-2 border border-border px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.16em] text-foreground transition hover:border-secondary hover:text-primary"
                 >
                   {isFrench ? 'Créer un compte' : 'Create account'}
                 </Link>
                 <button
                   type="button"
                   onClick={() => signIn('google', { callbackUrl: returnUrl })}
-                  className="px-2 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500 transition hover:text-[#081c3d]"
+                  className="px-2 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground transition hover:text-foreground"
                 >
                   Google
                 </button>
@@ -382,7 +382,7 @@ export default function JobOfferDetail({
               <button
                 type="button"
                 onClick={openApplicationForm}
-                className="mt-8 inline-flex items-center gap-2 bg-[#0b3b8b] px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#081c3d]"
+                className="mt-8 inline-flex items-center gap-2 bg-primary px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.16em] text-primary-foreground transition hover:opacity-90"
               >
                 <Send className="h-4 w-4" />
                 {isFrench ? 'Remplir le formulaire' : 'Open application form'}
@@ -393,12 +393,12 @@ export default function JobOfferDetail({
                 className="mt-10 space-y-8 motion-safe:animate-[fadeInUp_0.4s_ease_both]"
               >
                 {error ? (
-                  <p className="border-l-2 border-[#e63946] pl-4 text-sm font-medium text-[#e63946]">{error}</p>
+                  <p className="border-l-2 border-destructive pl-4 text-sm font-medium text-destructive">{error}</p>
                 ) : null}
 
                 <div className="grid gap-8 sm:grid-cols-2">
                   <label className="block">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
                       {isFrench ? 'Nom complet *' : 'Full name *'}
                     </span>
                     <input
@@ -410,7 +410,7 @@ export default function JobOfferDetail({
                     />
                   </label>
                   <label className="block">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
                       Email *
                     </span>
                     <input
@@ -424,7 +424,7 @@ export default function JobOfferDetail({
                 </div>
 
                 <label className="block">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
                     {isFrench ? 'Téléphone' : 'Phone'}
                   </span>
                   <input
@@ -436,7 +436,7 @@ export default function JobOfferDetail({
                 </label>
 
                 <label className="block">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
                     {isFrench ? 'Lettre de motivation' : 'Cover letter'}
                   </span>
                   <textarea
@@ -448,7 +448,7 @@ export default function JobOfferDetail({
                 </label>
 
                 <label className="block">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
                     {isFrench ? 'Lien vers votre CV (URL)' : 'Resume link (URL)'}
                   </span>
                   <input
@@ -464,7 +464,7 @@ export default function JobOfferDetail({
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="inline-flex items-center gap-2 bg-[#0b3b8b] px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#081c3d] disabled:opacity-50"
+                    className="inline-flex items-center gap-2 bg-primary px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.16em] text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
                   >
                     <Send className="h-4 w-4" />
                     {submitting
@@ -481,7 +481,7 @@ export default function JobOfferDetail({
                       setShowForm(false);
                       setError('');
                     }}
-                    className="px-2 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500 transition hover:text-[#081c3d]"
+                    className="px-2 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground transition hover:text-foreground"
                   >
                     {isFrench ? 'Annuler' : 'Cancel'}
                   </button>

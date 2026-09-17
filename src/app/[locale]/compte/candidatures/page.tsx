@@ -51,12 +51,36 @@ type JobApplicationItem = {
 };
 
 const STATUS_META: Record<string, { fr: string; en: string; tone: string }> = {
-  pending: { fr: 'En attente', en: 'Pending', tone: 'bg-[#d4af37]/15 text-[#8a6d12]' },
-  reviewing: { fr: 'En examen', en: 'Under review', tone: 'bg-[#0b3b8b]/10 text-[#0b3b8b]' },
-  interview: { fr: 'Entretien', en: 'Interview', tone: 'bg-[#081c3d]/10 text-[#081c3d]' },
-  accepted: { fr: 'Acceptée', en: 'Accepted', tone: 'bg-emerald-100 text-emerald-800' },
-  rejected: { fr: 'Refusée', en: 'Declined', tone: 'bg-red-100 text-red-700' },
-  withdrawn: { fr: 'Retirée', en: 'Withdrawn', tone: 'bg-slate-200 text-slate-600' },
+  pending: {
+    fr: 'En attente',
+    en: 'Pending',
+    tone: 'bg-secondary/15 text-[#8a6d12] dark:text-[#d4af37]',
+  },
+  reviewing: {
+    fr: 'En examen',
+    en: 'Under review',
+    tone: 'bg-primary/10 text-primary',
+  },
+  interview: {
+    fr: 'Entretien',
+    en: 'Interview',
+    tone: 'bg-muted text-foreground',
+  },
+  accepted: {
+    fr: 'Acceptée',
+    en: 'Accepted',
+    tone: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+  },
+  rejected: {
+    fr: 'Refusée',
+    en: 'Declined',
+    tone: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300',
+  },
+  withdrawn: {
+    fr: 'Retirée',
+    en: 'Withdrawn',
+    tone: 'bg-muted text-muted-foreground',
+  },
 };
 
 function formatDate(value: string | Date | null | undefined, locale: string) {
@@ -107,6 +131,9 @@ export default function AccountApplicationsPage() {
 
   const canEdit = selected && !['accepted', 'rejected', 'withdrawn'].includes(selected.status);
   const canChat = selected && selected.status !== 'withdrawn';
+
+  const fieldClass =
+    'mt-1 w-full border-0 border-b border-border bg-transparent px-0 py-3 text-foreground outline-none focus:border-secondary disabled:opacity-60';
 
   const loadApplications = async () => {
     setLoading(true);
@@ -248,23 +275,23 @@ export default function AccountApplicationsPage() {
   };
 
   const statusLabel = (status: string) => {
-    const meta = STATUS_META[status] || { fr: status, en: status, tone: 'bg-slate-100 text-slate-700' };
+    const meta = STATUS_META[status] || { fr: status, en: status, tone: 'bg-muted text-muted-foreground' };
     return isFrench ? meta.fr : meta.en;
   };
 
   const statusTone = (status: string) =>
-    (STATUS_META[status] || { tone: 'bg-slate-100 text-slate-700' }).tone;
+    (STATUS_META[status] || { tone: 'bg-muted text-muted-foreground' }).tone;
 
   if (!ready || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f4f6f9] text-slate-500">
+      <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
         {isFrench ? 'Chargement…' : 'Loading…'}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f4f6f9]">
+    <div className="min-h-screen bg-background text-foreground">
       <section className="relative overflow-hidden bg-[#081c3d] text-white">
         <div
           className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(212,175,55,0.22),transparent_40%),linear-gradient(135deg,#0b3b8b,#081c3d_55%,#061229)]"
@@ -303,23 +330,23 @@ export default function AccountApplicationsPage() {
 
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
         {error && !selected ? (
-          <p className="mb-6 border-l-2 border-[#e63946] pl-4 text-sm font-medium text-[#e63946]">{error}</p>
+          <p className="mb-6 border-l-2 border-destructive pl-4 text-sm font-medium text-destructive">{error}</p>
         ) : null}
 
         {applications.length === 0 ? (
-          <div className="border border-dashed border-slate-300 bg-white/70 px-6 py-20 text-center">
-            <Briefcase className="mx-auto h-12 w-12 text-[#d4af37]" />
-            <h2 className="mt-4 font-heading text-2xl font-bold text-[#081c3d]">
+          <div className="border border-dashed border-border bg-card/70 px-6 py-20 text-center">
+            <Briefcase className="mx-auto h-12 w-12 text-secondary" />
+            <h2 className="mt-4 font-heading text-2xl font-bold text-foreground">
               {isFrench ? 'Aucune candidature pour le moment' : 'No applications yet'}
             </h2>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
               {isFrench
                 ? 'Quand vous postulerez, la conversation avec les recruteurs apparaîtra ici dans votre compte.'
                 : 'When you apply, your conversation with recruiters will appear here in your account.'}
             </p>
             <Link
               href={`/${locale}/emploi`}
-              className="mt-8 inline-flex items-center gap-2 bg-[#0b3b8b] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#081c3d]"
+              className="mt-8 inline-flex items-center gap-2 bg-primary px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-primary-foreground transition hover:opacity-90"
             >
               <Send className="h-4 w-4" />
               {isFrench ? 'Découvrir les offres' : 'Discover openings'}
@@ -328,7 +355,7 @@ export default function AccountApplicationsPage() {
         ) : (
           <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
             <aside className="space-y-3">
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#0b3b8b]">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
                 {applications.length}{' '}
                 {isFrench
                   ? `candidature${applications.length > 1 ? 's' : ''}`
@@ -344,8 +371,8 @@ export default function AccountApplicationsPage() {
                     onClick={() => setSelectedId(item.id)}
                     className={`w-full border px-4 py-4 text-left transition ${
                       active
-                        ? 'border-[#d4af37] bg-white shadow-sm'
-                        : 'border-transparent bg-white/60 hover:border-[#081c3d]/15 hover:bg-white'
+                        ? 'border-secondary bg-card shadow-sm'
+                        : 'border-transparent bg-card/60 hover:border-border hover:bg-card'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -353,15 +380,15 @@ export default function AccountApplicationsPage() {
                         {statusLabel(item.status)}
                       </span>
                       {unread > 0 ? (
-                        <span className="bg-[#e63946] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                        <span className="bg-destructive px-1.5 py-0.5 text-[10px] font-bold text-white">
                           {unread}
                         </span>
                       ) : null}
                     </div>
-                    <h2 className="mt-2 font-heading text-lg font-bold leading-snug text-[#081c3d]">
+                    <h2 className="mt-2 font-heading text-lg font-bold leading-snug text-foreground">
                       {item.jobOffer?.title || (isFrench ? 'Offre' : 'Opening')}
                     </h2>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       {formatDate(item.createdAt, locale)}
                       {item.messages?.[0] || item.adminMessage
                         ? ` · ${isFrench ? 'Échanges actifs' : 'Active thread'}`
@@ -373,16 +400,16 @@ export default function AccountApplicationsPage() {
             </aside>
 
             {selected ? (
-              <section className="bg-white px-5 py-6 sm:px-8 sm:py-8">
-                <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#081c3d]/10 pb-6">
+              <section className="bg-card px-5 py-6 sm:px-8 sm:py-8">
+                <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
                   <div>
                     <span className={`inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${statusTone(selected.status)}`}>
                       {statusLabel(selected.status)}
                     </span>
-                    <h2 className="mt-3 font-heading text-3xl font-bold text-[#081c3d]">
+                    <h2 className="mt-3 font-heading text-3xl font-bold text-foreground">
                       {selected.jobOffer?.title}
                     </h2>
-                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
+                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                       {selected.jobOffer?.type ? (
                         <span className="inline-flex items-center gap-1.5">
                           <Briefcase className="h-4 w-4" />
@@ -404,7 +431,7 @@ export default function AccountApplicationsPage() {
                   {selected.jobOffer?.slug ? (
                     <Link
                       href={`/${locale}/emploi/${selected.jobOffer.slug}`}
-                      className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#0b3b8b] hover:text-[#b88f18]"
+                      className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-primary hover:text-secondary"
                     >
                       {isFrench ? 'Voir l’offre' : 'View opening'}
                       <ExternalLink className="h-3.5 w-3.5" />
@@ -413,19 +440,19 @@ export default function AccountApplicationsPage() {
                 </div>
 
                 <div className="mt-8">
-                  <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#0b3b8b]">
+                  <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
                     <MessageSquareText className="h-4 w-4" />
                     {isFrench ? 'Conversation avec le recrutement' : 'Conversation with hiring'}
                   </p>
-                  <p className="mt-2 text-sm text-slate-500">
+                  <p className="mt-2 text-sm text-muted-foreground">
                     {isFrench
                       ? 'Les réponses et échanges se font uniquement ici, dans votre compte connecté.'
                       : 'Responses and exchanges happen only here, in your signed-in account.'}
                   </p>
 
-                  <div className="mt-5 max-h-[420px] space-y-3 overflow-y-auto border border-[#081c3d]/10 bg-[#f8f9fb] p-4">
+                  <div className="mt-5 max-h-[420px] space-y-3 overflow-y-auto border border-border bg-muted/40 p-4">
                     {thread.length === 0 ? (
-                      <p className="text-sm text-slate-500">
+                      <p className="text-sm text-muted-foreground">
                         {isFrench
                           ? 'Aucun message pour l’instant. Dès qu’un recruteur vous répond, le fil s’affiche ici.'
                           : 'No messages yet. As soon as a recruiter replies, the thread appears here.'}
@@ -438,11 +465,15 @@ export default function AccountApplicationsPage() {
                             key={item.id}
                             className={`max-w-[90%] px-4 py-3 ${
                               fromRecruiter
-                                ? 'mr-auto border-l-2 border-[#d4af37] bg-white'
-                                : 'ml-auto bg-[#0b3b8b] text-white'
+                                ? 'mr-auto border-l-2 border-secondary bg-card'
+                                : 'ml-auto bg-primary text-primary-foreground'
                             }`}
                           >
-                            <p className={`text-[10px] font-bold uppercase tracking-[0.14em] ${fromRecruiter ? 'text-[#8a6d12]' : 'text-blue-100'}`}>
+                            <p
+                              className={`text-[10px] font-bold uppercase tracking-[0.14em] ${
+                                fromRecruiter ? 'text-secondary' : 'text-primary-foreground/80'
+                              }`}
+                            >
                               {fromRecruiter
                                 ? item.senderName || 'MalakInfo Recrutement'
                                 : isFrench
@@ -450,7 +481,11 @@ export default function AccountApplicationsPage() {
                                   : 'You'}
                             </p>
                             <p className="mt-2 whitespace-pre-wrap text-sm leading-6">{item.body}</p>
-                            <p className={`mt-2 text-[11px] ${fromRecruiter ? 'text-slate-400' : 'text-blue-100/80'}`}>
+                            <p
+                              className={`mt-2 text-[11px] ${
+                                fromRecruiter ? 'text-muted-foreground' : 'text-primary-foreground/70'
+                              }`}
+                            >
                               {formatDateTime(item.createdAt, locale)}
                             </p>
                           </div>
@@ -470,12 +505,12 @@ export default function AccountApplicationsPage() {
                             ? 'Écrire aux recruteurs…'
                             : 'Write to the recruiters…'
                         }
-                        className="w-full resize-none border-0 border-b border-[#081c3d]/20 bg-transparent px-0 py-3 text-[#081c3d] outline-none focus:border-[#d4af37]"
+                        className="w-full resize-none border-0 border-b border-border bg-transparent px-0 py-3 text-foreground outline-none focus:border-secondary"
                       />
                       <button
                         type="submit"
                         disabled={sending || !reply.trim()}
-                        className="inline-flex items-center gap-2 bg-[#0b3b8b] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#081c3d] disabled:opacity-50"
+                        className="inline-flex items-center gap-2 bg-primary px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
                       >
                         <Send className="h-4 w-4" />
                         {sending
@@ -488,7 +523,7 @@ export default function AccountApplicationsPage() {
                       </button>
                     </form>
                   ) : (
-                    <p className="mt-4 text-sm text-slate-500">
+                    <p className="mt-4 text-sm text-muted-foreground">
                       {isFrench
                         ? 'Cette candidature est retirée : la conversation est en lecture seule.'
                         : 'This application was withdrawn: the conversation is read-only.'}
@@ -496,20 +531,20 @@ export default function AccountApplicationsPage() {
                   )}
                 </div>
 
-                <div className="mt-10 space-y-6 border-t border-[#081c3d]/10 pt-8">
-                  <h3 className="font-heading text-xl font-bold text-[#081c3d]">
+                <div className="mt-10 space-y-6 border-t border-border pt-8">
+                  <h3 className="font-heading text-xl font-bold text-foreground">
                     {isFrench ? 'Votre dossier' : 'Your application file'}
                   </h3>
 
                   {message ? (
-                    <p className="border-l-2 border-[#d4af37] pl-4 text-sm font-medium text-[#081c3d]">{message}</p>
+                    <p className="border-l-2 border-secondary pl-4 text-sm font-medium text-foreground">{message}</p>
                   ) : null}
                   {error ? (
-                    <p className="border-l-2 border-[#e63946] pl-4 text-sm font-medium text-[#e63946]">{error}</p>
+                    <p className="border-l-2 border-destructive pl-4 text-sm font-medium text-destructive">{error}</p>
                   ) : null}
 
                   <label className="block">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
                       {isFrench ? 'Téléphone' : 'Phone'}
                     </span>
                     <input
@@ -517,12 +552,12 @@ export default function AccountApplicationsPage() {
                       disabled={!canEdit}
                       value={editData.phone}
                       onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                      className="mt-1 w-full border-0 border-b border-[#081c3d]/20 bg-transparent px-0 py-3 text-[#081c3d] outline-none focus:border-[#d4af37] disabled:opacity-60"
+                      className={fieldClass}
                     />
                   </label>
 
                   <label className="block">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
                       {isFrench ? 'Lettre de motivation' : 'Cover letter'}
                     </span>
                     <textarea
@@ -530,12 +565,12 @@ export default function AccountApplicationsPage() {
                       disabled={!canEdit}
                       value={editData.coverLetter}
                       onChange={(e) => setEditData({ ...editData, coverLetter: e.target.value })}
-                      className="mt-1 w-full resize-none border-0 border-b border-[#081c3d]/20 bg-transparent px-0 py-3 text-[#081c3d] outline-none focus:border-[#d4af37] disabled:opacity-60"
+                      className={`${fieldClass} resize-none`}
                     />
                   </label>
 
                   <label className="block">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
                       {isFrench ? 'Lien CV (URL)' : 'Resume link (URL)'}
                     </span>
                     <input
@@ -543,7 +578,7 @@ export default function AccountApplicationsPage() {
                       disabled={!canEdit}
                       value={editData.resumeUrl}
                       onChange={(e) => setEditData({ ...editData, resumeUrl: e.target.value })}
-                      className="mt-1 w-full border-0 border-b border-[#081c3d]/20 bg-transparent px-0 py-3 text-[#081c3d] outline-none focus:border-[#d4af37] disabled:opacity-60"
+                      className={fieldClass}
                     />
                   </label>
 
@@ -553,7 +588,7 @@ export default function AccountApplicationsPage() {
                         type="button"
                         onClick={handleSave}
                         disabled={saving}
-                        className="inline-flex items-center gap-2 bg-[#0b3b8b] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#081c3d] disabled:opacity-50"
+                        className="inline-flex items-center gap-2 bg-primary px-5 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
                       >
                         <Save className="h-4 w-4" />
                         {saving
@@ -568,14 +603,14 @@ export default function AccountApplicationsPage() {
                         type="button"
                         onClick={handleWithdraw}
                         disabled={saving}
-                        className="inline-flex items-center gap-2 px-2 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-red-600 transition hover:text-red-800 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 px-2 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-destructive transition hover:opacity-80 disabled:opacity-50"
                       >
                         <Trash2 className="h-4 w-4" />
                         {isFrench ? 'Retirer ma candidature' : 'Withdraw application'}
                       </button>
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-muted-foreground">
                       {pickCopy(locale, {
                         fr: 'Cette candidature est clôturée et ne peut plus être modifiée.',
                         en: 'This application is closed and can no longer be edited.',
