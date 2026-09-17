@@ -237,12 +237,20 @@ export default async function ArticlePage({
 
         <main className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8">
           <header className="mb-8 w-full">
+            {displayCategoryTitle ? (
+              <Link
+                href={`/${locale}/${article.category?.slug || category}`}
+                className="mb-3 inline-block text-sm text-foreground underline underline-offset-2 decoration-foreground/50 transition-colors hover:decoration-foreground"
+              >
+                {displayCategoryTitle}
+              </Link>
+            ) : null}
             <div className="mb-3 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
               <span>{formattedDate}</span>
               <ArticleAuthorLink author={article.author} locale={locale} />
             </div>
 
-            <h1 className={`${playfair.className} text-[2.25rem] font-bold leading-[1.08] tracking-[-0.03em] text-foreground md:text-[3.5rem]`}>
+            <h1 className={`${playfair.className} text-[1.55rem] font-bold leading-[1.15] tracking-[-0.02em] text-foreground sm:text-[2.4rem] md:text-[3.2rem]`}>
               {displayTitle}
             </h1>
           </header>

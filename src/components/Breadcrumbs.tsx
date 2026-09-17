@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChevronRight, Home } from 'lucide-react';
+import { Home } from 'lucide-react';
 
 interface BreadcrumbItem {
   label: string;
@@ -12,28 +12,36 @@ interface BreadcrumbsProps {
 }
 
 export default function Breadcrumbs({ items, locale }: BreadcrumbsProps) {
+  // Ne pas afficher le titre d’article dans le fil (évite la répétition avec le H1).
+  const visibleItems = items.filter((item) => Boolean(item.href));
+
   return (
-    <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-4" aria-label="Breadcrumb">
-      <Link 
-        href={`/${locale}`} 
-        className="hover:text-foreground transition-colors flex items-center"
+    <nav
+      className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground"
+      aria-label="Breadcrumb"
+    >
+      <Link
+        href={`/${locale}`}
+        className="inline-flex items-center transition-colors hover:text-foreground"
         aria-label="Accueil"
       >
-        <Home className="w-4 h-4" />
+        <Home className="h-4 w-4" />
       </Link>
-      
-      {items.map((item, index) => (
-        <div key={index} className="flex items-center">
-          <ChevronRight className="w-4 h-4 mx-2" />
+
+      {visibleItems.map((item, index) => (
+        <div key={`${item.href}-${index}`} className="flex min-w-0 items-center gap-2">
+          <span className="text-muted-foreground/70" aria-hidden="true">
+            /
+          </span>
           {item.href ? (
-            <Link 
-              href={item.href} 
-              className="hover:text-foreground transition-colors"
+            <Link
+              href={item.href}
+              className="truncate text-foreground underline underline-offset-2 decoration-foreground/40 transition-colors hover:decoration-foreground"
             >
               {item.label}
             </Link>
           ) : (
-            <span className="text-foreground font-medium">{item.label}</span>
+            <span className="truncate text-foreground">{item.label}</span>
           )}
         </div>
       ))}

@@ -157,34 +157,33 @@ export default async function CultureCatchAllPage({
             </div>
 
             <article className="w-full min-w-0">
-              <div className="mb-6">
-                <Link
-                  href={`/${locale}/${article.category?.slug || 'actualites'}`}
-                  className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs sm:text-sm font-medium rounded-full mb-3 sm:mb-4 hover:bg-primary/20 transition-colors"
-                >
-                  {translatedCategory.title || article.category?.title || 'Actualités'}
-                </Link>
-                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                    {formattedDate}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                    {readTime}
-                  </span>
-                </div>
-              </div>
+              <Link
+                href={`/${locale}/${article.category?.slug || 'culture'}`}
+                className="mb-3 inline-block text-sm text-foreground underline underline-offset-2 decoration-foreground/50 transition-colors hover:decoration-foreground sm:mb-4"
+              >
+                {translatedCategory.title || article.category?.title || 'Culture'}
+              </Link>
 
-              <h1 className="font-heading text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem] font-bold text-foreground mb-4 sm:mb-6 leading-[1.08] tracking-[-0.03em]">
+              <h1 className="font-heading mb-3 text-[1.55rem] font-bold leading-[1.15] tracking-[-0.02em] text-foreground sm:mb-5 sm:text-[2.4rem] md:text-[3rem] lg:text-[3.4rem]">
                 {displayTitle}
               </h1>
 
               {displayExcerpt && (
-                <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
+                <p className="mb-4 text-[0.98rem] leading-relaxed text-muted-foreground sm:mb-6 sm:text-lg md:text-xl">
                   {displayExcerpt}
                 </p>
               )}
+
+              <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground sm:mb-8 sm:gap-x-4 sm:text-sm">
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  {formattedDate}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  {readTime}
+                </span>
+              </div>
 
               {article.mainImageUrl && (
                 <div className="mb-8">

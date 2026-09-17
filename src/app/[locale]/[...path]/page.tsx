@@ -309,19 +309,21 @@ export default async function CatchAllArticlePage({
         <div className="min-h-screen bg-background">
         <ViewIncrementer articleId={article.id} />
         {/* Header */}
-        <header className="bg-muted/50 border-b border-border">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <header className="border-b border-border bg-muted/50">
+          <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
             <Breadcrumbs
               locale={locale}
               items={[
-                { label: translatedCategory.title || article.category?.title || 'Actualités', href: `/${locale}/${article.category?.slug || 'actualites'}` },
-                { label: displayTitle },
+                {
+                  label: translatedCategory.title || article.category?.title || 'Actualités',
+                  href: `/${locale}/${article.category?.slug || 'actualites'}`,
+                },
               ]}
             />
           </div>
         </header>
 
-        <div className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+        <div className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
           <div className="grid grid-cols-1 gap-8 xl:grid-cols-[72px_minmax(0,1fr)_300px]">
             <div className="hidden xl:flex xl:justify-center xl:pt-8">
               <div className="sticky top-24">
@@ -335,35 +337,27 @@ export default async function CatchAllArticlePage({
             </div>
 
             <article className="w-full min-w-0">
-              <div className="mb-6">
-                <Link
-                  href={`/${locale}/${article.category?.slug || 'actualites'}`}
-                  className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs sm:text-sm font-medium rounded-full mb-3 sm:mb-4 hover:bg-primary/20 transition-colors"
-                >
-                  {translatedCategory.title || article.category?.title || 'Actualités'}
-                </Link>
-                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                    {formattedDate}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                    {readTime}
-                  </span>
-                  <ArticleAuthorLink author={article.author} locale={locale} />
-                </div>
-              </div>
-
-              <h1 className="font-heading text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem] font-bold text-foreground mb-4 sm:mb-6 leading-[1.08] tracking-[-0.03em]">
+              <h1 className="font-heading mb-3 text-[1.55rem] font-bold leading-[1.15] tracking-[-0.02em] text-foreground sm:mb-5 sm:text-[2.4rem] md:text-[3rem] lg:text-[3.4rem]">
                 {displayTitle}
               </h1>
 
               {displayExcerpt && (
-                <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
+                <p className="mb-4 text-[0.98rem] leading-relaxed text-muted-foreground sm:mb-6 sm:text-lg md:text-xl">
                   {displayExcerpt}
                 </p>
               )}
+
+              <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground sm:mb-8 sm:gap-x-4 sm:text-sm">
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  {formattedDate}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  {readTime}
+                </span>
+                <ArticleAuthorLink author={article.author} locale={locale} />
+              </div>
 
               {article.mainImageUrl && (
                 <div className="mb-8">
