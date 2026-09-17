@@ -261,30 +261,34 @@ export default async function ArticlePage({
 
             <article className="w-full min-w-0">
               {article.mainImageUrl && (
-                <div className="mb-8 overflow-hidden bg-white">
-                  <img
-                    src={article.mainImageUrl}
-                    alt={article.mainImageAlt || displayTitle}
-                    className="block h-auto w-full object-cover"
-                  />
+                <div className="mb-8">
+                  <div className="article-image-frame">
+                    <img
+                      src={article.mainImageUrl}
+                      alt={article.mainImageAlt || displayTitle}
+                      className="block h-auto w-full object-cover"
+                    />
+                  </div>
                   {article.mainImageAlt && (
-                    <p className="px-2 pt-2 text-sm italic text-muted-foreground">{article.mainImageAlt}</p>
+                    <p className="mt-2 px-0.5 text-sm italic text-muted-foreground">{article.mainImageAlt}</p>
                   )}
                 </div>
               )}
 
               {article.additionalImages && Array.isArray(article.additionalImages) && article.additionalImages.length > 0 && (
-                <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
                   {article.additionalImages.map((imageUrl: string, index: number) => (
                     imageUrl && (
-                      <div key={index} className="overflow-hidden bg-white">
-                        <img
-                          src={imageUrl}
-                          alt={`${displayTitle} - Image ${index + 1}`}
-                          className="block h-auto w-full object-cover"
-                        />
+                      <div key={index}>
+                        <div className="article-image-frame">
+                          <img
+                            src={imageUrl}
+                            alt={`${displayTitle} - Image ${index + 1}`}
+                            className="block h-auto w-full object-cover"
+                          />
+                        </div>
                         {Array.isArray(article.additionalImageDescriptions) && article.additionalImageDescriptions[index] && (
-                          <p className="px-2 pt-2 text-sm italic text-muted-foreground">{article.additionalImageDescriptions[index]}</p>
+                          <p className="mt-2 px-0.5 text-sm italic text-muted-foreground">{article.additionalImageDescriptions[index]}</p>
                         )}
                       </div>
                     )

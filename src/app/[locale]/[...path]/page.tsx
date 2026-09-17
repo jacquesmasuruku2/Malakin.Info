@@ -366,14 +366,16 @@ export default async function CatchAllArticlePage({
               )}
 
               {article.mainImageUrl && (
-                <div className="mb-8 rounded-lg overflow-hidden">
-                  <img
-                    src={article.mainImageUrl}
-                    alt={article.mainImageAlt || displayTitle}
-                    className="w-full h-auto object-cover"
-                  />
+                <div className="mb-8">
+                  <div className="article-image-frame">
+                    <img
+                      src={article.mainImageUrl}
+                      alt={article.mainImageAlt || displayTitle}
+                      className="h-auto w-full object-cover"
+                    />
+                  </div>
                   {article.mainImageAlt && (
-                    <p className="pt-2 text-sm italic text-gray-500">{article.mainImageAlt}</p>
+                    <p className="mt-2 text-sm italic text-gray-500">{article.mainImageAlt}</p>
                   )}
                 </div>
               )}

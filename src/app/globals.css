@@ -374,12 +374,40 @@
   width: 100%;
   max-width: 100%;
   height: auto;
-  margin: 0.45rem 0 0;
+  margin: 0.75rem 0 0.15rem;
+  border: 2px solid #111111;
+  box-shadow:
+    0 0 0 3px #ffffff,
+    0 0 0 5px #111111;
+  background: #ffffff;
+}
+
+.article-image-frame {
+  display: block;
+  margin: 0;
+  border: 2px solid #111111;
+  box-shadow:
+    0 0 0 3px #ffffff,
+    0 0 0 5px #111111;
+  background: #ffffff;
+}
+
+.article-image-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
 }
 
 .article-body figure,
 .article-body figure.article-inline-figure {
-  margin: 0.55rem 0 0.7rem;
+  margin: 0.75rem 0 0.9rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .article-body figure img,

@@ -187,12 +187,14 @@ export default async function ActualitesCatchAllPage({
               )}
 
               {article.mainImageUrl && (
-                <div className="mb-8 rounded-lg overflow-hidden">
-                  <img
-                    src={article.mainImageUrl}
-                    alt={displayTitle}
-                    className="w-full h-auto object-cover"
-                  />
+                <div className="mb-8">
+                  <div className="article-image-frame">
+                    <img
+                      src={article.mainImageUrl}
+                      alt={displayTitle}
+                      className="h-auto w-full object-cover"
+                    />
+                  </div>
                 </div>
               )}
 
