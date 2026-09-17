@@ -168,6 +168,7 @@ model User {
   sessions      Session[]
   articlePurchases ArticlePurchase[]
   subscriptions Subscription[]
+  jobApplications JobApplication[]
 
   @@index([email])
   @@index([role])
@@ -413,17 +414,41 @@ model JobOffer {
 }
 
 model JobApplication {
-  id          String   @id @default(cuid())
-  jobOfferId  String
-  name        String
-  email       String
-  phone       String?
-  coverLetter String?
-  resumeUrl   String?
-  status      String   @default("pending")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  jobOffer    JobOffer @relation(fields: [jobOfferId], references: [id], onDelete: Cascade)
+  id           String    @id @default(cuid())
+  jobOfferId   String
+  userId       String?
+  name         String
+  email        String
+  phone        String?
+  coverLetter  String?
+  resumeUrl    String?
+  status       String    @default("pending")
+  adminMessage String?
+  respondedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  jobOffer     JobOffer  @relation(fields: [jobOfferId], references: [id], onDelete: Cascade)
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages     JobApplicationMessage[]
+
+  @@index([jobOfferId])
+  @@index([userId])
+  @@index([email])
+  @@index([status])
+}
+
+model JobApplicationMessage {
+  id            String         @id @default(cuid())
+  applicationId String
+  senderType    String
+  senderName    String?
+  body          String
+  createdAt     DateTime       @default(now())
+  readAt        DateTime?
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, createdAt])
+  @@index([senderType])
 }
 
 model BlogPost {

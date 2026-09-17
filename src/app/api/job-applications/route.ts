@@ -33,9 +33,23 @@ export async function GET(request: NextRequest) {
             type: true,
           },
         },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+        _count: {
+          select: {
+            messages: {
+              where: {
+                senderType: 'applicant',
+                readAt: null,
+              },
+            },
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc',
+        updatedAt: 'desc',
       },
     });
 
@@ -98,9 +112,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const existingApplication = await prisma.jobApplication.findFirst({
+      where: {
+        jobOfferId,
+        OR: [
+          { userId: currentUser.id },
+          { email: { equals: currentUser.email, mode: 'insensitive' as const } },
+        ],
+        NOT: { status: 'withdrawn' },
+      },
+    });
+
+    if (existingApplication) {
+      return NextResponse.json(
+        { error: 'Vous avez déjà postulé à cette offre.', applicationId: existingApplication.id },
+        { status: 409, headers: corsHeaders }
+      );
+    }
+
     const application = await prisma.jobApplication.create({
       data: {
         jobOfferId,
+        userId: currentUser.id,
         name: applicantName,
         email: applicantEmail,
         phone,

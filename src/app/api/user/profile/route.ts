@@ -48,6 +48,7 @@ export async function GET(request: NextRequest) {
             likes: true,
             favorites: true,
             donations: true,
+            jobApplications: true,
           },
         },
       },

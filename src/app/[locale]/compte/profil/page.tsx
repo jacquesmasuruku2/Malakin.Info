@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { signOut } from 'next-auth/react';
-import { User, Mail, Calendar, Edit, Save, X, Camera, LogOut, MessageSquare, Heart, Bookmark, DollarSign, Settings, ChevronRight } from 'lucide-react';
+import { User, Mail, Calendar, Edit, Save, X, Camera, LogOut, MessageSquare, Heart, Bookmark, DollarSign, Settings, ChevronRight, Briefcase } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { authFetch } from '@/lib/client-auth';
 import { logoutLocalSession, persistLocalUser } from '@/lib/theme';
@@ -143,6 +143,21 @@ export default function ProfilePage() {
   }
 
   const menuItems = [
+    {
+      icon: Briefcase,
+      label: pickCopy(locale, {
+        fr: 'Mes candidatures',
+        en: 'My applications',
+        es: 'Mis candidaturas',
+        sw: 'Maombi yangu',
+        ln: 'Ba candidature na ngai',
+        rw: 'Amasaba yanjye',
+      }),
+      count: user._count?.jobApplications || 0,
+      href: `/${locale}/compte/candidatures`,
+      color: 'text-[#0b3b8b]',
+      bgColor: 'bg-blue-50',
+    },
     {
       icon: MessageSquare,
       label: messages.nav.myComments,

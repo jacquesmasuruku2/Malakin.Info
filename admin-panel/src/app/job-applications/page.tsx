@@ -26,6 +26,8 @@ export default function JobApplicationsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [adminMessage, setAdminMessage] = useState('');
+  const [pendingStatus, setPendingStatus] = useState('pending');
 
   useEffect(() => {
     fetchApplications();
@@ -48,18 +50,39 @@ export default function JobApplicationsPage() {
     }
   };
 
-  const handleStatusUpdate = async (id: string, newStatus: string) => {
+  const openDetail = async (item: any) => {
+    setSelectedItem(item);
+    setAdminMessage('');
+    setPendingStatus(item.status || 'pending');
+    setShowDetailModal(true);
+    try {
+      const response = await fetch(getApiUrl(`/api/job-applications/${item.id}`));
+      if (!response.ok) return;
+      const full = await response.json();
+      setSelectedItem(full);
+      setPendingStatus(full.status || 'pending');
+    } catch (error) {
+      console.error('Error loading application detail:', error);
+    }
+  };
+
+  const handleStatusUpdate = async (id: string, newStatus: string, message?: string) => {
     try {
       const response = await fetch(getApiUrl(`/api/job-applications/${id}`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({
+          status: newStatus,
+          ...(typeof message === 'string' && message.trim() ? { adminMessage: message.trim() } : {}),
+        }),
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      const updated = await response.json();
+      setSelectedItem(updated);
+      setAdminMessage('');
       fetchApplications();
-      setShowDetailModal(false);
     } catch (error) {
       console.error('Error updating status:', error);
       alert('Erreur lors de la mise à jour du statut');
@@ -246,10 +269,7 @@ export default function JobApplicationsPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-2">
                             <button
-                              onClick={() => {
-                                setSelectedItem(item);
-                                setShowDetailModal(true);
-                              }}
+                              onClick={() => openDetail(item)}
                               className="text-blue-600 hover:text-blue-900 p-1"
                               title="Voir détails"
                             >
@@ -328,39 +348,69 @@ export default function JobApplicationsPage() {
                 </div>
               )}
               <div className="pt-4 border-t border-gray-200">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Conversation (visible dans le compte du candidat)
+                </label>
+                <div className="max-h-56 space-y-2 overflow-y-auto rounded-md border border-gray-200 bg-gray-50 p-3">
+                  {Array.isArray(selectedItem.messages) && selectedItem.messages.length > 0 ? (
+                    selectedItem.messages.map((msg: any) => (
+                      <div
+                        key={msg.id}
+                        className={`rounded-md px-3 py-2 text-sm ${
+                          msg.senderType === 'recruiter'
+                            ? 'bg-blue-50 text-blue-900'
+                            : 'bg-white text-gray-800 border border-gray-200'
+                        }`}
+                      >
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">
+                          {msg.senderType === 'recruiter' ? 'Recruteur' : 'Candidat'}
+                          {msg.senderName ? ` · ${msg.senderName}` : ''}
+                        </p>
+                        <p className="mt-1 whitespace-pre-wrap">{msg.body}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500">Aucun message pour le moment.</p>
+                  )}
+                </div>
+              </div>
+              <div className="pt-4 border-t border-gray-200">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Répondre au candidat (apparaît dans son compte)
+                </label>
+                <textarea
+                  rows={4}
+                  value={adminMessage}
+                  onChange={(e) => setAdminMessage(e.target.value)}
+                  placeholder="Ex. : Merci pour votre candidature. Nous souhaitons vous rencontrer pour un entretien…"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+              <div className="pt-4 border-t border-gray-200">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
                 <div className="flex gap-2 flex-wrap">
-                  <button
-                    onClick={() => handleStatusUpdate(selectedItem.id, 'pending')}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    En attente
-                  </button>
-                  <button
-                    onClick={() => handleStatusUpdate(selectedItem.id, 'reviewing')}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    En examen
-                  </button>
-                  <button
-                    onClick={() => handleStatusUpdate(selectedItem.id, 'interview')}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    Entretien
-                  </button>
-                  <button
-                    onClick={() => handleStatusUpdate(selectedItem.id, 'accepted')}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    Accepté
-                  </button>
-                  <button
-                    onClick={() => handleStatusUpdate(selectedItem.id, 'rejected')}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    Rejeté
-                  </button>
+                  {(['pending', 'reviewing', 'interview', 'accepted', 'rejected'] as const).map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => setPendingStatus(status)}
+                      className={`px-3 py-1 text-sm border rounded-md ${
+                        pendingStatus === status
+                          ? 'border-blue-600 bg-blue-50 text-blue-800'
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {getStatusLabel(status)}
+                    </button>
+                  ))}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => handleStatusUpdate(selectedItem.id, pendingStatus, adminMessage)}
+                  className="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+                >
+                  Enregistrer statut et réponse
+                </button>
               </div>
               <div className="pt-4 border-t border-gray-200">
                 <button

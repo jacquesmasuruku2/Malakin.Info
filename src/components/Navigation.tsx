@@ -308,6 +308,10 @@ export default function Navigation() {
                         <User className="h-4 w-4" />
                         <span>{t.myProfile}</span>
                       </Link>
+                      <Link href={`/${locale}/compte/candidatures`} className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#f7f7f5] dark:text-[#e8eef8] dark:hover:bg-[#152238]" onClick={() => setIsUserMenuOpen(false)}>
+                        <Briefcase className="h-4 w-4" />
+                        <span>Mes candidatures</span>
+                      </Link>
                       <Link href={`/${locale}/compte/commentaires`} className="flex items-center gap-2 px-4 py-2 text-sm text-[#111827] hover:bg-[#f7f7f5] dark:text-[#e8eef8] dark:hover:bg-[#152238]" onClick={() => setIsUserMenuOpen(false)}>
                         <MessageSquare className="h-4 w-4" />
                         <span>{t.myComments}</span>

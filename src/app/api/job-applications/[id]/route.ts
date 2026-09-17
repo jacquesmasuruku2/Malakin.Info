@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, { headers: corsHeaders });
 }
 
@@ -27,6 +27,9 @@ export async function GET(
             type: true,
           },
         },
+        messages: {
+          orderBy: { createdAt: 'asc' },
+        },
       },
     });
 
@@ -36,6 +39,15 @@ export async function GET(
         { status: 404, headers: corsHeaders }
       );
     }
+
+    await prisma.jobApplicationMessage.updateMany({
+      where: {
+        applicationId: id,
+        senderType: 'applicant',
+        readAt: null,
+      },
+      data: { readAt: new Date() },
+    });
 
     return NextResponse.json(application, { headers: corsHeaders });
   } catch (error) {
@@ -54,20 +66,62 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { status } = body;
+    const { status, adminMessage } = body;
 
-    const application = await prisma.jobApplication.update({
-      where: { id },
-      data: { status },
-      include: {
-        jobOffer: {
-          select: {
-            title: true,
-            location: true,
-            type: true,
+    const data: Record<string, unknown> = {};
+    if (typeof status === 'string' && status.trim()) {
+      data.status = status.trim();
+    }
+
+    const messageText =
+      typeof adminMessage === 'string' && adminMessage.trim() ? adminMessage.trim() : null;
+
+    if (messageText) {
+      data.adminMessage = messageText;
+      data.respondedAt = new Date();
+    }
+
+    if (Object.keys(data).length === 0 && !messageText) {
+      return NextResponse.json(
+        { error: 'Nothing to update' },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    const application = await prisma.$transaction(async (tx) => {
+      if (Object.keys(data).length > 0) {
+        await tx.jobApplication.update({
+          where: { id },
+          data,
+        });
+      }
+
+      if (messageText) {
+        await tx.jobApplicationMessage.create({
+          data: {
+            applicationId: id,
+            senderType: 'recruiter',
+            senderName: 'MalakInfo Recrutement',
+            body: messageText,
+          },
+        });
+      }
+
+      return tx.jobApplication.findUnique({
+        where: { id },
+        include: {
+          jobOffer: {
+            select: {
+              title: true,
+              location: true,
+              type: true,
+            },
+          },
+          messages: {
+            orderBy: { createdAt: 'asc' },
           },
         },
-      },
+      });
     });
 
     return NextResponse.json(application, { headers: corsHeaders });

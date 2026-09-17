@@ -339,11 +339,19 @@ export default function JobOfferDetail({
             </p>
 
             {success ? (
-              <p className="mt-8 border-l-2 border-[#d4af37] pl-4 text-sm font-medium text-[#081c3d]">
-                {isFrench
-                  ? 'Votre candidature a été envoyée. Merci pour votre intérêt.'
-                  : 'Your application has been sent. Thank you for your interest.'}
-              </p>
+              <div className="mt-8 space-y-4">
+                <p className="border-l-2 border-[#d4af37] pl-4 text-sm font-medium text-[#081c3d]">
+                  {isFrench
+                    ? 'Votre candidature a été envoyée. Merci pour votre intérêt.'
+                    : 'Your application has been sent. Thank you for your interest.'}
+                </p>
+                <Link
+                  href={`/${locale}/compte/candidatures`}
+                  className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#0b3b8b] hover:text-[#b88f18]"
+                >
+                  {isFrench ? 'Suivre ma candidature' : 'Track my application'}
+                </Link>
+              </div>
             ) : !ready ? (
               <p className="mt-8 text-sm text-slate-500">
                 {isFrench ? 'Vérification de votre session…' : 'Checking your session…'}

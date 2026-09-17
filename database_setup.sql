@@ -288,12 +288,15 @@ CREATE TABLE IF NOT EXISTS "JobOffer" (
 CREATE TABLE IF NOT EXISTS "JobApplication" (
     "id" TEXT NOT NULL,
     "jobOfferId" TEXT NOT NULL,
+    "userId" TEXT,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "phone" TEXT,
     "coverLetter" TEXT,
     "resumeUrl" TEXT,
     "status" TEXT NOT NULL DEFAULT 'pending',
+    "adminMessage" TEXT,
+    "respondedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
