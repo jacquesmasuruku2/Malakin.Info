@@ -9,6 +9,7 @@ import SearchBar from './SearchBar';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 import LanguageSwitcher from './LanguageSwitcher';
+import NavAccountIcon from './NavAccountIcon';
 import { logoutLocalSession } from '@/lib/theme';
 import { useAccountUser } from '@/lib/use-account-user';
 
@@ -342,9 +343,13 @@ export default function Navigation() {
                   )}
                 </div>
               ) : (
-                <Link href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(pathname)}`} className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1f2937] transition-colors hover:text-[#0b3b8b] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
-                  <User className="h-4 w-4" />
-                  <span>{t.login}</span>
+                <Link
+                  href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(pathname)}`}
+                  aria-label={t.login}
+                  title={t.login}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-transparent text-foreground transition-colors hover:bg-muted dark:hover:bg-[#152238]"
+                >
+                  <NavAccountIcon />
                 </Link>
               )}
 
@@ -361,12 +366,12 @@ export default function Navigation() {
                 <Link
                   href={`/${locale}/compte/profil`}
                   aria-label="Ouvrir mon profil"
-                  className="inline-flex min-h-10 min-w-10 items-center justify-center px-2 text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]"
+                  className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-full bg-transparent px-2 text-foreground transition-colors hover:bg-muted dark:hover:bg-[#152238]"
                 >
                   {activeUser.avatarUrl ? (
                     <img src={activeUser.avatarUrl} alt={activeUser.name} className="h-7 w-7 rounded-full object-cover" />
                   ) : (
-                    <User className="h-5 w-5" />
+                    <NavAccountIcon />
                   )}
                 </Link>
               ) : (
@@ -374,9 +379,9 @@ export default function Navigation() {
                   href={`/${locale}/compte/connexion?redirect=${encodeURIComponent(pathname)}`}
                   aria-label={t.login}
                   title={t.login}
-                  className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-full border border-[#d4af37] bg-[#f8f8f5] px-2 text-[#111827] transition-colors hover:bg-[#d4af37] hover:text-[#081c3d]"
+                  className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-full bg-transparent px-2 text-foreground transition-colors hover:bg-muted dark:hover:bg-[#152238]"
                 >
-                  <User className="h-5 w-5" />
+                  <NavAccountIcon />
                 </Link>
               )}
             </div>
