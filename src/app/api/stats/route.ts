@@ -1,22 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { applyCors, corsOptions } from '@/lib/cors';
 
-// Helper function to add CORS headers
-function cors(response: NextResponse) {
-  response.headers.set('Access-Control-Allow-Origin', 'https://dashboard.malakinfo.com');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  response.headers.set('Access-Control-Allow-Credentials', 'true');
-  return response;
+export async function OPTIONS(request: Request) {
+  return corsOptions(request);
 }
 
-export async function OPTIONS() {
-  return cors(new NextResponse(null, { status: 200 }));
-}
-
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // Get counts from database
     const [
       articlesCount,
       authorsCount,
@@ -66,12 +57,12 @@ export async function GET() {
       activeLives: activeLivesCount
     };
 
-    return cors(NextResponse.json(stats));
+    return applyCors(NextResponse.json(stats), request);
   } catch (error) {
     console.error('Error fetching statistics:', error);
-    return cors(NextResponse.json({ 
+    return applyCors(NextResponse.json({ 
       error: 'Failed to fetch statistics',
       details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 }));
+    }, { status: 500 }), request);
   }
 }

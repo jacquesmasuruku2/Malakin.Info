@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
   },
   // Désactiver l'i18n pour l'admin-panel
   i18n: undefined,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '4mb',
+    },
+  },
 };
 
 export default nextConfig;

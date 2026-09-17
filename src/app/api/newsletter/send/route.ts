@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { sendNewsletterEmail } from '@/lib/email';
+import { applyCors, corsOptions } from '@/lib/cors';
+
+export const maxDuration = 300;
+export const runtime = 'nodejs';
 
 interface Body {
   subject: string;
@@ -15,13 +19,31 @@ interface Body {
   excludeEmails?: string[];
 }
 
+export async function OPTIONS(request: Request) {
+  return corsOptions(request);
+}
+
 export async function POST(request: Request) {
   try {
     const body: Body = await request.json();
-    const { subject, html, text, filter } = body;
+    const { subject, html: rawHtml, text, filter } = body;
+    const html = (rawHtml || '').replace(/src=["']data:image\/[^"']+["']/gi, 'src=""');
 
     if (!subject || !html) {
-      return NextResponse.json({ error: 'Sujet et contenu requis' }, { status: 400 });
+      return applyCors(NextResponse.json({ error: 'Sujet et contenu requis' }, { status: 400 }), request);
+    }
+
+    if (Buffer.byteLength(html, 'utf8') > 1_500_000) {
+      return applyCors(
+        NextResponse.json(
+          {
+            error:
+              'Le contenu HTML de la newsletter est trop volumineux. Utilisez des images en URL HTTPS (pas en base64).',
+          },
+          { status: 413 },
+        ),
+        request,
+      );
     }
 
     const where: any = {};
@@ -46,9 +68,15 @@ export async function POST(request: Request) {
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
-      return NextResponse.json(
-        { error: 'Erreur de lecture des abonnés pour l’envoi de la newsletter.', details: error instanceof Error ? error.message : String(error) },
-        { status: 500 }
+      return applyCors(
+        NextResponse.json(
+          {
+            error: 'Erreur de lecture des abonnés pour l’envoi de la newsletter.',
+            details: error instanceof Error ? error.message : String(error),
+          },
+          { status: 500 },
+        ),
+        request,
       );
     }
 
@@ -78,7 +106,10 @@ export async function POST(request: Request) {
       : recipientSubscribers;
 
     if (filteredSubscribers.length === 0) {
-      return NextResponse.json({ message: 'Aucun abonné trouvé pour l’envoi', count: 0 });
+      return applyCors(
+        NextResponse.json({ message: 'Aucun abonné trouvé pour l’envoi', count: 0 }),
+        request,
+      );
     }
 
     const results = [] as Array<{ email: string; success: boolean; error?: string }>;
@@ -89,34 +120,53 @@ export async function POST(request: Request) {
         .replace(/\s+/g, ' ')
         .trim();
 
-    for (const subscriber of filteredSubscribers) {
-      const personalizedHtml = html.replace(/\{\{name\}\}/g, subscriber.name || 'cher abonné');
-      const baseText = text && text.trim() ? text : html;
-      const personalizedText = renderText(baseText).replace(/\{\{name\}\}/g, subscriber.name || 'cher abonné');
+    const concurrency = 5;
+    for (let i = 0; i < filteredSubscribers.length; i += concurrency) {
+      const batch = filteredSubscribers.slice(i, i + concurrency);
+      const batchResults = await Promise.all(
+        batch.map(async (subscriber) => {
+          const personalizedHtml = html.replace(/\{\{name\}\}/g, subscriber.name || 'cher abonné');
+          const baseText = text && text.trim() ? text : html;
+          const personalizedText = renderText(baseText).replace(
+            /\{\{name\}\}/g,
+            subscriber.name || 'cher abonné',
+          );
 
-      try {
-        await sendNewsletterEmail({
-          to: subscriber.email,
-          subject,
-          html: personalizedHtml,
-          text: personalizedText,
-        });
-        results.push({ email: subscriber.email, success: true });
-      } catch (error) {
-        results.push({ email: subscriber.email, success: false, error: String(error) });
-      }
+          try {
+            await sendNewsletterEmail({
+              to: subscriber.email,
+              subject,
+              html: personalizedHtml,
+              text: personalizedText,
+            });
+            return { email: subscriber.email, success: true as const };
+          } catch (error) {
+            return { email: subscriber.email, success: false as const, error: String(error) };
+          }
+        }),
+      );
+      results.push(...batchResults);
     }
 
-    return NextResponse.json({ count: filteredSubscribers.length, results });
+    return applyCors(
+      NextResponse.json({ count: filteredSubscribers.length, results }),
+      request,
+    );
   } catch (error) {
     console.error('[newsletter send] Unexpected error:', {
       code: error instanceof Prisma.PrismaClientKnownRequestError ? error.code : 'UNKNOWN',
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     });
-    return NextResponse.json(
-      { error: 'Échec de l’envoi de la newsletter', details: error instanceof Error ? error.message : 'Une erreur côté serveur est survenue.' },
-      { status: 500 }
+    return applyCors(
+      NextResponse.json(
+        {
+          error: 'Échec de l’envoi de la newsletter',
+          details: error instanceof Error ? error.message : 'Une erreur côté serveur est survenue.',
+        },
+        { status: 500 },
+      ),
+      request,
     );
   }
 }

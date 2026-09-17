@@ -12,7 +12,6 @@ import {
   FolderTree,
   Radio
 } from 'lucide-react';
-import { getApiUrl } from '@/lib/api';
 
 interface Stats {
   articles: number;
@@ -35,7 +34,7 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch(getApiUrl('/api/stats'));
+      const response = await fetch('/api/stats');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

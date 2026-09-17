@@ -136,14 +136,22 @@ export default function NewsletterSendPage() {
     setStatus(null);
 
     try {
+      const sanitizedHtml = htmlPreview.replace(/src=["']data:image\/[^"']+["']/gi, 'src=""');
+      const sendingToAllActive =
+        recipientMode === 'include' &&
+        selectedEmails.length > 0 &&
+        selectedEmails.length === subscribers.length;
+
       const payload = {
         subject,
-        html: htmlPreview,
+        html: sanitizedHtml,
         text: customContent || 'Newsletter Malakinfo',
         filter: { activeOnly: true },
-        ...(recipientMode === 'include'
-          ? { includeEmails: selectedEmails }
-          : { excludeEmails: selectedEmails }),
+        ...(sendingToAllActive
+          ? {}
+          : recipientMode === 'include'
+            ? { includeEmails: selectedEmails }
+            : { excludeEmails: selectedEmails }),
       };
 
       const response = await fetch('/api/newsletter/send', {
@@ -154,15 +162,26 @@ export default function NewsletterSendPage() {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      let data: any = null;
+      try {
+        data = await response.json();
+      } catch {
+        data = null;
+      }
 
       if (!response.ok) {
+        if (response.status === 413) {
+          throw new Error(
+            data?.error ||
+              'Contenu trop volumineux (413). Utilisez des images en URL HTTPS, pas d’images collées en base64.',
+          );
+        }
         throw new Error(data?.error || 'Erreur lors de l’envoi');
       }
 
       setStatus({
         type: 'success',
-        message: `Newsletter envoyée à ${data.count ?? 0} abonnés.`,
+        message: `Newsletter envoyée à ${data.count ?? 0} abonnés${data.total && data.total !== data.count ? ` (${data.total} ciblés)` : ''}.`,
       });
     } catch (error) {
       setStatus({
