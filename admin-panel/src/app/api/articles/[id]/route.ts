@@ -4,6 +4,7 @@ import { syncArticleTags, tagsFromArticle } from '@/lib/tags';
 import { tagNamesFromContent } from '@/lib/tag-name';
 import { ensureArticlePublicImages } from '@/lib/r2';
 import { revalidatePublicArticle } from '@/lib/revalidate-site';
+import { parseArticlePublishedAt } from '@/lib/datetime-local';
 
 export async function GET(
   request: NextRequest,
@@ -40,6 +41,7 @@ export async function PUT(
     const { id } = await params;
     const rawBody = await request.json();
     const body = await ensureArticlePublicImages(rawBody);
+    const publishedAt = parseArticlePublishedAt(body.publishedAt);
     const article = await prisma.article.update({
       where: { id },
       data: {
@@ -50,7 +52,7 @@ export async function PUT(
         categoryId: body.categoryId,
         authorId: body.authorId || null,
         defaultLocale: body.defaultLocale || 'fr',
-        ...(body.publishedAt ? { publishedAt: new Date(body.publishedAt) } : {}),
+        ...(publishedAt ? { publishedAt } : {}),
         featured: body.featured,
         isPremium: body.isPremium,
         premiumPrice: body.premiumPrice ? parseFloat(body.premiumPrice) : null,

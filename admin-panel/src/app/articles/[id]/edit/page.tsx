@@ -8,6 +8,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Save, Upload, X, Loader2 } from 'lucide-react';
 import { getApiUrl } from '@/lib/api';
 import TagInput from '@/components/TagInput';
+import { toDatetimeLocalValue } from '@/lib/datetime-local';
 
 interface Article {
   id: string;
@@ -127,7 +128,7 @@ export default function EditArticlePage() {
         categoryId: data.categoryId,
         authorId: data.authorId || '',
         defaultLocale: data.defaultLocale || 'fr',
-        publishedAt: data.publishedAt ? new Date(data.publishedAt).toISOString().split('T')[0] : '',
+        publishedAt: toDatetimeLocalValue(data.publishedAt),
         featured: data.featured,
         isPremium: data.isPremium || false,
         premiumPrice: data.premiumPrice ? String(data.premiumPrice) : '',
@@ -475,9 +476,9 @@ export default function EditArticlePage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Date de publication</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Date et heure de publication</label>
                     <input
-                      type="date"
+                      type="datetime-local"
                       value={formData.publishedAt}
                       onChange={(e) => setFormData({ ...formData, publishedAt: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"

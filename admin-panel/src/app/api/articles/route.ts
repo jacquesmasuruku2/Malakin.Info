@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { syncArticleTags, tagsFromArticle } from '@/lib/tags';
 import { ensureArticlePublicImages } from '@/lib/r2';
 import { revalidatePublicArticle } from '@/lib/revalidate-site';
+import { parseArticlePublishedAt } from '@/lib/datetime-local';
 
 export async function GET() {
   try {
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
         categoryId: body.categoryId,
         authorId: body.authorId || null,
         defaultLocale: body.defaultLocale || 'fr',
-        publishedAt: body.publishedAt ? new Date(body.publishedAt) : new Date(),
+        publishedAt: parseArticlePublishedAt(body.publishedAt) || new Date(),
         featured: body.featured || false,
         isPremium: body.isPremium || false,
         premiumPrice: body.premiumPrice ? parseFloat(body.premiumPrice) : null,

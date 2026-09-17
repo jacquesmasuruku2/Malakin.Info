@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import TagInput from '@/components/TagInput';
+import { toDatetimeLocalValue } from '@/lib/datetime-local';
 
 export default function NewArticlePage() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function NewArticlePage() {
     categoryId: '',
     authorId: '',
     defaultLocale: 'fr',
-    publishedAt: '',
+    publishedAt: toDatetimeLocalValue(new Date()),
     featured: false,
     isPremium: false,
     premiumPrice: '',
@@ -420,10 +421,10 @@ export default function NewArticlePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Date de publication
+                      Date et heure de publication
                     </label>
                     <input
-                      type="date"
+                      type="datetime-local"
                       value={formData.publishedAt}
                       onChange={(e) => setFormData({ ...formData, publishedAt: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
