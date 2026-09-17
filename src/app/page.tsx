@@ -79,10 +79,10 @@ export default async function Home() {
   }));
 
   const categories = [
-    { name: 'Politique', href: '/actualites/politique', color: 'bg-red-500' },
-    { name: 'Économie', href: '/actualites/economie', color: 'bg-blue-500' },
-    { name: 'Société', href: '/actualites/societe', color: 'bg-green-500' },
-    { name: 'Santé', href: '/actualites/sante', color: 'bg-purple-500' },
+    { name: 'Politique', href: '/politique', color: 'bg-red-500' },
+    { name: 'Économie', href: '/economie', color: 'bg-blue-500' },
+    { name: 'Société', href: '/societe', color: 'bg-green-500' },
+    { name: 'Santé', href: '/sante', color: 'bg-purple-500' },
     { name: 'Sport', href: '/sport', color: 'bg-orange-500' },
     { name: 'Culture', href: '/culture', color: 'bg-pink-500' },
   ];

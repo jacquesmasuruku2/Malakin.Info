@@ -1,137 +1,50 @@
-import Link from 'next/link';
-import { Calendar, Building, Church, Heart, GraduationCap } from 'lucide-react';
+import { pickCopy } from '@/lib/copy';
 
-export default function CommuniquesPage() {
-  const categories = [
-    { name: 'Gouvernement', href: '/communiques/gouvernement', icon: Building, count: 67 },
-    { name: 'Religieux', href: '/communiques/religieux', icon: Church, count: 34 },
-    { name: 'ONG', href: '/communiques/ong', icon: Heart, count: 45 },
-    { name: 'Éducatif', href: '/communiques/educatif', icon: GraduationCap, count: 28 },
-  ];
-
-  const communiques = [
-    {
-      id: 1,
-      category: 'Gouvernement',
-      organization: 'Ministère de la Santé',
-      title: 'Lancement du programme national de vaccination 2026-2030',
-      excerpt: 'Le gouvernement annonce un plan ambitieux pour améliorer la couverture vaccinale dans tout le pays.',
-      date: '27 Juin 2026',
-      urgent: true,
-    },
-    {
-      id: 2,
-      category: 'Religieux',
-      organization: 'Conférence Épiscopale',
-      title: 'Message de Paix pour la fête nationale',
-      excerpt: 'Les évêques appellent à l\'unité et à la réconciliation nationale à l\'occasion des festivités.',
-      date: '26 Juin 2026',
-      urgent: false,
-    },
-    {
-      id: 3,
-      category: 'ONG',
-      organization: 'UNICEF RDC',
-      title: 'Rapport annuel sur la protection de l\'enfance',
-      excerpt: 'Bilan des actions menées en 2025 et perspectives pour l\'année 2026 en faveur des enfants.',
-      date: '26 Juin 2026',
-      urgent: false,
-    },
-    {
-      id: 4,
-      category: 'Éducatif',
-      organization: 'Université de Kinshasa',
-      title: 'Ouverture des inscriptions pour l\'année académique 2026-2027',
-      excerpt: 'Les modalités d\'inscription et les nouvelles formations disponibles pour la rentrée prochaine.',
-      date: '25 Juin 2026',
-      urgent: false,
-    },
-    {
-      id: 5,
-      category: 'Gouvernement',
-      organization: 'Ministère de l\'Économie',
-      title: 'Nouvelles mesures fiscales pour les PME',
-      excerpt: 'Présentation des dispositions du nouveau code des impôts applicable aux petites et moyennes entreprises.',
-      date: '25 Juin 2026',
-      urgent: true,
-    },
-    {
-      id: 6,
-      category: 'ONG',
-      organization: 'Croix-Rouge',
-      title: 'Appel aux dons pour les victimes des inondations',
-      excerpt: 'Situation critique dans l\'est du pays : organisation lance une campagne d\'urgence.',
-      date: '24 Juin 2026',
-      urgent: true,
-    },
-  ];
+export default async function CommuniquesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
 
   return (
     <div className="flex flex-col">
       <section className="bg-gradient-to-r from-secondary to-secondary/80 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="font-heading text-4xl font-bold mb-4">Communiqués</h1>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h1 className="font-heading text-4xl font-bold mb-4">
+            {pickCopy(locale, {
+              fr: 'Communiqués',
+              en: 'Press releases',
+              es: 'Comunicados',
+              sw: 'Taarifa',
+              ln: 'Ba communiqué',
+              rw: 'Amatangazo',
+            })}
+          </h1>
           <p className="text-xl text-gray-200">
-            Communications officielles du gouvernement, institutions religieuses, ONG et secteur éducatif
+            {pickCopy(locale, {
+              fr: 'Les communiqués officiels seront bientôt disponibles depuis la rédaction.',
+              en: 'Official press releases will soon be available from the newsroom.',
+              es: 'Los comunicados oficiales estarán pronto disponibles desde la redacción.',
+              sw: 'Taarifa rasmi zitapatikana hivi karibuni kutoka kwa wahariri.',
+              ln: 'Ba communiqué officiel bakoya noki na rédaction.',
+              rw: 'Amatangazo yemewe azaboneka vuba kuva ku kinyamakuru.',
+            })}
           </p>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="space-y-4">
-          {communiques.map((communique) => (
-            <article
-              key={communique.id}
-              className="bg-card rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow border-l-4 border-primary"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full">
-                    {communique.category}
-                  </span>
-                  {communique.urgent && (
-                    <span className="px-3 py-1 bg-red-500 text-white text-xs font-medium rounded-full animate-pulse">
-                      Urgent
-                    </span>
-                  )}
-                </div>
-                <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <Calendar className="w-4 h-4" />
-                  {communique.date}
-                </span>
-              </div>
-
-              <p className="text-sm text-muted-foreground mb-2">{communique.organization}</p>
-
-              <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                <Link href={`/communiques/${communique.id}`} className="hover:text-primary transition-colors">
-                  {communique.title}
-                </Link>
-              </h3>
-
-              <p className="text-muted-foreground line-clamp-2">
-                {communique.excerpt}
-              </p>
-            </article>
-          ))}
-        </div>
-
-        <div className="flex justify-center mt-8">
-          <nav className="flex items-center gap-2">
-            <button className="px-4 py-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-              Précédent
-            </button>
-            <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg">
-              1
-            </button>
-            <button className="px-4 py-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-              2
-            </button>
-            <button className="px-4 py-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
-              Suivant
-            </button>
-          </nav>
-        </div>
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <p className="text-muted-foreground">
+          {pickCopy(locale, {
+            fr: 'Aucun communiqué publié pour le moment.',
+            en: 'No press releases published yet.',
+            es: 'Aún no hay comunicados publicados.',
+            sw: 'Hakuna taarifa zilizochapishwa bado.',
+            ln: 'Communiqué moko te ezwami sikoyo.',
+            rw: 'Nta matangazo yasohoye ubu.',
+          })}
+        </p>
       </div>
     </div>
   );

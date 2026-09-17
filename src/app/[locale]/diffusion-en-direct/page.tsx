@@ -42,10 +42,10 @@ export default async function LiveBroadcastsPage({
 
   const isFrench = locale === 'fr';
   const branhamLinks = [
-    { label: isFrench ? 'Tous les sermons' : 'All sermons', href: `/${locale}/religion/message-du-temps/branham/sermons` },
-    { label: isFrench ? 'Études bibliques' : 'Bible studies', href: `/${locale}/religion/message-du-temps/branham/etudes-bibliques` },
-    { label: isFrench ? 'Prophéties' : 'Prophecies', href: `/${locale}/religion/message-du-temps/branham/propheties` },
-    { label: isFrench ? 'Témoignages' : 'Testimonies', href: `/${locale}/religion/message-du-temps/branham/temoignages` },
+    {
+      label: isFrench ? 'Tous les sermons' : 'All sermons',
+      href: `/${locale}/religion/message-du-temps/branham/sermons`,
+    },
   ];
 
   return (
@@ -134,7 +134,7 @@ export default async function LiveBroadcastsPage({
               <h2 className="mt-2 font-heading text-2xl font-black text-[#081c3d]">{isFrench ? 'Prédications et enseignements' : 'Sermons and teachings'}</h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">{isFrench ? 'Retrouvez la collection des sermons, prophéties, témoignages et études bibliques de William Branham.' : 'Explore the collection of William Branham sermons, prophecies, testimonies and Bible studies.'}</p>
             </div>
-            <Link href={`/${locale}/religion/message-du-temps/branham`} className="inline-flex shrink-0 items-center justify-center bg-[#0b3b8b] px-5 py-3 text-sm font-bold text-white hover:bg-[#082a63]">{isFrench ? 'Ouvrir la collection' : 'Open collection'}<ArrowRight className="ml-2 h-4 w-4" /></Link>
+            <Link href={`/${locale}/religion/message-du-temps/branham/sermons`} className="inline-flex shrink-0 items-center justify-center bg-[#0b3b8b] px-5 py-3 text-sm font-bold text-white hover:bg-[#082a63]">{isFrench ? 'Ouvrir la collection' : 'Open collection'}<ArrowRight className="ml-2 h-4 w-4" /></Link>
           </div>
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {branhamLinks.map((item) => <Link key={item.href} href={item.href} className="border border-slate-200 px-4 py-3 text-sm font-semibold text-[#081c3d] hover:border-[#d4af37] hover:bg-[#fffaf0]">{item.label}<ArrowRight className="ml-2 inline h-4 w-4 text-[#b88f18]" /></Link>)}

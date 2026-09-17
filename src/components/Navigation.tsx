@@ -117,10 +117,9 @@ export default function Navigation() {
       title: t.media,
       icon: Radio,
       items: [
+        { name: locale === 'fr' ? 'Tous les médias' : 'All media', href: `/${locale}/medias` },
         { name: locale === 'fr' ? 'Diffusion en direct' : 'Live broadcasts', href: `/${locale}/diffusion-en-direct` },
-        { name: t.photos, href: `/${locale}/medias/photos` },
         { name: t.videos, href: `/${locale}/medias/videos` },
-        { name: t.podcasts, href: `/${locale}/medias/podcasts` },
         { name: t.live, href: `/${locale}/medias/live` },
       ],
     },
@@ -128,68 +127,54 @@ export default function Navigation() {
       title: t.religion,
       icon: ScrollText,
       items: [
-        { name: t.meditations, href: `/${locale}/religion/meditations` },
-        { name: t.homilies, href: `/${locale}/religion/homelies` },
-        { name: t.sacredMusic, href: `/${locale}/religion/musiques-sacrees` },
-        { name: t.religiousAgenda, href: `/${locale}/religion/agenda-religieux` },
-        { name: t.messageOfTime, href: `/${locale}/religion/message-du-temps` },
+        { name: locale === 'fr' ? 'Toute la rubrique' : 'All religion', href: `/${locale}/religion` },
+        {
+          name: locale === 'fr' ? 'Sermons Branham' : 'Branham sermons',
+          href: `/${locale}/religion/message-du-temps/branham/sermons`,
+        },
       ],
     },
     {
       title: t.culture,
       icon: Palette,
-      items: [
-        { name: t.music, href: `/${locale}/culture/musique` },
-        { name: t.cinema, href: `/${locale}/culture/cinema` },
-        { name: t.arts, href: `/${locale}/culture/arts` },
-        { name: t.trends, href: `/${locale}/culture/tendances` },
-      ],
+      items: [{ name: locale === 'fr' ? 'Toute la culture' : 'All culture', href: `/${locale}/culture` }],
     },
     {
       title: t.sport,
       icon: Trophy,
-      items: [
-        { name: t.football, href: `/${locale}/sport/football` },
-        { name: t.basketball, href: `/${locale}/sport/basket` },
-        { name: t.athletics, href: `/${locale}/sport/athletisme` },
-        { name: t.events, href: `/${locale}/sport/evenements` },
-      ],
+      items: [{ name: locale === 'fr' ? 'Tout le sport' : 'All sport', href: `/${locale}/sport` }],
     },
     {
       title: t.scienceTech,
       icon: FlaskConical,
       items: [
-        { name: t.database, href: `/${locale}/science-tech/base-de-donnees` },
-        { name: t.dataAnalysis, href: `/${locale}/science-tech/analyse-de-donnees` },
+        { name: locale === 'fr' ? 'Toute la rubrique' : 'All science & tech', href: `/${locale}/science-tech` },
         { name: t.natureEnvironment, href: `/${locale}/science-tech/nature-environnement` },
       ],
     },
     {
       title: t.employment,
       icon: Briefcase,
-      items: [
-        { name: t.offersBySector, href: `/${locale}/emploi/offres/sante` },
-        { name: t.careerAdvice, href: `/${locale}/emploi/conseils-carriere` },
-        { name: t.scholarshipsInternships, href: `/${locale}/emploi/bourses-stages` },
-      ],
+      items: [{ name: locale === 'fr' ? 'Toutes les offres' : 'All offers', href: `/${locale}/emploi` }],
     },
     {
       title: t.practicalInfo,
       icon: Info,
       items: [
-        { name: t.guides, href: `/${locale}/infos-pratiques/guides` },
-        { name: t.tutorials, href: `/${locale}/infos-pratiques/tutoriels` },
-        { name: t.resources, href: `/${locale}/infos-pratiques/ressources-educatives` },
+        {
+          name: locale === 'fr' ? 'Toutes les infos' : 'All practical info',
+          href: `/${locale}/infos-pratiques`,
+        },
       ],
     },
     {
       title: t.pressReleases,
       icon: Newspaper,
       items: [
-        { name: t.government, href: `/${locale}/communiques/gouvernement` },
-        { name: t.religious, href: `/${locale}/communiques/religieux` },
-        { name: t.ngo, href: `/${locale}/communiques/ong` },
-        { name: t.educational, href: `/${locale}/communiques/educatif` },
+        {
+          name: locale === 'fr' ? 'Tous les communiqués' : 'All press releases',
+          href: `/${locale}/communiques`,
+        },
       ],
     },
     {

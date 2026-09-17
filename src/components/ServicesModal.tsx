@@ -184,9 +184,7 @@ export default function ServicesModal() {
       items: [
         { name: locale === 'fr' ? 'Tous les médias' : 'All media', href: `/${locale}/medias` },
         { name: locale === 'fr' ? 'Diffusion en direct' : 'Live broadcasts', href: `/${locale}/diffusion-en-direct` },
-        { name: t.photos, href: `/${locale}/medias/photos` },
         { name: t.videos, href: `/${locale}/medias/videos` },
-        { name: t.podcasts, href: `/${locale}/medias/podcasts` },
         { name: t.live, href: `/${locale}/medias/live` },
       ],
     },
@@ -194,49 +192,34 @@ export default function ServicesModal() {
       title: t.religion,
       items: [
         { name: locale === 'fr' ? 'Toute la rubrique' : 'All religion', href: `/${locale}/religion` },
-        { name: t.meditations, href: `/${locale}/religion/meditations` },
-        { name: t.homilies, href: `/${locale}/religion/homelies` },
-        { name: t.sacredMusic, href: `/${locale}/religion/musiques-sacrees` },
-        { name: t.religiousAgenda, href: `/${locale}/religion/agenda-religieux` },
-        { name: t.messageOfTime, href: `/${locale}/religion/message-du-temps` },
+        {
+          name: locale === 'fr' ? 'Sermons Branham' : 'Branham sermons',
+          href: `/${locale}/religion/message-du-temps/branham/sermons`,
+        },
       ],
     },
     {
       title: t.culture,
-      items: [
-        { name: locale === 'fr' ? 'Toute la culture' : 'All culture', href: `/${locale}/culture` },
-        { name: t.music, href: `/${locale}/culture/musique` },
-        { name: t.cinema, href: `/${locale}/culture/cinema` },
-        { name: t.arts, href: `/${locale}/culture/arts` },
-        { name: t.trends, href: `/${locale}/culture/tendances` },
-      ],
+      items: [{ name: locale === 'fr' ? 'Toute la culture' : 'All culture', href: `/${locale}/culture` }],
     },
     {
       title: t.sport,
-      items: [
-        { name: locale === 'fr' ? 'Tout le sport' : 'All sport', href: `/${locale}/sport` },
-        { name: t.football, href: `/${locale}/sport/football` },
-        { name: t.basketball, href: `/${locale}/sport/basket` },
-        { name: t.athletics, href: `/${locale}/sport/athletisme` },
-        { name: t.events, href: `/${locale}/sport/evenements` },
-      ],
+      items: [{ name: locale === 'fr' ? 'Tout le sport' : 'All sport', href: `/${locale}/sport` }],
     },
     {
       title: t.scienceTech,
       items: [
         { name: locale === 'fr' ? 'Toute la rubrique' : 'All science & tech', href: `/${locale}/science-tech` },
-        { name: t.database, href: `/${locale}/science-tech/base-de-donnees` },
-        { name: t.dataAnalysis, href: `/${locale}/science-tech/analyse-de-donnees` },
         { name: t.natureEnvironment, href: `/${locale}/science-tech/nature-environnement` },
       ],
     },
     {
       title: t.practicalInfo,
       items: [
-        { name: locale === 'fr' ? 'Toutes les infos' : 'All practical info', href: `/${locale}/infos-pratiques` },
-        { name: t.guides, href: `/${locale}/infos-pratiques/guides` },
-        { name: t.tutorials, href: `/${locale}/infos-pratiques/tutoriels` },
-        { name: t.resources, href: `/${locale}/infos-pratiques/ressources-educatives` },
+        {
+          name: locale === 'fr' ? 'Toutes les infos' : 'All practical info',
+          href: `/${locale}/infos-pratiques`,
+        },
       ],
     },
   ];

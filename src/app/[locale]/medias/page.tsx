@@ -67,9 +67,9 @@ export default async function MediasPage({ params }: { params: Promise<{ locale:
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { label: isFrench ? 'Chansons et audio' : 'Songs and audio', href: `/${locale}/medias#chansons`, icon: Mic },
-            { label: isFrench ? 'Photos' : 'Photos', href: `/${locale}/medias/photos`, icon: ImageIcon },
             { label: isFrench ? 'Vidéos' : 'Videos', href: `/${locale}/medias/videos`, icon: Play },
             { label: isFrench ? 'Diffusions en direct' : 'Live broadcasts', href: `/${locale}/medias/live`, icon: Radio },
+            { label: isFrench ? 'Radio & programmes' : 'Radio & programs', href: `/${locale}/diffusion-en-direct`, icon: ImageIcon },
           ].map(({ label, href, icon: Icon }) => (
             <Link key={href} href={href} className="flex items-center gap-3 border border-slate-200 bg-white p-4 font-semibold text-[#081c3d] shadow-sm transition hover:-translate-y-1 hover:border-[#d4af37] hover:shadow-md">
               <Icon className="h-5 w-5 text-[#0b3b8b]" />{label}<ArrowRight className="ml-auto h-4 w-4 text-[#b88f18]" />
