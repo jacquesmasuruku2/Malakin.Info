@@ -291,7 +291,7 @@ export default function EditArticlePage() {
   return (
     <ProtectedRoute>
       <AdminLayout>
-        <div className="max-w-5xl mx-auto">
+        <div className="w-full max-w-none">
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -316,7 +316,7 @@ export default function EditArticlePage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.8fr)]">
+            <div className="grid items-start gap-6 xl:gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
             <div className="card rounded-xl shadow-sm border">
               <div className="p-6 space-y-6">
                 <div>
