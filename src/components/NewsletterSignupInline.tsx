@@ -72,26 +72,26 @@ export default function NewsletterSignupInline({
   };
 
   return (
-    <div className="mx-auto max-w-3xl rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
-      <div className="mb-6 text-center">
+    <div className="mx-auto max-w-3xl">
+      <div className="mb-6 text-center sm:mb-8">
         <h2 className="font-heading text-2xl font-bold text-foreground sm:text-3xl">{title}</h2>
         <p className="mt-3 text-sm text-muted-foreground sm:text-base">{subtitle}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:gap-4">
           <input
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder={t(locale, 'emailPlaceholder')}
             required
-            className="w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:bg-background"
+            className="w-full border-0 border-b border-border bg-transparent px-0 py-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary"
           />
           <button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            className="bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? t(locale, 'sending') : buttonText}
           </button>
@@ -99,7 +99,7 @@ export default function NewsletterSignupInline({
       </form>
 
       {status && (
-        <p className={`mt-4 text-sm ${status.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}>
+        <p className={`mt-4 text-center text-sm ${status.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}>
           {status.text}
         </p>
       )}
