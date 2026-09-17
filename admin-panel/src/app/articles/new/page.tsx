@@ -180,11 +180,14 @@ export default function NewArticlePage() {
         body: uploadFormData,
       });
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
+      const data = await response.json().catch(() => ({}));
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          [data?.error, data?.details].filter(Boolean).join(' — ') ||
+            `Upload failed (${response.status})`,
+        );
+      }
       
       if (data.success && data.url) {
         if (String(data.url).startsWith('data:')) {

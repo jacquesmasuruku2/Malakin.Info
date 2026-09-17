@@ -1,11 +1,10 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 function hasR2Credentials() {
-  return Boolean(
-    process.env.R2_ACCOUNT_ID &&
-      process.env.R2_ACCESS_KEY_ID &&
-      process.env.R2_SECRET_ACCESS_KEY,
-  );
+  const accountId = process.env.R2_ACCOUNT_ID?.trim();
+  const accessKey = process.env.R2_ACCESS_KEY_ID?.trim();
+  const secretKey = process.env.R2_SECRET_ACCESS_KEY?.trim();
+  return Boolean(accountId && accessKey && secretKey && secretKey.length > 8);
 }
 
 const getR2Client = () => {
@@ -15,10 +14,10 @@ const getR2Client = () => {
 
   return new S3Client({
     region: 'auto',
-    endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    endpoint: `https://${process.env.R2_ACCOUNT_ID!.trim()}.r2.cloudflarestorage.com`,
     credentials: {
-      accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+      accessKeyId: process.env.R2_ACCESS_KEY_ID!.trim(),
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!.trim(),
     },
   });
 };

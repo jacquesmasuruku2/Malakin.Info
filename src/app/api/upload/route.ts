@@ -26,9 +26,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file type
+    // Validate file type (infer from extension when browsers/proxies send an empty MIME)
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
+    const name = (file.name || '').toLowerCase();
+    const inferredType =
+      file.type ||
+      (name.endsWith('.png')
+        ? 'image/png'
+        : name.endsWith('.webp')
+          ? 'image/webp'
+          : name.endsWith('.gif')
+            ? 'image/gif'
+            : name.match(/\.(jpe?g)$/)
+              ? 'image/jpeg'
+              : '');
+
+    if (inferredType && !allowedTypes.includes(inferredType)) {
       return NextResponse.json(
         { error: 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.' },
         { status: 400 }

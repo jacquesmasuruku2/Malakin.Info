@@ -69,9 +69,12 @@ async function uploadBlogImage(file: File): Promise<string | null> {
   body.append('folder', 'Images_blogs');
 
   const response = await fetch('/api/upload', { method: 'POST', body });
-  if (!response.ok) return null;
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    console.error('[WordEditor upload]', data?.error || data?.details || response.status);
+    return null;
+  }
 
-  const data = await response.json();
   if (!data?.success || !data.url || String(data.url).startsWith('data:')) {
     return null;
   }
