@@ -5,6 +5,8 @@ import { ensureArticlePublicImages } from '@/lib/r2';
 import { revalidatePublicArticle } from '@/lib/revalidate-site';
 import { parseArticlePublishedAt } from '@/lib/datetime-local';
 
+export const maxDuration = 60;
+
 export async function GET() {
   try {
     const articles = await prisma.article.findMany({

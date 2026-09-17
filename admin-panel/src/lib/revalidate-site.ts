@@ -3,9 +3,11 @@ type RevalidateArticleInput = {
   categorySlug?: string | null;
 };
 
+const REVALIDATE_TIMEOUT_MS = 5_000;
+
 /**
  * Ask the public Next.js site to invalidate ISR caches after admin mutations.
- * Failures are logged but never block article save.
+ * Failures / timeouts are logged but never block article save.
  */
 export async function revalidatePublicArticle(article?: RevalidateArticleInput) {
   const mainSiteUrl = process.env.NEXT_PUBLIC_MAIN_SITE_URL?.replace(/\/$/, '');
@@ -29,6 +31,7 @@ export async function revalidatePublicArticle(article?: RevalidateArticleInput) 
         slug: article?.slug || undefined,
         categorySlug: article?.categorySlug || undefined,
       }),
+      signal: AbortSignal.timeout(REVALIDATE_TIMEOUT_MS),
     });
 
     if (!response.ok) {

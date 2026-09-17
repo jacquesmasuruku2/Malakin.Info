@@ -88,6 +88,7 @@ async function uploadViaMainSite(file: File, folder: string): Promise<string> {
   const response = await fetch(`${mainSiteUrl.replace(/\/$/, '')}/api/upload`, {
     method: 'POST',
     body: formData,
+    signal: AbortSignal.timeout(25_000),
   });
 
   const data = await response.json().catch(() => ({}));

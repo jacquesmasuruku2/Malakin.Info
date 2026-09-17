@@ -6,6 +6,8 @@ import { ensureArticlePublicImages } from '@/lib/r2';
 import { revalidatePublicArticle } from '@/lib/revalidate-site';
 import { parseArticlePublishedAt } from '@/lib/datetime-local';
 
+export const maxDuration = 60;
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -86,6 +88,7 @@ export async function PUT(
       },
     });
     const saved = withTags || article;
+    // Bounded wait: never hang the save if the public site is slow/unreachable.
     await revalidatePublicArticle({
       slug: saved.slug,
       categorySlug: saved.category?.slug,
@@ -96,7 +99,14 @@ export async function PUT(
       tags: tagsFromArticle(saved),
     });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to update article' }, { status: 500 });
+    console.error('[articles PUT]', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to update article',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -119,6 +129,7 @@ export async function DELETE(
     });
     return NextResponse.json({ message: 'Article deleted successfully' });
   } catch (error) {
+    console.error('[articles DELETE]', error);
     return NextResponse.json({ error: 'Failed to delete article' }, { status: 500 });
   }
 }

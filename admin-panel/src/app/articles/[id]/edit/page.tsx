@@ -240,11 +240,19 @@ export default function EditArticlePage() {
         localStorage.removeItem(`article-draft-${articleId}`);
         router.push('/articles');
       } else {
-        alert('Erreur lors de la modification de l\'article');
+        const error = await response.json().catch(() => ({}));
+        alert(
+          [error?.error, error?.details].filter(Boolean).join(' — ') ||
+            'Erreur lors de la modification de l\'article',
+        );
       }
     } catch (error) {
       console.error('Failed to update article:', error);
-      alert('Erreur lors de la modification de l\'article');
+      alert(
+        error instanceof Error
+          ? `Erreur réseau : ${error.message}`
+          : 'Erreur lors de la modification de l\'article',
+      );
     } finally {
       setSaving(false);
     }
