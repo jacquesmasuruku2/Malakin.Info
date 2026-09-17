@@ -14,6 +14,21 @@ interface AdSenseAdProps {
 
 const PLACEHOLDER_SLOTS = new Set(['1234567890', '0987654321', '3333333333']);
 
+function maybeLoggedIn() {
+  try {
+    if (typeof window === 'undefined') return false;
+    if (window.localStorage.getItem('user')) return true;
+    const cookies = document.cookie;
+    return (
+      cookies.includes('session_token=') ||
+      cookies.includes('next-auth.session-token=') ||
+      cookies.includes('__Secure-next-auth.session-token=')
+    );
+  } catch {
+    return false;
+  }
+}
+
 export default function AdSenseAd({
   adSlot,
   adFormat = 'auto',
@@ -45,20 +60,35 @@ export default function AdSenseAd({
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
     const checkAdFreeStatus = async () => {
+      if (!maybeLoggedIn()) {
+        if (!cancelled) {
+          setIsAdFree(false);
+          setIsLoading(false);
+        }
+        return;
+      }
+
       try {
-        const response = await fetch('/api/user/ad-free-status');
+        const response = await fetch('/api/user/ad-free-status', {
+          cache: 'no-store',
+        });
         const data = await response.json();
-        setIsAdFree(Boolean(data.adFree));
+        if (!cancelled) setIsAdFree(Boolean(data.adFree));
       } catch (error) {
         console.error('Error checking ad-free status:', error);
-        setIsAdFree(false);
+        if (!cancelled) setIsAdFree(false);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
     checkAdFreeStatus();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {

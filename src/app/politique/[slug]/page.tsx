@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, ArrowLeft } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function PolitiqueArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

@@ -1,15 +1,23 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { SessionProvider } from 'next-auth/react';
 import { ServicesModalProvider } from '@/contexts/ServicesModalContext';
-import CookieConsentModal from '@/components/CookieConsentModal';
-import FollowedCategoryNotifier from '@/components/FollowedCategoryNotifier';
-import PublicationNotifier from '@/components/PublicationNotifier';
 import ThemeProvider from '@/components/ThemeProvider';
+
+const CookieConsentModal = dynamic(() => import('@/components/CookieConsentModal'), {
+  ssr: false,
+});
+const PublicationNotifier = dynamic(() => import('@/components/PublicationNotifier'), {
+  ssr: false,
+});
+const FollowedCategoryNotifier = dynamic(() => import('@/components/FollowedCategoryNotifier'), {
+  ssr: false,
+});
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
+    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
       <ThemeProvider>
         <ServicesModalProvider>
           {children}

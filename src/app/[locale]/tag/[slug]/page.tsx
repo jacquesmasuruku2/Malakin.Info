@@ -9,7 +9,7 @@ import { t } from '@/lib/copy';
 import { foldTagKey, slugifyTag } from '@/lib/tags';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 function decodeTagSlug(rawSlug: string) {
   try {

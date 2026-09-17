@@ -42,7 +42,7 @@ export default function FollowedCategoryNotifier() {
       showCategoryNotification(locale, picked.title, article);
     };
 
-    const timer = window.setTimeout(run, 1800);
+    const timer = window.setTimeout(run, 5000);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);

@@ -5,7 +5,7 @@ import { Calendar, Clock, ArrowLeft } from 'lucide-react';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 import { getArticleTags, prepareArticleHtml } from '@/lib/tags';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function PolitiqueArticlePage({
   params,

@@ -5,7 +5,7 @@ import { applyArticleLocales } from '@/lib/translation';
 import { pickCopy, t } from '@/lib/copy';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 type DiplomacyArticle = Prisma.ArticleGetPayload<{ include: { category: true; author: true } }>;
 
 export default async function DiplomatiePage({

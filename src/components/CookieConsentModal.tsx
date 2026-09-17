@@ -15,7 +15,7 @@ import { subscribeToNewsletter } from '@/lib/newsletter-client';
 const STORAGE_KEY = CONSENT_STORAGE_KEY;
 const PREFERENCES_KEY = CONSENT_PREFERENCES_KEY;
 const NEWSLETTER_PROMPT_KEY = 'malakinfo_newsletter_prompt_dismissed';
-const COOKIE_CONSENT_DELAY_MS = 2_000;
+const COOKIE_CONSENT_DELAY_MS = 800;
 const MOBILE_COOKIE_QUERY = '(max-width: 639px)';
 const MOBILE_COOKIE_ENTER_MS = 800;
 const MOBILE_COOKIE_VISIBLE_MS = 5_000;

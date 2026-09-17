@@ -4,6 +4,12 @@ export async function getCategoryArticles(slugs: string[], take = 24) {
   try {
     const category = await prisma.category.findFirst({
       where: { slug: { in: slugs } },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        description: true,
+      },
     });
 
     if (!category) {
@@ -12,9 +18,20 @@ export async function getCategoryArticles(slugs: string[], take = 24) {
 
     const articles = await prisma.article.findMany({
       where: { categoryId: category.id },
-      include: {
-        author: true,
-        category: true,
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        excerpt: true,
+        mainImageUrl: true,
+        mainImageAlt: true,
+        publishedAt: true,
+        author: {
+          select: { name: true, slug: true },
+        },
+        category: {
+          select: { id: true, slug: true, title: true },
+        },
       },
       orderBy: { publishedAt: 'desc' },
       take,

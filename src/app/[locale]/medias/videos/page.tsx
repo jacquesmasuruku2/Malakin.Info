@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ArrowRight, Calendar, Play } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function VideosPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

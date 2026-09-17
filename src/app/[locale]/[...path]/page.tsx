@@ -23,7 +23,7 @@ import FavoriteButton from '@/components/FavoriteButton';
 import { getArticleTags, prepareArticleHtml } from '@/lib/tags';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; path: string[] }> }): Promise<Metadata> {
   const { locale, path } = await params;

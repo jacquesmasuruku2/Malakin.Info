@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import RadioOnAirWidget from '@/components/RadioOnAirWidget';
 import { withRetry } from '@/lib/database';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function MediasPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

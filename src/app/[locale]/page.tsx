@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { ArrowRight, Radio } from 'lucide-react';
 import AdSenseAd from '@/components/AdSenseAd';
 import NewsletterSignupInline from '@/components/NewsletterSignupInline';
+import SmartImage from '@/components/SmartImage';
 import { ADSENSE_SLOTS } from '@/lib/adsense';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 import { withRetry } from '@/lib/database';
@@ -11,18 +12,30 @@ import RadioOnAirWidget from '@/components/RadioOnAirWidget';
 import { applyArticleLocales } from '@/lib/translation';
 import { getDateLocale, t as ui } from '@/lib/copy';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
+
+const articleListSelect = {
+  id: true,
+  slug: true,
+  title: true,
+  excerpt: true,
+  mainImageUrl: true,
+  publishedAt: true,
+  readTime: true,
+  category: {
+    select: { id: true, slug: true, title: true },
+  },
+  author: {
+    select: { name: true, slug: true },
+  },
+} as const;
 
 export default async function Home({
   params,
-  searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams?: Promise<{ category?: string }>;
 }) {
   const { locale } = await params;
-  const resolvedSearchParams = (await searchParams) ?? {};
-  const selectedCategory = String(resolvedSearchParams.category || '').trim().toLowerCase();
   const normalizedLocale = getLocaleFromPathname(`/${locale}`);
   const messages = getMessages(normalizedLocale);
   const t = messages.home;
@@ -38,20 +51,14 @@ export default async function Home({
         where: {
           featured: true,
         },
-        include: {
-          category: true,
-          author: true,
-        },
+        select: articleListSelect,
         take: 3,
         orderBy: {
           publishedAt: 'desc',
         },
       } as any)),
       withRetry(() => prisma.article.findMany({
-        include: {
-          category: true,
-          author: true,
-        },
+        select: articleListSelect,
         take: 6,
         orderBy: {
           publishedAt: 'desc',
@@ -66,12 +73,21 @@ export default async function Home({
             { endTime: { gte: now } }
           ]
         },
+        select: {
+          id: true,
+          title: true,
+        },
         orderBy: {
           startTime: 'desc'
         }
       })),
       withRetry(() => prisma.radioStation.findFirst({
         where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          streamUrl: true,
+        },
         orderBy: { createdAt: 'desc' },
       })),
     ]);
@@ -136,13 +152,8 @@ export default async function Home({
     { name: tNav.scienceTech, slug: 'science-tech', href: `/${locale}/science-tech` },
   ];
 
-  const filteredFeaturedNews = selectedCategory && selectedCategory !== 'all'
-    ? featuredNews.filter((item) => item.categorySlug === selectedCategory)
-    : featuredNews;
-
-  const filteredLatestNews = selectedCategory && selectedCategory !== 'all'
-    ? latestNews.filter((item) => item.categorySlug === selectedCategory)
-    : latestNews;
+  const filteredFeaturedNews = featuredNews;
+  const filteredLatestNews = latestNews;
 
   return (
     <div className="flex flex-col">
@@ -189,11 +200,12 @@ export default async function Home({
         <div className="mb-8 border-b border-border pb-4">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {categoryFilters.map((item) => {
-              const isActive = selectedCategory === item.slug || (!selectedCategory && item.slug === 'all');
+              const isActive = item.slug === 'all';
               return (
                 <Link
                   key={item.slug}
                   href={item.href}
+                  prefetch
                   className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
                     isActive
                       ? 'border-secondary bg-secondary/10 text-foreground'
@@ -214,10 +226,13 @@ export default async function Home({
                 <div className="overflow-hidden border border-border bg-card">
                   <Link href={`/${locale}/${filteredFeaturedNews[0].slug}`} className="group block">
                     <div className="relative h-72 sm:h-80 md:h-[30rem] overflow-hidden bg-muted">
-                      <img
+                      <SmartImage
                         src={filteredFeaturedNews[0].image}
                         alt={filteredFeaturedNews[0].title}
-                        className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
+                        fill
+                        priority
+                        sizes="(max-width: 1024px) 100vw, 70vw"
+                        className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/15 sm:from-black/70 sm:via-black/20 sm:to-transparent" />
 
@@ -282,23 +297,24 @@ export default async function Home({
 
             <div className="mb-8">
               <h2 className="font-heading text-xl font-bold text-foreground mb-6 uppercase tracking-wide border-l-4 border-secondary pl-3">
-                {selectedCategory && selectedCategory !== 'all'
-                  ? categoryFilters.find((item) => item.slug === selectedCategory)?.name || tNav.news
-                  : t.latestNews}
+                {t.latestNews}
               </h2>
               {filteredLatestNews.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredLatestNews.slice(0, 6).map((news) => (
+                  {filteredLatestNews.slice(0, 6).map((news, index) => (
                     <article
                       key={news.id}
                       className="group border border-border bg-card text-card-foreground transition-all duration-200 hover:-translate-y-1 hover:border-secondary"
                     >
-                      <Link href={`/${locale}/${news.slug}`} className="block p-[5px] bg-white">
+                      <Link href={`/${locale}/${news.slug}`} prefetch className="block p-[5px] bg-white">
                         <div className="article-preview-frame relative h-52">
-                          <img
+                          <SmartImage
                             src={news.image}
                             alt={news.title}
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            fill
+                            priority={index < 3}
+                            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
                           />
                           <span className="absolute bottom-3 left-3 z-10 px-2 py-1 bg-primary text-[10px] font-bold uppercase tracking-[0.12em] text-primary-foreground">
                             {news.category}

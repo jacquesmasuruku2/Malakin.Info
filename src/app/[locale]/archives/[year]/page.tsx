@@ -6,7 +6,7 @@ import { withRetry } from '@/lib/database';
 import { getArchiveYears, isValidArchiveYear, yearRange } from '@/lib/archives';
 import { applyArticleLocales } from '@/lib/translation';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export async function generateMetadata({
   params,

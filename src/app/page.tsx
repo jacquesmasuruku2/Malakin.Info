@@ -4,7 +4,7 @@ import { ArrowRight, Calendar, Clock, TrendingUp } from 'lucide-react';
 import NewsletterSignupInline from '@/components/NewsletterSignupInline';
 import RadioHomeButton from '@/components/RadioHomeButton';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function Home() {
   let featuredArticles: any[] = [];

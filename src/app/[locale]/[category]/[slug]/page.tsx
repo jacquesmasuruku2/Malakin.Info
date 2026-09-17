@@ -27,7 +27,7 @@ const playfair = Playfair_Display({
   weight: ['400', '700', '900'],
 });
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; category: string; slug: string }> }): Promise<Metadata> {
   const { locale, category, slug } = await params;

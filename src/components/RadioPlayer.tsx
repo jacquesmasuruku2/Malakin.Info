@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { WifiOff } from 'lucide-react';
-import Hls from 'hls.js';
+import type Hls from 'hls.js';
 import RadioOnAirWidget from '@/components/RadioOnAirWidget';
 import { RADIO_STATE_EVENT, RADIO_TOGGLE_EVENT, broadcastRadioPlaying } from '@/lib/radio-events';
 
@@ -20,6 +20,8 @@ type RadioStation = {
 };
 
 const RADIO_STORAGE_KEY = 'malakinfo-radio-state';
+const RADIO_CACHE_KEY = 'malakinfo-radio-active-cache';
+const RADIO_CACHE_TTL_MS = 60_000;
 
 const saveRadioState = (state: { isPlaying: boolean; volume: number; isMuted: boolean; station: RadioStation }) => {
   try {
@@ -109,7 +111,21 @@ export default function RadioPlayer() {
 
     const fetchStation = async () => {
       try {
-        const response = await fetch('/api/radio/active', { cache: 'no-store' });
+        try {
+          const cachedRaw = sessionStorage.getItem(RADIO_CACHE_KEY);
+          if (cachedRaw) {
+            const cached = JSON.parse(cachedRaw) as { at: number; data: RadioStation | null };
+            if (Date.now() - cached.at < RADIO_CACHE_TTL_MS) {
+              if (!mounted) return;
+              setStation(cached.data);
+              return;
+            }
+          }
+        } catch {
+          // ignore cache read errors
+        }
+
+        const response = await fetch('/api/radio/active');
         if (!response.ok) {
           throw new Error('Unable to load radio station');
         }
@@ -117,10 +133,15 @@ export default function RadioPlayer() {
         const data = await response.json();
         if (!mounted) return;
 
-        if (data && data.streamUrl) {
-          setStation(data);
-        } else {
-          setStation(null);
+        const nextStation = data && data.streamUrl ? data : null;
+        setStation(nextStation);
+        try {
+          sessionStorage.setItem(
+            RADIO_CACHE_KEY,
+            JSON.stringify({ at: Date.now(), data: nextStation }),
+          );
+        } catch {
+          // ignore cache write errors
         }
       } catch {
         if (!mounted) return;
@@ -146,54 +167,63 @@ export default function RadioPlayer() {
 
     const url = station?.streamUrl;
     if (!url) return;
-    const isHlsStream = /\.m3u8($|\?)/i.test(url) || /\.m3u8/i.test(decodeURIComponent(url));
+    let cancelled = false;
 
-    if (isHlsStream && Hls.isSupported()) {
-      hlsRef.current?.destroy();
-      hlsRef.current = new Hls({
-        autoStartLoad: false,
-        startLevel: -1,
-        enableWorker: true,
-        lowLatencyMode: false,
-      });
-      hlsRef.current.attachMedia(audio);
-      hlsRef.current.loadSource(url);
-      hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (wantsPlaybackRef.current && audioRef.current) {
-          void audioRef.current.play().catch(() => {
+    const setup = async () => {
+      const isHlsStream = /\.m3u8($|\?)/i.test(url) || /\.m3u8/i.test(decodeURIComponent(url));
+
+      if (isHlsStream) {
+        const HlsModule = (await import('hls.js')).default;
+        if (cancelled) return;
+
+        if (HlsModule.isSupported()) {
+          hlsRef.current?.destroy();
+          hlsRef.current = new HlsModule({
+            autoStartLoad: false,
+            startLevel: -1,
+            enableWorker: true,
+            lowLatencyMode: false,
+          });
+          hlsRef.current.attachMedia(audio);
+          hlsRef.current.loadSource(url);
+          hlsRef.current.on(HlsModule.Events.MANIFEST_PARSED, () => {
+            if (wantsPlaybackRef.current && audioRef.current) {
+              void audioRef.current.play().catch(() => {
+                wantsPlaybackRef.current = false;
+                setError('Lecture impossible. Vérifiez l’URL du flux ou le réseau.');
+                setIsBuffering(false);
+                setIsPlaying(false);
+                broadcastRadioPlaying(false);
+              });
+            }
+          });
+          hlsRef.current.on(HlsModule.Events.ERROR, (_event, data) => {
+            if (!data.fatal) return;
             wantsPlaybackRef.current = false;
-            setError('Lecture impossible. Vérifiez l’URL du flux ou le réseau.');
+            setError('Le flux audio est indisponible ou invalide.');
             setIsBuffering(false);
             setIsPlaying(false);
             broadcastRadioPlaying(false);
           });
+          return;
         }
-      });
-      hlsRef.current.on(Hls.Events.ERROR, (_event, data) => {
-        if (!data.fatal) return;
-        wantsPlaybackRef.current = false;
-        setError('Le flux audio est indisponible ou invalide.');
-        setIsBuffering(false);
-        setIsPlaying(false);
-        broadcastRadioPlaying(false);
-      });
-      return () => {
-        hlsRef.current?.detachMedia();
-        hlsRef.current?.destroy();
+      }
+
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
         hlsRef.current = null;
-      };
-    }
+      }
 
-    if (hlsRef.current) {
-      hlsRef.current.destroy();
-      hlsRef.current = null;
-    }
+      audio.src = url;
+      audio.load();
+    };
 
-    audio.src = url;
-    audio.load();
+    void setup();
 
     return () => {
+      cancelled = true;
       if (hlsRef.current) {
+        hlsRef.current.detachMedia?.();
         hlsRef.current.destroy();
         hlsRef.current = null;
       }

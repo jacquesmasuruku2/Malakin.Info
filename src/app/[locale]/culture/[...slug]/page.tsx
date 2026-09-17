@@ -15,7 +15,7 @@ import FavoriteButton from '@/components/FavoriteButton';
 import { getArticleTags } from '@/lib/tags';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function CultureCatchAllPage({ 
   params 

@@ -83,7 +83,7 @@ export default function PublicationNotifier() {
       }
     };
 
-    const timer = window.setTimeout(boot, 2600);
+    const timer = window.setTimeout(boot, 4500);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);

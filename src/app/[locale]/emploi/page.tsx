@@ -3,7 +3,7 @@ import { ArrowRight, Briefcase, Calendar, MapPin } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 function stripHtml(html: string) {
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();

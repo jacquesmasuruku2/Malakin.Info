@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import SmartImage from '@/components/SmartImage';
 import { getDateLocale } from '@/lib/copy';
 
 export type ListingArticle = {
@@ -24,21 +25,24 @@ export default function ArticleListingGrid({
 }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
-      {articles.map((item) => {
+      {articles.map((item, index) => {
         const href = hrefFor ? hrefFor(item) : `/${locale}/${item.slug}`;
         const categoryTitle = item.categoryTitle || item.category?.title || null;
         const publishedAt = item.publishedAt ? new Date(item.publishedAt) : null;
 
         return (
           <article key={item.id} className="tag-story min-w-0">
-            <Link href={href} className="block group">
+            <Link href={href} prefetch className="block group">
               {item.mainImageUrl ? (
                 <div className="mb-3 p-[5px] bg-white">
-                  <div className="article-preview-frame aspect-[16/10]">
-                    <img
+                  <div className="article-preview-frame relative aspect-[16/10]">
+                    <SmartImage
                       src={item.mainImageUrl}
                       alt={item.mainImageAlt || item.title}
-                      className="h-full w-full object-cover transition-opacity duration-200 group-hover:opacity-90"
+                      fill
+                      priority={index < 3}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition-opacity duration-200 group-hover:opacity-90"
                     />
                   </div>
                 </div>

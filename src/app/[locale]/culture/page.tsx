@@ -5,7 +5,7 @@ import { pickCopy, t } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function CulturePage({
   params,

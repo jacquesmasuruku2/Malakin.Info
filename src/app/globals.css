@@ -412,7 +412,7 @@
   background: #ffffff;
 }
 
-.article-preview-frame > img {
+.article-preview-frame img {
   display: block;
   width: 100%;
   height: 100%;

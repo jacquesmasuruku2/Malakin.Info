@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { DEFAULT_STATION } from '../route';
 
+export const revalidate = 60;
+
 function cors(response: NextResponse, request?: Request) {
   const origin = request?.headers.get('origin');
   const allowed = [process.env.ADMIN_PANEL_URL, process.env.NEXT_PUBLIC_ADMIN_URL, 'https://dashboard.malakinfo.com', 'http://localhost:3001', 'http://localhost:3000'].filter(Boolean);
@@ -75,7 +77,12 @@ export async function GET(request: Request) {
             }
           : null,
       },
-      { status: 200 },
+      {
+        status: 200,
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+        },
+      },
     ), request);
   } catch (error) {
     console.error('[radio API] Error fetching active station:', error);

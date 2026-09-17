@@ -3,12 +3,12 @@ import Script from "next/script";
 import { cn } from "@/lib/utils";
 import Providers from "@/components/Providers";
 import ServicesModal from "@/components/ServicesModal";
-import RadioPlayer from "@/components/RadioPlayer";
+import LazyRadioPlayer from "@/components/LazyRadioPlayer";
 import ConsentScripts from "@/components/ConsentScripts";
-import { ADSENSE_CLIENT } from "@/lib/adsense";
 import "./globals.css";
 
 const THEME_INIT_SCRIPT = `(function(){try{var logged=!!localStorage.getItem('user')||document.cookie.indexOf('session_token=')!==-1||document.cookie.indexOf('next-auth.session-token=')!==-1||document.cookie.indexOf('__Secure-next-auth.session-token=')!==-1;if(logged&&localStorage.getItem('malakinfo.theme')==='dark'){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}else{document.documentElement.classList.remove('dark');document.documentElement.style.colorScheme='light';}}catch(e){}})();`;
+
 
 const GOOGLE_SITE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '';
 
@@ -103,11 +103,6 @@ gtag('consent', 'default', {
 });`,
           }}
         />
-        <script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
-          crossOrigin="anonymous"
-        />
       </head>
       <body className="flex min-h-dvh flex-col" suppressHydrationWarning>
         <Script id="malakinfo-theme-init" strategy="beforeInteractive">
@@ -119,7 +114,7 @@ gtag('consent', 'default', {
             {children}
           </div>
           <ServicesModal />
-          <RadioPlayer />
+          <LazyRadioPlayer />
         </Providers>
       </body>
     </html>

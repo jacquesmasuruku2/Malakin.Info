@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { applyArticleLocales } from '@/lib/translation';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function EconomiePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

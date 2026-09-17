@@ -3,7 +3,7 @@ import { withRetry } from '@/lib/database';
 import { notFound } from 'next/navigation';
 import JobOfferDetail from './JobOfferDetail';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function JobOfferPage({ 
   params 

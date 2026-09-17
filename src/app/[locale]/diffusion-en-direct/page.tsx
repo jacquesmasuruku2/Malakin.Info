@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
 import RadioOnAirWidget from '@/components/RadioOnAirWidget';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function LiveBroadcastsPage({
   params,
