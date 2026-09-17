@@ -33,12 +33,14 @@ export default function ArticleListingGrid({
           <article key={item.id} className="tag-story min-w-0">
             <Link href={href} className="block group">
               {item.mainImageUrl ? (
-                <div className="mb-3 aspect-[16/10] overflow-hidden bg-muted">
-                  <img
-                    src={item.mainImageUrl}
-                    alt={item.mainImageAlt || item.title}
-                    className="h-full w-full object-cover transition-opacity duration-200 group-hover:opacity-90"
-                  />
+                <div className="mb-3 p-[5px] bg-white">
+                  <div className="article-preview-frame aspect-[16/10]">
+                    <img
+                      src={item.mainImageUrl}
+                      alt={item.mainImageAlt || item.title}
+                      className="h-full w-full object-cover transition-opacity duration-200 group-hover:opacity-90"
+                    />
+                  </div>
                 </div>
               ) : null}
               {categoryTitle ? (

@@ -291,16 +291,16 @@ export default async function Home({
                   {filteredLatestNews.slice(0, 6).map((news) => (
                     <article
                       key={news.id}
-                      className="group overflow-hidden border border-border bg-card text-card-foreground transition-all duration-200 hover:-translate-y-1 hover:border-secondary"
+                      className="group border border-border bg-card text-card-foreground transition-all duration-200 hover:-translate-y-1 hover:border-secondary"
                     >
-                      <Link href={`/${locale}/${news.slug}`} className="block">
-                        <div className="relative h-52 overflow-hidden">
+                      <Link href={`/${locale}/${news.slug}`} className="block p-[5px] bg-white">
+                        <div className="article-preview-frame relative h-52">
                           <img
                             src={news.image}
                             alt={news.title}
                             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
-                          <span className="absolute bottom-3 left-3 px-2 py-1 bg-primary text-[10px] font-bold uppercase tracking-[0.12em] text-primary-foreground">
+                          <span className="absolute bottom-3 left-3 z-10 px-2 py-1 bg-primary text-[10px] font-bold uppercase tracking-[0.12em] text-primary-foreground">
                             {news.category}
                           </span>
                         </div>
