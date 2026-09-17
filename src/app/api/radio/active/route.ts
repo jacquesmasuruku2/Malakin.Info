@@ -1,17 +1,12 @@
 import { NextResponse } from 'next/server';
+import { applyCors } from '@/lib/cors';
 import { prisma } from '@/lib/prisma';
 import { DEFAULT_STATION } from '../route';
 
 export const revalidate = 60;
 
 function cors(response: NextResponse, request?: Request) {
-  const origin = request?.headers.get('origin');
-  const allowed = [process.env.ADMIN_PANEL_URL, process.env.NEXT_PUBLIC_ADMIN_URL, 'https://dashboard.malakinfo.com', 'http://localhost:3001', 'http://localhost:3000'].filter(Boolean);
-  if (origin && allowed.includes(origin)) response.headers.set('Access-Control-Allow-Origin', origin);
-  response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  response.headers.set('Access-Control-Allow-Credentials', 'true');
-  return response;
+  return applyCors(response, request);
 }
 
 export async function OPTIONS(request: Request) {

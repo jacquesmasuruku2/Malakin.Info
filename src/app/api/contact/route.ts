@@ -1,15 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { applyCors, corsOptions } from '@/lib/cors';
 import { prisma } from '@/lib/prisma';
 import { sendTelegramMessage } from '@/lib/telegram';
-
-// Helper function to add CORS headers
-function cors(response: NextResponse) {
-  response.headers.set('Access-Control-Allow-Origin', 'https://dashboard.malakinfo.com');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  response.headers.set('Access-Control-Allow-Credentials', 'true');
-  return response;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,8 +42,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function OPTIONS() {
-  return cors(new NextResponse(null, { status: 200 }));
+export async function OPTIONS(request: NextRequest) {
+  return corsOptions(request);
 }
 
 export async function GET(request: NextRequest) {
@@ -68,12 +60,12 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return cors(NextResponse.json(messages));
+    return applyCors(NextResponse.json(messages), request);
   } catch (error) {
     console.error('Error fetching contact messages:', error);
-    return cors(NextResponse.json(
-      { error: 'Failed to fetch messages', messages: [] },
-      { status: 500 }
-    ));
+    return applyCors(
+      NextResponse.json({ error: 'Failed to fetch messages', messages: [] }, { status: 500 }),
+      request,
+    );
   }
 }

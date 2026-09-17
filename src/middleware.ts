@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { applyCors, corsOptions } from '@/lib/cors';
 import { defaultLocale, isSupportedLocale, supportedLocales } from '@/lib/i18n';
 
 const PAGE_ALIASES: Record<string, string> = {
@@ -14,6 +15,14 @@ const PAGE_ALIASES: Record<string, string> = {
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+
+  // Ensure the admin panel (dashboard.malakinfo.com) can call main-site APIs.
+  if (pathname.startsWith('/api/')) {
+    if (request.method === 'OPTIONS') {
+      return corsOptions(request);
+    }
+    return applyCors(NextResponse.next(), request);
+  }
 
   if (pathname === '/rss.xml' || pathname.startsWith('/rss.xml')) {
     return NextResponse.next();
@@ -57,5 +66,8 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|images|favicon.ico|ads.txt|robots.txt|sitemap.xml|rss.xml).*)'],
+  matcher: [
+    '/api/:path*',
+    '/((?!api|_next/static|_next/image|images|favicon.ico|ads.txt|robots.txt|sitemap.xml|rss.xml).*)',
+  ],
 };

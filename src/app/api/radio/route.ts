@@ -1,23 +1,9 @@
 import { NextResponse } from 'next/server';
+import { applyCors } from '@/lib/cors';
 import { prisma } from '@/lib/prisma';
 
-// Helper function to add CORS headers
 function cors(response: NextResponse, request?: Request) {
-  const requestOrigin = request?.headers.get('origin');
-  const allowedOrigins = [
-    process.env.ADMIN_PANEL_URL,
-    process.env.NEXT_PUBLIC_ADMIN_URL,
-    'https://dashboard.malakinfo.com',
-    'http://localhost:3001',
-    'http://localhost:3000',
-  ].filter(Boolean);
-  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
-    response.headers.set('Access-Control-Allow-Origin', requestOrigin);
-  }
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  response.headers.set('Access-Control-Allow-Credentials', 'true');
-  return response;
+  return applyCors(response, request);
 }
 
 // Handle OPTIONS request for CORS preflight
