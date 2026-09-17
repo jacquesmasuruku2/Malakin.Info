@@ -12,10 +12,13 @@ export function formatArticleDate(
   locale: string,
 ): string {
   if (!value) return '';
-  return new Date(value).toLocaleDateString(DATE_LOCALES[locale] || 'fr-FR', {
+  return new Date(value).toLocaleString(DATE_LOCALES[locale] || 'fr-FR', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
   });
 }
 
