@@ -7,6 +7,9 @@ const DATE_LOCALES: Record<string, string> = {
   rw: 'fr-FR',
 };
 
+/** Affichage éditorial MalakInfo : UTC+2 (RDC Est / heure d’Afrique centrale). */
+export const SITE_TIMEZONE = 'Africa/Lubumbashi';
+
 export function formatArticleDate(
   value: Date | string | null | undefined,
   locale: string,
@@ -19,6 +22,7 @@ export function formatArticleDate(
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
+    timeZone: SITE_TIMEZONE,
   });
 }
 
