@@ -88,7 +88,7 @@ const SOCIAL_LINKS: SocialLink[] = [
   },
   {
     label: 'WhatsApp',
-    href: 'https://wa.me/243998258441',
+    href: 'https://whatsapp.com/channel/0029Vb8COtvFsn0n2moPVg3m',
     color: '#25D366',
     icon: <WhatsAppIcon />,
   },

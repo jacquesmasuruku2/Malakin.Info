@@ -167,7 +167,7 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
         </svg>
       ),
       color: '#25D366',
-      url: 'https://wa.me/243998258441',
+      url: 'https://whatsapp.com/channel/0029Vb8COtvFsn0n2moPVg3m',
     },
   };
 
