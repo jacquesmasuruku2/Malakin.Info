@@ -29,6 +29,18 @@ export default async function EmploiPage({
     (await withRetry(() =>
       prisma.jobOffer.findMany({
         where: { publishedAt: { lte: new Date() } },
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          description: true,
+          imageUrl: true,
+          type: true,
+          location: true,
+          salary: true,
+          featured: true,
+          publishedAt: true,
+        },
         orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
         take: 40,
       })

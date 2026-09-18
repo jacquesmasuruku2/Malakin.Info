@@ -2,6 +2,8 @@ import CategoryArticlesList from '@/components/CategoryArticlesList';
 import { pickCopy } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
 
+export const revalidate = 60;
+
 export default async function EnvironnementPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const messages = getMessages(locale);

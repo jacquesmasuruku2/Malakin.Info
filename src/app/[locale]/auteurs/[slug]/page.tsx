@@ -3,40 +3,36 @@ import { Calendar, Clock, User, BookOpen } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { withRetry } from '@/lib/database';
+import { articleListingSelect } from '@/lib/article-listing';
+
+export const revalidate = 60;
 
 async function getAuthorBySlug(slug: string) {
   const fetchAuthor = async () => {
-    console.log('Fetching author with slug:', slug);
     const author = await prisma.author.findUnique({
       where: { slug },
     });
 
     if (!author) {
-      console.log('Author not found:', slug);
       return null;
     }
 
     const articles = await prisma.article.findMany({
       where: { authorId: author.id },
-      include: {
-        category: true,
+      select: {
+        ...articleListingSelect,
+        readTime: true,
       },
       orderBy: {
         publishedAt: 'desc',
       },
+      take: 48,
     });
 
-    console.log('Author found:', author.name, 'with', articles.length, 'articles');
     return { ...author, articles };
   };
 
-  const result = await withRetry(fetchAuthor, { maxRetries: 3, delay: 500 });
-
-  if (!result) {
-    console.error('Failed to fetch author after retries');
-  }
-
-  return result;
+  return withRetry(fetchAuthor, { maxRetries: 2, delay: 250 });
 }
 
 export default async function AuthorPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {

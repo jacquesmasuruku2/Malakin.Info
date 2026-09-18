@@ -4,23 +4,20 @@ import { applyArticleLocales } from '@/lib/translation';
 import { pickCopy, t } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
+import { articleListingSelect } from '@/lib/article-listing';
+
+export const revalidate = 60;
 
 export default async function PolitiquePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const messages = getMessages(locale);
 
-  const category = await prisma.category.findUnique({
-    where: { slug: 'politique' },
+  const rawArticles = await prisma.article.findMany({
+    where: { category: { slug: 'politique' } },
+    select: articleListingSelect,
+    orderBy: { publishedAt: 'desc' },
+    take: 12,
   });
-
-  const rawArticles = category
-    ? await prisma.article.findMany({
-        where: { categoryId: category.id },
-        include: { category: true },
-        orderBy: { publishedAt: 'desc' },
-        take: 12,
-      })
-    : [];
   const articles = await applyArticleLocales(rawArticles, locale);
 
   return (

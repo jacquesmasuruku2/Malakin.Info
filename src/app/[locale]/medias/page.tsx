@@ -16,9 +16,43 @@ export default async function MediasPage({ params }: { params: Promise<{ locale:
 
   try {
     const [mediaResult, liveEventsResult, radioProgramsResult, radioResult] = await Promise.all([
-      withRetry(() => prisma.media.findMany({ orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }], take: 24 })),
-      withRetry(() => prisma.liveEvent.findMany({ where: { OR: [{ status: 'LIVE' }, { status: 'SCHEDULED' }] }, orderBy: { startTime: 'asc' }, take: 6 })),
-      withRetry(() => prisma.radioProgram.findMany({ where: { OR: [{ isLive: true }, { endTime: { gte: new Date() } }] }, orderBy: [{ isLive: 'desc' }, { startTime: 'asc' }], take: 6 })),
+      withRetry(() => prisma.media.findMany({
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          url: true,
+          thumbnailUrl: true,
+          type: true,
+          publishedAt: true,
+          featured: true,
+        },
+        orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
+        take: 24,
+      })),
+      withRetry(() => prisma.liveEvent.findMany({
+        where: { OR: [{ status: 'LIVE' }, { status: 'SCHEDULED' }] },
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          startTime: true,
+        },
+        orderBy: { startTime: 'asc' },
+        take: 6,
+      })),
+      withRetry(() => prisma.radioProgram.findMany({
+        where: { OR: [{ isLive: true }, { endTime: { gte: new Date() } }] },
+        select: {
+          id: true,
+          title: true,
+          streamUrl: true,
+          isLive: true,
+          startTime: true,
+        },
+        orderBy: [{ isLive: 'desc' }, { startTime: 'asc' }],
+        take: 6,
+      })),
       withRetry(() => prisma.radioStation.findFirst({
         where: { isActive: true },
         orderBy: { createdAt: 'desc' },

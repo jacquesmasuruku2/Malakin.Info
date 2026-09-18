@@ -4,6 +4,7 @@ import { applyArticleLocales } from '@/lib/translation';
 import { pickCopy, t } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
+import { articleListingSelect } from '@/lib/article-listing';
 
 export const revalidate = 60;
 
@@ -17,19 +18,13 @@ export default async function EducationPage({
   let articles: any[] = [];
 
   try {
-    const category = await prisma.category.findUnique({
-      where: { slug: 'education-et-enseignement' },
-    });
-
-    if (category) {
-      articles = await prisma.article.findMany({
-        where: { categoryId: category.id },
-        include: { category: true, author: true },
-        orderBy: { publishedAt: 'desc' },
-        take: 24,
-      } as any);
-      articles = await applyArticleLocales(articles, locale);
-    }
+    articles = await prisma.article.findMany({
+      where: { category: { slug: 'education-et-enseignement' } },
+      select: articleListingSelect,
+      orderBy: { publishedAt: 'desc' },
+      take: 24,
+    } as any);
+    articles = await applyArticleLocales(articles, locale);
   } catch (error) {
     console.error('Education page database error:', error);
   }

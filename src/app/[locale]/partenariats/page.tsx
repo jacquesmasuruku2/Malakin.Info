@@ -4,6 +4,8 @@ import PartnershipRequestForm from '@/components/PartnershipRequestForm';
 import { prisma } from '@/lib/prisma';
 import { SITE_ADDRESS, SITE_EMAIL, SITE_NAME, SITE_PHONE } from '@/lib/site-legal';
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: 'Partenariats - Malakinfo.com',
   description:

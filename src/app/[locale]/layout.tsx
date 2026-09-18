@@ -3,6 +3,8 @@ import Footer from "@/components/Footer";
 import LocaleLang from "@/components/LocaleLang";
 import { getFooterPartners } from "@/lib/footer-partners";
 
+export const revalidate = 60;
+
 export default async function LocaleLayout({
   children,
   params,

@@ -11,24 +11,9 @@ import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 import RadioOnAirWidget from '@/components/RadioOnAirWidget';
 import { applyArticleLocales } from '@/lib/translation';
 import { getDateLocale, t as ui } from '@/lib/copy';
+import { articleListingSelect } from '@/lib/article-listing';
 
 export const revalidate = 60;
-
-const articleListSelect = {
-  id: true,
-  slug: true,
-  title: true,
-  excerpt: true,
-  mainImageUrl: true,
-  publishedAt: true,
-  readTime: true,
-  category: {
-    select: { id: true, slug: true, title: true },
-  },
-  author: {
-    select: { name: true, slug: true },
-  },
-} as const;
 
 export default async function Home({
   params,
@@ -51,14 +36,14 @@ export default async function Home({
         where: {
           featured: true,
         },
-        select: articleListSelect,
+        select: articleListingSelect,
         take: 3,
         orderBy: {
           publishedAt: 'desc',
         },
       } as any)),
       withRetry(() => prisma.article.findMany({
-        select: articleListSelect,
+        select: articleListingSelect,
         take: 6,
         orderBy: {
           publishedAt: 'desc',
@@ -101,8 +86,15 @@ export default async function Home({
   }
 
   try {
-    featuredArticles = await applyArticleLocales(featuredArticles, normalizedLocale);
-    latestArticles = await applyArticleLocales(latestArticles, normalizedLocale);
+    const ids = new Set(featuredArticles.map((article) => article.id));
+    const uniqueLatest = latestArticles.filter((article) => !ids.has(article.id));
+    const localized = await applyArticleLocales(
+      [...featuredArticles, ...uniqueLatest],
+      normalizedLocale,
+    );
+    const byId = new Map(localized.map((article) => [article.id, article]));
+    featuredArticles = featuredArticles.map((article) => byId.get(article.id) || article);
+    latestArticles = latestArticles.map((article) => byId.get(article.id) || article);
   } catch (error) {
     console.error('Article locale error:', error);
   }

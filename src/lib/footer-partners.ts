@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
+import { unstable_cache } from 'next/cache';
 
 export type FooterPartner = {
   id: string;
@@ -17,8 +18,7 @@ function normalizeWebsiteUrl(value: string | null): string | null {
   }
 }
 
-/** Approved partners that have a logo ready for the footer strip. */
-export async function getFooterPartners(): Promise<FooterPartner[]> {
+async function loadFooterPartners(): Promise<FooterPartner[]> {
   try {
     const partners =
       (await withRetry(() =>
@@ -53,3 +53,9 @@ export async function getFooterPartners(): Promise<FooterPartner[]> {
     return [];
   }
 }
+
+/** Cached for all locale pages — avoids a DB hit on every navigation. */
+export const getFooterPartners = unstable_cache(loadFooterPartners, ['footer-partners'], {
+  revalidate: 300,
+  tags: ['footer-partners'],
+});

@@ -4,6 +4,7 @@ import { applyArticleLocales } from '@/lib/translation';
 import { pickCopy, t } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
+import { articleListingSelect } from '@/lib/article-listing';
 
 export const revalidate = 60;
 
@@ -21,10 +22,7 @@ export default async function InfosPratiquesPage({
         slug: 'infos-pratiques',
       },
     },
-    include: {
-      category: true,
-      author: true,
-    },
+    select: articleListingSelect,
     orderBy: {
       publishedAt: 'desc',
     },

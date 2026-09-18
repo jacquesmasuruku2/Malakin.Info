@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { supportedLocales } from '@/lib/i18n';
 
 function isAuthorized(request: NextRequest) {
@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
 
     // Soft-refresh layouts so listings pull fresh data on next visit.
     revalidatePath('/', 'layout');
+    revalidateTag('footer-partners', 'max');
 
     return NextResponse.json({
       revalidated: true,
