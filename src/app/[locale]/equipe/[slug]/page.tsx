@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import AuthorBio from '@/components/AuthorBio';
+import { plainTextFromBio } from '@/lib/author-bio';
 import { prisma } from '@/lib/prisma';
 
 export const revalidate = 60;
@@ -20,9 +22,7 @@ export async function generateMetadata({
     return { title: 'Équipe - Malakinfo.com' };
   }
 
-  const plainBio = author.bio
-    ? author.bio.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
-    : '';
+  const plainBio = plainTextFromBio(author.bio);
 
   return {
     title: `${author.name} - Malakinfo.com`,
@@ -100,10 +100,7 @@ export default async function ContributorProfilePage({
             {isFrench ? 'À propos' : 'About'}
           </h2>
           {author.bio ? (
-            <div
-              className="prose prose-slate max-w-none dark:prose-invert prose-p:text-muted-foreground prose-li:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
-              dangerouslySetInnerHTML={{ __html: author.bio }}
-            />
+            <AuthorBio html={author.bio} />
           ) : (
             <p className="text-muted-foreground leading-7">
               {isFrench

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicAuthor } from '@/lib/revalidate-site';
 
 // Helper function to add CORS headers
 function cors(response: NextResponse) {
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest) {
         imageAlt: body.imageAlt,
       },
     });
+    await revalidatePublicAuthor(author.slug);
     return cors(NextResponse.json(author, { status: 201 }));
   } catch (error) {
     console.error('Error creating author:', error);

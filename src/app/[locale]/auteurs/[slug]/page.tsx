@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Calendar, Clock, User, BookOpen } from 'lucide-react';
+import AuthorBio from '@/components/AuthorBio';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { withRetry } from '@/lib/database';
@@ -68,12 +69,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ locale:
               </p>
             </div>
           </div>
-          {author.bio && (
-            <div
-              className="prose prose-invert mt-6 max-w-3xl leading-relaxed prose-p:text-gray-200 prose-a:text-white prose-strong:text-white"
-              dangerouslySetInnerHTML={{ __html: author.bio }}
-            />
-          )}
+          {author.bio && <AuthorBio html={author.bio} onDark className="mt-6" />}
         </div>
       </section>
 

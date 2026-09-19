@@ -1,6 +1,7 @@
 type RevalidateArticleInput = {
   slug?: string | null;
   categorySlug?: string | null;
+  paths?: string[];
 };
 
 const REVALIDATE_TIMEOUT_MS = 5_000;
@@ -30,6 +31,7 @@ export async function revalidatePublicArticle(article?: RevalidateArticleInput) 
       body: JSON.stringify({
         slug: article?.slug || undefined,
         categorySlug: article?.categorySlug || undefined,
+        paths: article?.paths || undefined,
       }),
       signal: AbortSignal.timeout(REVALIDATE_TIMEOUT_MS),
     });
@@ -41,4 +43,21 @@ export async function revalidatePublicArticle(article?: RevalidateArticleInput) 
   } catch (error) {
     console.error('[revalidate] Request error:', error);
   }
+}
+
+export async function revalidatePublicAuthor(slug?: string | null) {
+  if (!slug) {
+    await revalidatePublicArticle({ paths: ['/fr/equipe', '/en/equipe'] });
+    return;
+  }
+  await revalidatePublicArticle({
+    paths: [
+      `/fr/equipe/${slug}`,
+      `/en/equipe/${slug}`,
+      `/fr/auteurs/${slug}`,
+      `/en/auteurs/${slug}`,
+      '/fr/equipe',
+      '/en/equipe',
+    ],
+  });
 }
