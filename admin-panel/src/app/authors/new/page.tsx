@@ -1,6 +1,7 @@
 'use client';
 
 import AdminLayout from '@/components/AdminLayout';
+import RichTextEditor from '@/components/RichTextEditor';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, X } from 'lucide-react';
@@ -58,7 +59,7 @@ export default function NewAuthorPage() {
 
   return (
     <AdminLayout>
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-primary">Nouvel auteur</h1>
@@ -108,14 +109,15 @@ export default function NewAuthorPage() {
             <label className="block text-sm font-medium text-secondary mb-2">
               Biographie
             </label>
-            <textarea
-              value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              rows={4}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
-              style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}
-              placeholder="Biographie de l'auteur"
+            <RichTextEditor
+              content={formData.bio}
+              onChange={(bio) => setFormData({ ...formData, bio })}
+              placeholder="Présentez l’auteur : parcours, spécialités, ton éditorial…"
+              minHeightClassName="min-h-[200px]"
             />
+            <p className="mt-2 text-xs text-gray-500">
+              Gras, italique, titres, listes, citations et liens sont disponibles.
+            </p>
           </div>
 
           <div>

@@ -152,7 +152,9 @@ export default function AuthorsPage() {
                   </div>
                 </div>
                 
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">{author.bio}</p>
+                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                  {(author.bio || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()}
+                </p>
                 
                 <div className="space-y-2">
                   <div className="flex items-center text-sm text-gray-600">

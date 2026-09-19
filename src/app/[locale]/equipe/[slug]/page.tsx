@@ -20,9 +20,13 @@ export async function generateMetadata({
     return { title: 'Équipe - Malakinfo.com' };
   }
 
+  const plainBio = author.bio
+    ? author.bio.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+    : '';
+
   return {
     title: `${author.name} - Malakinfo.com`,
-    description: author.bio?.slice(0, 160) || `${author.name}${author.role ? `, ${author.role}` : ''} — MalakInfo.`,
+    description: plainBio.slice(0, 160) || `${author.name}${author.role ? `, ${author.role}` : ''} — MalakInfo.`,
   };
 }
 
@@ -95,12 +99,18 @@ export default async function ContributorProfilePage({
           <h2 className="font-heading text-2xl font-bold text-foreground mb-4">
             {isFrench ? 'À propos' : 'About'}
           </h2>
-          <p className="whitespace-pre-line text-muted-foreground leading-7">
-            {author.bio ||
-              (isFrench
+          {author.bio ? (
+            <div
+              className="prose prose-slate max-w-none dark:prose-invert prose-p:text-muted-foreground prose-li:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
+              dangerouslySetInnerHTML={{ __html: author.bio }}
+            />
+          ) : (
+            <p className="text-muted-foreground leading-7">
+              {isFrench
                 ? 'La biographie de ce contributeur sera bientôt publiée.'
-                : 'This contributor biography will be published soon.')}
-          </p>
+                : 'This contributor biography will be published soon.'}
+            </p>
+          )}
         </section>
 
         <section className="mt-12">

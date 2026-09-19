@@ -67,7 +67,7 @@ function AuthorCard({
         </p>
         {author.bio && (
           <p className="mt-3 line-clamp-3 text-sm leading-6 text-muted-foreground">
-            {author.bio}
+            {author.bio.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()}
           </p>
         )}
         <p className="mt-auto pt-4 text-xs text-muted-foreground">

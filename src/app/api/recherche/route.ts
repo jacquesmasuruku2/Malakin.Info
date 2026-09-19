@@ -131,7 +131,7 @@ export async function GET(request: Request) {
         id: author.id,
         type: 'author' as const,
         title: author.name,
-        excerpt: author.bio || '',
+        excerpt: (author.bio || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
         slug: author.slug,
         path: `/auteurs/${author.slug}`,
       })),

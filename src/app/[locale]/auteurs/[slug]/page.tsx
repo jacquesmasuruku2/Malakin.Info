@@ -69,9 +69,10 @@ export default async function AuthorPage({ params }: { params: Promise<{ locale:
             </div>
           </div>
           {author.bio && (
-            <p className="text-gray-200 mt-6 max-w-3xl leading-relaxed">
-              {author.bio}
-            </p>
+            <div
+              className="prose prose-invert mt-6 max-w-3xl leading-relaxed prose-p:text-gray-200 prose-a:text-white prose-strong:text-white"
+              dangerouslySetInnerHTML={{ __html: author.bio }}
+            />
           )}
         </div>
       </section>
