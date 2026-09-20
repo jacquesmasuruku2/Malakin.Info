@@ -181,7 +181,7 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
   const footerSocialLinks = [
     {
       label: 'Site web',
-      href: 'https://www.malakinfo.com',
+      href: 'https://malakinfo.com',
       bgColor: '#0F172A',
       iconImage: 'https://cdn-icons-png.flaticon.com/512/1006/1006771.png',
     },

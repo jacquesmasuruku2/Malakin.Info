@@ -122,7 +122,7 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
         </svg>
       ),
       color: '#FFFFFF',
-      url: 'https://www.malakinfo.com',
+      url: 'https://malakinfo.com',
     },
     Facebook: {
       icon: () => (
@@ -258,6 +258,7 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
 
           <div>
             <h3 className={headingClass}>{t.aboutMalakin}</h3>
+            <p className="mb-4 text-sm leading-relaxed text-white/70">{t.description}</p>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
               {aboutLinks.map((item) => (
                 <Link key={item.href + item.label} href={item.href} className={textLinkClass}>
@@ -375,8 +376,8 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
             <p className="text-sm font-semibold tracking-wide text-white">MalakInfo</p>
             <p className="mt-1 text-xs text-white/50">
               {locale === 'fr'
-                ? 'Médias & partenaires premium'
-                : 'Media & premium partners'}
+                ? 'Aussi connu sous les noms Malaki et Malaki Info'
+                : 'Also known as Malaki and Malaki Info'}
             </p>
           </div>
 

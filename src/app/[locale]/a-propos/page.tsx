@@ -5,8 +5,10 @@ import { pickCopy } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
 
 export const metadata: Metadata = {
-  title: 'À propos - Malakinfo.com',
-  description: 'MalakInfo est un média d’information indépendant basé à Kinshasa, consacré à l’Afrique et au monde.',
+  title: 'À propos de MalakInfo (Malaki Info)',
+  description:
+    'MalakInfo (Malaki / Malaki Info) est un média d’information indépendant basé à Kinshasa, consacré à l’Afrique et au monde.',
+  keywords: ['MalakInfo', 'Malaki', 'Malaki Info', 'Malakin', 'à propos', 'média africain', 'Kinshasa'],
 };
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -29,12 +31,12 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         <div className="prose prose-lg max-w-none space-y-6 text-muted-foreground">
           <p className="text-lg">
             {pickCopy(locale, {
-              fr: `${SITE_NAME} est un média d’information indépendant, édité à Kinshasa, en République démocratique du Congo. Nous publions des actualités, des analyses et des dossiers sur l’Afrique et le monde, avec une attention particulière à la RDC et à sa diaspora.`,
-              en: `${SITE_NAME} is an independent news outlet based in Kinshasa, Democratic Republic of the Congo. We publish news, analysis and features about Africa and the world, with particular attention to the DRC and its diaspora.`,
-              es: `${SITE_NAME} es un medio de información independiente, editado en Kinshasa, República Democrática del Congo. Publicamos noticias, análisis y reportajes sobre África y el mundo, con especial atención a la RDC y su diáspora.`,
-              sw: `${SITE_NAME} ni chombo huru cha habari kinachohaririwa Kinshasa, Jamhuri ya Kidemokrasia ya Kongo. Tunachapisha habari, uchambuzi na makala kuhusu Afrika na dunia, tukizingatia DRC na diaspora yake.`,
-              ln: `${SITE_NAME} ezali média ya sango ya independant, eyebani na Kinshasa, République démocratique du Congo. Topesa sango, ba analyse mpe ba dossier na ntina ya Afrique mpe ya mokili, na toli mingi na RDC mpe na diaspora na yango.`,
-              rw: `${SITE_NAME} ni itangazamakuru ryigenga rikorera i Kinshasa, muri Repubulika Iharanira Demokarasi ya Kongo. Dutangaza amakuru, isesengura n’inkuru z’Afurika n’isi, twita cyane kuri RDC n’abaturage bayo bo hanze.`,
+              fr: `${SITE_NAME} (aussi connu sous les noms Malaki, Malaki Info ou Malakinfo) est un média d’information indépendant, édité à Kinshasa, en République démocratique du Congo. Nous publions des actualités, des analyses et des dossiers sur l’Afrique et le monde, avec une attention particulière à la RDC et à sa diaspora.`,
+              en: `${SITE_NAME} (also known as Malaki, Malaki Info or Malakinfo) is an independent news outlet based in Kinshasa, Democratic Republic of the Congo. We publish news, analysis and features about Africa and the world, with particular attention to the DRC and its diaspora.`,
+              es: `${SITE_NAME} (también conocido como Malaki, Malaki Info o Malakinfo) es un medio de información independiente, editado en Kinshasa, República Democrática del Congo. Publicamos noticias, análisis y reportajes sobre África y el mundo, con especial atención a la RDC y su diáspora.`,
+              sw: `${SITE_NAME} (pia inajulikana kama Malaki, Malaki Info au Malakinfo) ni chombo huru cha habari kinachohaririwa Kinshasa, Jamhuri ya Kidemokrasia ya Kongo. Tunachapisha habari, uchambuzi na makala kuhusu Afrika na dunia, tukizingatia DRC na diaspora yake.`,
+              ln: `${SITE_NAME} (eyebani pe na nkombo Malaki, Malaki Info to Malakinfo) ezali média ya sango ya independant, eyebani na Kinshasa, République démocratique du Congo. Topesa sango, ba analyse mpe ba dossier na ntina ya Afrique mpe ya mokili, na toli mingi na RDC mpe na diaspora na yango.`,
+              rw: `${SITE_NAME} (izwi kandi nka Malaki, Malaki Info cyangwa Malakinfo) ni itangazamakuru ryigenga rikorera i Kinshasa, muri Repubulika Iharanira Demokarasi ya Kongo. Dutangaza amakuru, isesengura n’inkuru z’Afurika n’isi, twita cyane kuri RDC n’abaturage bayo bo hanze.`,
             })}
           </p>
           <p>

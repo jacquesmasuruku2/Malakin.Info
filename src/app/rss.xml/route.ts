@@ -35,7 +35,7 @@ export async function GET() {
   <channel>
     <title>${SITE_NAME}</title>
     <link>${SITE_URL}</link>
-    <description>Actualités et analyses de ${SITE_NAME}</description>
+    <description>Actualités et analyses de ${SITE_NAME} (Malaki / Malaki Info)</description>
     <language>fr</language>
     ${items}
   </channel>

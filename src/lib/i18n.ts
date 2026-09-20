@@ -43,7 +43,7 @@ const translations: Record<SupportedLocale, typeof frMessages> = {
       back: 'Back',
     },
     footer: {
-      description: 'News that crosses borders. Informing, educating and connecting Africa through independent journalism.',
+      description: 'MalakInfo (Malaki / Malaki Info) — news that crosses borders. Informing, educating and connecting Africa through independent journalism.',
       news: 'News',
       sections: 'Sections',
       about: 'About',
@@ -210,7 +210,7 @@ const translations: Record<SupportedLocale, typeof frMessages> = {
       legal: 'Legal',
       copyright: 'Todos los derechos reservados.',
       inTheNews: 'EN LAS NOTICIAS',
-      aboutMalakin: 'SOBRE MALAKIN',
+      aboutMalakin: 'SOBRE MALAKINFO',
       whoAreWe: '¿Quiénes somos?',
       ourMission: 'Nuestra misión',
       ourTeam: 'Nuestro equipo',

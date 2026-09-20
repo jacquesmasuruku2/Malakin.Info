@@ -5,6 +5,7 @@ import Providers from "@/components/Providers";
 import ServicesModal from "@/components/ServicesModal";
 import LazyRadioPlayer from "@/components/LazyRadioPlayer";
 import ConsentScripts from "@/components/ConsentScripts";
+import SiteJsonLd from "@/components/SiteJsonLd";
 import "./globals.css";
 
 const THEME_INIT_SCRIPT = `(function(){try{var logged=!!localStorage.getItem('user')||document.cookie.indexOf('session_token=')!==-1||document.cookie.indexOf('next-auth.session-token=')!==-1||document.cookie.indexOf('__Secure-next-auth.session-token=')!==-1;if(logged&&localStorage.getItem('malakinfo.theme')==='dark'){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}else{document.documentElement.classList.remove('dark');document.documentElement.style.colorScheme='light';}}catch(e){}})();`;
@@ -14,14 +15,32 @@ const GOOGLE_SITE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATIO
 
 export const metadata: Metadata = {
   title: {
-    default: "Malakinfo.com | L'info qui traverse les frontières",
-    template: "%s | Malakinfo.com"
+    default: "MalakInfo (Malaki Info) | L'info qui traverse les frontières",
+    template: "%s | MalakInfo"
   },
-  description: "Informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel. Actualités, culture, économie, politique et plus encore.",
-  keywords: ["actualités", "Afrique", "journalisme", "culture", "économie", "politique", "Malakinfo", "news"],
-  authors: [{ name: "Malakinfo" }],
-  creator: "Malakinfo",
-  publisher: "Malakinfo",
+  description:
+    "MalakInfo — aussi appelé Malaki ou Malaki Info — média d'actualité africaine basé à Kinshasa. Informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel.",
+  keywords: [
+    "MalakInfo",
+    "Malaki",
+    "Malaki Info",
+    "Malakinfo",
+    "Malakin",
+    "Malakinfo.com",
+    "actualités",
+    "Afrique",
+    "RDC",
+    "Kinshasa",
+    "journalisme",
+    "culture",
+    "économie",
+    "politique",
+    "news",
+  ],
+  authors: [{ name: "MalakInfo" }],
+  creator: "MalakInfo",
+  publisher: "MalakInfo",
+  applicationName: "MalakInfo",
   formatDetection: {
     email: false,
     address: false,
@@ -44,24 +63,26 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'fr_FR',
     url: 'https://malakinfo.com',
-    title: 'Malakinfo.com | L\'info qui traverse les frontières',
-    description: 'Informer, éduquer et connecter l\'Afrique à travers un journalisme indépendant, fiable et multiculturel.',
-    siteName: 'Malakinfo',
+    title: "MalakInfo (Malaki Info) | L'info qui traverse les frontières",
+    description:
+      "MalakInfo — aussi appelé Malaki ou Malaki Info — informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel.",
+    siteName: 'MalakInfo',
     images: [
       {
         url: '/images/logo.png',
         width: 1200,
         height: 630,
-        alt: 'Malakinfo',
+        alt: 'MalakInfo — Malaki Info',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Malakinfo.com | L\'info qui traverse les frontières',
-    description: 'Informer, éduquer et connecter l\'Afrique à travers un journalisme indépendant, fiable et multiculturel.',
+    title: "MalakInfo (Malaki Info) | L'info qui traverse les frontières",
+    description:
+      "MalakInfo — aussi appelé Malaki ou Malaki Info — informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel.",
     images: ['/images/logo.png'],
-    creator: '@malakinfo',
+    creator: '@Malakinfo1',
   },
   robots: {
     index: true,
@@ -105,6 +126,7 @@ gtag('consent', 'default', {
         />
       </head>
       <body className="flex min-h-dvh flex-col" suppressHydrationWarning>
+        <SiteJsonLd />
         <Script id="malakinfo-theme-init" strategy="beforeInteractive">
           {THEME_INIT_SCRIPT}
         </Script>

@@ -72,10 +72,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     return {
       title: translatedArticle.title || article.title,
       description: translatedArticle.excerpt || article.excerpt || article.title,
-      keywords: [translatedCategory.title || article.category?.title || 'actualités', 'Malakinfo', 'Afrique', 'actualités'],
-      authors: article.author ? [{ name: article.author.name }] : [{ name: 'Malakinfo' }],
-      creator: 'Malakinfo',
-      publisher: 'Malakinfo',
+      keywords: [translatedCategory.title || article.category?.title || 'actualités', 'MalakInfo', 'Malaki', 'Malaki Info', 'Afrique', 'actualités'],
+      authors: article.author ? [{ name: article.author.name }] : [{ name: 'MalakInfo' }],
+      creator: 'MalakInfo',
+      publisher: 'MalakInfo',
       icons: {
         icon: absoluteImageUrl ?? '/images/logo.png',
         shortcut: absoluteImageUrl ?? '/images/logo.png',
@@ -90,10 +90,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         url: canonicalUrl,
         title: translatedArticle.title || article.title,
         description: translatedArticle.excerpt || article.excerpt || article.title,
-        siteName: 'Malakinfo',
+        siteName: 'MalakInfo',
         publishedTime: article.publishedAt?.toISOString(),
         modifiedTime: article.updatedAt?.toISOString(),
-        authors: article.author ? [article.author.name] : ['Malakinfo'],
+        authors: article.author ? [article.author.name] : ['MalakInfo'],
         section: translatedCategory.title || article.category?.title || 'Actualités',
         images: absoluteImageUrl ? [
           {
@@ -109,7 +109,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         title: translatedArticle.title || article.title,
         description: translatedArticle.excerpt || article.excerpt || article.title,
         images: absoluteImageUrl ? [absoluteImageUrl] : [],
-        creator: '@malakinfo',
+        creator: '@Malakinfo1',
       },
     };
   } catch (error) {
@@ -207,7 +207,7 @@ export default async function CatchAllArticlePage({
     // Structured Data (JSON-LD)
     const jsonLd = {
       '@context': 'https://schema.org',
-      '@type': 'Article',
+      '@type': 'NewsArticle',
       headline: displayTitle,
       description: displayExcerpt || displayTitle,
       image: absoluteImageUrl ? [absoluteImageUrl] : [],
@@ -218,11 +218,15 @@ export default async function CatchAllArticlePage({
         name: article.author.name,
       } : {
         '@type': 'Organization',
-        name: 'Malakinfo',
+        '@id': `${baseUrl}/#organization`,
+        name: 'MalakInfo',
+        alternateName: ['Malaki', 'Malaki Info', 'Malakinfo'],
       },
       publisher: {
         '@type': 'Organization',
-        name: 'Malakinfo',
+        '@id': `${baseUrl}/#organization`,
+        name: 'MalakInfo',
+        alternateName: ['Malaki', 'Malaki Info', 'Malakinfo', 'Malakin'],
         logo: {
           '@type': 'ImageObject',
           url: `${baseUrl}/images/logo.png`,
@@ -232,6 +236,7 @@ export default async function CatchAllArticlePage({
         '@type': 'WebPage',
         '@id': canonicalUrl,
       },
+      isPartOf: { '@id': `${baseUrl}/#website` },
     };
 
     const relatedArticles: any[] = await applyArticleLocales(

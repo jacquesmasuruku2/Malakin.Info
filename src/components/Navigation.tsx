@@ -246,7 +246,7 @@ export default function Navigation() {
               <Link href={`/${locale}`} className="pointer-events-auto inline-flex max-w-full items-center justify-center">
                 <img
                   src="/images/logo.png"
-                  alt="MalakInfo"
+                  alt="MalakInfo — Malaki Info"
                   className="h-7 w-auto max-w-[90px] object-contain sm:h-10 sm:max-w-[160px] md:h-16 md:max-w-[260px] lg:h-20 lg:max-w-[300px]"
                   loading="eager"
                   onError={(e) => {

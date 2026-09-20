@@ -8,6 +8,12 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.malakinfo.com' }],
+        destination: 'https://malakinfo.com/:path*',
+        permanent: true,
+      },
+      {
         source: '/:locale/nous-soutenir/faire-un-don',
         destination: '/:locale/nous-soutenir',
         permanent: true,

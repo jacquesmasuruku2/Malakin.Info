@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       url: canonicalUrl,
       title: article.title,
       description: article.excerpt || article.title,
-      siteName: 'Malakinfo',
+      siteName: 'MalakInfo',
       images: absoluteImageUrl ? [
         {
           url: absoluteImageUrl,

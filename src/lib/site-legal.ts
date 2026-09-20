@@ -7,6 +7,16 @@ export const SITE_ADDRESS = 'Kinshasa, République Démocratique du Congo';
 export const PUBLICATION_DIRECTOR = 'Ezekiel Matumona';
 export const LEGAL_UPDATED_AT = '17 septembre 2026';
 
+/** Alias de marque pour SEO / JSON-LD (recherches « Malaki », « Malaki Info », etc.). */
+export const BRAND_ALIASES = [
+  'MalakInfo',
+  'Malakinfo',
+  'Malakinfo.com',
+  'Malaki',
+  'Malaki Info',
+  'Malakin',
+] as const;
+
 export const HOSTING_PROVIDER = {
   name: 'RackNerd LLC',
   address: '10602 Trademark Pkwy N. Ste #511, Rancho Cucamonga, CA 91730, États-Unis',
