@@ -127,25 +127,24 @@ const responsiveNewsletterCss = `
       }
       .newsletter-social-icon {
         display: inline-block !important;
-        width: 36px !important;
-        height: 36px !important;
+        width: 42px !important;
+        height: 42px !important;
         margin: 0 auto 6px auto !important;
         border-radius: 50% !important;
-        background-color: inherit !important;
         text-align: center !important;
-        line-height: 36px !important;
+        line-height: 42px !important;
       }
       .newsletter-social-icon img {
-        width: 20px !important;
-        height: 20px !important;
+        width: 42px !important;
+        height: 42px !important;
         display: inline-block !important;
         vertical-align: middle !important;
       }
       .newsletter-social-label {
         display: block !important;
         font-family: Arial, sans-serif !important;
-        font-size: 10px !important;
-        line-height: 14px !important;
+        font-size: 11px !important;
+        line-height: 15px !important;
         color: #0f172a !important;
         text-align: center !important;
       }
@@ -183,25 +182,25 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
       label: 'Site web',
       href: 'https://malakinfo.com',
       bgColor: '#0F172A',
-      iconImage: 'https://cdn-icons-png.flaticon.com/512/1006/1006771.png',
+      iconImage: 'https://malakinfo.com/newsletter-icons/website.png',
     },
     {
       label: 'Facebook',
       href: 'https://web.facebook.com/profile.php?id=61593119312402&locale=fr_FR',
       bgColor: '#1877F2',
-      iconImage: 'https://cdn-icons-png.flaticon.com/512/733/733547.png',
+      iconImage: 'https://malakinfo.com/newsletter-icons/facebook.png',
     },
     {
       label: 'X',
       href: 'https://x.com/Malakinfo1',
       bgColor: '#000000',
-      iconImage: 'https://cdn-icons-png.flaticon.com/512/5968/5968804.png',
+      iconImage: 'https://malakinfo.com/newsletter-icons/x.png',
     },
     {
       label: 'Instagram',
       href: 'https://www.instagram.com/malakinfo/',
       bgColor: '#E1306C',
-      iconImage: 'https://cdn-icons-png.flaticon.com/512/2111/2111463.png',
+      iconImage: 'https://malakinfo.com/newsletter-icons/instagram.png',
     },
   ];
 
@@ -323,8 +322,8 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
                     ${footerSocialLinks.map((item) => `
                       <td class="newsletter-social-cell" style="padding: 8px 10px; text-align:center; vertical-align: top;">
                         <a href="${item.href}" aria-label="${escapeHtml(item.label)}" class="newsletter-social-link" style="display:inline-block; text-decoration:none;">
-                          <div class="newsletter-social-icon" style="display:inline-block; width:36px; height:36px; margin:0 auto 6px auto; background:${item.bgColor}; border-radius:50%; text-align:center; line-height:36px;">
-                            <img src="${item.iconImage}" alt="${escapeHtml(item.label)}" width="20" height="20" style="width:20px; height:20px; display:inline-block; vertical-align:middle; border:0;" />
+                          <div class="newsletter-social-icon" style="display:inline-block; width:42px; height:42px; margin:0 auto 6px auto; background:${item.bgColor}; border-radius:50%; text-align:center; line-height:42px;">
+                            <img src="${item.iconImage}" alt="${escapeHtml(item.label)}" width="42" height="42" style="width:42px; height:42px; display:inline-block; vertical-align:middle; border:0;" />
                           </div>
                           <span class="newsletter-social-label" style="display:block; font-family:Arial,sans-serif; font-size:10px; line-height:14px; color:#0f172a; text-align:center;">${escapeHtml(item.label)}</span>
                         </a>
