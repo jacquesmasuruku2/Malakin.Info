@@ -6,7 +6,13 @@ import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Link from '@tiptap/extension-link';
 import Color from '@tiptap/extension-color';
-import { TextStyle } from '@tiptap/extension-text-style';
+import {
+  BackgroundColor,
+  FontFamily,
+  FontSize,
+  LineHeight,
+  TextStyle,
+} from '@tiptap/extension-text-style';
 import { ReadAlsoExtension } from '@/lib/tiptap/ReadAlsoExtension';
 import ReadAlsoModal from '@/components/ReadAlsoModal';
 import { ImageWithCaption } from '@/lib/tiptap/ImageWithCaption';
@@ -58,6 +64,8 @@ interface WordEditorProps {
 }
 
 const INLINE_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+const FONT_FAMILIES = ['Calibri', 'Arial', 'Inter', 'Times New Roman'];
+const FONT_SIZES = ['8', '9', '10', '11', '12', '14', '16', '18', '20', '24'];
 
 function isImageFile(file: File) {
   return INLINE_IMAGE_TYPES.includes(file.type);
@@ -87,6 +95,7 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
   const [zoom, setZoom] = useState(100);
   const [activeTab, setActiveTab] = useState('home');
   const [fontSize, setFontSize] = useState('11');
+  const [fontFamily, setFontFamily] = useState('Calibri');
   const [lineHeight, setLineHeight] = useState('1.5');
   const [isReadAlsoModalOpen, setIsReadAlsoModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
@@ -98,6 +107,7 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
   const toolbarRef = useRef<HTMLDivElement>(null);
   const previousScrollY = useRef(0);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const savedTextSelection = useRef<{ from: number; to: number } | null>(null);
   const insertImageFilesRef = useRef<(files: FileList | File[]) => Promise<void>>(async () => {});
   const [uploadingInlineImage, setUploadingInlineImage] = useState(false);
 
@@ -123,6 +133,12 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
       TextStyle,
       Color.configure({
         types: ['textStyle'],
+      }),
+      BackgroundColor,
+      FontFamily,
+      FontSize,
+      LineHeight.configure({
+        types: ['textStyle', 'paragraph', 'heading'],
       }),
       ImageWithCaption.configure({
         inline: false,
@@ -158,6 +174,14 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
       const html = editor.getHTML();
       onChange(html);
       updateCounts(editor.getText());
+      const attributes = editor.getAttributes('textStyle');
+      setFontFamily(attributes.fontFamily || 'Calibri');
+      setFontSize(String(attributes.fontSize || '11px').replace(/px$/, ''));
+    },
+    onSelectionUpdate: ({ editor }) => {
+      const attributes = editor.getAttributes('textStyle');
+      setFontFamily(attributes.fontFamily || 'Calibri');
+      setFontSize(String(attributes.fontSize || '11px').replace(/px$/, ''));
     },
   });
 
@@ -318,16 +342,67 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
 
   const handleHighlightColorChange = (color: string) => {
     if (editor) {
-      // Pour la surbrillance, on utilise setMark avec un style inline
-      editor.chain()
-        .focus()
-        .setMark('textStyle', {
-          style: `background-color: ${color}`
-        })
-        .run();
+      editor.chain().focus().setBackgroundColor(color).run();
       setHighlightColor(color);
       setIsHighlightColorPickerOpen(false);
     }
+  };
+
+  const handlePasteFromClipboard = async () => {
+    if (!editor) return;
+
+    try {
+      const clipboard = navigator.clipboard;
+      let pastedContent = '';
+
+      if (typeof clipboard.read === 'function') {
+        const items = await clipboard.read();
+        const htmlItem = items.find((item) => item.types.includes('text/html'));
+        if (htmlItem) {
+          pastedContent = await (await htmlItem.getType('text/html')).text();
+        } else {
+          const textItem = items.find((item) => item.types.includes('text/plain'));
+          if (textItem) {
+            pastedContent = await (await textItem.getType('text/plain')).text();
+          }
+        }
+      } else {
+        pastedContent = await clipboard.readText();
+      }
+
+      if (pastedContent) {
+        editor.chain().focus().insertContent(pastedContent).run();
+      }
+    } catch (error) {
+      console.error('[WordEditor paste]', error);
+      window.alert("Impossible d'accéder au presse-papiers. Utilisez Ctrl+V dans l'éditeur.");
+    }
+  };
+
+  const applyFontFamily = (value: string) => {
+    if (!editor) return;
+    const chain = editor.chain().focus();
+    if (savedTextSelection.current) {
+      chain.setTextSelection(savedTextSelection.current);
+    }
+    chain.setFontFamily(value).run();
+    savedTextSelection.current = null;
+  };
+
+  const applyFontSize = (value: string) => {
+    if (!editor) return;
+    const chain = editor.chain().focus();
+    if (savedTextSelection.current) {
+      chain.setTextSelection(savedTextSelection.current);
+    }
+    chain.setFontSize(`${value}px`).run();
+    savedTextSelection.current = null;
+  };
+
+  const rememberTextSelection = () => {
+    if (!editor) return;
+    const { from, to } = editor.state.selection;
+    savedTextSelection.current = { from, to };
   };
 
   if (!editor) {
@@ -365,7 +440,8 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
             <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
               <button
                 type="button"
-                onClick={() => navigator.clipboard.readText().then(text => editor.chain().focus().insertContent(text).run())}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => void handlePasteFromClipboard()}
                 className="p-2 hover:bg-blue-100 rounded transition-colors"
                 title="Coller"
               >
@@ -394,28 +470,34 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
               <select
                 className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-blue-50"
                 title="Police"
+                value={fontFamily}
+                onMouseDown={rememberTextSelection}
+                onFocus={rememberTextSelection}
+                onChange={(event) => {
+                  setFontFamily(event.target.value);
+                  applyFontFamily(event.target.value);
+                }}
               >
-                <option>Calibri</option>
-                <option>Arial</option>
-                <option>Inter</option>
-                <option>Times New Roman</option>
+                {!FONT_FAMILIES.includes(fontFamily) && <option value={fontFamily}>{fontFamily}</option>}
+                {FONT_FAMILIES.map((family) => (
+                  <option key={family} value={family}>{family}</option>
+                ))}
               </select>
               <select
                 className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-blue-50 w-16"
                 title="Taille"
                 value={fontSize}
-                onChange={(e) => setFontSize(e.target.value)}
+                onMouseDown={rememberTextSelection}
+                onFocus={rememberTextSelection}
+                onChange={(event) => {
+                  setFontSize(event.target.value);
+                  applyFontSize(event.target.value);
+                }}
               >
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
-                <option value="11">11</option>
-                <option value="12">12</option>
-                <option value="14">14</option>
-                <option value="16">16</option>
-                <option value="18">18</option>
-                <option value="20">20</option>
-                <option value="24">24</option>
+                {!FONT_SIZES.includes(fontSize) && <option value={fontSize}>{fontSize}</option>}
+                {FONT_SIZES.map((size) => (
+                  <option key={size} value={size}>{size}</option>
+                ))}
               </select>
               <div className="flex gap-1">
                 <button
@@ -665,7 +747,12 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
                 className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-blue-50"
                 title="Interligne"
                 value={lineHeight}
-                onChange={(e) => setLineHeight(e.target.value)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setLineHeight(value);
+                  const blockType = editor.isActive('heading') ? 'heading' : 'paragraph';
+                  editor.chain().focus().updateAttributes(blockType, { lineHeight: value }).run();
+                }}
               >
                 <option value="1.0">1.0</option>
                 <option value="1.15">1.15</option>
