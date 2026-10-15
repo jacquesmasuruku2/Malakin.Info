@@ -127,24 +127,35 @@ const responsiveNewsletterCss = `
       }
       .newsletter-social-icon {
         display: inline-block !important;
-        width: 42px !important;
-        height: 42px !important;
+        width: 36px !important;
+        height: 36px !important;
         margin: 0 auto 6px auto !important;
         border-radius: 50% !important;
         text-align: center !important;
-        line-height: 42px !important;
+        line-height: 36px !important;
       }
       .newsletter-social-icon img {
-        width: 42px !important;
-        height: 42px !important;
+        width: 22px !important;
+        height: 22px !important;
         display: inline-block !important;
         vertical-align: middle !important;
+      }
+      .newsletter-social-x {
+        display: inline-block !important;
+        width: 36px !important;
+        height: 36px !important;
+        color: #ffffff !important;
+        font-family: Arial, sans-serif !important;
+        font-size: 22px !important;
+        font-weight: 700 !important;
+        line-height: 36px !important;
+        text-align: center !important;
       }
       .newsletter-social-label {
         display: block !important;
         font-family: Arial, sans-serif !important;
-        font-size: 11px !important;
-        line-height: 15px !important;
+        font-size: 10px !important;
+        line-height: 14px !important;
         color: #0f172a !important;
         text-align: center !important;
       }
@@ -182,25 +193,29 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
       label: 'Site web',
       href: 'https://malakinfo.com',
       bgColor: '#0F172A',
-      iconImage: 'https://malakinfo.com/newsletter-icons/website.png',
+      iconImage: 'https://cdn-icons-png.flaticon.com/512/1006/1006771.png',
+      iconText: '',
     },
     {
       label: 'Facebook',
       href: 'https://web.facebook.com/profile.php?id=61593119312402&locale=fr_FR',
       bgColor: '#1877F2',
-      iconImage: 'https://malakinfo.com/newsletter-icons/facebook.png',
+      iconImage: 'https://cdn-icons-png.flaticon.com/512/733/733547.png',
+      iconText: '',
     },
     {
       label: 'X',
       href: 'https://x.com/Malakinfo1',
       bgColor: '#000000',
-      iconImage: 'https://malakinfo.com/newsletter-icons/x.png',
+      iconImage: '',
+      iconText: '𝕏',
     },
     {
       label: 'Instagram',
       href: 'https://www.instagram.com/malakinfo/',
       bgColor: '#E1306C',
-      iconImage: 'https://malakinfo.com/newsletter-icons/instagram.png',
+      iconImage: 'https://cdn-icons-png.flaticon.com/512/2111/2111463.png',
+      iconText: '',
     },
   ];
 
@@ -322,8 +337,10 @@ export function generateMalakinfoNewsletterHtml(articles: NewsletterArticle[]) {
                     ${footerSocialLinks.map((item) => `
                       <td class="newsletter-social-cell" style="padding: 8px 10px; text-align:center; vertical-align: top;">
                         <a href="${item.href}" aria-label="${escapeHtml(item.label)}" class="newsletter-social-link" style="display:inline-block; text-decoration:none;">
-                          <div class="newsletter-social-icon" style="display:inline-block; width:42px; height:42px; margin:0 auto 6px auto; background:${item.bgColor}; border-radius:50%; text-align:center; line-height:42px;">
-                            <img src="${item.iconImage}" alt="${escapeHtml(item.label)}" width="42" height="42" style="width:42px; height:42px; display:inline-block; vertical-align:middle; border:0;" />
+                          <div class="newsletter-social-icon" style="display:inline-block; width:36px; height:36px; margin:0 auto 6px auto; background:${item.bgColor}; border-radius:50%; text-align:center; line-height:36px;">
+                            ${item.iconText
+                              ? `<span aria-hidden="true" class="newsletter-social-x" style="display:inline-block; width:36px; height:36px; color:#ffffff; font-family:Arial,sans-serif; font-size:22px; font-weight:bold; line-height:36px; text-align:center;">${item.iconText}</span>`
+                              : `<img src="${item.iconImage}" alt="" width="22" height="22" style="width:22px; height:22px; display:inline-block; vertical-align:middle; border:0;" />`}
                           </div>
                           <span class="newsletter-social-label" style="display:block; font-family:Arial,sans-serif; font-size:10px; line-height:14px; color:#0f172a; text-align:center;">${escapeHtml(item.label)}</span>
                         </a>
