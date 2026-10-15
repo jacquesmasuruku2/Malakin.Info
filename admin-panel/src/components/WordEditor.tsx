@@ -53,7 +53,9 @@ import {
   Link as LinkIcon,
   Unlink,
   Hash,
-  X
+  X,
+  Undo2,
+  Redo2
 } from 'lucide-react';
 
 interface WordEditorProps {
@@ -64,8 +66,33 @@ interface WordEditorProps {
 }
 
 const INLINE_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-const FONT_FAMILIES = ['Calibri', 'Arial', 'Inter', 'Times New Roman'];
-const FONT_SIZES = ['8', '9', '10', '11', '12', '14', '16', '18', '20', '24'];
+const FONT_FAMILIES = [
+  { label: 'Arial', value: 'Arial, Helvetica, sans-serif' },
+  { label: 'Arial Black', value: '"Arial Black", Arial, sans-serif' },
+  { label: 'Calibri', value: 'Calibri, Arial, sans-serif' },
+  { label: 'Cambria', value: 'Cambria, Georgia, serif' },
+  { label: 'Georgia', value: 'Georgia, "Times New Roman", serif' },
+  { label: 'Helvetica', value: 'Helvetica, Arial, sans-serif' },
+  { label: 'Inter', value: 'Inter, Arial, sans-serif' },
+  { label: 'Tahoma', value: 'Tahoma, Arial, sans-serif' },
+  { label: 'Times New Roman', value: '"Times New Roman", Times, serif' },
+  { label: 'Trebuchet MS', value: '"Trebuchet MS", Arial, sans-serif' },
+  { label: 'Verdana', value: 'Verdana, Geneva, sans-serif' },
+  { label: 'Garamond', value: 'Garamond, "Times New Roman", serif' },
+  { label: 'Palatino Linotype', value: '"Palatino Linotype", "Book Antiqua", Palatino, serif' },
+  { label: 'Courier New', value: '"Courier New", Courier, monospace' },
+  { label: 'System UI', value: 'system-ui, sans-serif' },
+  { label: 'Sans-serif', value: 'sans-serif' },
+  { label: 'Serif', value: 'serif' },
+  { label: 'Monospace', value: 'monospace' },
+];
+const FONT_SIZES = ['8', '9', '10', '11', '12', '14', '16', '18', '20', '22', '24', '26', '28', '32', '36', '48', '72'];
+
+function getFontFamilySelection(value: string | null | undefined) {
+  if (!value) return FONT_FAMILIES[0].value;
+  const firstFamily = value.split(',')[0].trim().replace(/^['"]|['"]$/g, '').toLowerCase();
+  return FONT_FAMILIES.find((family) => family.label.toLowerCase() === firstFamily)?.value || value;
+}
 
 function isImageFile(file: File) {
   return INLINE_IMAGE_TYPES.includes(file.type);
@@ -95,7 +122,7 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
   const [zoom, setZoom] = useState(100);
   const [activeTab, setActiveTab] = useState('home');
   const [fontSize, setFontSize] = useState('11');
-  const [fontFamily, setFontFamily] = useState('Calibri');
+  const [fontFamily, setFontFamily] = useState(FONT_FAMILIES[2].value);
   const [lineHeight, setLineHeight] = useState('1.5');
   const [isReadAlsoModalOpen, setIsReadAlsoModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
@@ -175,12 +202,12 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
       onChange(html);
       updateCounts(editor.getText());
       const attributes = editor.getAttributes('textStyle');
-      setFontFamily(attributes.fontFamily || 'Calibri');
+      setFontFamily(getFontFamilySelection(attributes.fontFamily));
       setFontSize(String(attributes.fontSize || '11px').replace(/px$/, ''));
     },
     onSelectionUpdate: ({ editor }) => {
       const attributes = editor.getAttributes('textStyle');
-      setFontFamily(attributes.fontFamily || 'Calibri');
+      setFontFamily(getFontFamilySelection(attributes.fontFamily));
       setFontSize(String(attributes.fontSize || '11px').replace(/px$/, ''));
     },
   });
@@ -436,6 +463,31 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
         {/* Home Tab Content */}
         {activeTab === 'home' && (
           <div className="p-2 flex flex-wrap gap-1 items-center bg-gradient-to-b from-gray-50 to-white">
+            <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
+              <button
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => editor.chain().focus().undo().run()}
+                disabled={!editor.can().undo()}
+                className="p-2 rounded transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40"
+                title="Annuler (Ctrl+Z)"
+                aria-label="Annuler"
+              >
+                <Undo2 className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => editor.chain().focus().redo().run()}
+                disabled={!editor.can().redo()}
+                className="p-2 rounded transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40"
+                title="Rétablir (Ctrl+Y)"
+                aria-label="Rétablir"
+              >
+                <Redo2 className="w-4 h-4" />
+              </button>
+            </div>
+
             {/* Clipboard Group */}
             <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
               <button
@@ -478,9 +530,13 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
                   applyFontFamily(event.target.value);
                 }}
               >
-                {!FONT_FAMILIES.includes(fontFamily) && <option value={fontFamily}>{fontFamily}</option>}
+                {!FONT_FAMILIES.some((family) => family.value === fontFamily) && (
+                  <option value={fontFamily}>{fontFamily}</option>
+                )}
                 {FONT_FAMILIES.map((family) => (
-                  <option key={family} value={family}>{family}</option>
+                  <option key={family.value} value={family.value} style={{ fontFamily: family.value }}>
+                    {family.label}
+                  </option>
                 ))}
               </select>
               <select
