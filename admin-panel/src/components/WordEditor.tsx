@@ -98,6 +98,56 @@ function isImageFile(file: File) {
   return INLINE_IMAGE_TYPES.includes(file.type);
 }
 
+function sanitizePastedHtml(html: string): string {
+  if (!html || !html.trim()) return '';
+
+  try {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const root = doc.body;
+
+    root.querySelectorAll('script, style, iframe, object, embed, svg, meta, title, link, noscript, template').forEach((node) => node.remove());
+
+    root.querySelectorAll('*').forEach((node) => {
+      const tagName = node.tagName.toLowerCase();
+      const className = node.getAttribute('class') || '';
+      const style = node.getAttribute('style') || '';
+
+      if (className) {
+        const cleanedClass = className.split(/\s+/).filter((name) => !/^(mso|WordSection|wp|gmail|moz|apple|webkit)/i.test(name)).join(' ');
+        if (cleanedClass) {
+          node.setAttribute('class', cleanedClass);
+        } else {
+          node.removeAttribute('class');
+        }
+      }
+
+      if (style) {
+        const cleanedStyle = style
+          .replace(/mso-[^;]+;?/gi, '')
+          .replace(/-webkit-[^;]+;?/gi, '')
+          .replace(/display:\s*none;?/gi, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        if (cleanedStyle) {
+          node.setAttribute('style', cleanedStyle);
+        } else {
+          node.removeAttribute('style');
+        }
+      }
+
+      if (tagName === 'span' && !node.textContent?.trim() && !node.hasAttribute('style')) {
+        node.replaceWith(...Array.from(node.childNodes));
+      }
+    });
+
+    return root.innerHTML.trim();
+  } catch (error) {
+    console.error('[WordEditor paste sanitize]', error);
+    return html;
+  }
+}
+
 async function uploadBlogImage(file: File): Promise<string | null> {
   const body = new FormData();
   body.append('file', file);
@@ -180,12 +230,25 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
     editorProps: {
       handlePaste(_view, event) {
         const files = event.clipboardData?.files;
-        if (!files?.length) return false;
-        const images = Array.from(files).filter(isImageFile);
-        if (!images.length) return false;
-        event.preventDefault();
-        void insertImageFilesRef.current(images);
-        return true;
+        if (files?.length) {
+          const images = Array.from(files).filter(isImageFile);
+          if (!images.length) return false;
+          event.preventDefault();
+          void insertImageFilesRef.current(images);
+          return true;
+        }
+
+        const pastedHtml = event.clipboardData?.getData('text/html');
+        if (pastedHtml) {
+          const cleanedHtml = sanitizePastedHtml(pastedHtml);
+          if (cleanedHtml && cleanedHtml.replace(/<[^>]+>/g, '').trim()) {
+            event.preventDefault();
+            editor?.chain().focus().insertContent(cleanedHtml).run();
+            return true;
+          }
+        }
+
+        return false;
       },
       handleDrop(_view, event) {
         const files = event.dataTransfer?.files;
@@ -291,13 +354,13 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
   }, []);
 
   const updateCounts = (text: string) => {
-    const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+    const words = text.trim().split(/\s+/).filter((word) => word.length > 0);
     setWordCount(words.length);
     setCharCount(text.length);
   };
 
   const handleZoom = (delta: number) => {
-    setZoom(prev => Math.min(200, Math.max(50, prev + delta)));
+    setZoom((prev) => Math.min(200, Math.max(50, prev + delta)));
   };
 
   const handleInsertReadAlso = (title: string, url: string, accentColor?: string) => {
@@ -398,7 +461,8 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
       }
 
       if (pastedContent) {
-        editor.chain().focus().insertContent(pastedContent).run();
+        const sanitized = sanitizePastedHtml(pastedContent);
+        editor.chain().focus().insertContent(sanitized || pastedContent).run();
       }
     } catch (error) {
       console.error('[WordEditor paste]', error);
@@ -460,7 +524,6 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
           ))}
         </div>
 
-        {/* Home Tab Content */}
         {activeTab === 'home' && (
           <div className="p-2 flex flex-wrap gap-1 items-center bg-gradient-to-b from-gray-50 to-white">
             <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
@@ -488,7 +551,6 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
               </button>
             </div>
 
-            {/* Clipboard Group */}
             <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
               <button
                 type="button"
@@ -517,7 +579,6 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
               </button>
             </div>
 
-            {/* Font Group */}
             <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
               <select
                 className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-blue-50"
@@ -724,7 +785,6 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
               </div>
             </div>
 
-            {/* Paragraph Group */}
             <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
               <button
                 type="button"
@@ -817,7 +877,6 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
               </select>
             </div>
 
-            {/* Styles Group */}
             <div className="flex items-center gap-1">
               <button
                 type="button"
@@ -863,7 +922,6 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
           </div>
         )}
 
-        {/* Insert Tab */}
         {activeTab === 'insert' && (
           <div className="p-2 flex gap-2 items-center bg-gradient-to-b from-gray-50 to-white">
             <button 
@@ -894,15 +952,6 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
               <FileText className="w-4 h-4" />
               <span className="text-sm">Légende</span>
             </button>
-            <button
-              type="button"
-              onClick={handleImageCaption}
-              className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2"
-              title="Description / légende de l'image"
-            >
-              <FileText className="w-4 h-4" />
-              <span className="text-sm">Légende</span>
-            </button>
             {onAddTag && (
               <button
                 type="button"
@@ -920,7 +969,6 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
           </div>
         )}
 
-        {/* Layout Tab */}
         {activeTab === 'layout' && (
           <div className="p-2 flex gap-2 items-center bg-gradient-to-b from-gray-50 to-white">
             <button type="button" className="p-2 hover:bg-blue-100 rounded transition-colors" title="Orientation">
@@ -988,7 +1036,6 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
         </div>
       </div>
 
-      {/* Read Also Modal */}
       <ReadAlsoModal
         isOpen={isReadAlsoModalOpen}
         onClose={() => setIsReadAlsoModalOpen(false)}
@@ -1008,7 +1055,6 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
         }}
       />
 
-      {/* Link Modal */}
       {isLinkModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
