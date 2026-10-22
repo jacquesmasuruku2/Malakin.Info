@@ -24,18 +24,18 @@ export default function ArticleListingGrid({
   hrefFor?: (article: ListingArticle) => string;
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10 overflow-hidden">
       {articles.map((item, index) => {
         const href = hrefFor ? hrefFor(item) : `/${locale}/${item.slug}`;
         const categoryTitle = item.categoryTitle || item.category?.title || null;
         const publishedAt = item.publishedAt ? new Date(item.publishedAt) : null;
 
         return (
-          <article key={item.id} className="tag-story min-w-0">
-            <Link href={href} prefetch className="block group">
+          <article key={item.id} className="tag-story min-w-0 max-w-full">
+            <Link href={href} prefetch className="block group min-w-0 w-full">
               {item.mainImageUrl ? (
                 <div className="mb-3 p-[5px] bg-white">
-                  <div className="article-preview-frame relative aspect-[16/10]">
+                  <div className="article-preview-frame relative aspect-[16/10] w-full overflow-hidden">
                     <SmartImage
                       src={item.mainImageUrl}
                       alt={item.mainImageAlt || item.title}
@@ -66,7 +66,7 @@ export default function ArticleListingGrid({
               ) : item.dateLabel ? (
                 <span className="block text-xs text-muted-foreground mb-1">{item.dateLabel}</span>
               ) : null}
-              <h2 className="text-[1.05rem] font-bold leading-snug text-foreground group-hover:text-primary line-clamp-3">
+              <h2 className="text-[1.05rem] font-bold leading-snug text-foreground group-hover:text-primary line-clamp-3 break-words overflow-wrap-anywhere">
                 {item.title}
               </h2>
             </Link>
