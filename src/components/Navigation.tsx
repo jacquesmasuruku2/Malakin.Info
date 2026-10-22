@@ -22,7 +22,9 @@ export default function Navigation() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  
+  const [isNavVisible, setIsNavVisible] = useState(true);
+  const lastScrollYRef = useRef(0);
+
   const locale = getLocaleFromPathname(pathname);
   const t = getMessages(locale).nav;
 
@@ -35,6 +37,27 @@ export default function Navigation() {
     updateIsMobile();
     window.addEventListener('resize', updateIsMobile);
     return () => window.removeEventListener('resize', updateIsMobile);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const nearTop = currentScrollY < 80;
+      const isScrollingDown = currentScrollY > lastScrollYRef.current;
+
+      if (nearTop) {
+        setIsNavVisible(true);
+      } else if (isScrollingDown && currentScrollY > 140) {
+        setIsNavVisible(false);
+      } else {
+        setIsNavVisible(true);
+      }
+
+      lastScrollYRef.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // No extra topbar hidden behavior: the utility strip remains visible and lightweight.
@@ -200,7 +223,11 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50">
+    <nav
+      className={`sticky top-0 z-50 transition-transform duration-300 ease-out ${
+        isNavVisible ? 'translate-y-0 opacity-100' : '-translate-y-[calc(100%+12px)] opacity-0 pointer-events-none'
+      }`}
+    >
       {/* Main Header - En-tête premium éditorial */}
       <div className="border-b border-[#e8e8e1] bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)] dark:border-[#24364f] dark:bg-[#0b1628] dark:shadow-none">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -208,7 +235,7 @@ export default function Navigation() {
             <div className="hidden flex-1 items-center gap-3 md:flex">
               <button
                 type="button"
-                className="flex items-center gap-2 rounded-full border border-[#e9e9e3] bg-[#f8f8f5] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#1f2937] transition-colors hover:border-[#cfcfca] hover:bg-[#f1f1ee] dark:border-[#24364f] dark:bg-[#152238] dark:text-[#e8eef8] dark:hover:border-[#4f8ef7]/40 dark:hover:bg-[#1b2d48]"
+                className="flex items-center gap-2 rounded-full border border-[#e9e9e3] bg-[#f8f8f5] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#1f2937] transition-colors hover:border-[#d4af37] hover:text-[#0b3b8b] dark:border-[#24364f] dark:bg-[#152238] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]"
                 onClick={handleMenuToggle}
               >
                 <Menu className="h-4 w-4" />
@@ -221,7 +248,7 @@ export default function Navigation() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t.searchPlaceholder}
-                  className="w-52 rounded-full border border-[#ecece7] bg-[#f8f8f5] px-4 py-2 pr-10 text-sm text-[#111827] outline-none transition focus:border-[#d4af37] focus:bg-white focus:ring-2 focus:ring-[#d4af37]/20 dark:border-[#24364f] dark:bg-[#152238] dark:text-[#e8eef8] dark:focus:bg-[#101a2c]"
+                  className="w-52 rounded-full border border-[#ecece7] bg-[#f8f8f5] px-4 py-2 pr-10 text-sm text-[#111827] outline-none transition focus:border-[#d4af37] focus:bg-white focus:ring-2 focus:ring-[#d4af37]/20 dark:border-[#24364f] dark:bg-[#152238] dark:text-[#edf4ff] dark:placeholder:text-[#9db0c9]"
                 />
                 <button
                   type="submit"
@@ -338,11 +365,10 @@ export default function Navigation() {
                 </Link>
               )}
 
-              <Link href={`/${locale}/nous-soutenir`} className="rounded-full bg-[#0b3b8b] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#082a63]">
+              <Link href={`/${locale}/nous-soutenir`} className="rounded-full bg-[#0b3b8b] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#0a2d6b]">
                 {t.subscribe}
               </Link>
               <LanguageSwitcher />
-
             </div>
 
             <div className="relative z-[70] flex items-center space-x-2 md:hidden">
@@ -375,40 +401,44 @@ export default function Navigation() {
       </div>
 
       {/* Bottom Navigation Bar - Barre de Catégories style presse */}
-      <div className="hidden border-b border-[#e6e6e1] bg-[#f9f8f5] dark:border-[#24364f] dark:bg-[#0b1628] md:block">
+      <div
+        className={`hidden border-b border-[#e6e6e1] bg-[#f9f8f5] transition-all duration-300 dark:border-[#24364f] dark:bg-[#0b1628] md:block ${
+          isNavVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
+        }`}
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-2 overflow-x-auto py-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <Link href={`/${locale}`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
+            <Link href={`/${locale}`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.home}
             </Link>
-            <Link href={`/${locale}/actualites`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
+            <Link href={`/${locale}/actualites`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.news}
             </Link>
-            <Link href={`/${locale}/politique`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
+            <Link href={`/${locale}/politique`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.politics}
             </Link>
-            <Link href={`/${locale}/economie`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
+            <Link href={`/${locale}/economie`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.economy}
             </Link>
-            <Link href={`/${locale}/education-et-enseignement`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
+            <Link href={`/${locale}/education-et-enseignement`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.education}
             </Link>
-            <Link href={`/${locale}/science-tech`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
+            <Link href={`/${locale}/science-tech`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.scienceTech}
             </Link>
-            <Link href={`/${locale}/culture`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
+            <Link href={`/${locale}/culture`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.culture}
             </Link>
-            <Link href={`/${locale}/sport`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
+            <Link href={`/${locale}/sport`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.sport}
             </Link>
-            <Link href={`/${locale}/partenaires`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
+            <Link href={`/${locale}/partenaires`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.partnerships}
             </Link>
-            <Link href={`/${locale}/religion`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
+            <Link href={`/${locale}/religion`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.religion}
             </Link>
-            <Link href={`/${locale}/medias`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:border-[#24364f] dark:text-[#d5e2f3] dark:hover:text-[#4f8ef7]">
+            <Link href={`/${locale}/medias`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.media}
             </Link>
           </div>
