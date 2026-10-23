@@ -1,5 +1,6 @@
 'use client';
 
+import mammoth from 'mammoth';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -148,6 +149,64 @@ function sanitizePastedHtml(html: string): string {
   }
 }
 
+function normalizeImportedWordHtml(html: string): string {
+  if (!html || !html.trim()) return '';
+
+  try {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const root = doc.body;
+
+    root.querySelectorAll('script, style, iframe, object, embed, svg, meta, title, link, noscript, template').forEach((node) => node.remove());
+
+    root.querySelectorAll('*').forEach((node) => {
+      const tagName = node.tagName.toLowerCase();
+      const className = node.getAttribute('class') || '';
+      const style = node.getAttribute('style') || '';
+
+      if (className) {
+        const cleanedClass = className
+          .split(/\s+/)
+          .filter((name) => !/^(mso|WordSection|wp|gmail|moz|apple|webkit)/i.test(name))
+          .join(' ');
+
+        if (cleanedClass) {
+          node.setAttribute('class', cleanedClass);
+        } else {
+          node.removeAttribute('class');
+        }
+      }
+
+      if (style) {
+        const cleanedStyle = style
+          .replace(/mso-[^;]+;?/gi, '')
+          .replace(/-webkit-[^;]+;?/gi, '')
+          .replace(/display:\s*none;?/gi, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        if (cleanedStyle) {
+          node.setAttribute('style', cleanedStyle);
+        } else {
+          node.removeAttribute('style');
+        }
+      }
+
+      if (tagName === 'span' && !node.textContent?.trim() && !node.hasAttribute('style')) {
+        node.replaceWith(...Array.from(node.childNodes));
+      }
+
+      if (tagName === 'p' && !node.textContent?.trim() && !node.querySelector('img')) {
+        node.remove();
+      }
+    });
+
+    return root.innerHTML.trim();
+  } catch (error) {
+    console.error('[WordEditor import sanitize]', error);
+    return html;
+  }
+}
+
 async function uploadBlogImage(file: File): Promise<string | null> {
   const body = new FormData();
   body.append('file', file);
@@ -184,6 +243,7 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
   const toolbarRef = useRef<HTMLDivElement>(null);
   const previousScrollY = useRef(0);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const wordInputRef = useRef<HTMLInputElement>(null);
   const savedTextSelection = useRef<{ from: number; to: number } | null>(null);
   const insertImageFilesRef = useRef<(files: FileList | File[]) => Promise<void>>(async () => {});
   const [uploadingInlineImage, setUploadingInlineImage] = useState(false);
@@ -238,14 +298,40 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
           return true;
         }
 
-        const pastedHtml = event.clipboardData?.getData('text/html');
-        if (pastedHtml) {
-          const cleanedHtml = sanitizePastedHtml(pastedHtml);
-          if (cleanedHtml && cleanedHtml.replace(/<[^>]+>/g, '').trim()) {
+        const html = event.clipboardData?.getData('text/html');
+        const plain = event.clipboardData?.getData('text/plain');
+
+        if (html && html.trim()) {
+          const cleaned = sanitizePastedHtml(html);
+          if (cleaned && cleaned.replace(/<[^>]+>/g, '').trim()) {
             event.preventDefault();
-            editor?.chain().focus().insertContent(cleanedHtml).run();
+            editor?.chain().focus().insertContent(cleaned).run();
             return true;
           }
+        }
+
+        if (plain && plain.trim()) {
+          event.preventDefault();
+          const normalized = plain
+            .replace(/\r\n/g, '\n')
+            .replace(/\r/g, '\n')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+
+          const blocks = normalized
+            .split('\n\n')
+            .map((block) => {
+              const escaped = block
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>');
+              return `<p>${escaped}</p>`;
+            })
+            .join('');
+
+          editor?.chain().focus().insertContent(blocks).run();
+          return true;
         }
 
         return false;
@@ -467,6 +553,44 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
     } catch (error) {
       console.error('[WordEditor paste]', error);
       window.alert("Impossible d'accéder au presse-papiers. Utilisez Ctrl+V dans l'éditeur.");
+    }
+  };
+
+  const handleWordImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const isDocx =
+      file.name.toLowerCase().endsWith('.docx') ||
+      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+    if (!isDocx) {
+      alert('Sélectionne un fichier Word (.docx).');
+      if (wordInputRef.current) wordInputRef.current.value = '';
+      return;
+    }
+
+    if (!editor) {
+      if (wordInputRef.current) wordInputRef.current.value = '';
+      return;
+    }
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.convertToHtml({ arrayBuffer });
+      const importedHtml = normalizeImportedWordHtml(result.value || '');
+
+      if (!importedHtml.trim()) {
+        alert('Aucun contenu exploitable n’a été trouvé dans ce document Word.');
+        return;
+      }
+
+      editor.chain().focus().setContent(importedHtml, { emitUpdate: true }).run();
+    } catch (error) {
+      console.error('[WordEditor import]', error);
+      alert("Impossible d'importer ce fichier Word. Vérifie qu'il s'agit bien d'un fichier .docx valide.");
+    } finally {
+      if (wordInputRef.current) wordInputRef.current.value = '';
     }
   };
 
@@ -945,6 +1069,15 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
             </button>
             <button
               type="button"
+              onClick={() => wordInputRef.current?.click()}
+              className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2"
+              title="Importer un document Word"
+            >
+              <FileText className="w-4 h-4" />
+              <span className="text-sm">Word</span>
+            </button>
+            <button
+              type="button"
               onClick={handleImageCaption}
               className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2"
               title="Description / légende de l'image"
@@ -1053,6 +1186,14 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
             void insertImageFiles(event.target.files);
           }
         }}
+      />
+
+      <input
+        ref={wordInputRef}
+        type="file"
+        accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        className="hidden"
+        onChange={handleWordImport}
       />
 
       {isLinkModalOpen && (
