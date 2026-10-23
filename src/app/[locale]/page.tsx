@@ -120,9 +120,11 @@ export default async function Home({
     title: article.title,
     excerpt: article.excerpt,
     date: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(getDateLocale(normalizedLocale), { day: 'numeric', month: 'long', year: 'numeric' }) : '',
+    time: article.publishedAt ? new Date(article.publishedAt).toLocaleTimeString(getDateLocale(normalizedLocale), { hour: '2-digit', minute: '2-digit', hour12: false }) : '',
     readTime: article.readTime ? `${article.readTime} min` : '3 min',
     author: article.author,
     image: article.mainImageUrl || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=300&fit=crop',
+    publishedAt: article.publishedAt ? new Date(article.publishedAt) : null,
   }));
 
   const tNav = messages.nav;
@@ -364,7 +366,7 @@ export default async function Home({
                     >
                       <div className="flex items-start gap-2 sm:gap-3 min-w-0">
                         <span className="text-secondary font-bold text-[10px] sm:text-xs whitespace-nowrap pt-0.5">
-                          {new Date().toLocaleTimeString(getDateLocale(normalizedLocale), { hour: '2-digit', minute: '2-digit' })}
+                          {news.publishedAt ? news.publishedAt.toLocaleTimeString(getDateLocale(normalizedLocale), { hour: '2-digit', minute: '2-digit', hour12: false }) : news.time || '00:00'}
                         </span>
                         <div className="min-w-0 flex-1">
                           <Link href={`/${locale}/${news.slug}`} className="block">
