@@ -4,12 +4,12 @@ import SearchContent from './SearchContent';
 
 export default function RecherchePage() {
   return (
-    <div className="flex flex-col bg-[#f5f2ea]">
-      <section className="border-b border-[#d6c388] bg-gradient-to-r from-[#d2b15f] via-[#d9bf72] to-[#c8a64b] py-10 text-[#12203d] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] sm:py-14">
+    <div className="flex min-h-screen flex-col bg-background text-foreground dark:bg-[#0b1628]">
+      <section className="border-b border-border bg-[#e9e1c3] py-10 text-[#12203d] dark:border-[#24364f] dark:bg-[#0f1d30] dark:text-[#e8eef8] sm:py-14">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-[#0b3b8b]">Malakinfo</p>
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-[#0b3b8b] dark:text-[#8bb8ff]">Malakinfo</p>
           <h1 className="font-heading text-3xl font-black tracking-[-0.03em] sm:text-5xl">Recherche</h1>
-          <p className="mt-3 max-w-2xl text-base text-[#1d2f4d] sm:text-xl">
+          <p className="mt-3 max-w-2xl text-base text-[#1d2f4d] dark:text-[#cfd9ea] sm:text-xl">
             Trouvez des articles, auteurs, médias et sujets de l’actualité en quelques secondes.
           </p>
         </div>
