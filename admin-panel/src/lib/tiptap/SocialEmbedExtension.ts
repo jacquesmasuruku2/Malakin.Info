@@ -1,0 +1,169 @@
+import { Node, mergeAttributes } from '@tiptap/core';
+import { ReactNodeViewRenderer } from '@tiptap/react';
+import SocialEmbedNode from './SocialEmbedNode';
+
+export type SocialEmbedPlatform = 'x' | 'facebook' | 'instagram' | 'linkedin' | 'youtube' | 'tiktok';
+
+export interface SocialEmbedAttributes {
+  platform: SocialEmbedPlatform;
+  url: string;
+  title?: string;
+  accentColor?: string;
+}
+
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    socialEmbed: {
+      insertSocialEmbed: (attributes: SocialEmbedAttributes) => ReturnType;
+    };
+  }
+}
+
+export const SOCIAL_EMBED_DEFAULT_COLORS: Record<SocialEmbedPlatform, string> = {
+  x: '#000000',
+  facebook: '#1877f2',
+  instagram: '#e1306c',
+  linkedin: '#0a66c2',
+  youtube: '#ff0000',
+  tiktok: '#000000',
+};
+
+export const SOCIAL_EMBED_LABELS: Record<SocialEmbedPlatform, string> = {
+  x: 'X / Twitter',
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+  linkedin: 'LinkedIn',
+  youtube: 'YouTube',
+  tiktok: 'TikTok',
+};
+
+function normalizeUrl(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    const parsed = new URL(withProtocol);
+    if (!['http:', 'https:'].includes(parsed.protocol)) return '';
+    return parsed.toString();
+  } catch {
+    return '';
+  }
+}
+
+export function normalizeSocialEmbedUrl(value: string): string {
+  return normalizeUrl(value);
+}
+
+export function inferSocialEmbedPlatform(value: string): SocialEmbedPlatform | null {
+  const normalized = normalizeSocialEmbedUrl(value);
+  if (!normalized) return null;
+
+  const hostname = new URL(normalized).hostname.replace(/^www\./, '').toLowerCase();
+
+  if (hostname === 'x.com' || hostname === 'twitter.com' || hostname.endsWith('.x.com')) return 'x';
+  if (hostname === 'facebook.com' || hostname.endsWith('.facebook.com')) return 'facebook';
+  if (hostname === 'instagram.com' || hostname.endsWith('.instagram.com')) return 'instagram';
+  if (hostname === 'linkedin.com' || hostname.endsWith('.linkedin.com')) return 'linkedin';
+  if (hostname === 'youtube.com' || hostname === 'youtu.be' || hostname.endsWith('.youtube.com')) return 'youtube';
+  if (hostname === 'tiktok.com' || hostname.endsWith('.tiktok.com')) return 'tiktok';
+
+  return null;
+}
+
+export function inferSocialEmbedTitle(value: string, platform?: SocialEmbedPlatform | null): string {
+  const normalizedPlatform = platform ?? inferSocialEmbedPlatform(value);
+  if (!normalizedPlatform) return 'Post social';
+  return `${SOCIAL_EMBED_LABELS[normalizedPlatform]} — ${normalizedPlatform.toUpperCase()}`;
+}
+
+export const SocialEmbedExtension = Node.create<SocialEmbedAttributes>({
+  name: 'socialEmbed',
+  group: 'block',
+  atom: true,
+
+  addAttributes() {
+    return {
+      platform: {
+        default: 'x',
+      },
+      url: {
+        default: '',
+      },
+      title: {
+        default: '',
+      },
+      accentColor: {
+        default: SOCIAL_EMBED_DEFAULT_COLORS.x,
+      },
+    };
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'div[data-type="social-embed"]',
+        getAttrs: (node) => {
+          const element = node as HTMLElement;
+          const platform = (element.getAttribute('data-platform') as SocialEmbedPlatform) || 'x';
+          const url = element.getAttribute('data-url') || '';
+          const title = element.getAttribute('data-title') || '';
+          return {
+            platform,
+            url,
+            title,
+            accentColor: element.getAttribute('data-accent-color') || SOCIAL_EMBED_DEFAULT_COLORS[platform],
+          };
+        },
+      },
+    ];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    const platform = (HTMLAttributes.platform as SocialEmbedPlatform) || 'x';
+    const url = normalizeSocialEmbedUrl(HTMLAttributes.url || '') || '';
+    const title = HTMLAttributes.title || inferSocialEmbedTitle(url, platform);
+    const accentColor = HTMLAttributes.accentColor || SOCIAL_EMBED_DEFAULT_COLORS[platform];
+
+    return ['div', mergeAttributes(HTMLAttributes, {
+      'data-type': 'social-embed',
+      'data-platform': platform,
+      'data-url': url,
+      'data-title': title,
+      'data-accent-color': accentColor,
+    })];
+  },
+
+  addCommands() {
+    return {
+      insertSocialEmbed:
+        (attributes) =>
+        ({ commands }) => {
+          const platform = attributes.platform || inferSocialEmbedPlatform(attributes.url) || 'x';
+          const url = normalizeSocialEmbedUrl(attributes.url) || '';
+          const title = attributes.title || inferSocialEmbedTitle(url, platform);
+          const accentColor = attributes.accentColor || SOCIAL_EMBED_DEFAULT_COLORS[platform];
+
+          if (!url) {
+            return false;
+          }
+
+          return commands.insertContent({
+            type: this.name,
+            attrs: {
+              platform,
+              url,
+              title,
+              accentColor,
+            },
+          });
+        },
+    };
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(SocialEmbedNode);
+  },
+});
+
+export default SocialEmbedExtension;
