@@ -7,9 +7,9 @@ import LazyRadioPlayer from "@/components/LazyRadioPlayer";
 import ConsentScripts from "@/components/ConsentScripts";
 import SiteJsonLd from "@/components/SiteJsonLd";
 import "./globals.css";
+import "./site-animations.css";
 
-const THEME_INIT_SCRIPT = `(function(){try{var logged=!!localStorage.getItem('user')||document.cookie.indexOf('session_token=')!==-1||document.cookie.indexOf('next-auth.session-token=')!==-1||document.cookie.indexOf('__Secure-next-auth.session-token=')!==-1;if(logged&&localStorage.getItem('malakinfo.theme')==='dark'){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}else{document.documentElement.classList.remove('dark');document.documentElement.style.colorScheme='light';}}catch(e){}})();`;
-
+const THEME_INIT_SCRIPT = `(function(){try{var logged=!!localStorage.getItem('user')||document.cookie.indexOf('session_token=')!==-1||document.cookie.indexOf('next-auth.session-token=')!==-1||document.cookie.indexOf('next-auth.session-token')!==-1;var dark=localStorage.getItem('theme')==='dark'||(!localStorage.getItem('theme')&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(dark){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}if(logged){document.body.classList.add('has-user-session');}}catch(e){}})();`;
 
 const GOOGLE_SITE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '';
 
@@ -115,6 +115,7 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `window.dataLayer = window.dataLayer || [];
+function gtag(){window.dataLayer.push(arguments);}
 function gtag(){window.dataLayer.push(arguments);}
 gtag('consent', 'default', {
   ad_storage: 'denied',

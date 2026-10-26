@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { X, ChevronRight } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { useState, useEffect } from 'react';
 import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
@@ -22,21 +22,12 @@ function MenuTree({
   expandedCategory,
   setExpandedCategory,
   closeServices,
-  compact = false,
 }: {
   sections: MenuSection[];
   expandedCategory: string | null;
   setExpandedCategory: (title: string | null) => void;
   closeServices: () => void;
-  compact?: boolean;
 }) {
-  const titleClass = compact
-    ? 'px-2.5 py-2.5 text-[13px] font-bold uppercase tracking-[0.08em]'
-    : 'px-3 py-3 text-sm font-bold uppercase tracking-wide';
-  const itemClass = compact
-    ? 'block rounded-md px-2.5 py-2 text-[13px] leading-snug text-foreground transition-colors hover:bg-muted hover:text-secondary'
-    : 'block rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted hover:text-secondary';
-
   return (
     <div className="space-y-0">
       {sections.map((category) => {
@@ -46,7 +37,7 @@ function MenuTree({
               key={category.href || category.title}
               href={category.href}
               onClick={closeServices}
-              className={`block border-b border-border text-foreground transition-colors hover:text-secondary ${titleClass}`}
+              className="block border-b border-border px-3 py-3 text-sm font-semibold text-foreground transition-colors hover:text-secondary"
             >
               {category.title}
             </Link>
@@ -58,13 +49,17 @@ function MenuTree({
           <div key={category.title} className="border-b border-border">
             <button
               type="button"
-              className={`flex w-full items-center justify-between text-foreground transition-colors hover:text-secondary ${titleClass}`}
+              className="flex w-full items-center justify-between px-3 py-3 text-left text-sm font-semibold text-foreground transition-colors hover:text-secondary"
               onClick={() => setExpandedCategory(isExpanded ? null : category.title)}
             >
               <span>{category.title}</span>
-              <ChevronRight
-                className={`h-4 w-4 shrink-0 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
-              />
+              <span
+                className={`text-xs text-muted-foreground transition-transform duration-200 ${
+                  isExpanded ? 'rotate-90' : ''
+                }`}
+              >
+                ›
+              </span>
             </button>
 
             <div
@@ -73,13 +68,13 @@ function MenuTree({
               }`}
             >
               {isExpanded && category.items && (
-                <div className="max-h-[min(16rem,40vh)] space-y-0.5 overflow-y-auto bg-muted px-2 py-1.5">
+                <div className="space-y-0.5 bg-muted px-2 py-2">
                   {category.items.map((item) => (
                     <Link
                       key={`${item.href}-${item.name}`}
                       href={item.href}
                       onClick={closeServices}
-                      className={itemClass}
+                      className="block rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary/10 hover:text-secondary"
                     >
                       {item.name}
                     </Link>
@@ -168,10 +163,7 @@ export default function ServicesModal() {
   ];
 
   const menuCategories: MenuSection[] = [
-    {
-      title: t.home,
-      href: `/${locale}`,
-    },
+    { title: t.home, href: `/${locale}` },
     {
       title: t.news,
       items: uniqueMenuLinks([
@@ -215,12 +207,7 @@ export default function ServicesModal() {
     },
     {
       title: t.practicalInfo,
-      items: [
-        {
-          name: locale === 'fr' ? 'Toutes les infos' : 'All practical info',
-          href: `/${locale}/infos-pratiques`,
-        },
-      ],
+      items: [{ name: locale === 'fr' ? 'Toutes les infos' : 'All practical info', href: `/${locale}/infos-pratiques` }],
     },
   ];
 
@@ -242,120 +229,65 @@ export default function ServicesModal() {
   return (
     <>
       <div
-        className={`fixed inset-0 z-[60] bg-black/50 transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 z-[60] bg-black/40 transition-opacity duration-300 ${
           isServicesOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={closeServices}
       />
 
-      <div
-        className={`fixed inset-x-0 bottom-0 z-[70] md:hidden transition-transform duration-300 ease-out ${
-          isServicesOpen ? 'translate-y-0' : 'translate-y-full'
+      <aside
+        className={`fixed inset-y-0 left-0 z-[70] w-[88vw] max-w-[420px] border-r border-border bg-background text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.25)] transition-transform duration-300 ease-out ${
+          isServicesOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        aria-label={t.servicesMalakin}
       >
-        <div className="flex max-h-[min(92dvh,100%)] flex-col overflow-hidden rounded-t-2xl border-t border-border bg-background pb-[max(0.75rem,env(safe-area-inset-bottom))] text-foreground">
-          <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b-2 border-secondary bg-background px-3 py-2.5">
-            <h3 className="min-w-0 truncate text-[13px] font-bold uppercase tracking-[0.08em] text-foreground">
-              {t.servicesMalakin}
-            </h3>
-            <button
-              type="button"
-              onClick={closeServices}
-              className="inline-flex shrink-0 items-center gap-1.5 text-foreground transition-colors hover:text-secondary"
-            >
-              <span className="text-[11px] font-bold uppercase">{t.close.toUpperCase()}</span>
-              <X className="h-5 w-5" />
-            </button>
+        <div className="flex items-center justify-between border-b border-border bg-background px-4 py-3">
+          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-foreground">
+            {t.servicesMalakin}
+          </h3>
+          <button
+            type="button"
+            onClick={closeServices}
+            className="inline-flex items-center gap-1.5 rounded-md p-2 text-foreground transition-colors hover:bg-muted hover:text-secondary"
+            aria-label={t.close}
+          >
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em]">{t.close}</span>
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="h-[calc(100vh-57px)] overflow-y-auto px-4 py-4">
+          <div className="mb-6">
+            <h4 className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+              {t.services}
+            </h4>
+            <div className="space-y-2">
+              {servicesItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={closeServices}
+                  className="block rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground transition-colors hover:border-secondary/60 hover:bg-secondary/10 hover:text-secondary"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
           </div>
 
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-3 py-3">
-            <div>
-              <h4 className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                {t.services}
-              </h4>
-              <div className="grid grid-cols-2 gap-1.5">
-                {servicesItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={closeServices}
-                    className="flex min-h-10 items-center rounded-lg bg-muted px-2.5 py-2 text-[12px] leading-snug text-foreground transition-colors hover:bg-secondary hover:text-secondary-foreground"
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h4 className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                Malakinfo Services
-              </h4>
-              <MenuTree
-                sections={menuCategories}
-                expandedCategory={expandedCategory}
-                setExpandedCategory={setExpandedCategory}
-                closeServices={closeServices}
-                compact
-              />
-            </div>
+          <div>
+            <h4 className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+              Malakinfo Services
+            </h4>
+            <MenuTree
+              sections={menuCategories}
+              expandedCategory={expandedCategory}
+              setExpandedCategory={setExpandedCategory}
+              closeServices={closeServices}
+            />
           </div>
         </div>
-      </div>
-
-      <div className="hidden md:block">
-        <div
-          className={`fixed inset-0 z-[60] bg-black/50 transition-opacity duration-300 ${
-            isServicesOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-          }`}
-          onClick={closeServices}
-        />
-        <div
-          className={`fixed left-1/2 top-1/2 z-[70] w-[min(760px,92vw)] max-h-[min(80vh,40rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-card p-5 text-foreground shadow-2xl transition-all duration-300 ease-out sm:p-6 ${
-            isServicesOpen ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0'
-          }`}
-        >
-          <div className="mb-4 flex items-center justify-between gap-3 border-b-2 border-secondary pb-4">
-            <h3 className="text-base font-bold uppercase tracking-wide text-foreground">{t.servicesMalakin}</h3>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 text-foreground transition-colors hover:text-secondary"
-              onClick={closeServices}
-            >
-              <span className="text-sm font-bold uppercase">{t.close.toUpperCase()}</span>
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-2">
-            <div>
-              <h4 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted-foreground">{t.services}</h4>
-              <div className="space-y-1">
-                {servicesItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={closeServices}
-                    className="block rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted hover:text-secondary"
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h4 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted-foreground">Malakinfo Services</h4>
-              <MenuTree
-                sections={menuCategories}
-                expandedCategory={expandedCategory}
-                setExpandedCategory={setExpandedCategory}
-                closeServices={closeServices}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      </aside>
     </>
   );
 }

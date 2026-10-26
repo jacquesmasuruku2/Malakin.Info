@@ -228,6 +228,8 @@ export default async function ActualitesCatchAllPage({
           </div>
         </div>
 
+        <CommentsSection articleId={article.id} locale={locale} />
+
         {otherSponsoredArticles.length > 0 && (
           <div className="mx-auto max-w-5xl px-4 pb-0 pt-8 md:px-6">
             <SponsoredSection items={otherSponsoredArticles} />
@@ -242,9 +244,6 @@ export default async function ActualitesCatchAllPage({
             <ArticleListingGrid articles={relatedArticles} locale={locale} />
           </section>
         )}
-
-        {/* Comments Section */}
-        <CommentsSection articleId={article.id} locale={locale} />
       </div>
     );
   } catch (error) {

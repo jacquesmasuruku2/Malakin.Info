@@ -1,5 +1,6 @@
 'use client';
 
+import mammoth from 'mammoth';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -102,6 +103,114 @@ function isImageFile(file: File) {
   return INLINE_IMAGE_TYPES.includes(file.type);
 }
 
+function sanitizePastedHtml(html: string): string {
+  if (!html || !html.trim()) return '';
+
+  try {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const root = doc.body;
+
+    root.querySelectorAll('script, style, iframe, object, embed, svg, meta, title, link, noscript, template').forEach((node) => node.remove());
+
+    root.querySelectorAll('*').forEach((node) => {
+      const tagName = node.tagName.toLowerCase();
+      const className = node.getAttribute('class') || '';
+      const style = node.getAttribute('style') || '';
+
+      if (className) {
+        const cleanedClass = className.split(/\s+/).filter((name) => !/^(mso|WordSection|wp|gmail|moz|apple|webkit)/i.test(name)).join(' ');
+        if (cleanedClass) {
+          node.setAttribute('class', cleanedClass);
+        } else {
+          node.removeAttribute('class');
+        }
+      }
+
+      if (style) {
+        const cleanedStyle = style
+          .replace(/mso-[^;]+;?/gi, '')
+          .replace(/-webkit-[^;]+;?/gi, '')
+          .replace(/display:\s*none;?/gi, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        if (cleanedStyle) {
+          node.setAttribute('style', cleanedStyle);
+        } else {
+          node.removeAttribute('style');
+        }
+      }
+
+      if (tagName === 'span' && !node.textContent?.trim() && !node.hasAttribute('style')) {
+        node.replaceWith(...Array.from(node.childNodes));
+      }
+    });
+
+    return root.innerHTML.trim();
+  } catch (error) {
+    console.error('[WordEditor paste sanitize]', error);
+    return html;
+  }
+}
+
+function normalizeImportedWordHtml(html: string): string {
+  if (!html || !html.trim()) return '';
+
+  try {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const root = doc.body;
+
+    root.querySelectorAll('script, style, iframe, object, embed, svg, meta, title, link, noscript, template').forEach((node) => node.remove());
+
+    root.querySelectorAll('*').forEach((node) => {
+      const tagName = node.tagName.toLowerCase();
+      const className = node.getAttribute('class') || '';
+      const style = node.getAttribute('style') || '';
+
+      if (className) {
+        const cleanedClass = className
+          .split(/\s+/)
+          .filter((name) => !/^(mso|WordSection|wp|gmail|moz|apple|webkit)/i.test(name))
+          .join(' ');
+
+        if (cleanedClass) {
+          node.setAttribute('class', cleanedClass);
+        } else {
+          node.removeAttribute('class');
+        }
+      }
+
+      if (style) {
+        const cleanedStyle = style
+          .replace(/mso-[^;]+;?/gi, '')
+          .replace(/-webkit-[^;]+;?/gi, '')
+          .replace(/display:\s*none;?/gi, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        if (cleanedStyle) {
+          node.setAttribute('style', cleanedStyle);
+        } else {
+          node.removeAttribute('style');
+        }
+      }
+
+      if (tagName === 'span' && !node.textContent?.trim() && !node.hasAttribute('style')) {
+        node.replaceWith(...Array.from(node.childNodes));
+      }
+
+      if (tagName === 'p' && !node.textContent?.trim() && !node.querySelector('img')) {
+        node.remove();
+      }
+    });
+
+    return root.innerHTML.trim();
+  } catch (error) {
+    console.error('[WordEditor import sanitize]', error);
+    return html;
+  }
+}
+
 async function uploadBlogImage(file: File): Promise<string | null> {
   const body = new FormData();
   body.append('file', file);
@@ -147,6 +256,7 @@ export default function WordEditor({
   const toolbarRef = useRef<HTMLDivElement>(null);
   const previousScrollY = useRef(0);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const wordInputRef = useRef<HTMLInputElement>(null);
   const savedTextSelection = useRef<{ from: number; to: number } | null>(null);
   const insertImageFilesRef = useRef<(files: FileList | File[]) => Promise<void>>(async () => {});
   const [uploadingInlineImage, setUploadingInlineImage] = useState(false);
@@ -194,12 +304,51 @@ export default function WordEditor({
     editorProps: {
       handlePaste(_view, event) {
         const files = event.clipboardData?.files;
-        if (!files?.length) return false;
-        const images = Array.from(files).filter(isImageFile);
-        if (!images.length) return false;
-        event.preventDefault();
-        void insertImageFilesRef.current(images);
-        return true;
+        if (files?.length) {
+          const images = Array.from(files).filter(isImageFile);
+          if (!images.length) return false;
+          event.preventDefault();
+          void insertImageFilesRef.current(images);
+          return true;
+        }
+
+        const html = event.clipboardData?.getData('text/html');
+        const plain = event.clipboardData?.getData('text/plain');
+
+        if (html && html.trim()) {
+          const cleaned = sanitizePastedHtml(html);
+          if (cleaned && cleaned.replace(/<[^>]+>/g, '').trim()) {
+            event.preventDefault();
+            editor?.chain().focus().insertContent(cleaned).run();
+            return true;
+          }
+        }
+
+        if (plain && plain.trim()) {
+          event.preventDefault();
+          const normalized = plain
+            .replace(/\r\n/g, '\n')
+            .replace(/\r/g, '\n')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+
+          const blocks = normalized
+            .split('\n\n')
+            .map((block) => {
+              const escaped = block
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>');
+              return `<p>${escaped}</p>`;
+            })
+            .join('');
+
+          editor?.chain().focus().insertContent(blocks).run();
+          return true;
+        }
+
+        return false;
       },
       handleDrop(_view, event) {
         const files = event.dataTransfer?.files;
@@ -305,13 +454,13 @@ export default function WordEditor({
   }, []);
 
   const updateCounts = (text: string) => {
-    const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+    const words = text.trim().split(/\s+/).filter((word) => word.length > 0);
     setWordCount(words.length);
     setCharCount(text.length);
   };
 
   const handleZoom = (delta: number) => {
-    setZoom(prev => Math.min(200, Math.max(50, prev + delta)));
+    setZoom((prev) => Math.min(200, Math.max(50, prev + delta)));
   };
 
   const handleInsertReadAlso = (title: string, url: string, accentColor?: string) => {
@@ -429,11 +578,50 @@ export default function WordEditor({
       }
 
       if (pastedContent) {
-        editor.chain().focus().insertContent(pastedContent).run();
+        const sanitized = sanitizePastedHtml(pastedContent);
+        editor.chain().focus().insertContent(sanitized || pastedContent).run();
       }
     } catch (error) {
       console.error('[WordEditor paste]', error);
       window.alert("Impossible d'accéder au presse-papiers. Utilisez Ctrl+V dans l'éditeur.");
+    }
+  };
+
+  const handleWordImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const isDocx =
+      file.name.toLowerCase().endsWith('.docx') ||
+      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+    if (!isDocx) {
+      alert('Sélectionne un fichier Word (.docx).');
+      if (wordInputRef.current) wordInputRef.current.value = '';
+      return;
+    }
+
+    if (!editor) {
+      if (wordInputRef.current) wordInputRef.current.value = '';
+      return;
+    }
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.convertToHtml({ arrayBuffer });
+      const importedHtml = normalizeImportedWordHtml(result.value || '');
+
+      if (!importedHtml.trim()) {
+        alert('Aucun contenu exploitable n’a été trouvé dans ce document Word.');
+        return;
+      }
+
+      editor.chain().focus().setContent(importedHtml, { emitUpdate: true }).run();
+    } catch (error) {
+      console.error('[WordEditor import]', error);
+      alert("Impossible d'importer ce fichier Word. Vérifie qu'il s'agit bien d'un fichier .docx valide.");
+    } finally {
+      if (wordInputRef.current) wordInputRef.current.value = '';
     }
   };
 
@@ -524,7 +712,6 @@ export default function WordEditor({
               </button>
             </div>
 
-            {/* Clipboard Group */}
             <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
               <button
                 type="button"
@@ -553,7 +740,6 @@ export default function WordEditor({
               </button>
             </div>
 
-            {/* Font Group */}
             <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
               <select
                 className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-blue-50"
@@ -760,7 +946,6 @@ export default function WordEditor({
               </div>
             </div>
 
-            {/* Paragraph Group */}
             <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
               <button
                 type="button"
@@ -853,7 +1038,6 @@ export default function WordEditor({
               </select>
             </div>
 
-            {/* Styles Group */}
             <div className="flex items-center gap-1">
               <button
                 type="button"
@@ -926,12 +1110,12 @@ export default function WordEditor({
             </button>
             <button
               type="button"
-              onClick={handleImageCaption}
+              onClick={() => wordInputRef.current?.click()}
               className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2"
-              title="Description / légende de l'image"
+              title="Importer un document Word"
             >
               <FileText className="w-4 h-4" />
-              <span className="text-sm">Légende</span>
+              <span className="text-sm">Word</span>
             </button>
             <button
               type="button"
@@ -1041,7 +1225,6 @@ export default function WordEditor({
         </div>
       </div>
 
-      {/* Read Also Modal */}
       <ReadAlsoModal
         isOpen={isReadAlsoModalOpen}
         onClose={() => setIsReadAlsoModalOpen(false)}
@@ -1146,7 +1329,14 @@ export default function WordEditor({
         }}
       />
 
-      {/* Link Modal */}
+      <input
+        ref={wordInputRef}
+        type="file"
+        accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        className="hidden"
+        onChange={handleWordImport}
+      />
+
       {isLinkModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
