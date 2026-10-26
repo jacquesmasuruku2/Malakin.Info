@@ -59,7 +59,8 @@ import {
   Code2,
   X,
   Undo2,
-  Redo2
+  Redo2,
+  Music2,
 } from 'lucide-react';
 
 interface WordEditorProps {
@@ -71,6 +72,7 @@ interface WordEditorProps {
 }
 
 const INLINE_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+const AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/oga', 'audio/m4a', 'audio/aac', 'audio/x-m4a'];
 const FONT_FAMILIES = [
   { label: 'Arial', value: 'Arial, Helvetica, sans-serif' },
   { label: 'Arial Black', value: '"Arial Black", Arial, sans-serif' },
@@ -101,6 +103,21 @@ function getFontFamilySelection(value: string | null | undefined) {
 
 function isImageFile(file: File) {
   return INLINE_IMAGE_TYPES.includes(file.type);
+}
+
+function isAudioFile(file: File) {
+  const normalizedType = file.type.toLowerCase();
+  if (AUDIO_TYPES.includes(normalizedType)) return true;
+  return /\.(mp3|m4a|aac|wav|ogg|oga)$/i.test(file.name);
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 function sanitizePastedHtml(html: string): string {
@@ -229,6 +246,25 @@ async function uploadBlogImage(file: File): Promise<string | null> {
   return String(data.url);
 }
 
+async function uploadBlogAudio(file: File): Promise<string | null> {
+  const body = new FormData();
+  body.append('file', file);
+  body.append('folder', 'Audios_blogs');
+
+  const response = await fetch('/api/upload', { method: 'POST', body });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    console.error('[WordEditor audio upload]', data?.error || data?.details || response.status);
+    return null;
+  }
+
+  if (!data?.success || !data.url || String(data.url).startsWith('data:')) {
+    return null;
+  }
+
+  return String(data.url);
+}
+
 export default function WordEditor({
   content,
   onChange,
@@ -256,10 +292,13 @@ export default function WordEditor({
   const toolbarRef = useRef<HTMLDivElement>(null);
   const previousScrollY = useRef(0);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
   const wordInputRef = useRef<HTMLInputElement>(null);
   const savedTextSelection = useRef<{ from: number; to: number } | null>(null);
   const insertImageFilesRef = useRef<(files: FileList | File[]) => Promise<void>>(async () => {});
+  const insertAudioFilesRef = useRef<(files: FileList | File[]) => Promise<void>>(async () => {});
   const [uploadingInlineImage, setUploadingInlineImage] = useState(false);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -427,7 +466,37 @@ export default function WordEditor({
     }
   };
 
+  const insertAudioFiles = async (files: FileList | File[]) => {
+    const audioFiles = Array.from(files).filter(isAudioFile);
+    if (!audioFiles.length || !editor) return;
+
+    setUploadingAudio(true);
+    try {
+      for (const file of audioFiles) {
+        const src = await uploadBlogAudio(file);
+        if (!src) {
+          alert("Erreur lors de l'upload de l'audio");
+          continue;
+        }
+
+        const audiotitle = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
+        const label = window.prompt('Titre de l’audio (optionnel)', audiotitle) ?? audiotitle;
+        const html = `
+          <div style="margin: 1rem 0;">
+            <audio controls preload="metadata" src="${src}" style="width: 100%; max-width: 700px; display: block; border-radius: 8px; background: #f3f4f6;"></audio>
+            ${label ? `<p style="margin-top: 0.5rem; font-size: 0.9rem; color: #4b5563;">${escapeHtml(label)}</p>` : ''}
+          </div>
+        `;
+        editor.chain().focus().insertContent(html).run();
+      }
+    } finally {
+      setUploadingAudio(false);
+      if (audioInputRef.current) audioInputRef.current.value = '';
+    }
+  };
+
   insertImageFilesRef.current = insertImageFiles;
+  insertAudioFilesRef.current = insertAudioFiles;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -682,7 +751,6 @@ export default function WordEditor({
         </div>
 
         <div className="grid w-full min-w-0">
-          {/* Home Tab Content */}
           <div
             aria-hidden={activeTab !== 'home'}
             className={`col-start-1 row-start-1 w-full min-w-0 p-2 flex flex-wrap gap-1 items-center bg-gradient-to-b from-gray-50 to-white ${
@@ -1084,7 +1152,6 @@ export default function WordEditor({
             </div>
           </div>
 
-          {/* Insert Tab */}
           <div
             aria-hidden={activeTab !== 'insert'}
             className={`col-start-1 row-start-1 w-full min-w-0 p-2 flex flex-wrap gap-2 items-center bg-gradient-to-b from-gray-50 to-white ${
@@ -1109,6 +1176,16 @@ export default function WordEditor({
             >
               {uploadingInlineImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
               <span className="text-sm">{uploadingInlineImage ? 'Envoi…' : 'Image'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => audioInputRef.current?.click()}
+              disabled={uploadingAudio}
+              className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2 disabled:opacity-50"
+              title="Insérer un audio dans le texte"
+            >
+              {uploadingAudio ? <Loader2 className="w-4 h-4 animate-spin" /> : <Music2 className="w-4 h-4" />}
+              <span className="text-sm">{uploadingAudio ? 'Envoi…' : 'Audio'}</span>
             </button>
             <button
               type="button"
@@ -1155,7 +1232,6 @@ export default function WordEditor({
             </button>
           </div>
 
-          {/* Layout Tab */}
           <div
             aria-hidden={activeTab !== 'layout'}
             className={`col-start-1 row-start-1 w-full min-w-0 p-2 flex flex-wrap gap-2 items-center bg-gradient-to-b from-gray-50 to-white ${
@@ -1332,6 +1408,18 @@ export default function WordEditor({
         onChange={(event) => {
           if (event.target.files?.length) {
             void insertImageFiles(event.target.files);
+          }
+        }}
+      />
+
+      <input
+        ref={audioInputRef}
+        type="file"
+        accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/oga,audio/m4a,audio/aac,audio/x-m4a"
+        className="hidden"
+        onChange={(event) => {
+          if (event.target.files?.length) {
+            void insertAudioFiles(event.target.files);
           }
         }}
       />
