@@ -316,6 +316,7 @@ export default function NewArticlePage() {
                     content={formData.content}
                     onChange={(content) => setFormData({ ...formData, content })}
                     locale={formData.defaultLocale}
+                    enableSocialEmbed
                     onAddTag={(name) => {
                       setFormData((prev) => {
                         const exists = prev.tags.some(

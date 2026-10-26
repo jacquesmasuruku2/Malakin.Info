@@ -16,6 +16,8 @@ import {
 import { ReadAlsoExtension } from '@/lib/tiptap/ReadAlsoExtension';
 import ReadAlsoModal from '@/components/ReadAlsoModal';
 import { ImageWithCaption } from '@/lib/tiptap/ImageWithCaption';
+import { SocialEmbedExtension } from '@/lib/tiptap/SocialEmbedExtension';
+import { normalizeSocialEmbed, type SocialEmbedPlatform } from '@/lib/tiptap/social-embed';
 import { cleanTagName, slugifyTag } from '@/lib/tag-name';
 import { useState, useEffect, useRef } from 'react';
 import { 
@@ -53,6 +55,7 @@ import {
   Link as LinkIcon,
   Unlink,
   Hash,
+  Code2,
   X,
   Undo2,
   Redo2
@@ -63,6 +66,7 @@ interface WordEditorProps {
   onChange: (content: string) => void;
   locale?: string;
   onAddTag?: (name: string) => void;
+  enableSocialEmbed?: boolean;
 }
 
 const INLINE_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
@@ -116,7 +120,13 @@ async function uploadBlogImage(file: File): Promise<string | null> {
   return String(data.url);
 }
 
-export default function WordEditor({ content, onChange, locale = 'fr', onAddTag }: WordEditorProps) {
+export default function WordEditor({
+  content,
+  onChange,
+  locale = 'fr',
+  onAddTag,
+  enableSocialEmbed = false,
+}: WordEditorProps) {
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
   const [zoom, setZoom] = useState(100);
@@ -126,6 +136,9 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
   const [lineHeight, setLineHeight] = useState('1.5');
   const [isReadAlsoModalOpen, setIsReadAlsoModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [isSocialEmbedModalOpen, setIsSocialEmbedModalOpen] = useState(false);
+  const [socialEmbedPlatform, setSocialEmbedPlatform] = useState<SocialEmbedPlatform>('x');
+  const [socialEmbedUrl, setSocialEmbedUrl] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
   const [isTextColorPickerOpen, setIsTextColorPickerOpen] = useState(false);
   const [isHighlightColorPickerOpen, setIsHighlightColorPickerOpen] = useState(false);
@@ -174,6 +187,7 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
           class: 'article-inline-image',
         },
       }),
+      SocialEmbedExtension,
       ReadAlsoExtension,
     ],
     content: content,
@@ -304,6 +318,23 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
     if (editor) {
       editor.chain().focus().insertReadAlso({ title, url, accentColor }).run();
     }
+  };
+
+  const handleInsertSocialEmbed = () => {
+    if (!editor) return;
+    const embed = normalizeSocialEmbed(socialEmbedPlatform, socialEmbedUrl);
+    if (!embed) {
+      window.alert(
+        socialEmbedPlatform === 'x'
+          ? 'Collez le lien d’une publication X contenant /status/ suivi de son identifiant.'
+          : 'Collez le lien d’une publication Facebook (post, photo ou vidéo).'
+      );
+      return;
+    }
+
+    editor.chain().focus().insertSocialEmbed({ platform: embed.platform, url: embed.url }).run();
+    setSocialEmbedUrl('');
+    setIsSocialEmbedModalOpen(false);
   };
 
   const handleSetLink = () => {
@@ -441,8 +472,8 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
   }
 
   return (
-    <div className="relative isolate bg-[#f3f3f1] rounded-xl overflow-visible border border-[#d9d9d7] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">
-      <div ref={toolbarRef} className="sticky top-0 z-50 max-w-full bg-[#f7f6f4] border-b border-[#d5d2ce] shadow-[0_1px_0_rgba(15,23,42,0.06)]">
+    <div className="relative isolate w-full min-w-0 bg-[#f3f3f1] rounded-xl overflow-visible border border-[#d9d9d7] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">
+      <div ref={toolbarRef} className="sticky top-0 z-50 w-full min-w-0 bg-[#f7f6f4] border-b border-[#d5d2ce] shadow-[0_1px_0_rgba(15,23,42,0.06)]">
         <div className="flex border-b border-[#e6e2dd] bg-[#f3f1ee]">
           {['home', 'insert', 'layout'].map((tab) => (
             <button
@@ -460,9 +491,14 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
           ))}
         </div>
 
-        {/* Home Tab Content */}
-        {activeTab === 'home' && (
-          <div className="p-2 flex flex-wrap gap-1 items-center bg-gradient-to-b from-gray-50 to-white">
+        <div className="grid w-full min-w-0">
+          {/* Home Tab Content */}
+          <div
+            aria-hidden={activeTab !== 'home'}
+            className={`col-start-1 row-start-1 w-full min-w-0 p-2 flex flex-wrap gap-1 items-center bg-gradient-to-b from-gray-50 to-white ${
+              activeTab === 'home' ? 'visible' : 'invisible'
+            }`}
+          >
             <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
               <button
                 type="button"
@@ -861,11 +897,14 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
               </button>
             </div>
           </div>
-        )}
 
-        {/* Insert Tab */}
-        {activeTab === 'insert' && (
-          <div className="p-2 flex gap-2 items-center bg-gradient-to-b from-gray-50 to-white">
+          {/* Insert Tab */}
+          <div
+            aria-hidden={activeTab !== 'insert'}
+            className={`col-start-1 row-start-1 w-full min-w-0 p-2 flex flex-wrap gap-2 items-center bg-gradient-to-b from-gray-50 to-white ${
+              activeTab === 'insert' ? 'visible' : 'invisible'
+            }`}
+          >
             <button 
               type="button"
               onClick={() => setIsReadAlsoModalOpen(true)}
@@ -903,6 +942,17 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
               <FileText className="w-4 h-4" />
               <span className="text-sm">Légende</span>
             </button>
+            {enableSocialEmbed && (
+              <button
+                type="button"
+                onClick={() => setIsSocialEmbedModalOpen(true)}
+                className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2"
+                title="Intégrer une publication X ou Facebook"
+              >
+                <Code2 className="w-4 h-4" />
+                <span className="text-sm">Publication X / Facebook</span>
+              </button>
+            )}
             {onAddTag && (
               <button
                 type="button"
@@ -918,11 +968,14 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
               <Search className="w-4 h-4" />
             </button>
           </div>
-        )}
 
-        {/* Layout Tab */}
-        {activeTab === 'layout' && (
-          <div className="p-2 flex gap-2 items-center bg-gradient-to-b from-gray-50 to-white">
+          {/* Layout Tab */}
+          <div
+            aria-hidden={activeTab !== 'layout'}
+            className={`col-start-1 row-start-1 w-full min-w-0 p-2 flex flex-wrap gap-2 items-center bg-gradient-to-b from-gray-50 to-white ${
+              activeTab === 'layout' ? 'visible' : 'invisible'
+            }`}
+          >
             <button type="button" className="p-2 hover:bg-blue-100 rounded transition-colors" title="Orientation">
               <FileText className="w-4 h-4" />
             </button>
@@ -930,7 +983,7 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
               <FileText className="w-4 h-4" />
             </button>
           </div>
-        )}
+        </div>
       </div>
 
       <div className="bg-[#dfe0df] h-6 border-b border-[#c9c7c4] flex items-center px-4">
@@ -994,6 +1047,91 @@ export default function WordEditor({ content, onChange, locale = 'fr', onAddTag 
         onClose={() => setIsReadAlsoModalOpen(false)}
         onInsert={handleInsertReadAlso}
       />
+
+      {isSocialEmbedModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="social-embed-title"
+            className="w-full max-w-lg rounded-lg bg-white shadow-xl"
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 p-4">
+              <h2 id="social-embed-title" className="text-lg font-semibold text-gray-900">
+                Intégrer une publication
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsSocialEmbedModalOpen(false)}
+                className="p-2 text-gray-400 transition-colors hover:text-gray-600"
+                aria-label="Fermer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4 p-4">
+              <div>
+                <label htmlFor="social-embed-platform" className="mb-1 block text-sm font-medium text-gray-700">
+                  Réseau social
+                </label>
+                <select
+                  id="social-embed-platform"
+                  value={socialEmbedPlatform}
+                  onChange={(event) => setSocialEmbedPlatform(event.target.value as SocialEmbedPlatform)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                >
+                  <option value="x">X (Twitter)</option>
+                  <option value="facebook">Facebook</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="social-embed-url" className="mb-1 block text-sm font-medium text-gray-700">
+                  Lien de la publication
+                </label>
+                <input
+                  id="social-embed-url"
+                  type="url"
+                  value={socialEmbedUrl}
+                  onChange={(event) => setSocialEmbedUrl(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      handleInsertSocialEmbed();
+                    }
+                  }}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  placeholder={
+                    socialEmbedPlatform === 'x'
+                      ? 'https://x.com/compte/status/123456789'
+                      : 'https://www.facebook.com/page/posts/123456789'
+                  }
+                  autoFocus
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Collez le lien public d’un post, pas le code HTML d’intégration.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 border-t border-gray-200 p-4">
+              <button
+                type="button"
+                onClick={() => setIsSocialEmbedModalOpen(false)}
+                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleInsertSocialEmbed}
+                disabled={!socialEmbedUrl.trim()}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Insérer la publication
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <input
         ref={imageInputRef}

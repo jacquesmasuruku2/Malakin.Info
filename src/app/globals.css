@@ -430,6 +430,37 @@
   box-shadow: none;
 }
 
+.article-body figure.article-social-embed {
+  width: 100%;
+  max-width: 550px;
+  margin: 1.5rem auto;
+}
+
+.article-body figure.article-social-embed iframe {
+  display: block;
+  width: 100%;
+  max-width: 550px;
+  min-height: 400px;
+  border: 0;
+  border-radius: 0.5rem;
+  background: #ffffff;
+}
+
+.article-body a.article-social-embed-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+@media (max-width: 640px) {
+  .article-body figure.article-social-embed iframe {
+    min-height: 360px;
+  }
+}
+
 .article-body figure img,
 .article-body figure .article-inline-image {
   margin: 0;
