@@ -341,6 +341,9 @@ export default function WordEditor({
     ],
     content: content,
     editorProps: {
+      attributes: {
+        class: 'prose prose-sm min-w-0 max-w-none break-words focus:outline-none min-h-[760px] leading-relaxed text-[15px] sm:prose-base overflow-wrap-anywhere break-words',
+      },
       handlePaste(_view, event) {
         const files = event.clipboardData?.files;
         if (files?.length) {
@@ -724,24 +727,24 @@ export default function WordEditor({
 
   if (!editor) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="flex h-96 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
       </div>
     );
   }
 
   return (
-    <div className="relative isolate w-full min-w-0 bg-[#f3f3f1] rounded-xl overflow-visible border border-[#d9d9d7] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">
-      <div ref={toolbarRef} className="sticky top-0 z-50 w-full min-w-0 bg-[#f7f6f4] border-b border-[#d5d2ce] shadow-[0_1px_0_rgba(15,23,42,0.06)]">
-        <div className="flex border-b border-[#e6e2dd] bg-[#f3f1ee]">
+    <div className="relative isolate w-full min-w-0 overflow-hidden rounded-xl border border-[#d9d9d7] bg-[#f3f3f1] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">
+      <div ref={toolbarRef} className="sticky top-0 z-50 w-full min-w-0 overflow-x-auto border-b border-[#d5d2ce] bg-[#f7f6f4] shadow-[0_1px_0_rgba(15,23,42,0.06)]">
+        <div className="flex min-w-max border-b border-[#e6e2dd] bg-[#f3f1ee]">
           {['home', 'insert', 'layout'].map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
-              className={`px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] transition-colors ${
+              className={`min-w-[96px] px-3 py-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] transition-colors sm:min-w-[120px] sm:px-5 sm:text-xs ${
                 activeTab === tab
-                  ? 'bg-white text-[#0f172a] border-b-2 border-[#2563eb]'
+                  ? 'border-b-2 border-[#2563eb] bg-white text-[#0f172a]'
                   : 'text-[#475569] hover:bg-white/70'
               }`}
             >
@@ -753,217 +756,205 @@ export default function WordEditor({
         <div className="grid w-full min-w-0">
           <div
             aria-hidden={activeTab !== 'home'}
-            className={`col-start-1 row-start-1 w-full min-w-0 p-2 flex flex-wrap gap-1 items-center bg-gradient-to-b from-gray-50 to-white ${
+            className={`col-start-1 row-start-1 min-w-0 overflow-x-auto p-2 ${
               activeTab === 'home' ? 'visible' : 'invisible'
             }`}
           >
-            <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
-              <button
-                type="button"
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => editor.chain().focus().undo().run()}
-                disabled={!editor.can().undo()}
-                className="p-2 rounded transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40"
-                title="Annuler (Ctrl+Z)"
-                aria-label="Annuler"
-              >
-                <Undo2 className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => editor.chain().focus().redo().run()}
-                disabled={!editor.can().redo()}
-                className="p-2 rounded transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40"
-                title="Rétablir (Ctrl+Y)"
-                aria-label="Rétablir"
-              >
-                <Redo2 className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
-              <button
-                type="button"
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => void handlePasteFromClipboard()}
-                className="p-2 hover:bg-blue-100 rounded transition-colors"
-                title="Coller"
-              >
-                <Clipboard className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => document.execCommand('cut')}
-                className="p-2 hover:bg-blue-100 rounded transition-colors"
-                title="Couper"
-              >
-                <Scissors className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => document.execCommand('copy')}
-                className="p-2 hover:bg-blue-100 rounded transition-colors"
-                title="Copier"
-              >
-                <Copy className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
-              <select
-                className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-blue-50"
-                title="Police"
-                value={fontFamily}
-                onMouseDown={rememberTextSelection}
-                onFocus={rememberTextSelection}
-                onChange={(event) => {
-                  setFontFamily(event.target.value);
-                  applyFontFamily(event.target.value);
-                }}
-              >
-                {!FONT_FAMILIES.some((family) => family.value === fontFamily) && (
-                  <option value={fontFamily}>{fontFamily}</option>
-                )}
-                {FONT_FAMILIES.map((family) => (
-                  <option key={family.value} value={family.value} style={{ fontFamily: family.value }}>
-                    {family.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-blue-50 w-16"
-                title="Taille"
-                value={fontSize}
-                onMouseDown={rememberTextSelection}
-                onFocus={rememberTextSelection}
-                onChange={(event) => {
-                  setFontSize(event.target.value);
-                  applyFontSize(event.target.value);
-                }}
-              >
-                {!FONT_SIZES.includes(fontSize) && <option value={fontSize}>{fontSize}</option>}
-                {FONT_SIZES.map((size) => (
-                  <option key={size} value={size}>{size}</option>
-                ))}
-              </select>
-              <div className="flex gap-1">
+            <div className="flex min-w-max items-center gap-1 bg-gradient-to-b from-gray-50 to-white">
+              <div className="flex items-center gap-1 border-r border-gray-300 pr-2">
                 <button
                   type="button"
-                  onClick={() => editor.chain().focus().toggleBold().run()}
-                  className={`p-2 rounded ${editor.isActive('bold') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                  title="Gras (Ctrl+B)"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => editor.chain().focus().undo().run()}
+                  disabled={!editor.can().undo()}
+                  className="rounded p-2 transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40"
+                  title="Annuler (Ctrl+Z)"
+                  aria-label="Annuler"
                 >
-                  <Bold className="w-4 h-4" />
+                  <Undo2 className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
-                  onClick={() => editor.chain().focus().toggleItalic().run()}
-                  className={`p-2 rounded ${editor.isActive('italic') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                  title="Italique (Ctrl+I)"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => editor.chain().focus().redo().run()}
+                  disabled={!editor.can().redo()}
+                  className="rounded p-2 transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40"
+                  title="Rétablir (Ctrl+Y)"
+                  aria-label="Rétablir"
                 >
-                  <Italic className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => editor.chain().focus().toggleStrike().run()}
-                  className={`p-2 rounded ${editor.isActive('strike') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                  title="Barré"
-                >
-                  <Strikethrough className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => editor.chain().focus().toggleUnderline().run()}
-                  className={`p-2 rounded ${editor.isActive('underline') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                  title="Souligné (Ctrl+U)"
-                >
-                  <UnderlineIcon className="w-4 h-4" />
+                  <Redo2 className="h-4 w-4" />
                 </button>
               </div>
-              <div className="flex gap-1">
+
+              <div className="flex items-center gap-1 border-r border-gray-300 pr-2">
                 <button
                   type="button"
-                  className="p-1 hover:bg-blue-100 rounded transition-colors text-xs font-bold"
-                  title="Indice"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => void handlePasteFromClipboard()}
+                  className="rounded p-2 transition-colors hover:bg-blue-100"
+                  title="Coller"
                 >
-                  x₂
+                  <Clipboard className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
-                  className="p-1 hover:bg-blue-100 rounded transition-colors text-xs font-bold"
-                  title="Exposant"
+                  onClick={() => document.execCommand('cut')}
+                  className="rounded p-2 transition-colors hover:bg-blue-100"
+                  title="Couper"
                 >
-                  x²
+                  <Scissors className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => document.execCommand('copy')}
+                  className="rounded p-2 transition-colors hover:bg-blue-100"
+                  title="Copier"
+                >
+                  <Copy className="h-4 w-4" />
                 </button>
               </div>
-              <div className="flex gap-1">
+
+              <div className="flex items-center gap-1 border-r border-gray-300 pr-2">
+                <select
+                  className="rounded border border-gray-300 px-2 py-1 text-xs hover:bg-blue-50 sm:text-sm"
+                  title="Police"
+                  value={fontFamily}
+                  onMouseDown={rememberTextSelection}
+                  onFocus={rememberTextSelection}
+                  onChange={(event) => {
+                    setFontFamily(event.target.value);
+                    applyFontFamily(event.target.value);
+                  }}
+                >
+                  {!FONT_FAMILIES.some((family) => family.value === fontFamily) && (
+                    <option value={fontFamily}>{fontFamily}</option>
+                  )}
+                  {FONT_FAMILIES.map((family) => (
+                    <option key={family.value} value={family.value} style={{ fontFamily: family.value }}>
+                      {family.label}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="w-14 rounded border border-gray-300 px-1 py-1 text-xs hover:bg-blue-50 sm:w-16 sm:text-sm"
+                  title="Taille"
+                  value={fontSize}
+                  onMouseDown={rememberTextSelection}
+                  onFocus={rememberTextSelection}
+                  onChange={(event) => {
+                    setFontSize(event.target.value);
+                    applyFontSize(event.target.value);
+                  }}
+                >
+                  {!FONT_SIZES.includes(fontSize) && <option value={fontSize}>{fontSize}</option>}
+                  {FONT_SIZES.map((size) => (
+                    <option key={size} value={size}>{size}</option>
+                  ))}
+                </select>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => editor.chain().focus().toggleBold().run()}
+                    className={`rounded p-2 ${editor.isActive('bold') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
+                    title="Gras (Ctrl+B)"
+                  >
+                    <Bold className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => editor.chain().focus().toggleItalic().run()}
+                    className={`rounded p-2 ${editor.isActive('italic') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
+                    title="Italique (Ctrl+I)"
+                  >
+                    <Italic className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => editor.chain().focus().toggleStrike().run()}
+                    className={`rounded p-2 ${editor.isActive('strike') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
+                    title="Barré"
+                  >
+                    <Strikethrough className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => editor.chain().focus().toggleUnderline().run()}
+                    className={`rounded p-2 ${editor.isActive('underline') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
+                    title="Souligné (Ctrl+U)"
+                  >
+                    <UnderlineIcon className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 border-r border-gray-300 pr-2">
                 <button
                   type="button"
                   onClick={() => setIsLinkModalOpen(true)}
-                  className={`p-1 rounded ${editor.isActive('link') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
+                  className={`rounded p-2 ${editor.isActive('link') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                   title="Insérer un lien"
                 >
-                  <LinkIcon className="w-4 h-4" />
+                  <LinkIcon className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
                   onClick={handleUnsetLink}
-                  className="p-1 hover:bg-blue-100 rounded transition-colors"
+                  className="rounded p-2 transition-colors hover:bg-blue-100"
                   title="Supprimer le lien"
                 >
-                  <Unlink className="w-4 h-4" />
+                  <Unlink className="h-4 w-4" />
                 </button>
                 {onAddTag && (
                   <button
                     type="button"
                     onClick={handleTagSelection}
-                    className="p-1 hover:bg-blue-100 rounded transition-colors"
-                    title="Taguer la sélection (lien vers /tag/…)"
+                    className="rounded p-2 transition-colors hover:bg-blue-100"
+                    title="Taguer la sélection"
                   >
-                    <Hash className="w-4 h-4" />
+                    <Hash className="h-4 w-4" />
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={() => imageInputRef.current?.click()}
                   disabled={uploadingInlineImage}
-                  className="p-1 hover:bg-blue-100 rounded transition-colors disabled:opacity-50"
-                  title="Insérer une image dans le texte"
+                  className="rounded p-2 transition-colors hover:bg-blue-100 disabled:opacity-50"
+                  title="Insérer une image"
                 >
-                  {uploadingInlineImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                  {uploadingInlineImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
                 </button>
                 <button
                   type="button"
                   onClick={handleImageCaption}
-                  className={`p-1 rounded ${editor.isActive('image') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
+                  className={`rounded p-2 ${editor.isActive('image') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
                   title="Description / légende de l'image"
                 >
-                  <FileText className="w-4 h-4" />
+                  <FileText className="h-4 w-4" />
                 </button>
               </div>
-              <div className="flex gap-1 relative">
+
+              <div className="relative flex items-center gap-1 border-r border-gray-300 pr-2">
                 <button
                   type="button"
                   onClick={() => setIsTextColorPickerOpen(!isTextColorPickerOpen)}
-                  className="p-1 hover:bg-blue-100 rounded transition-colors relative"
+                  className="relative rounded p-2 transition-colors hover:bg-blue-100"
                   title="Couleur du texte"
                 >
-                  <Type className="w-4 h-4" />
-                  <div 
-                    className="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white"
+                  <Type className="h-4 w-4" />
+                  <div
+                    className="absolute bottom-0 right-0 h-2 w-2 rounded-full border border-white"
                     style={{ backgroundColor: textColor }}
                   />
                 </button>
                 {isTextColorPickerOpen && (
-                  <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded shadow-lg p-2 z-50">
+                  <div className="absolute left-0 top-full z-50 mt-1 rounded border border-gray-300 bg-white p-2 shadow-lg">
                     <div className="grid grid-cols-5 gap-1">
                       {['#000000', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff8800', '#8800ff', '#008800'].map((color) => (
                         <button
                           key={color}
                           type="button"
                           onClick={() => handleTextColorChange(color)}
-                          className="w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform"
+                          className="h-6 w-6 rounded border border-gray-300 hover:scale-110 transition-transform"
                           style={{ backgroundColor: color }}
                           title={color}
                         />
@@ -973,33 +964,31 @@ export default function WordEditor({
                       type="color"
                       value={textColor}
                       onChange={(e) => handleTextColorChange(e.target.value)}
-                      className="w-full mt-2 h-8 cursor-pointer"
+                      className="mt-2 h-8 w-full cursor-pointer"
                     />
                   </div>
                 )}
-              </div>
-              <div className="flex gap-1 relative">
                 <button
                   type="button"
                   onClick={() => setIsHighlightColorPickerOpen(!isHighlightColorPickerOpen)}
-                  className="p-1 hover:bg-blue-100 rounded transition-colors relative"
+                  className="relative rounded p-2 transition-colors hover:bg-blue-100"
                   title="Couleur de surbrillance"
                 >
-                  <Palette className="w-4 h-4" />
-                  <div 
-                    className="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white"
+                  <Palette className="h-4 w-4" />
+                  <div
+                    className="absolute bottom-0 right-0 h-2 w-2 rounded-full border border-white"
                     style={{ backgroundColor: highlightColor }}
                   />
                 </button>
                 {isHighlightColorPickerOpen && (
-                  <div className="absolute top-full left-0 mt-1 bg-white border border-gray-300 rounded shadow-lg p-2 z-50">
+                  <div className="absolute left-0 top-full z-50 mt-1 rounded border border-gray-300 bg-white p-2 shadow-lg">
                     <div className="grid grid-cols-5 gap-1">
                       {['#ffff00', '#00ffff', '#ff00ff', '#ff8800', '#88ff00', '#ffffff', '#cccccc', '#ffcccc', '#ccffcc', '#ccccff'].map((color) => (
                         <button
                           key={color}
                           type="button"
                           onClick={() => handleHighlightColorChange(color)}
-                          className="w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform"
+                          className="h-6 w-6 rounded border border-gray-300 hover:scale-110 transition-transform"
                           style={{ backgroundColor: color }}
                           title={color}
                         />
@@ -1009,276 +998,285 @@ export default function WordEditor({
                       type="color"
                       value={highlightColor}
                       onChange={(e) => handleHighlightColorChange(e.target.value)}
-                      className="w-full mt-2 h-8 cursor-pointer"
+                      className="mt-2 h-8 w-full cursor-pointer"
                     />
                   </div>
                 )}
               </div>
-            </div>
 
-            <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().setTextAlign('left').run()}
-                className={`p-2 rounded ${editor.isActive({ textAlign: 'left' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                title="Aligner à gauche"
-              >
-                <AlignLeft className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().setTextAlign('center').run()}
-                className={`p-2 rounded ${editor.isActive({ textAlign: 'center' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                title="Centrer"
-              >
-                <AlignCenter className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().setTextAlign('right').run()}
-                className={`p-2 rounded ${editor.isActive({ textAlign: 'right' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                title="Aligner à droite"
-              >
-                <AlignRight className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-                className={`p-2 rounded ${editor.isActive({ textAlign: 'justify' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                title="Justifier"
-              >
-                <AlignJustify className="w-4 h-4" />
-              </button>
-            </div>
+              <div className="flex items-center gap-1 border-r border-gray-300 pr-2">
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                  className={`rounded p-2 ${editor.isActive({ textAlign: 'left' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
+                  title="Aligner à gauche"
+                >
+                  <AlignLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                  className={`rounded p-2 ${editor.isActive({ textAlign: 'center' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
+                  title="Centrer"
+                >
+                  <AlignCenter className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                  className={`rounded p-2 ${editor.isActive({ textAlign: 'right' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
+                  title="Aligner à droite"
+                >
+                  <AlignRight className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+                  className={`rounded p-2 ${editor.isActive({ textAlign: 'justify' }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
+                  title="Justifier"
+                >
+                  <AlignJustify className="h-4 w-4" />
+                </button>
+              </div>
 
-            <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleBulletList().run()}
-                className={`p-2 rounded ${editor.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                title="Liste à puces"
-              >
-                <List className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                className={`p-2 rounded ${editor.isActive('orderedList') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                title="Liste numérotée"
-              >
-                <ListOrdered className="w-4 h-4" />
-              </button>
-            </div>
+              <div className="flex items-center gap-1 border-r border-gray-300 pr-2">
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().toggleBulletList().run()}
+                  className={`rounded p-2 ${editor.isActive('bulletList') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
+                  title="Liste à puces"
+                >
+                  <List className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                  className={`rounded p-2 ${editor.isActive('orderedList') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
+                  title="Liste numérotée"
+                >
+                  <ListOrdered className="h-4 w-4" />
+                </button>
+              </div>
 
-            <div className="flex items-center gap-1 pr-2 border-r border-gray-300">
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().sinkListItem('listItem').run()}
-                className="p-2 hover:bg-blue-100 rounded transition-colors"
-                title="Augmenter le retrait"
-              >
-                <Indent className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().liftListItem('listItem').run()}
-                className="p-2 hover:bg-blue-100 rounded transition-colors"
-                title="Diminuer le retrait"
-              >
-                <IndentDecrease className="w-4 h-4" />
-              </button>
-            </div>
+              <div className="flex items-center gap-1 pr-2">
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().sinkListItem('listItem').run()}
+                  className="rounded p-2 transition-colors hover:bg-blue-100"
+                  title="Augmenter le retrait"
+                >
+                  <Indent className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().liftListItem('listItem').run()}
+                  className="rounded p-2 transition-colors hover:bg-blue-100"
+                  title="Diminuer le retrait"
+                >
+                  <IndentDecrease className="h-4 w-4" />
+                </button>
+              </div>
 
-            <div className="flex items-center gap-1">
-              <select
-                className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-blue-50"
-                title="Interligne"
-                value={lineHeight}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  setLineHeight(value);
-                  const blockType = editor.isActive('heading') ? 'heading' : 'paragraph';
-                  editor.chain().focus().updateAttributes(blockType, { lineHeight: value }).run();
-                }}
-              >
-                <option value="1.0">1.0</option>
-                <option value="1.15">1.15</option>
-                <option value="1.5">1.5</option>
-                <option value="2.0">2.0</option>
-              </select>
-            </div>
+              <div className="flex items-center gap-1">
+                <select
+                  className="rounded border border-gray-300 px-2 py-1 text-xs hover:bg-blue-50 sm:text-sm"
+                  title="Interligne"
+                  value={lineHeight}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setLineHeight(value);
+                    const blockType = editor.isActive('heading') ? 'heading' : 'paragraph';
+                    editor.chain().focus().updateAttributes(blockType, { lineHeight: value }).run();
+                  }}
+                >
+                  <option value="1.0">1.0</option>
+                  <option value="1.15">1.15</option>
+                  <option value="1.5">1.5</option>
+                  <option value="2.0">2.0</option>
+                </select>
+              </div>
 
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().setParagraph().run()}
-                className={`px-3 py-1 text-sm rounded ${editor.isActive('paragraph') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                title="Normal"
-              >
-                Normal
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                className={`px-3 py-1 text-sm font-bold rounded ${editor.isActive('heading', { level: 1 }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                title="Titre 1"
-              >
-                <Heading1 className="w-4 h-4 inline" />
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                className={`px-3 py-1 text-sm font-bold rounded ${editor.isActive('heading', { level: 2 }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                title="Titre 2"
-              >
-                <Heading2 className="w-4 h-4 inline" />
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-                className={`px-3 py-1 text-sm font-bold rounded ${editor.isActive('heading', { level: 3 }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                title="Titre 3"
-              >
-                <Heading3 className="w-4 h-4 inline" />
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                className={`px-3 py-1 text-sm rounded ${editor.isActive('blockquote') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors`}
-                title="Citation"
-              >
-                <Quote className="w-4 h-4 inline" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().setParagraph().run()}
+                  className={`rounded px-2 py-1 text-xs ${editor.isActive('paragraph') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors sm:px-3 sm:text-sm`}
+                  title="Normal"
+                >
+                  Normal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                  className={`rounded px-2 py-1 text-xs font-bold ${editor.isActive('heading', { level: 1 }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors sm:px-3 sm:text-sm`}
+                  title="Titre 1"
+                >
+                  <Heading1 className="inline h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                  className={`rounded px-2 py-1 text-xs font-bold ${editor.isActive('heading', { level: 2 }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors sm:px-3 sm:text-sm`}
+                  title="Titre 2"
+                >
+                  <Heading2 className="inline h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                  className={`rounded px-2 py-1 text-xs font-bold ${editor.isActive('heading', { level: 3 }) ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors sm:px-3 sm:text-sm`}
+                  title="Titre 3"
+                >
+                  <Heading3 className="inline h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                  className={`rounded px-2 py-1 text-xs ${editor.isActive('blockquote') ? 'bg-blue-100 text-blue-600' : 'hover:bg-blue-100'} transition-colors sm:px-3 sm:text-sm`}
+                  title="Citation"
+                >
+                  <Quote className="inline h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
 
           <div
             aria-hidden={activeTab !== 'insert'}
-            className={`col-start-1 row-start-1 w-full min-w-0 p-2 flex flex-wrap gap-2 items-center bg-gradient-to-b from-gray-50 to-white ${
+            className={`col-start-1 row-start-1 min-w-0 overflow-x-auto p-2 ${
               activeTab === 'insert' ? 'visible' : 'invisible'
             }`}
           >
-            <button 
-              type="button"
-              onClick={() => setIsReadAlsoModalOpen(true)}
-              className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2" 
-              title="Insérer un article recommandé"
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span className="text-sm">À lire aussi</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => imageInputRef.current?.click()}
-              disabled={uploadingInlineImage}
-              className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2 disabled:opacity-50"
-              title="Insérer une image dans le texte"
-            >
-              {uploadingInlineImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-              <span className="text-sm">{uploadingInlineImage ? 'Envoi…' : 'Image'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => audioInputRef.current?.click()}
-              disabled={uploadingAudio}
-              className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2 disabled:opacity-50"
-              title="Insérer un audio dans le texte"
-            >
-              {uploadingAudio ? <Loader2 className="w-4 h-4 animate-spin" /> : <Music2 className="w-4 h-4" />}
-              <span className="text-sm">{uploadingAudio ? 'Envoi…' : 'Audio'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => wordInputRef.current?.click()}
-              className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2"
-              title="Importer un document Word"
-            >
-              <FileText className="w-4 h-4" />
-              <span className="text-sm">Word</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleImageCaption}
-              className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2"
-              title="Description / légende de l'image"
-            >
-              <FileText className="w-4 h-4" />
-              <span className="text-sm">Légende</span>
-            </button>
-            {enableSocialEmbed && (
+            <div className="flex min-w-max items-center gap-2 bg-gradient-to-b from-gray-50 to-white">
               <button
                 type="button"
-                onClick={() => setIsSocialEmbedModalOpen(true)}
-                className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2"
-                title="Intégrer une publication X, Facebook, YouTube ou LinkedIn"
+                onClick={() => setIsReadAlsoModalOpen(true)}
+                className="flex items-center gap-2 rounded p-2 transition-colors hover:bg-blue-100"
+                title="Insérer un article recommandé"
               >
-                <Code2 className="w-4 h-4" />
-                <span className="text-sm">Publication / vidéo</span>
+                <ExternalLink className="h-4 w-4" />
+                <span className="text-xs sm:text-sm">À lire aussi</span>
               </button>
-            )}
-            {onAddTag && (
               <button
                 type="button"
-                onClick={handleTagSelection}
-                className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2"
-                title="Taguer la sélection"
+                onClick={() => imageInputRef.current?.click()}
+                disabled={uploadingInlineImage}
+                className="flex items-center gap-2 rounded p-2 transition-colors hover:bg-blue-100 disabled:opacity-50"
+                title="Insérer une image"
               >
-                <Hash className="w-4 h-4" />
-                <span className="text-sm">Taguer</span>
+                {uploadingInlineImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+                <span className="text-xs sm:text-sm">{uploadingInlineImage ? 'Envoi…' : 'Image'}</span>
               </button>
-            )}
-            <button type="button" className="p-2 hover:bg-blue-100 rounded transition-colors" title="Insérer un lien">
-              <Search className="w-4 h-4" />
-            </button>
+              <button
+                type="button"
+                onClick={() => audioInputRef.current?.click()}
+                disabled={uploadingAudio}
+                className="flex items-center gap-2 rounded p-2 transition-colors hover:bg-blue-100 disabled:opacity-50"
+                title="Insérer un audio"
+              >
+                {uploadingAudio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Music2 className="h-4 w-4" />}
+                <span className="text-xs sm:text-sm">{uploadingAudio ? 'Envoi…' : 'Audio'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => wordInputRef.current?.click()}
+                className="flex items-center gap-2 rounded p-2 transition-colors hover:bg-blue-100"
+                title="Importer un document Word"
+              >
+                <FileText className="h-4 w-4" />
+                <span className="text-xs sm:text-sm">Word</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleImageCaption}
+                className="flex items-center gap-2 rounded p-2 transition-colors hover:bg-blue-100"
+                title="Description / légende de l'image"
+              >
+                <FileText className="h-4 w-4" />
+                <span className="text-xs sm:text-sm">Légende</span>
+              </button>
+              {enableSocialEmbed && (
+                <button
+                  type="button"
+                  onClick={() => setIsSocialEmbedModalOpen(true)}
+                  className="flex items-center gap-2 rounded p-2 transition-colors hover:bg-blue-100"
+                  title="Intégrer une publication / vidéo"
+                >
+                  <Code2 className="h-4 w-4" />
+                  <span className="text-xs sm:text-sm">Publication / vidéo</span>
+                </button>
+              )}
+              {onAddTag && (
+                <button
+                  type="button"
+                  onClick={handleTagSelection}
+                  className="flex items-center gap-2 rounded p-2 transition-colors hover:bg-blue-100"
+                  title="Taguer la sélection"
+                >
+                  <Hash className="h-4 w-4" />
+                  <span className="text-xs sm:text-sm">Taguer</span>
+                </button>
+              )}
+              <button type="button" className="rounded p-2 transition-colors hover:bg-blue-100" title="Insérer un lien">
+                <Search className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
           <div
             aria-hidden={activeTab !== 'layout'}
-            className={`col-start-1 row-start-1 w-full min-w-0 p-2 flex flex-wrap gap-2 items-center bg-gradient-to-b from-gray-50 to-white ${
+            className={`col-start-1 row-start-1 min-w-0 overflow-x-auto p-2 ${
               activeTab === 'layout' ? 'visible' : 'invisible'
             }`}
           >
-            <button type="button" className="p-2 hover:bg-blue-100 rounded transition-colors" title="Orientation">
-              <FileText className="w-4 h-4" />
-            </button>
-            <button type="button" className="p-2 hover:bg-blue-100 rounded transition-colors" title="Marges">
-              <FileText className="w-4 h-4" />
-            </button>
+            <div className="flex min-w-max items-center gap-2 bg-gradient-to-b from-gray-50 to-white">
+              <button type="button" className="rounded p-2 transition-colors hover:bg-blue-100" title="Orientation">
+                <FileText className="h-4 w-4" />
+              </button>
+              <button type="button" className="rounded p-2 transition-colors hover:bg-blue-100" title="Marges">
+                <FileText className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-[#dfe0df] h-6 border-b border-[#c9c7c4] flex items-center px-4">
-        <div className="flex-1 flex items-center gap-1">
+      <div className="flex h-6 items-center border-b border-[#c9c7c4] bg-[#dfe0df] px-4">
+        <div className="flex flex-1 items-center gap-1">
           {[...Array(20)].map((_, i) => (
-            <div key={i} className="w-px h-3 bg-[#8a8a88]"></div>
+            <div key={i} className="h-3 w-px bg-[#8a8a88]" />
           ))}
         </div>
       </div>
 
       <div className="overflow-x-auto bg-[#f4f4f3] p-3 sm:p-6 lg:p-8" style={{ minHeight: '600px' }}>
-        <div 
-          className="mx-auto min-h-[900px] bg-white p-5 shadow-[0_0_0_1px_rgba(15,23,42,0.06),0_16px_40px_rgba(15,23,42,0.08)] sm:p-8 lg:p-12"
-          style={{ 
+        <div
+          className="mx-auto min-h-[900px] max-w-full bg-white p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.06),0_16px_40px_rgba(15,23,42,0.08)] sm:p-8 lg:p-12"
+          style={{
             width: '100%',
             maxWidth: '1500px',
             transform: `scale(${zoom / 100})`,
-            transformOrigin: 'top center'
+            transformOrigin: 'top center',
+            overflowWrap: 'anywhere',
+            wordBreak: 'break-word',
           }}
         >
-            <EditorContent editor={editor} className="prose prose-sm min-w-0 max-w-none break-words focus:outline-none min-h-[760px] leading-relaxed text-[15px] sm:prose-base" />
+          <EditorContent
+            editor={editor}
+            className="min-w-0 max-w-none break-words overflow-x-hidden text-[15px] leading-relaxed focus:outline-none sm:prose-base"
+          />
         </div>
       </div>
 
       <div className="flex flex-col gap-2 bg-[#1f2937] px-4 py-2 text-xs text-white sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <span className="flex items-center gap-1">
-            <FileText className="w-3 h-3" />
+            <FileText className="h-3 w-3" />
             {wordCount} mots
           </span>
           <span>{charCount} caractères</span>
           <span className="flex items-center gap-1">
-            <Type className="w-3 h-3" />
+            <Type className="h-3 w-3" />
             Français (France)
           </span>
         </div>
@@ -1286,19 +1284,19 @@ export default function WordEditor({
           <button
             type="button"
             onClick={() => handleZoom(-10)}
-            className="p-1 hover:bg-gray-700 rounded"
+            className="rounded p-1 hover:bg-gray-700"
             title="Zoom arrière"
           >
-            <ZoomOut className="w-4 h-4" />
+            <ZoomOut className="h-4 w-4" />
           </button>
           <span className="w-12 text-center">{zoom}%</span>
           <button
             type="button"
             onClick={() => handleZoom(10)}
-            className="p-1 hover:bg-gray-700 rounded"
+            className="rounded p-1 hover:bg-gray-700"
             title="Zoom avant"
           >
-            <ZoomIn className="w-4 h-4" />
+            <ZoomIn className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -1433,29 +1431,25 @@ export default function WordEditor({
       />
 
       {isLinkModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Insérer un lien
-              </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-gray-200 p-4">
+              <h2 className="text-lg font-semibold text-gray-900">Insérer un lien</h2>
               <button
                 type="button"
                 onClick={() => setIsLinkModalOpen(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="p-2 text-gray-400 transition-colors hover:text-gray-600"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
               </button>
             </div>
             <div className="p-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                URL du lien
-              </label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">URL du lien</label>
               <input
                 type="url"
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
                 placeholder="https://..."
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -1464,11 +1458,11 @@ export default function WordEditor({
                 }}
               />
             </div>
-            <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200">
+            <div className="flex items-center justify-end gap-3 border-t border-gray-200 p-4">
               <button
                 type="button"
                 onClick={() => setIsLinkModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
                 Annuler
               </button>
@@ -1476,7 +1470,7 @@ export default function WordEditor({
                 type="button"
                 onClick={handleSetLink}
                 disabled={!linkUrl}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Insérer
               </button>
