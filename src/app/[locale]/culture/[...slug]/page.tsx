@@ -228,6 +228,8 @@ export default async function CultureCatchAllPage({
           </div>
         </div>
 
+        <CommentsSection articleId={article.id} locale={locale} />
+
         {otherSponsoredArticles.length > 0 && (
           <div className="mx-auto max-w-5xl px-4 pb-0 pt-8 md:px-6">
             <SponsoredSection items={otherSponsoredArticles} />
@@ -243,8 +245,6 @@ export default async function CultureCatchAllPage({
           </section>
         )}
 
-        {/* Comments Section */}
-        <CommentsSection articleId={article.id} locale={locale} />
       </div>
     );
   } catch (error) {

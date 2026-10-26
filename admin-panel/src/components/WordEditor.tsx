@@ -473,11 +473,13 @@ export default function WordEditor({
     if (!editor) return;
     const embed = normalizeSocialEmbed(socialEmbedPlatform, socialEmbedUrl);
     if (!embed) {
-      window.alert(
-        socialEmbedPlatform === 'x'
-          ? 'Collez le lien d’une publication X contenant /status/ suivi de son identifiant.'
-          : 'Collez le lien d’une publication Facebook (post, photo ou vidéo).'
-      );
+      const errorMessage: Record<SocialEmbedPlatform, string> = {
+        x: 'Collez le lien d’une publication X contenant /status/ suivi de son identifiant.',
+        facebook: 'Collez le lien d’une publication Facebook (post, photo ou vidéo).',
+        youtube: 'Collez le lien d’une vidéo YouTube (youtube.com ou youtu.be).',
+        linkedin: 'Collez le lien public d’une publication LinkedIn contenant son identifiant de publication.',
+      };
+      window.alert(errorMessage[socialEmbedPlatform]);
       return;
     }
 
@@ -1131,10 +1133,10 @@ export default function WordEditor({
                 type="button"
                 onClick={() => setIsSocialEmbedModalOpen(true)}
                 className="p-2 hover:bg-blue-100 rounded transition-colors flex items-center gap-2"
-                title="Intégrer une publication X ou Facebook"
+                title="Intégrer une publication X, Facebook, YouTube ou LinkedIn"
               >
                 <Code2 className="w-4 h-4" />
-                <span className="text-sm">Publication X / Facebook</span>
+                <span className="text-sm">Publication / vidéo</span>
               </button>
             )}
             {onAddTag && (
@@ -1255,7 +1257,7 @@ export default function WordEditor({
             <div className="space-y-4 p-4">
               <div>
                 <label htmlFor="social-embed-platform" className="mb-1 block text-sm font-medium text-gray-700">
-                  Réseau social
+                  Réseau social ou vidéo
                 </label>
                 <select
                   id="social-embed-platform"
@@ -1265,6 +1267,8 @@ export default function WordEditor({
                 >
                   <option value="x">X (Twitter)</option>
                   <option value="facebook">Facebook</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="linkedin">LinkedIn</option>
                 </select>
               </div>
               <div>
@@ -1284,14 +1288,17 @@ export default function WordEditor({
                   }}
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   placeholder={
-                    socialEmbedPlatform === 'x'
-                      ? 'https://x.com/compte/status/123456789'
-                      : 'https://www.facebook.com/page/posts/123456789'
+                    {
+                      x: 'https://x.com/compte/status/123456789',
+                      facebook: 'https://www.facebook.com/page/posts/123456789',
+                      youtube: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                      linkedin: 'https://www.linkedin.com/posts/compte_activity-123456789',
+                    }[socialEmbedPlatform]
                   }
                   autoFocus
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Collez le lien public d’un post, pas le code HTML d’intégration.
+                  Collez le lien public de la publication ou de la vidéo. Pour LinkedIn, l’identifiant de la publication doit être présent dans le lien.
                 </p>
               </div>
             </div>

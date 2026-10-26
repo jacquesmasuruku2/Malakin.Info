@@ -230,9 +230,9 @@ html.legacy-browser body {
   border: 0;
 }
 
-.legacy-browser .article-body a.article-social-embed-link {
-  display: inline-block;
-  margin-top: 8px;
+.legacy-browser .article-body figure.article-social-embed[data-platform="youtube"] iframe {
+  height: 315px;
+  min-height: 0;
 }
 
 .legacy-browser .premium-preview-fade {

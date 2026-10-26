@@ -246,5 +246,10 @@ export function prepareArticleHtml(
   _tags: ArticleTagItem[] = [],
   _locale = 'fr'
 ): string {
-  return wrapImagesWithCaptions(html);
+  const contentWithoutSocialEmbedLinks = html.replace(
+    /<a\b[^>]*\bclass=(["'])[^"']*\barticle-social-embed-link\b[^"']*\1[^>]*>[\s\S]*?<\/a\s*>/gi,
+    ''
+  );
+
+  return wrapImagesWithCaptions(contentWithoutSocialEmbedLinks);
 }

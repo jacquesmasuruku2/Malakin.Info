@@ -38,7 +38,7 @@ export const SocialEmbedExtension = Node.create<SocialEmbedAttributes>({
           const element = node as HTMLElement;
           const platform = element.getAttribute('data-platform');
           const url = element.getAttribute('data-url') || '';
-          if (platform !== 'x' && platform !== 'facebook') return false;
+          if (platform !== 'x' && platform !== 'facebook' && platform !== 'youtube' && platform !== 'linkedin') return false;
           const embed = normalizeSocialEmbed(platform, url);
           return embed ? { platform: embed.platform, url: embed.url } : false;
         },
@@ -71,18 +71,8 @@ export const SocialEmbedExtension = Node.create<SocialEmbedAttributes>({
           loading: 'lazy',
           allowfullscreen: 'true',
           referrerpolicy: 'strict-origin-when-cross-origin',
-          style: `width:100%;max-width:550px;height:${embed.height}px;border:0;`,
+          style: `width:100%;max-width:550px;height:${embed.height}px;border:0;${embed.platform === 'youtube' ? 'aspect-ratio:16/9;' : ''}`,
         },
-      ],
-      [
-        'a',
-        {
-          class: 'article-social-embed-link',
-          href: embed.url,
-          target: '_blank',
-          rel: 'noopener noreferrer',
-        },
-        `Voir cette publication sur ${embed.platform === 'x' ? 'X' : 'Facebook'}`,
       ],
     ];
   },

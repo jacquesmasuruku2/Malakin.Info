@@ -446,18 +446,19 @@
   background: #ffffff;
 }
 
-.article-body a.article-social-embed-link {
-  display: inline-block;
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
+.article-body figure.article-social-embed[data-platform="youtube"] iframe {
+  height: auto !important;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
 }
 
 @media (max-width: 640px) {
   .article-body figure.article-social-embed iframe {
     min-height: 360px;
+  }
+
+  .article-body figure.article-social-embed[data-platform="youtube"] iframe {
+    min-height: 0;
   }
 }
 

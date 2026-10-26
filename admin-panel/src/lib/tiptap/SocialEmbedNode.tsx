@@ -49,6 +49,7 @@ export default function SocialEmbedNode({ node, deleteNode }: ReactNodeViewProps
           allowFullScreen
           referrerPolicy="strict-origin-when-cross-origin"
           className="block w-full border-0"
+          style={platform === 'youtube' ? { height: 'auto', aspectRatio: '16 / 9' } : undefined}
         />
       </div>
     </NodeViewWrapper>

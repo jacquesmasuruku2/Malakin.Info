@@ -33,7 +33,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [showCommentForm, setShowCommentForm] = useState(false);
+  const [showCommentForm, setShowCommentForm] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
@@ -357,7 +357,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
               if (!isAuthenticated) {
                 setError(t.loginToComment);
               } else {
-                setShowCommentForm((prev) => !prev);
+                setShowCommentForm(true);
               }
             }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition"
