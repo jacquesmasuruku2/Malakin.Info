@@ -46,6 +46,26 @@ async function uploadViaMainSite(file: File, folder: string) {
   return url;
 }
 
+function inferFileType(file: File) {
+  const name = file.name.toLowerCase();
+  const mime = file.type || '';
+
+  if (mime) return mime;
+
+  if (name.endsWith('.png')) return 'image/png';
+  if (name.endsWith('.webp')) return 'image/webp';
+  if (name.endsWith('.gif')) return 'image/gif';
+  if (name.match(/\.(jpe?g)$/)) return 'image/jpeg';
+  if (name.endsWith('.mp3') || name.endsWith('.mpeg')) return 'audio/mpeg';
+  if (name.endsWith('.wav')) return 'audio/wav';
+  if (name.endsWith('.ogg')) return 'audio/ogg';
+  if (name.endsWith('.m4a')) return 'audio/mp4';
+  if (name.endsWith('.aac')) return 'audio/aac';
+  if (name.endsWith('.webm')) return 'audio/webm';
+
+  return '';
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -56,30 +76,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 });
     }
 
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-    // Some browsers send an empty type; infer from extension when possible.
-    const inferredType =
-      file.type ||
-      (file.name.toLowerCase().endsWith('.png')
-        ? 'image/png'
-        : file.name.toLowerCase().endsWith('.webp')
-          ? 'image/webp'
-          : file.name.toLowerCase().endsWith('.gif')
-            ? 'image/gif'
-            : file.name.toLowerCase().match(/\.(jpe?g)$/)
-              ? 'image/jpeg'
-              : '');
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+      'audio/mpeg',
+      'audio/mp3',
+      'audio/wav',
+      'audio/ogg',
+      'audio/webm',
+      'audio/aac',
+      'audio/mp4',
+      'audio/x-m4a',
+    ];
+
+    const inferredType = inferFileType(file);
 
     if (inferredType && !allowedTypes.includes(inferredType)) {
       return NextResponse.json(
-        { error: 'Type de fichier invalide. Formats acceptés : JPEG, PNG, WebP, GIF.' },
+        {
+          error:
+            'Type de fichier invalide. Formats acceptés : JPEG, PNG, WebP, GIF, MP3, WAV, OGG, M4A, AAC, WEBM.',
+        },
         { status: 400 },
       );
     }
 
-    const maxSize = 10 * 1024 * 1024;
+    const maxSize = 25 * 1024 * 1024;
     if (file.size > maxSize) {
-      return NextResponse.json({ error: 'Fichier trop volumineux (max 10 Mo).' }, { status: 400 });
+      return NextResponse.json({ error: 'Fichier trop volumineux (max 25 Mo).' }, { status: 400 });
     }
 
     const errors: string[] = [];
@@ -133,3 +160,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
