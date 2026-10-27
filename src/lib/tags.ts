@@ -55,6 +55,19 @@ export function getArticleTags(article: {
   return tags;
 }
 
+export function normalizeArticleHtmlContent(content: unknown): string {
+  if (typeof content === 'string') return content;
+  if (content == null) return '';
+  if (typeof content === 'object') {
+    try {
+      return JSON.stringify(content);
+    } catch {
+      return '';
+    }
+  }
+  return String(content);
+}
+
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -246,10 +259,20 @@ export function prepareArticleHtml(
   _tags: ArticleTagItem[] = [],
   _locale = 'fr'
 ): string {
+  if (!html) return '';
+
   const contentWithoutSocialEmbedLinks = html.replace(
-    /<a\b[^>]*\bclass=(["'])[^"']*\barticle-social-embed-link\b[^"']*\1[^>]*>[\s\S]*?<\/a\s*>/gi,
+    /<a\b[^>]*\bclass=(['"])['"]?[^'\"]*\barticle-social-embed-link\b[^'\"]*\1[^>]*>[\s\S]*?<\/a\s*>/gi,
     ''
   );
 
-  return wrapImagesWithCaptions(contentWithoutSocialEmbedLinks);
+  const withAudio = contentWithoutSocialEmbedLinks.replace(
+    /<audio\b([^>]*)>/gi,
+    (match, attrs: string) => {
+      if (/\bcontrols\b/i.test(attrs)) return match;
+      return `<audio controls${attrs ? ` ${attrs}` : ''}>`;
+    }
+  );
+
+  return wrapImagesWithCaptions(withAudio);
 }
