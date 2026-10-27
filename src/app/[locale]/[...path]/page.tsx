@@ -20,7 +20,7 @@ import Paywall from '@/components/Paywall';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 import CategoryArticlesList from '@/components/CategoryArticlesList';
 import FavoriteButton from '@/components/FavoriteButton';
-import { getArticleTags, prepareArticleHtml } from '@/lib/tags';
+import { getArticleTags, prepareArticleHtml, normalizeArticleHtmlContent } from '@/lib/tags';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 import ArticleDateMeta from '@/components/ArticleDateMeta';
 
@@ -29,7 +29,7 @@ export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; path: string[] }> }): Promise<Metadata> {
   const { locale, path } = await params;
   const slug = path[path.length - 1];
-  
+
   try {
     const article = await prisma.article.findUnique({
       where: { slug },
@@ -64,11 +64,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const translatedArticle = await getArticleTranslation(article.id, locale);
     const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
 
-    // Convert image URL to absolute if it's relative
-    const absoluteImageUrl = article.mainImageUrl 
+    const absoluteImageUrl = article.mainImageUrl
       ? (article.mainImageUrl.startsWith('http') ? article.mainImageUrl : `${baseUrl}${article.mainImageUrl}`)
       : null;
-    
+
     return {
       title: translatedArticle.title || article.title,
       description: translatedArticle.excerpt || article.excerpt || article.title,
@@ -119,10 +118,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   }
 }
 
-export default async function CatchAllArticlePage({ 
-  params 
-}: { 
-  params: Promise<{ locale: string; path: string[] }> 
+export default async function CatchAllArticlePage({
+  params
+}: {
+  params: Promise<{ locale: string; path: string[] }>
 }) {
   const { locale, path } = await params;
   const messages = getMessages(locale);
@@ -191,20 +190,16 @@ export default async function CatchAllArticlePage({
     const displayTitle = translatedArticle.title || article.title;
     const displayExcerpt = translatedArticle.excerpt || article.excerpt;
     const displayContent = premiumAccess
-      ? (typeof translatedArticle.content === 'string'
-        ? translatedArticle.content
-        : JSON.stringify(translatedArticle.content ?? ''))
+      ? normalizeArticleHtmlContent(translatedArticle.content)
       : '';
     const previewContent = !premiumAccess
-      ? getPremiumPreviewContent(typeof translatedArticle.content === 'string' ? translatedArticle.content : JSON.stringify(translatedArticle.content ?? ''))
+      ? getPremiumPreviewContent(normalizeArticleHtmlContent(translatedArticle.content))
       : '';
 
-    // Convert image URL to absolute if it's relative
-    const absoluteImageUrl = article.mainImageUrl 
+    const absoluteImageUrl = article.mainImageUrl
       ? (article.mainImageUrl.startsWith('http') ? article.mainImageUrl : `${baseUrl}${article.mainImageUrl}`)
       : null;
 
-    // Structured Data (JSON-LD)
     const jsonLd = {
       '@context': 'https://schema.org',
       '@type': 'NewsArticle',
@@ -305,144 +300,142 @@ export default async function CatchAllArticlePage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <div className="min-h-screen bg-background">
-        <ViewIncrementer articleId={article.id} />
-        {/* Header */}
-        <header className="border-b border-border bg-muted/50">
-          <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
-            <Breadcrumbs
-              locale={locale}
-              items={[
-                {
-                  label: translatedCategory.title || article.category?.title || 'Actualités',
-                  href: `/${locale}/${article.category?.slug || 'actualites'}`,
-                },
-              ]}
-            />
-          </div>
-        </header>
-
-        <div className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
-          <div className="grid grid-cols-1 gap-8 xl:grid-cols-[72px_minmax(0,1fr)_300px]">
-            <div className="hidden xl:flex xl:justify-center xl:pt-8">
-              <div className="sticky top-24">
-                <ShareButtons
-                  title={displayTitle}
-                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${slug}`}
-                  locale={locale}
-                  orientation="vertical"
-                />
-              </div>
-            </div>
-
-            <article className="w-full min-w-0">
-              <h1 className="font-heading mb-3 text-[1.55rem] font-bold leading-[1.15] tracking-[-0.02em] text-foreground sm:mb-5 sm:text-[2.4rem] md:text-[3rem] lg:text-[3.4rem]">
-                {displayTitle}
-              </h1>
-
-              {displayExcerpt && (
-                <p className="mb-4 text-[0.98rem] leading-relaxed text-muted-foreground sm:mb-6 sm:text-lg md:text-xl">
-                  {displayExcerpt}
-                </p>
-              )}
-
-              <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground sm:mb-8 sm:gap-x-4 sm:text-sm">
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <ArticleDateMeta
-                    locale={locale}
-                    publishedAt={article.publishedAt}
-                    updatedAt={article.updatedAt}
-                  />
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  {readTime}
-                </span>
-                <ArticleAuthorLink author={article.author} locale={locale} />
-              </div>
-
-              {article.mainImageUrl && (
-                <div className="mb-8">
-                  <div className="article-image-frame">
-                    <img
-                      src={article.mainImageUrl}
-                      alt={article.mainImageAlt || displayTitle}
-                      className="h-auto w-full object-cover"
-                    />
-                  </div>
-                  {article.mainImageAlt && (
-                    <p className="mt-2 text-sm italic text-gray-500">{article.mainImageAlt}</p>
-                  )}
-                </div>
-              )}
-
-              <div className="xl:hidden">
-                <ShareButtons
-                  title={displayTitle}
-                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${slug}`}
-                  locale={locale}
-                />
-              </div>
-
-              <AdSenseAd adSlot={ADSENSE_SLOTS.inArticle} className="my-4" />
-
-              {premiumAccess ? (
-                <div style={{ fontFamily: '"Playfair Display", Georgia, serif' }} className="text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]">
-                  <ReadAlsoRenderer content={displayContent} tags={getArticleTags(article)} locale={locale} />
-                </div>
-              ) : (
-                <div className="premium-gate">
-                  <div
-                    className="article-body premium-preview premium-preview-fade text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]"
-                    style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
-                    dangerouslySetInnerHTML={{ __html: prepareArticleHtml(previewContent, getArticleTags(article), locale) }}
-                  />
-                  {article.isPremium && (
-                    <Paywall
-                      articleId={article.id}
-                      articleTitle={displayTitle}
-                      premiumPrice={article.premiumPrice ? Number(article.premiumPrice) : 1.9}
-                    />
-                  )}
-                </div>
-              )}
-
-              <FavoriteButton
-                articleId={article.id}
+          <ViewIncrementer articleId={article.id} />
+          <header className="border-b border-border bg-muted/50">
+            <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+              <Breadcrumbs
                 locale={locale}
-                categoryId={article.categoryId}
-                categoryTitle={translatedCategory.title || article.category?.title || ''}
+                items={[
+                  {
+                    label: translatedCategory.title || article.category?.title || 'Actualités',
+                    href: `/${locale}/${article.category?.slug || 'actualites'}`,
+                  },
+                ]}
               />
+            </div>
+          </header>
 
-              <div className="mt-8">
-                <AdSenseAd adSlot={ADSENSE_SLOTS.sidebar} className="my-4" />
+          <div className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
+            <div className="grid grid-cols-1 gap-8 xl:grid-cols-[72px_minmax(0,1fr)_300px]">
+              <div className="hidden xl:flex xl:justify-center xl:pt-8">
+                <div className="sticky top-24">
+                  <ShareButtons
+                    title={displayTitle}
+                    url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${slug}`}
+                    locale={locale}
+                    orientation="vertical"
+                  />
+                </div>
               </div>
-            </article>
 
-            <aside className="w-full min-w-0 xl:justify-self-end xl:sticky xl:top-6 xl:self-start">
-              <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
-            </aside>
+              <article className="w-full min-w-0">
+                <h1 className="font-heading mb-3 text-[1.55rem] font-bold leading-[1.15] tracking-[-0.02em] text-foreground sm:mb-5 sm:text-[2.4rem] md:text-[3rem] lg:text-[3.4rem]">
+                  {displayTitle}
+                </h1>
+
+                {displayExcerpt && (
+                  <p className="mb-4 text-[0.98rem] leading-relaxed text-muted-foreground sm:mb-6 sm:text-lg md:text-xl">
+                    {displayExcerpt}
+                  </p>
+                )}
+
+                <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground sm:mb-8 sm:gap-x-4 sm:text-sm">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <ArticleDateMeta
+                      locale={locale}
+                      publishedAt={article.publishedAt}
+                      updatedAt={article.updatedAt}
+                    />
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    {readTime}
+                  </span>
+                  <ArticleAuthorLink author={article.author} locale={locale} />
+                </div>
+
+                {article.mainImageUrl && (
+                  <div className="mb-8">
+                    <div className="article-image-frame">
+                      <img
+                        src={article.mainImageUrl}
+                        alt={article.mainImageAlt || displayTitle}
+                        className="h-auto w-full object-cover"
+                      />
+                    </div>
+                    {article.mainImageAlt && (
+                      <p className="mt-2 text-sm italic text-gray-500">{article.mainImageAlt}</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="xl:hidden">
+                  <ShareButtons
+                    title={displayTitle}
+                    url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${slug}`}
+                    locale={locale}
+                  />
+                </div>
+
+                <AdSenseAd adSlot={ADSENSE_SLOTS.inArticle} className="my-4" />
+
+                {premiumAccess ? (
+                  <div style={{ fontFamily: '"Playfair Display", Georgia, serif' }} className="text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]">
+                    <ReadAlsoRenderer content={displayContent} tags={getArticleTags(article)} locale={locale} />
+                  </div>
+                ) : (
+                  <div className="premium-gate">
+                    <div
+                      className="article-body premium-preview premium-preview-fade text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]"
+                      style={{ fontFamily: '"Playfair Display", Georgia, serif' }}
+                      dangerouslySetInnerHTML={{ __html: prepareArticleHtml(previewContent, getArticleTags(article), locale) }}
+                    />
+                    {article.isPremium && (
+                      <Paywall
+                        articleId={article.id}
+                        articleTitle={displayTitle}
+                        premiumPrice={article.premiumPrice ? Number(article.premiumPrice) : 1.9}
+                      />
+                    )}
+                  </div>
+                )}
+
+                <FavoriteButton
+                  articleId={article.id}
+                  locale={locale}
+                  categoryId={article.categoryId}
+                  categoryTitle={translatedCategory.title || article.category?.title || ''}
+                />
+
+                <div className="mt-8">
+                  <AdSenseAd adSlot={ADSENSE_SLOTS.sidebar} className="my-4" />
+                </div>
+              </article>
+
+              <aside className="w-full min-w-0 xl:justify-self-end xl:sticky xl:top-6 xl:self-start">
+                <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
+              </aside>
+            </div>
           </div>
+
+          <CommentsSection articleId={article.id} locale={locale} />
+
+          {otherSponsoredArticles.length > 0 && (
+            <div className="mx-auto max-w-5xl px-4 pb-0 pt-8 md:px-6">
+              <SponsoredSection items={otherSponsoredArticles} />
+            </div>
+          )}
+
+          {relatedArticles.length > 0 && (
+            <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 border-t border-border">
+              <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground mb-6 sm:mb-8">
+                {tArticle.relatedArticles}
+              </h2>
+              <ArticleListingGrid articles={relatedArticles} locale={locale} />
+            </section>
+          )}
         </div>
-
-        <CommentsSection articleId={article.id} locale={locale} />
-
-        {otherSponsoredArticles.length > 0 && (
-          <div className="mx-auto max-w-5xl px-4 pb-0 pt-8 md:px-6">
-            <SponsoredSection items={otherSponsoredArticles} />
-          </div>
-        )}
-
-        {relatedArticles.length > 0 && (
-          <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 border-t border-border">
-            <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground mb-6 sm:mb-8">
-              {tArticle.relatedArticles}
-            </h2>
-            <ArticleListingGrid articles={relatedArticles} locale={locale} />
-          </section>
-        )}
-
-      </div>
       </>
     );
   } catch (error) {

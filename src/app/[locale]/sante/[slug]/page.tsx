@@ -1,90 +1,368 @@
-import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
+import { Playfair_Display } from 'next/font/google';
 import { prisma } from '@/lib/prisma';
-import { Calendar, Clock, ArrowLeft, Share2, Bookmark } from 'lucide-react';
+import { Calendar, Clock, User, Bookmark, ArrowLeft } from 'lucide-react';
+import { notFound, redirect } from 'next/navigation';
+import type { Metadata } from 'next';
+import CommentsSection from '@/components/CommentsSection';
+import ShareButtons from '@/components/ShareButtons';
+import AdSenseAd from '@/components/AdSenseAd';
+import { ADSENSE_SLOTS } from '@/lib/adsense';
+import ViewIncrementer from '@/components/ViewIncrementer';
+import FavoriteButton from '@/components/FavoriteButton';
+import { getArticleTags, prepareArticleHtml, normalizeArticleHtmlContent } from '@/lib/tags';
+import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
+import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
+import { SponsoredSection } from '@/components/SponsoredSection';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
-import { getArticleTags, prepareArticleHtml } from '@/lib/tags';
+import ScrollToComments from '@/components/ScrollToComments';
+import Paywall from '@/components/Paywall';
+import ArticleAuthorLink from '@/components/ArticleAuthorLink';
+import { getPremiumPreviewContent, hasPremiumAccess } from '@/lib/premium-access';
+import { withRetry } from '@/lib/database';
+import ArticleListingGrid from '@/components/ArticleListingGrid';
+import ArticleDateMeta from '@/components/ArticleDateMeta';
 
-export default async function SanteArticlePage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
-  const { locale, slug } = await params;
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '700', '900'],
+});
 
-  const article = await prisma.article.findUnique({
+export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; category: string; slug: string }> }): Promise<Metadata> {
+  const { locale, category, slug } = await params;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com';
+
+  const article = await withRetry(() => prisma.article.findUnique({
     where: { slug },
     include: {
       category: true,
-      articleTags: { include: { tag: true } },
+      author: true,
     },
-  } as any) as any;
+  } as any)) as any;
 
   if (!article) {
-    notFound();
+    return {
+      title: 'Article non trouvé | Malakinfo.com',
+    };
   }
 
-  if (article.category?.slug !== 'sante') {
-    redirect(`/${locale}/${article.category?.slug || 'actualites'}/${slug}`);
-  }
+  const canonicalUrl = `${baseUrl}/${locale}/${slug}`;
+  const absoluteImageUrl = article.mainImageUrl
+    ? (article.mainImageUrl.startsWith('http') ? article.mainImageUrl : `${baseUrl}${article.mainImageUrl}`)
+    : null;
 
-  const translatedArticle = await getArticleTranslation(article.id, locale);
-  const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
-  const displayTitle = translatedArticle.title || article.title;
-  const displayExcerpt = translatedArticle.excerpt || article.excerpt;
-  const displayContent = typeof translatedArticle.content === 'string' ? translatedArticle.content : JSON.stringify(translatedArticle.content ?? '');
+  return {
+    title: article.title,
+    description: article.excerpt || article.title,
+    icons: {
+      icon: absoluteImageUrl ?? '/images/logo.png',
+      shortcut: absoluteImageUrl ?? '/images/logo.png',
+      apple: absoluteImageUrl ?? '/images/logo.png',
+    },
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      type: 'article',
+      locale: locale === 'fr' ? 'fr_FR' : 'en_US',
+      url: canonicalUrl,
+      title: article.title,
+      description: article.excerpt || article.title,
+      siteName: 'MalakInfo',
+      images: absoluteImageUrl ? [
+        {
+          url: absoluteImageUrl,
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        },
+      ] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.excerpt || article.title,
+      images: absoluteImageUrl ? [absoluteImageUrl] : [],
+    },
+  };
+}
 
-  return (
-    <div className="flex flex-col">
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Link
-          href={`/${locale}/sante`}
-          className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6"
-        >
-          <ArrowLeft className="mr-2 w-4 h-4" />
-          {locale === 'fr' ? 'Retour à' : 'Back to'} {translatedCategory.title || (locale === 'fr' ? 'Santé' : 'Health')}
-        </Link>
+export default async function ArticlePage({
+  params
+}: {
+  params: Promise<{ locale: string; category: string; slug: string }>
+}) {
+  const { locale, category, slug } = await params;
 
-        <header className="mb-8">
-          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              {article.readTime || '5 min'}
-            </span>
+  const t = {
+    backTo: locale === 'fr' ? 'Retour à' : 'Back to',
+    readTime: locale === 'fr' ? 'min de lecture' : 'min read',
+    share: locale === 'fr' ? 'Partager' : 'Share',
+    relatedArticles: locale === 'fr' ? 'Articles similaires' : 'Related Articles',
+    seeAllArticles: locale === 'fr' ? 'Voir tous les articles de cet auteur' : 'See all articles by this author',
+    teamMalakin: locale === 'fr' ? 'Équipe Malakinfo' : 'Malakinfo Team',
+  };
+
+  try {
+    const article = await withRetry(() => prisma.article.findUnique({
+      where: { slug },
+      include: {
+        category: true,
+        author: true,
+        articleTags: { include: { tag: true } },
+      },
+    } as any)) as any;
+
+    if (!article) {
+      notFound();
+    }
+
+    const canonicalArticlePath = `/${locale}/${slug}`;
+    const currentPath = `/${locale}/${category}/${slug}`;
+
+    if (currentPath !== canonicalArticlePath) {
+      redirect(canonicalArticlePath);
+    }
+
+    if (article.externalLink) {
+      redirect(article.externalLink);
+    }
+
+    const translatedArticle = await getArticleTranslation(article.id, locale);
+    const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
+    const premiumAccess = article.isPremium ? await hasPremiumAccess(article.id) : true;
+
+    const relatedArticles: any[] = await withRetry(() => prisma.article.findMany({
+      where: {
+        categoryId: article.categoryId,
+        id: { not: article.id },
+      },
+      include: {
+        category: true,
+        author: true,
+        articleTags: { include: { tag: true } },
+      },
+      take: 4,
+      orderBy: {
+        publishedAt: 'desc',
+      },
+    } as any)) || [];
+
+    const sponsoredFromDb = await withRetry(() => prisma.sponsoredArticle.findMany({
+      where: {
+        articleId: article.id,
+        isActive: true,
+      },
+      include: {
+        article: {
+          include: {
+            category: true,
+            author: true,
+          },
+        },
+      },
+      orderBy: {
+        position: 'asc',
+      },
+    } as any)) || [];
+
+    const sponsoredArticles = sponsoredFromDb.map((item: any) => ({
+      id: item.article.id,
+      title: item.article.title,
+      imageUrl: item.article.mainImageUrl || '',
+      targetUrl: `/${locale}/${item.article.category?.slug || 'actualites'}/${item.article.slug}`,
+      sponsorName: item.categoryBadge || 'Sponsor',
+      categoryBadge: item.categoryBadge || 'Publicité',
+    }));
+
+    const otherSponsoredFromDb = await withRetry(() => prisma.sponsoredArticle.findMany({
+      where: {
+        isActive: true,
+        articleId: { not: article.id },
+      },
+      include: {
+        article: {
+          include: {
+            category: true,
+            author: true,
+          },
+        },
+      },
+      orderBy: {
+        position: 'asc',
+      },
+      take: 2,
+    } as any)) || [];
+
+    const otherSponsoredArticles = otherSponsoredFromDb.map((item: any) => ({
+      id: item.article.id,
+      title: item.article.title,
+      imageUrl: item.article.mainImageUrl || '',
+      targetUrl: `/${locale}/${item.article.category?.slug || 'actualites'}/${item.article.slug}`,
+      sponsorName: item.categoryBadge || 'Sponsor',
+      categoryBadge: item.categoryBadge || 'Publicité',
+    }));
+
+    const readTime = article.readTime ? `${article.readTime} ${t.readTime}` : `5 ${t.readTime}`;
+
+    const displayTitle = translatedArticle.title;
+    const displayExcerpt = translatedArticle.excerpt;
+    const displayContent = premiumAccess
+      ? normalizeArticleHtmlContent(translatedArticle.content)
+      : '';
+    const previewContent = !premiumAccess
+      ? getPremiumPreviewContent(normalizeArticleHtmlContent(translatedArticle.content))
+      : '';
+    const displayCategoryTitle = translatedCategory.title;
+
+    return (
+      <div className="min-h-screen bg-background">
+        <ScrollToComments />
+        <ViewIncrementer articleId={article.id} />
+
+        <main className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8">
+          <header className="mb-8 w-full">
+            {displayCategoryTitle ? (
+              <Link
+                href={`/${locale}/${article.category?.slug || category}`}
+                className="mb-3 inline-block text-sm text-foreground underline underline-offset-2 decoration-foreground/50 transition-colors hover:decoration-foreground"
+              >
+                {displayCategoryTitle}
+              </Link>
+            ) : null}
+            <div className="mb-3 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+              <ArticleDateMeta
+                locale={locale}
+                publishedAt={article.publishedAt}
+                updatedAt={article.updatedAt}
+              />
+              <ArticleAuthorLink author={article.author} locale={locale} />
+            </div>
+
+            <h1 className={`${playfair.className} text-[1.55rem] font-bold leading-[1.15] tracking-[-0.02em] text-foreground sm:text-[2.4rem] md:text-[3.2rem]`}>
+              {displayTitle}
+            </h1>
+          </header>
+
+          <div className="grid w-full grid-cols-1 items-start gap-8 xl:grid-cols-[72px_minmax(0,1fr)_300px]">
+            <div className="hidden xl:flex xl:justify-center xl:pt-8">
+              <div className="sticky top-24">
+                <ShareButtons
+                  title={displayTitle}
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${slug}`}
+                  locale={locale}
+                  orientation="vertical"
+                />
+              </div>
+            </div>
+
+            <article className="w-full min-w-0">
+              {article.mainImageUrl && (
+                <div className="mb-8">
+                  <div className="article-image-frame">
+                    <img
+                      src={article.mainImageUrl}
+                      alt={article.mainImageAlt || displayTitle}
+                      className="block h-auto w-full object-cover"
+                    />
+                  </div>
+                  {article.mainImageAlt && (
+                    <p className="mt-2 px-0.5 text-sm italic text-muted-foreground">{article.mainImageAlt}</p>
+                  )}
+                </div>
+              )}
+
+              {article.additionalImages && Array.isArray(article.additionalImages) && article.additionalImages.length > 0 && (
+                <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+                  {article.additionalImages.map((imageUrl: string, index: number) => (
+                    imageUrl && (
+                      <div key={index}>
+                        <div className="article-image-frame">
+                          <img
+                            src={imageUrl}
+                            alt={`${displayTitle} - Image ${index + 1}`}
+                            className="block h-auto w-full object-cover"
+                          />
+                        </div>
+                        {Array.isArray(article.additionalImageDescriptions) && article.additionalImageDescriptions[index] && (
+                          <p className="mt-2 px-0.5 text-sm italic text-muted-foreground">{article.additionalImageDescriptions[index]}</p>
+                        )}
+                      </div>
+                    )
+                  ))}
+                </div>
+              )}
+
+              <div className="xl:hidden">
+                <ShareButtons
+                  title={displayTitle}
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${slug}`}
+                  locale={locale}
+                />
+              </div>
+
+              {premiumAccess ? (
+                <div className={`${playfair.className} text-[1.04rem] font-normal leading-[1.9] text-foreground md:text-[1.18rem]`}>
+                  <ReadAlsoRenderer content={displayContent} tags={getArticleTags(article)} locale={locale} />
+                </div>
+              ) : (
+                <div className="premium-gate">
+                  <div
+                    className={`${playfair.className} article-body premium-preview premium-preview-fade text-[1.04rem] leading-[1.9] text-foreground md:text-[1.18rem]`}
+                    dangerouslySetInnerHTML={{ __html: prepareArticleHtml(previewContent, getArticleTags(article), locale) }}
+                  />
+                  {article.isPremium && (
+                    <Paywall
+                      articleId={article.id}
+                      articleTitle={displayTitle}
+                      premiumPrice={article.premiumPrice ? Number(article.premiumPrice) : 1.9}
+                    />
+                  )}
+                </div>
+              )}
+
+              <div className="mt-8">
+                <AdSenseAd adSlot={ADSENSE_SLOTS.sidebar} className="my-4" />
+              </div>
+
+              <div className="mt-6">
+                <FavoriteButton
+                  articleId={article.id}
+                  locale={locale}
+                  categoryId={article.categoryId}
+                  categoryTitle={translatedCategory.title || article.category?.title || ''}
+                />
+              </div>
+            </article>
+
+            <aside className="w-full min-w-0 xl:sticky xl:top-6 xl:self-start">
+              <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
+            </aside>
           </div>
-          <h1 className="font-heading text-4xl font-bold text-foreground mb-4">
-            {displayTitle}
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            {displayExcerpt}
-          </p>
-        </header>
+        </main>
 
-        {article.mainImageUrl && (
-          <div className="relative h-64 md:h-96 mb-8 rounded-lg overflow-hidden">
-            <img
-              src={article.mainImageUrl}
-              alt={displayTitle}
-              className="w-full h-full object-cover"
-            />
+        <CommentsSection articleId={article.id} locale={locale} />
+
+        {otherSponsoredArticles.length > 0 && (
+          <div className="mx-auto max-w-5xl px-4 pb-0 pt-8 md:px-6">
+            <SponsoredSection items={otherSponsoredArticles} />
           </div>
         )}
 
-        <div className="article-body prose prose-lg max-w-none mb-8 text-foreground">
-          <div dangerouslySetInnerHTML={{ __html: prepareArticleHtml(displayContent, getArticleTags(article), locale) }} />
-        </div>
-
-        <div className="flex items-center gap-4 border-t border-border pt-6">
-          <button className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <Share2 className="w-4 h-4" />
-            Partager
-          </button>
-          <button className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <Bookmark className="w-4 h-4" />
-            Sauvegarder
-          </button>
-        </div>
-      </article>
-    </div>
-  );
+        {relatedArticles.length > 0 && (
+          <section className="mx-auto max-w-6xl px-4 pb-12 pt-12 md:px-6">
+            <h2 className="mb-6 text-xl font-bold text-foreground md:text-2xl">
+              {t.relatedArticles}
+            </h2>
+            <ArticleListingGrid articles={relatedArticles} locale={locale} />
+          </section>
+        )}
+      </div>
+    );
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    notFound();
+  }
 }

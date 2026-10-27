@@ -2,18 +2,25 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, ArrowLeft } from 'lucide-react';
+import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
+import { getArticleTags, prepareArticleHtml, normalizeArticleHtmlContent } from '@/lib/tags';
 import ArticleDateMeta from '@/components/ArticleDateMeta';
 
 export const revalidate = 60;
 
-export default async function PolitiqueArticlePage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function PolitiqueArticlePage({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}) {
+  const { locale, slug } = await params;
 
   const article = await prisma.article.findUnique({
     where: { slug },
     include: {
       category: true,
       author: true,
+      articleTags: { include: { tag: true } },
     },
   } as any) as any;
 
@@ -22,15 +29,25 @@ export default async function PolitiqueArticlePage({ params }: { params: Promise
   }
 
   if (article.category?.slug !== 'politique') {
-    redirect(`/${slug}`);
+    redirect(`/${locale}/${slug}`);
   }
+
+  if (article.externalLink) {
+    redirect(article.externalLink);
+  }
+
+  const translatedArticle = await getArticleTranslation(article.id, locale);
+  const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
+  const displayTitle = translatedArticle.title || article.title;
+  const displayExcerpt = translatedArticle.excerpt || article.excerpt;
+  const displayContent = normalizeArticleHtmlContent(translatedArticle.content);
 
   return (
     <div className="flex flex-col">
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Link href="/politique" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
+        <Link href={`/${locale}/politique`} className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="mr-2 w-4 h-4" />
-          Retour à Politique
+          {locale === 'fr' ? 'Retour à' : 'Back to'} {translatedCategory.title || (locale === 'fr' ? 'Politique' : 'Politics')}
         </Link>
 
         <header className="mb-8">
@@ -38,7 +55,7 @@ export default async function PolitiqueArticlePage({ params }: { params: Promise
             <span className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
               <ArticleDateMeta
-                locale="fr"
+                locale={locale}
                 publishedAt={article.publishedAt}
                 updatedAt={article.updatedAt}
               />
@@ -48,11 +65,13 @@ export default async function PolitiqueArticlePage({ params }: { params: Promise
               {article.readTime || '5 min'}
             </span>
           </div>
+
           <h1 className="font-heading text-4xl font-bold text-foreground mb-4">
-            {article.title}
+            {displayTitle}
           </h1>
+
           <p className="text-xl text-muted-foreground">
-            {article.excerpt}
+            {displayExcerpt}
           </p>
         </header>
 
@@ -67,7 +86,7 @@ export default async function PolitiqueArticlePage({ params }: { params: Promise
         )}
 
         <div className="article-body prose prose-lg max-w-none mb-8 text-foreground">
-          <div dangerouslySetInnerHTML={{ __html: typeof article.content === 'string' ? article.content : JSON.stringify(article.content) }} />
+          <div dangerouslySetInnerHTML={{ __html: prepareArticleHtml(displayContent, getArticleTags(article), locale) }} />
         </div>
       </article>
     </div>
