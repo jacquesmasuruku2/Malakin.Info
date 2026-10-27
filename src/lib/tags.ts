@@ -19,7 +19,7 @@ export function foldTagKey(value: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
-    .replace(/['’]/g, '')
+    .replace(/["'’]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
@@ -27,7 +27,7 @@ export function foldTagKey(value: string): string {
 export function slugifyTag(name: string): string {
   return cleanTagName(name)
     .toLowerCase()
-    .replace(/['’]/g, '')
+    .replace(/["'’]/g, '')
     .replace(/[^\p{L}\p{N}]+/gu, '-')
     .replace(/^-+|-+$/g, '');
 }
@@ -53,19 +53,6 @@ export function getArticleTags(article: {
   }
 
   return tags;
-}
-
-export function normalizeArticleHtmlContent(content: unknown): string {
-  if (typeof content === 'string') return content;
-  if (content == null) return '';
-  if (typeof content === 'object') {
-    try {
-      return JSON.stringify(content);
-    } catch {
-      return '';
-    }
-  }
-  return String(content);
 }
 
 function escapeRegExp(value: string) {
@@ -254,11 +241,15 @@ export function linkifyArticleTags(
   });
 }
 
-export function prepareArticleHtml(html: string, _tags: ArticleTagItem[] = [], _locale = 'fr'): string {
+export function prepareArticleHtml(
+  html: string,
+  _tags: ArticleTagItem[] = [],
+  _locale = 'fr'
+): string {
   if (!html) return '';
 
   const contentWithoutSocialEmbedLinks = html.replace(
-    /<a\b[^>]*\bclass=(['"])[^'"]*\barticle-social-embed-link\b[^'"]*\1[^>]*>[\s\S]*?<\/a\s*>/gi,
+    /<a\b[^>]*\bclass=(['"])^[^'"]*\barticle-social-embed-link\b[^'"]*\1[^>]*>[\s\S]*?<\/a\s*>/gi,
     ''
   );
 
