@@ -3,8 +3,8 @@ export type ArticleTagItem = {
   slug: string;
 };
 
-export function cleanTagName(value: string): string {
-  return value.trim().replace(/^#+/, '').replace(/,+$/g, '').trim();
+export function cleanTagName(name: string): string {
+  return name.trim().replace(/^#+/, '').replace(/,+$/g, '').trim();
 }
 
 export function foldTagKey(value: string): string {
@@ -32,10 +32,13 @@ export function normalizeTagNames(values: unknown): string[] {
 
   for (const entry of values) {
     if (typeof entry !== 'string') continue;
+
     const cleaned = cleanTagName(entry);
     if (!cleaned) continue;
+
     const key = cleaned.toLowerCase();
     if (seen.has(key)) continue;
+
     seen.add(key);
     result.push(cleaned);
   }
@@ -55,7 +58,9 @@ export function tagNamesFromContent(content: unknown): string[] {
   if (typeof content !== 'string' || !content.trim()) return [];
 
   const matches = content.match(/#[\wÀ-ÖØ-öø-ÿ-]+/g) || [];
-  return matches.map((match) => cleanTagName(match.replace('#', ''))).filter(Boolean);
+  return matches
+    .map((match) => cleanTagName(match.replace('#', '')))
+    .filter(Boolean);
 }
 
 export function getArticleTags(article: {
@@ -69,8 +74,10 @@ export function getArticleTags(article: {
   for (const row of article.articleTags) {
     const tag = row?.tag;
     if (!tag?.slug || !tag.name) continue;
+
     const slug = tag.slug.trim();
     if (!slug || seen.has(slug)) continue;
+
     seen.add(slug);
     tags.push({ name: tag.name.trim(), slug });
   }
@@ -155,6 +162,12 @@ export function wrapImagesWithCaptions(html: string): string {
       if (!captionInner && followingParagraph && isCaptionCandidate(paragraphInner || '')) {
         captionInner = paragraphInner || '';
         followingParagraph = '';
+      } else if (
+        captionInner &&
+        followingParagraph &&
+        plainText(captionInner) === plainText(paragraphInner || '')
+      ) {
+        followingParagraph = '';
       }
 
       if (!captionInner) {
@@ -174,15 +187,13 @@ export function normalizeAudioHtml(html: string): string {
   if (!html) return html;
 
   return html.replace(/<audio\b([^>]*)>/gi, (match, attrs: string) => {
-    const attributes = (attrs || '').trim();
-    if (/\bcontrols\b/i.test(attributes)) {
-      return match;
-    }
-    return `<audio controls${attributes ? ` ${attributes}` : ''}>`;
+    const attrString = (attrs || '').trim();
+    if (/\bcontrols\b/i.test(attrString)) return match;
+    return `<audio controls${attrString ? ` ${attrString}` : ''}>`;
   });
 }
 
-function tagPath(locale: string, slug: string): string {
+export function tagPath(locale: string, slug: string): string {
   const localeSafe = locale.replace(/[^a-z-]/gi, '') || 'fr';
   return `/${localeSafe}/tag/${slug}`;
 }
@@ -201,8 +212,8 @@ function tagMatchSources(name: string): string[] {
 
   const parts = clean.split(/\s+/).filter(Boolean);
   const last = parts[parts.length - 1] || '';
-  const sources = [clean];
 
+  const sources = [clean];
   if (parts.length > 1 && last && last.length >= 4) {
     sources.push(last);
   }
@@ -233,17 +244,20 @@ export function linkifyArticleTags(html: string, tags: ArticleTagItem[], locale:
 
   if (!usable.length) return html;
 
+  const escaped = usable
+    .map((tag) => escapeRegExp(cleanTagName(tag.name)))
+    .join('|');
+
   const pattern = new RegExp(
-    `(<a\\b[^>]*>[\\s\\S]*?<\\/a>|<script\\b[^>]*>[\\s\\S]*?<\\/script>|<style\\b[^>]*>[\\s\\S]*?<\\/style>|<[^>]+>)|(${usable
-      .map((tag) => escapeRegExp(cleanTagName(tag.name)))
-      .join('|')})`,
-    'gi'
+    `(<a\\b[^>]*>[\\s\\S]*?<\\/a>|<script\\b[^>]*>[\\s\\S]*?<\\/script>|<style\\b[^>]*>[\\s\\S]*?<\\/style>|<[^>]+>)|(?<![\\p{L}\\p{N}])(${escaped})(?![\\p{L}\\p{N}])`,
+    'gu'
   );
 
   return html.replace(pattern, (match, skipped: string | undefined, label: string | undefined) => {
     if (skipped || !label) return match;
     const found = findTagForMatch(label, usable);
     if (!found) return match;
+
     return `<a href="${tagPath(locale, found.slug)}" class="article-inline-tag">${label}</a>`;
   });
 }
