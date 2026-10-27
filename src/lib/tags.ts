@@ -3,8 +3,8 @@ export type ArticleTagItem = {
   slug: string;
 };
 
-export function cleanTagName(name: string): string {
-  return name.trim().replace(/^#+/, '').replace(/,+$/g, '').trim();
+export function cleanTagName(value: string): string {
+  return value.trim().replace(/^#+/, '').replace(/,+$/g, '').trim();
 }
 
 export function foldTagKey(value: string): string {
@@ -24,6 +24,25 @@ export function foldTagKey(value: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+export function normalizeTagNames(values: unknown): string[] {
+  if (!Array.isArray(values)) return [];
+
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const entry of values) {
+    if (typeof entry !== 'string') continue;
+    const cleaned = cleanTagName(entry);
+    if (!cleaned) continue;
+    const key = cleaned.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(cleaned);
+  }
+
+  return result;
+}
+
 export function slugifyTag(name: string): string {
   return cleanTagName(name)
     .toLowerCase()
@@ -32,9 +51,11 @@ export function slugifyTag(name: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export function tagPath(locale: string, slug: string): string {
-  const localeSafe = locale.replace(/[^a-z-]/gi, '') || 'fr';
-  return `/${localeSafe}/tag/${slug}`;
+export function tagNamesFromContent(content: unknown): string[] {
+  if (typeof content !== 'string' || !content.trim()) return [];
+
+  const matches = content.match(/#[\wÀ-ÖØ-öø-ÿ-]+/g) || [];
+  return matches.map((match) => cleanTagName(match.replace('#', ''))).filter(Boolean);
 }
 
 export function getArticleTags(article: {
@@ -47,74 +68,32 @@ export function getArticleTags(article: {
 
   for (const row of article.articleTags) {
     const tag = row?.tag;
-    if (!tag?.slug || !tag.name || seen.has(tag.slug)) continue;
-    seen.add(tag.slug);
-    tags.push({ name: tag.name, slug: tag.slug });
+    if (!tag?.slug || !tag.name) continue;
+    const slug = tag.slug.trim();
+    if (!slug || seen.has(slug)) continue;
+    seen.add(slug);
+    tags.push({ name: tag.name.trim(), slug });
   }
 
   return tags;
 }
 
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function letterClass(char: string): string {
-  const folded = char.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const variants = new Set(
-    [char, char.toLowerCase(), char.toUpperCase(), folded, folded.toLowerCase(), folded.toUpperCase()].filter(Boolean)
-  );
-  const list = [...variants];
-  if (list.length === 1) return escapeRegExp(list[0]);
-  return `[${list.map(escapeRegExp).join('')}]`;
-}
-
-function caseInsensitiveSource(value: string): string {
-  return [...value].map(letterClass).join('');
-}
-
-function foldText(value: string): string {
-  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-}
-
-function tagMatchSources(name: string): string[] {
-  const clean = cleanTagName(name);
-  if (clean.length < 2) return [];
-
-  const parts = clean.split(/\s+/).filter(Boolean);
-  const last = parts[parts.length - 1];
-  const fullEsc = caseInsensitiveSource(clean);
-  const lastEsc = caseInsensitiveSource(last);
-  const firstNames = `(?:[\\p{Lu}\\p{Lt}][\\p{L}'’-]*\\s+){1,2}`;
-  const sources = [fullEsc];
-
-  if (parts.length > 1 && last && last.length >= 4) {
-    sources.push(`${firstNames}${lastEsc}`);
-    sources.push(lastEsc);
-  } else if (parts.length === 1 && last && last.length >= 5) {
-    sources.push(`${firstNames}${lastEsc}`);
+export function normalizeArticleHtmlContent(content: unknown): string {
+  if (typeof content === 'string') return content;
+  if (content == null) return '';
+  if (typeof content === 'object') {
+    try {
+      return JSON.stringify(content);
+    } catch {
+      return '';
+    }
   }
-
-  return sources;
-}
-
-function findTagForMatch(text: string, tags: ArticleTagItem[]): ArticleTagItem | undefined {
-  const folded = foldText(text);
-
-  const exact = tags.find((tag) => foldText(cleanTagName(tag.name)) === folded);
-  if (exact) return exact;
-
-  return tags.find((tag) => {
-    const last = cleanTagName(tag.name).split(/\s+/).pop() || '';
-    if (last.length < 4) return false;
-    const lastFolded = foldText(last);
-    return folded === lastFolded || folded.endsWith(` ${lastFolded}`);
-  });
+  return String(content);
 }
 
 function readQuotedAttr(html: string, name: string): string {
-  const quoted = html.match(new RegExp(`\\b${name}=(?:"([^"]*)"|'([^']*)')`, 'i'));
-  return (quoted?.[1] || quoted?.[2] || '').trim();
+  const match = html.match(new RegExp(`\\b${name}=(?:\"([^\"]*)\"|'([^']*)')`, 'i'));
+  return (match?.[1] || match?.[2] || '').trim();
 }
 
 function plainText(html: string): string {
@@ -136,15 +115,13 @@ function captionMarkup(inner: string): string {
 }
 
 function figureOpenTag(attrs: string): string {
-  if (/class=/i.test(attrs)) return `<figure${attrs}>`;
-  return `<figure class="article-inline-figure"${attrs}>`;
+  return /class=/i.test(attrs)
+    ? `<figure${attrs}>`
+    : `<figure class="article-inline-figure"${attrs}>`;
 }
 
 export function wrapImagesWithCaptions(html: string): string {
   if (!html) return html;
-
-  const readCaptionAttr = (block: string) =>
-    readQuotedAttr(block, 'data-caption') || readQuotedAttr(block, 'alt');
 
   let next = html.replace(
     /<p\b[^>]*>\s*(<img\b[^>]*>)\s*<\/p>/gi,
@@ -178,16 +155,10 @@ export function wrapImagesWithCaptions(html: string): string {
       if (!captionInner && followingParagraph && isCaptionCandidate(paragraphInner || '')) {
         captionInner = paragraphInner || '';
         followingParagraph = '';
-      } else if (
-        captionInner &&
-        followingParagraph &&
-        plainText(captionInner) === plainText(paragraphInner || '')
-      ) {
-        followingParagraph = '';
       }
 
       if (!captionInner) {
-        captionInner = readCaptionAttr(body);
+        captionInner = readQuotedAttr(body, 'data-caption') || readQuotedAttr(body, 'alt');
       }
 
       const figureHtml = captionInner
@@ -199,11 +170,61 @@ export function wrapImagesWithCaptions(html: string): string {
   );
 }
 
-export function linkifyArticleTags(
-  html: string,
-  tags: ArticleTagItem[],
-  locale: string
-): string {
+export function normalizeAudioHtml(html: string): string {
+  if (!html) return html;
+
+  return html.replace(/<audio\b([^>]*)>/gi, (match, attrs: string) => {
+    const attributes = (attrs || '').trim();
+    if (/\bcontrols\b/i.test(attributes)) {
+      return match;
+    }
+    return `<audio controls${attributes ? ` ${attributes}` : ''}>`;
+  });
+}
+
+function tagPath(locale: string, slug: string): string {
+  const localeSafe = locale.replace(/[^a-z-]/gi, '') || 'fr';
+  return `/${localeSafe}/tag/${slug}`;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function foldText(value: string): string {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function tagMatchSources(name: string): string[] {
+  const clean = cleanTagName(name);
+  if (clean.length < 2) return [];
+
+  const parts = clean.split(/\s+/).filter(Boolean);
+  const last = parts[parts.length - 1] || '';
+  const sources = [clean];
+
+  if (parts.length > 1 && last && last.length >= 4) {
+    sources.push(last);
+  }
+
+  return sources;
+}
+
+function findTagForMatch(text: string, tags: ArticleTagItem[]): ArticleTagItem | undefined {
+  const folded = foldText(text);
+
+  const exact = tags.find((tag) => foldText(cleanTagName(tag.name)) === folded);
+  if (exact) return exact;
+
+  return tags.find((tag) => {
+    const last = cleanTagName(tag.name).split(/\s+/).pop() || '';
+    if (last.length < 4) return false;
+    const lastFolded = foldText(last);
+    return folded === lastFolded || folded.endsWith(` ${lastFolded}`);
+  });
+}
+
+export function linkifyArticleTags(html: string, tags: ArticleTagItem[], locale: string): string {
   if (!html || !tags.length) return html;
 
   const usable = [...tags]
@@ -212,54 +233,23 @@ export function linkifyArticleTags(
 
   if (!usable.length) return html;
 
-  const sources: string[] = [];
-  const seen = new Set<string>();
-  for (const tag of usable) {
-    for (const source of tagMatchSources(tag.name)) {
-      const key = source.toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-      sources.push(source);
-    }
-  }
-
-  sources.sort((a, b) => b.length - a.length);
-  if (!sources.length) return html;
-
   const pattern = new RegExp(
-    `(<a\\b[^>]*>[\\s\\S]*?<\\/a>|<script\\b[^>]*>[\\s\\S]*?<\\/script>|<style\\b[^>]*>[\\s\\S]*?<\\/style>|<[^>]+>)|(?<![\\p{L}\\p{N}])#?(${sources.join('|')})(?![\\p{L}\\p{N}])`,
-    'gu'
+    `(<a\\b[^>]*>[\\s\\S]*?<\\/a>|<script\\b[^>]*>[\\s\\S]*?<\\/script>|<style\\b[^>]*>[\\s\\S]*?<\\/style>|<[^>]+>)|(${usable
+      .map((tag) => escapeRegExp(cleanTagName(tag.name)))
+      .join('|')})`,
+    'gi'
   );
 
-  return html.replace(pattern, (match, skipped: string | undefined, nameMatch: string | undefined) => {
-    if (skipped || !nameMatch) return match;
-
-    const tag = findTagForMatch(nameMatch, usable);
-    if (!tag) return match;
-
-    return `<a href="${tagPath(locale, tag.slug)}" class="article-inline-tag">${nameMatch}</a>`;
+  return html.replace(pattern, (match, skipped: string | undefined, label: string | undefined) => {
+    if (skipped || !label) return match;
+    const found = findTagForMatch(label, usable);
+    if (!found) return match;
+    return `<a href="${tagPath(locale, found.slug)}" class="article-inline-tag">${label}</a>`;
   });
 }
 
-export function prepareArticleHtml(
-  html: string,
-  _tags: ArticleTagItem[] = [],
-  _locale = 'fr'
-): string {
-  if (!html) return '';
-
-  const contentWithoutSocialEmbedLinks = html.replace(
-    /<a\b[^>]*\bclass=(['"])^[^'"]*\barticle-social-embed-link\b[^'"]*\1[^>]*>[\s\S]*?<\/a\s*>/gi,
-    ''
-  );
-
-  const withAudio = contentWithoutSocialEmbedLinks.replace(
-    /<audio\b([^>]*)>/gi,
-    (match, attrs: string) => {
-      if (/\bcontrols\b/i.test(attrs)) return match;
-      return `<audio controls${attrs ? ` ${attrs}` : ''}>`;
-    }
-  );
-
-  return wrapImagesWithCaptions(withAudio);
+export function prepareArticleHtml(html: string, tags: ArticleTagItem[] = [], locale = 'fr'): string {
+  const normalized = normalizeAudioHtml(normalizeArticleHtmlContent(html));
+  const withCaptions = wrapImagesWithCaptions(normalized);
+  return linkifyArticleTags(withCaptions, tags, locale);
 }
