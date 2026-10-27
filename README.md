@@ -136,6 +136,26 @@ R2_SECRET_ACCESS_KEY=...
 R2_BUCKET_NAME=...
 ```
 
+Pour que les médias audio/vidéo du WordEditor soient envoyés directement depuis le navigateur, configurez une politique CORS dans les paramètres du bucket R2 :
+
+```json
+[
+  {
+    "AllowedOrigins": [
+      "https://dashboard.malakinfo.com",
+      "http://localhost:3000",
+      "http://localhost:3001"
+    ],
+    "AllowedMethods": ["PUT"],
+    "AllowedHeaders": ["content-type"],
+    "ExposeHeaders": [],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+Ajoutez les URL exactes des autres domaines de déploiement/preview utilisés par le panel. Les fichiers acceptés sont MP3, WAV, OGG, AAC, M4A, MP4 et WebM, jusqu’à 100 Mo.
+
 ### Panel admin
 
 ```env
@@ -143,9 +163,13 @@ DATABASE_URL=...
 NEXT_PUBLIC_MAIN_SITE_URL=https://malakinfo.com
 ADMIN_PANEL_URL=https://dashboard.malakinfo.com
 NEXT_PUBLIC_ADMIN_URL=https://dashboard.malakinfo.com
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET_NAME=...
 ```
 
-`DATABASE_URL` doit être disponible au build et au runtime pour le panel en Production. Pour un Preview, ajouter également `NEXT_PUBLIC_MAIN_SITE_URL` si le panel doit relayer certaines opérations vers le site principal.
+`DATABASE_URL` doit être disponible au build et au runtime pour le panel en Production. Pour un Preview, ajouter également `NEXT_PUBLIC_MAIN_SITE_URL` si le panel doit relayer certaines opérations vers le site principal. Les identifiants R2 du panel doivent autoriser la lecture/écriture d’objets dans le bucket, et le domaine public `media.malakinfo.com` doit pointer vers ce bucket.
 
 ## Base de données et migrations
 

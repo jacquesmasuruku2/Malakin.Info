@@ -1,3 +1,6 @@
+import { prisma } from '@/lib/prisma';
+import { tagNamesFromContent as tagNamesFromHtml } from '@/lib/tag-name';
+
 export type ArticleTagItem = {
   name: string;
   slug: string;
@@ -83,6 +86,50 @@ export function getArticleTags(article: {
   }
 
   return tags;
+}
+
+export function tagsFromArticle(article: {
+  articleTags?: Array<{ tag?: { name?: string | null; slug?: string | null } | null } | null> | null;
+}): ArticleTagItem[] {
+  return getArticleTags(article);
+}
+
+export async function syncArticleTags(
+  articleId: string,
+  values: unknown,
+  content?: unknown,
+): Promise<ArticleTagItem[]> {
+  const names = normalizeTagNames([
+    ...normalizeTagNames(values),
+    ...tagNamesFromHtml(content),
+  ]);
+  const uniqueTags = new Map<string, { name: string; slug: string }>();
+
+  for (const name of names) {
+    const slug = slugifyTag(name);
+    if (slug && !uniqueTags.has(slug)) uniqueTags.set(slug, { name, slug });
+  }
+
+  return prisma.$transaction(async (transaction) => {
+    const tags = [];
+    for (const { name, slug } of uniqueTags.values()) {
+      tags.push(await transaction.tag.upsert({
+        where: { slug },
+        update: {},
+        create: { name, slug },
+      }));
+    }
+
+    await transaction.articleTag.deleteMany({ where: { articleId } });
+    if (tags.length) {
+      await transaction.articleTag.createMany({
+        data: tags.map((tag) => ({ articleId, tagId: tag.id })),
+        skipDuplicates: true,
+      });
+    }
+
+    return tags.map(({ name, slug }) => ({ name, slug }));
+  });
 }
 
 export function normalizeArticleHtmlContent(content: unknown): string {

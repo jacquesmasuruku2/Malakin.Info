@@ -18,6 +18,7 @@ import { ReadAlsoExtension } from '@/lib/tiptap/ReadAlsoExtension';
 import ReadAlsoModal from '@/components/ReadAlsoModal';
 import { ImageWithCaption } from '@/lib/tiptap/ImageWithCaption';
 import { SocialEmbedExtension } from '@/lib/tiptap/SocialEmbedExtension';
+import { MediaExtension, type ArticleMediaKind } from '@/lib/tiptap/MediaExtension';
 import { normalizeSocialEmbed, type SocialEmbedPlatform } from '@/lib/tiptap/social-embed';
 import { cleanTagName, slugifyTag } from '@/lib/tag-name';
 import { useState, useEffect, useRef } from 'react';
@@ -46,6 +47,8 @@ import {
   ZoomOut,
   FileText,
   Image as ImageIcon,
+  AudioLines,
+  Video,
   Loader2,
   Heading1,
   Heading2,
@@ -72,7 +75,6 @@ interface WordEditorProps {
 }
 
 const INLINE_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-const AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/oga', 'audio/m4a', 'audio/aac', 'audio/x-m4a'];
 const FONT_FAMILIES = [
   { label: 'Arial', value: 'Arial, Helvetica, sans-serif' },
   { label: 'Arial Black', value: '"Arial Black", Arial, sans-serif' },
@@ -103,12 +105,6 @@ function getFontFamilySelection(value: string | null | undefined) {
 
 function isImageFile(file: File) {
   return INLINE_IMAGE_TYPES.includes(file.type);
-}
-
-function isAudioFile(file: File) {
-  const normalizedType = file.type.toLowerCase();
-  if (AUDIO_TYPES.includes(normalizedType)) return true;
-  return /\.(mp3|m4a|aac|wav|ogg|oga)$/i.test(file.name);
 }
 
 function escapeHtml(value: string) {
@@ -246,25 +242,6 @@ async function uploadBlogImage(file: File): Promise<string | null> {
   return String(data.url);
 }
 
-async function uploadBlogAudio(file: File): Promise<string | null> {
-  const body = new FormData();
-  body.append('file', file);
-  body.append('folder', 'Audios_blogs');
-
-  const response = await fetch('/api/upload', { method: 'POST', body });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    console.error('[WordEditor audio upload]', data?.error || data?.details || response.status);
-    return null;
-  }
-
-  if (!data?.success || !data.url || String(data.url).startsWith('data:')) {
-    return null;
-  }
-
-  return String(data.url);
-}
-
 export default function WordEditor({
   content,
   onChange,
@@ -293,12 +270,13 @@ export default function WordEditor({
   const previousScrollY = useRef(0);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const wordInputRef = useRef<HTMLInputElement>(null);
   const savedTextSelection = useRef<{ from: number; to: number } | null>(null);
   const insertImageFilesRef = useRef<(files: FileList | File[]) => Promise<void>>(async () => {});
-  const insertAudioFilesRef = useRef<(files: FileList | File[]) => Promise<void>>(async () => {});
   const [uploadingInlineImage, setUploadingInlineImage] = useState(false);
-  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [uploadingMedia, setUploadingMedia] = useState<ArticleMediaKind | null>(null);
+  const [mediaUploadProgress, setMediaUploadProgress] = useState(0);
 
   const editor = useEditor({
     extensions: [
@@ -336,6 +314,7 @@ export default function WordEditor({
           class: 'article-inline-image',
         },
       }),
+      MediaExtension,
       SocialEmbedExtension,
       ReadAlsoExtension,
     ],
@@ -469,37 +448,72 @@ export default function WordEditor({
     }
   };
 
-  const insertAudioFiles = async (files: FileList | File[]) => {
-    const audioFiles = Array.from(files).filter(isAudioFile);
-    if (!audioFiles.length || !editor) return;
+  insertImageFilesRef.current = insertImageFiles;
 
-    setUploadingAudio(true);
-    try {
-      for (const file of audioFiles) {
-        const src = await uploadBlogAudio(file);
-        if (!src) {
-          alert("Erreur lors de l'upload de l'audio");
-          continue;
-        }
-
-        const audiotitle = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
-        const label = window.prompt('Titre de l’audio (optionnel)', audiotitle) ?? audiotitle;
-        const html = `
-          <div style="margin: 1rem 0;">
-            <audio controls preload="metadata" src="${src}" style="width: 100%; max-width: 700px; display: block; border-radius: 8px; background: #f3f4f6;"></audio>
-            ${label ? `<p style="margin-top: 0.5rem; font-size: 0.9rem; color: #4b5563;">${escapeHtml(label)}</p>` : ''}
-          </div>
-        `;
-        editor.chain().focus().insertContent(html).run();
-      }
-    } finally {
-      setUploadingAudio(false);
-      if (audioInputRef.current) audioInputRef.current.value = '';
+  const uploadArticleMedia = async (file: File, kind: ArticleMediaKind) => {
+    const response = await fetch('/api/upload/media', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filename: file.name,
+        contentType: file.type,
+        size: file.size,
+        kind,
+      }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.uploadUrl || !data.url || !data.contentType) {
+      throw new Error(data.error || 'Impossible de démarrer le transfert du média.');
     }
+
+    await new Promise<void>((resolve, reject) => {
+      const request = new XMLHttpRequest();
+      request.open('PUT', data.uploadUrl);
+      request.setRequestHeader('Content-Type', data.contentType);
+      request.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          setMediaUploadProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      };
+      request.onload = () => {
+        if (request.status >= 200 && request.status < 300) {
+          resolve();
+        } else {
+          reject(new Error(`Cloudflare R2 a refusé le média (${request.status}).`));
+        }
+      };
+      request.onerror = () => {
+        reject(new Error(
+          'Échec de connexion au stockage. Vérifiez que le CORS du bucket R2 autorise PUT depuis le tableau de bord.',
+        ));
+      };
+      request.onabort = () => reject(new Error('Transfert du média annulé.'));
+      request.send(file);
+    });
+
+    return data.url as string;
   };
 
-  insertImageFilesRef.current = insertImageFiles;
-  insertAudioFilesRef.current = insertAudioFiles;
+  const insertMediaFiles = async (files: FileList | File[], kind: ArticleMediaKind) => {
+    if (!editor) return;
+    setUploadingMedia(kind);
+    setMediaUploadProgress(0);
+    try {
+      for (const file of Array.from(files)) {
+        const src = await uploadArticleMedia(file, kind);
+        const title = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
+        editor.chain().focus().insertArticleMedia({ kind, src, title }).run();
+      }
+    } catch (error) {
+      console.error('[WordEditor media upload]', error);
+      window.alert(error instanceof Error ? error.message : 'Échec de l’upload du média.');
+    } finally {
+      setUploadingMedia(null);
+      setMediaUploadProgress(0);
+      if (kind === 'audio' && audioInputRef.current) audioInputRef.current.value = '';
+      if (kind === 'video' && videoInputRef.current) videoInputRef.current.value = '';
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -1170,12 +1184,24 @@ export default function WordEditor({
               <button
                 type="button"
                 onClick={() => audioInputRef.current?.click()}
-                disabled={uploadingAudio}
+                disabled={uploadingMedia !== null}
                 className="flex items-center gap-2 rounded p-2 transition-colors hover:bg-blue-100 disabled:opacity-50"
                 title="Insérer un audio"
               >
-                {uploadingAudio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Music2 className="h-4 w-4" />}
-                <span className="text-xs sm:text-sm">{uploadingAudio ? 'Envoi…' : 'Audio'}</span>
+                {uploadingMedia === 'audio' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Music2 className="h-4 w-4" />}
+                <span className="text-xs sm:text-sm">{uploadingMedia === 'audio' ? 'Envoi…' : 'Audio'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => videoInputRef.current?.click()}
+                disabled={uploadingMedia !== null}
+                className="flex items-center gap-2 rounded p-2 transition-colors hover:bg-blue-100 disabled:opacity-50"
+                title="Insérer une vidéo MP4, WebM ou OGG (100 Mo maximum)"
+              >
+                {uploadingMedia === 'video' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+                <span className="text-xs sm:text-sm">
+                  {uploadingMedia === 'video' ? `Vidéo ${mediaUploadProgress}%` : 'Vidéo'}
+                </span>
               </button>
               <button
                 type="button"
@@ -1413,11 +1439,25 @@ export default function WordEditor({
       <input
         ref={audioInputRef}
         type="file"
-        accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/oga,audio/m4a,audio/aac,audio/x-m4a"
+        accept="audio/mpeg,audio/wav,audio/ogg,audio/aac,audio/mp4,audio/webm,.mp3,.wav,.ogg,.oga,.aac,.m4a"
         className="hidden"
+        disabled={uploadingMedia !== null}
         onChange={(event) => {
           if (event.target.files?.length) {
-            void insertAudioFiles(event.target.files);
+            void insertMediaFiles(event.target.files, 'audio');
+          }
+        }}
+      />
+
+      <input
+        ref={videoInputRef}
+        type="file"
+        accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogv"
+        className="hidden"
+        disabled={uploadingMedia !== null}
+        onChange={(event) => {
+          if (event.target.files?.length) {
+            void insertMediaFiles(event.target.files, 'video');
           }
         }}
       />
