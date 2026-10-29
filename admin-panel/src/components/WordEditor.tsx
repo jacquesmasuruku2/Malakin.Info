@@ -755,7 +755,7 @@ export default function WordEditor({
   }
 
   return (
-    <div className="relative isolate w-full min-w-0 overflow-hidden rounded-xl border border-[#d9d9d7] bg-[#f3f3f1] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">
+    <div className="relative isolate w-full min-w-0 overflow-clip rounded-xl border border-[#d9d9d7] bg-[#f3f3f1] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.02)]">
       <div ref={toolbarRef} className="sticky top-0 z-50 w-full min-w-0 overflow-x-auto border-b border-[#d5d2ce] bg-[#f7f6f4] shadow-[0_1px_0_rgba(15,23,42,0.06)]">
         <div className="flex min-w-max border-b border-[#e6e2dd] bg-[#f3f1ee]">
           {['home', 'insert', 'layout'].map((tab) => (
