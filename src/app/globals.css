@@ -353,7 +353,7 @@
   color: var(--foreground);
 }
 
-.article-body :is(p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th, strong, b, em) {
+.article-body :is(p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th) {
   color: var(--foreground);
 }
 
@@ -673,7 +673,7 @@
   transform: translateY(-0.03em);
 }
 
-html.dark .article-body :is(p, li, h1, h2, h3, h4, h5, h6, span, strong, b, em, i, u, blockquote, td, th, div) {
+html.dark .article-body :is(p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th, div):not([style*="color"]) {
   color: var(--foreground) !important;
 }
 
@@ -683,13 +683,11 @@ html.dark .article-body figure > p {
   color: #9ca3af !important;
 }
 
-html.dark .article-body a,
-html.dark .article-body a :is(span, strong, b, em, i, u) {
+html.dark .article-body a:not([style*="color"]) {
   color: var(--primary) !important;
 }
 
-html.dark .article-body a:hover,
-html.dark .article-body a:hover :is(span, strong, b, em, i, u) {
+html.dark .article-body a:hover:not([style*="color"]) {
   color: var(--secondary) !important;
 }
 

@@ -19,6 +19,7 @@ import ReadAlsoModal from '@/components/ReadAlsoModal';
 import { ImageWithCaption } from '@/lib/tiptap/ImageWithCaption';
 import { SocialEmbedExtension } from '@/lib/tiptap/SocialEmbedExtension';
 import { MediaExtension, type ArticleMediaKind } from '@/lib/tiptap/MediaExtension';
+import { ParagraphSpacing } from '@/lib/tiptap/ParagraphSpacing';
 import { normalizeSocialEmbed, type SocialEmbedPlatform } from '@/lib/tiptap/social-embed';
 import { cleanTagName, slugifyTag } from '@/lib/tag-name';
 import { useState, useEffect, useRef } from 'react';
@@ -212,7 +213,12 @@ function normalizeImportedWordHtml(html: string): string {
         node.replaceWith(...Array.from(node.childNodes));
       }
 
-      if (tagName === 'p' && !node.textContent?.trim() && !node.querySelector('img')) {
+      if (
+        tagName === 'p' &&
+        !node.textContent?.trim() &&
+        !node.querySelector('img, br') &&
+        !/margin-(top|bottom|block-start|block-end)|line-height/i.test(style)
+      ) {
         node.remove();
       }
     });
@@ -307,6 +313,7 @@ export default function WordEditor({
       LineHeight.configure({
         types: ['textStyle', 'paragraph', 'heading'],
       }),
+      ParagraphSpacing,
       ImageWithCaption.configure({
         inline: false,
         allowBase64: false,
