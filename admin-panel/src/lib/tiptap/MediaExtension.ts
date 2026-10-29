@@ -6,6 +6,7 @@ export interface ArticleMediaAttributes {
   kind: ArticleMediaKind;
   src: string;
   title?: string;
+  author?: string;
 }
 
 declare module '@tiptap/core' {
@@ -27,6 +28,11 @@ export const MediaExtension = Node.create<ArticleMediaAttributes>({
       kind: { default: 'video' },
       src: { default: '' },
       title: { default: '' },
+      author: {
+        default: '',
+        parseHTML: (element) => element.getAttribute('data-author') || element.getAttribute('author') || '',
+        renderHTML: ({ author }) => (author ? { 'data-author': author } : {}),
+      },
     };
   },
 
@@ -35,7 +41,14 @@ export const MediaExtension = Node.create<ArticleMediaAttributes>({
       tag: kind,
       getAttrs: (node: HTMLElement) => {
         const src = node.getAttribute('src') || node.querySelector('source')?.getAttribute('src');
-        return src ? { kind, src, title: node.getAttribute('title') || '' } : false;
+        return src
+          ? {
+              kind,
+              src,
+              title: node.getAttribute('title') || '',
+              author: node.getAttribute('data-author') || node.getAttribute('author') || '',
+            }
+          : false;
       },
     }));
   },

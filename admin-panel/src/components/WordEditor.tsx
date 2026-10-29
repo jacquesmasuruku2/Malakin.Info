@@ -19,7 +19,10 @@ import ReadAlsoModal from '@/components/ReadAlsoModal';
 import { ImageWithCaption } from '@/lib/tiptap/ImageWithCaption';
 import { SocialEmbedExtension } from '@/lib/tiptap/SocialEmbedExtension';
 import { MediaExtension, type ArticleMediaKind } from '@/lib/tiptap/MediaExtension';
+import { TableKit } from '@tiptap/extension-table/kit';
 import { ParagraphSpacing } from '@/lib/tiptap/ParagraphSpacing';
+import { WordTableStyle } from '@/lib/tiptap/WordTableStyle';
+import { restoreWordTableFormatting } from '@/lib/tiptap/WordTableFormatting';
 import { normalizeSocialEmbed, type SocialEmbedPlatform } from '@/lib/tiptap/social-embed';
 import { cleanTagName, slugifyTag } from '@/lib/tag-name';
 import { useState, useEffect, useRef } from 'react';
@@ -265,6 +268,10 @@ export default function WordEditor({
   const [isReadAlsoModalOpen, setIsReadAlsoModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [isSocialEmbedModalOpen, setIsSocialEmbedModalOpen] = useState(false);
+  const [isTableModalOpen, setIsTableModalOpen] = useState(false);
+  const [tableRows, setTableRows] = useState(3);
+  const [tableColumns, setTableColumns] = useState(3);
+  const [withTableHeader, setWithTableHeader] = useState(true);
   const [socialEmbedPlatform, setSocialEmbedPlatform] = useState<SocialEmbedPlatform>('x');
   const [socialEmbedUrl, setSocialEmbedUrl] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
@@ -283,6 +290,7 @@ export default function WordEditor({
   const [uploadingInlineImage, setUploadingInlineImage] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState<ArticleMediaKind | null>(null);
   const [mediaUploadProgress, setMediaUploadProgress] = useState(0);
+  const [audioDraft, setAudioDraft] = useState<{ file: File; title: string; author: string } | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -314,6 +322,14 @@ export default function WordEditor({
         types: ['textStyle', 'paragraph', 'heading'],
       }),
       ParagraphSpacing,
+      TableKit.configure({
+        table: {
+          resizable: false,
+          renderWrapper: true,
+          HTMLAttributes: { class: 'article-table' },
+        },
+      }),
+      WordTableStyle,
       ImageWithCaption.configure({
         inline: false,
         allowBase64: false,
@@ -522,6 +538,29 @@ export default function WordEditor({
     }
   };
 
+  const handleInsertAudio = async () => {
+    if (!editor || !audioDraft) return;
+
+    setUploadingMedia('audio');
+    setMediaUploadProgress(0);
+    try {
+      const src = await uploadArticleMedia(audioDraft.file, 'audio');
+      editor.chain().focus().insertArticleMedia({
+        kind: 'audio',
+        src,
+        title: audioDraft.title.trim() || audioDraft.file.name,
+        author: audioDraft.author.trim(),
+      }).run();
+      setAudioDraft(null);
+    } catch (error) {
+      console.error('[WordEditor audio upload]', error);
+      window.alert(error instanceof Error ? error.message : 'Échec de l’upload de l’audio.');
+    } finally {
+      setUploadingMedia(null);
+      setMediaUploadProgress(0);
+    }
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       if (window.innerWidth >= 1024 || !toolbarRef.current) return;
@@ -560,6 +599,16 @@ export default function WordEditor({
     if (editor) {
       editor.chain().focus().insertReadAlso({ title, url, accentColor }).run();
     }
+  };
+
+  const handleInsertTable = () => {
+    if (!editor) return;
+    editor.chain().focus().insertTable({
+      rows: tableRows,
+      cols: tableColumns,
+      withHeaderRow: withTableHeader,
+    }).run();
+    setIsTableModalOpen(false);
   };
 
   const handleInsertSocialEmbed = () => {
@@ -704,7 +753,10 @@ export default function WordEditor({
     try {
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.convertToHtml({ arrayBuffer });
-      const importedHtml = normalizeImportedWordHtml(result.value || '');
+      const importedHtml = await restoreWordTableFormatting(
+        normalizeImportedWordHtml(result.value || ''),
+        arrayBuffer.slice(0),
+      );
 
       if (!importedHtml.trim()) {
         alert('Aucun contenu exploitable n’a été trouvé dans ce document Word.');
@@ -1190,6 +1242,15 @@ export default function WordEditor({
               </button>
               <button
                 type="button"
+                onClick={() => setIsTableModalOpen(true)}
+                className="flex items-center gap-2 rounded p-2 transition-colors hover:bg-blue-100"
+                title="Insérer un tableau"
+              >
+                <Table className="h-4 w-4" />
+                <span className="text-xs sm:text-sm">Tableau</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => audioInputRef.current?.click()}
                 disabled={uploadingMedia !== null}
                 className="flex items-center gap-2 rounded p-2 transition-colors hover:bg-blue-100 disabled:opacity-50"
@@ -1340,6 +1401,80 @@ export default function WordEditor({
         onInsert={handleInsertReadAlso}
       />
 
+      {isTableModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="insert-table-title"
+            className="w-full max-w-sm rounded-lg bg-white shadow-xl"
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 p-4">
+              <h2 id="insert-table-title" className="text-lg font-semibold text-gray-900">Insérer un tableau</h2>
+              <button
+                type="button"
+                onClick={() => setIsTableModalOpen(false)}
+                className="p-2 text-gray-400 transition-colors hover:text-gray-600"
+                aria-label="Fermer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4 p-4">
+              <div className="grid grid-cols-2 gap-3">
+                <label className="grid gap-1 text-sm font-medium text-gray-700">
+                  Lignes
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={tableRows}
+                    onChange={(event) => setTableRows(Math.min(20, Math.max(1, Number(event.target.value) || 1)))}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2"
+                  />
+                </label>
+                <label className="grid gap-1 text-sm font-medium text-gray-700">
+                  Colonnes
+                  <input
+                    type="number"
+                    min={1}
+                    max={12}
+                    value={tableColumns}
+                    onChange={(event) => setTableColumns(Math.min(12, Math.max(1, Number(event.target.value) || 1)))}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2"
+                  />
+                </label>
+              </div>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={withTableHeader}
+                  onChange={(event) => setWithTableHeader(event.target.checked)}
+                  className="h-4 w-4 accent-blue-600"
+                />
+                Première ligne comme en-tête
+              </label>
+            </div>
+            <div className="flex justify-end gap-3 border-t border-gray-200 p-4">
+              <button
+                type="button"
+                onClick={() => setIsTableModalOpen(false)}
+                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleInsertTable}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                Insérer {tableRows} × {tableColumns}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isSocialEmbedModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
           <div
@@ -1430,6 +1565,82 @@ export default function WordEditor({
         </div>
       )}
 
+      {audioDraft && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="audio-details-title"
+            className="w-full max-w-md rounded-lg bg-white shadow-xl"
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 p-4">
+              <h2 id="audio-details-title" className="text-lg font-semibold text-gray-900">
+                Personnaliser l’audio
+              </h2>
+              <button
+                type="button"
+                onClick={() => setAudioDraft(null)}
+                disabled={uploadingMedia === 'audio'}
+                className="p-2 text-gray-400 transition-colors hover:text-gray-600 disabled:opacity-50"
+                aria-label="Fermer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4 p-4">
+              <div>
+                <label htmlFor="audio-description" className="mb-1 block text-sm font-medium text-gray-700">
+                  Description
+                </label>
+                <input
+                  id="audio-description"
+                  type="text"
+                  value={audioDraft.title}
+                  onChange={(event) => setAudioDraft({ ...audioDraft, title: event.target.value })}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  placeholder="Description de l’audio"
+                  maxLength={180}
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label htmlFor="audio-author" className="mb-1 block text-sm font-medium text-gray-700">
+                  Auteur
+                </label>
+                <input
+                  id="audio-author"
+                  type="text"
+                  value={audioDraft.author}
+                  onChange={(event) => setAudioDraft({ ...audioDraft, author: event.target.value })}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  placeholder="Nom de l’auteur"
+                  maxLength={120}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 border-t border-gray-200 p-4">
+              <button
+                type="button"
+                onClick={() => setAudioDraft(null)}
+                disabled={uploadingMedia === 'audio'}
+                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleInsertAudio()}
+                disabled={uploadingMedia === 'audio'}
+                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60"
+              >
+                {uploadingMedia === 'audio' && <Loader2 className="h-4 w-4 animate-spin" />}
+                {uploadingMedia === 'audio' ? `Envoi ${mediaUploadProgress}%` : 'Insérer l’audio'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <input
         ref={imageInputRef}
         type="file"
@@ -1451,7 +1662,13 @@ export default function WordEditor({
         disabled={uploadingMedia !== null}
         onChange={(event) => {
           if (event.target.files?.length) {
-            void insertMediaFiles(event.target.files, 'audio');
+            const file = event.target.files[0];
+            setAudioDraft({
+              file,
+              title: file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim(),
+              author: '',
+            });
+            event.target.value = '';
           }
         }}
       />

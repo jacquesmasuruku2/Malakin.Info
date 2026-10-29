@@ -59,6 +59,7 @@ function prepareArticleMedia(html: string) {
     marker.dataset.kind = media.tagName.toLowerCase();
     marker.dataset.src = source;
     marker.dataset.title = title;
+    marker.dataset.author = media.getAttribute('data-author')?.trim() || media.getAttribute('author')?.trim() || '';
     marker.dataset.poster = media.getAttribute('poster') || '';
 
     if (isLegacyWrapper && parent) {
@@ -196,6 +197,7 @@ export default function ReadAlsoRenderer({
           kind={kind}
           src={block.dataset.src || ''}
           title={block.dataset.title || (kind === 'video' ? 'Vidéo' : 'Audio')}
+          author={block.dataset.author || ''}
           poster={block.dataset.poster}
         />,
       );
