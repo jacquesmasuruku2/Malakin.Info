@@ -29,7 +29,7 @@ interface Article {
   externalLink: string | null;
   additionalImages: string[] | null;
   additionalImageDescriptions: string[] | null;
-  tags?: string[];
+  tags?: Array<string | { name?: string | null; slug?: string | null }>;
 }
 
 export default function EditArticlePage() {
@@ -119,6 +119,11 @@ export default function EditArticlePage() {
       const response = await fetch(`/api/articles/${articleId}`);
       const data: Article = await response.json();
       const normalizedContent = normalizeArticleContent(data.content);
+      const tags = Array.isArray(data.tags)
+        ? data.tags
+            .map((tag) => (typeof tag === 'string' ? tag : tag?.name || ''))
+            .filter((tag): tag is string => Boolean(tag.trim()))
+        : [];
 
       setFormData({
         title: data.title,
@@ -138,7 +143,7 @@ export default function EditArticlePage() {
         externalLink: data.externalLink || '',
         additionalImages: data.additionalImages || [],
         additionalImageDescriptions: data.additionalImageDescriptions || [],
-        tags: data.tags || [],
+        tags,
       });
     } catch (error) {
       console.error('Failed to fetch article:', error);
