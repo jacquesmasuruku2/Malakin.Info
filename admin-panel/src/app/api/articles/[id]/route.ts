@@ -1,65 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { syncArticleTags, tagsFromArticle } from '@/lib/tags';
-import { tagNamesFromContent } from '@/lib/tag-name';
 import { ensureArticlePublicImages } from '@/lib/r2';
 import { revalidatePublicArticle } from '@/lib/revalidate-site';
 import { parseArticlePublishedAt } from '@/lib/datetime-local';
+import { buildArticleSlug } from '@/lib/article-slug';
 
 export const maxDuration = 60;
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET() {
   try {
-    const { id } = await params;
-    const article = await prisma.article.findUnique({
-      where: { id },
+    const articles = await prisma.article.findMany({
       include: {
         category: true,
         author: true,
-        articleTags: { include: { tag: true } },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
-    if (!article) {
-      return NextResponse.json({ error: 'Article not found' }, { status: 404 });
-    }
-    return NextResponse.json({
+
+    const serializedArticles = articles.map(article => ({
       ...article,
       views: Number(article.views),
-      tags: tagsFromArticle(article),
-    });
+    }));
+
+    return NextResponse.json(serializedArticles);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch article' }, { status: 500 });
+    console.error('Error fetching articles:', error);
+    return NextResponse.json({
+      error: 'Failed to fetch articles',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest) {
   try {
-    const { id } = await params;
     const rawBody = await request.json();
     const body = await ensureArticlePublicImages(rawBody);
-    const publishedAt = parseArticlePublishedAt(body.publishedAt);
-    const article = await prisma.article.update({
-      where: { id },
+    const publishedAt = parseArticlePublishedAt(body.publishedAt) || new Date();
+    const generatedSlug = buildArticleSlug(body.title, publishedAt);
+    const finalSlug = body.slug && /^\d{8}-/.test(String(body.slug)) ? body.slug : generatedSlug;
+
+    const article = await prisma.article.create({
       data: {
         title: body.title,
-        slug: body.slug,
+        slug: finalSlug,
         excerpt: body.excerpt,
         content: body.content,
         categoryId: body.categoryId,
         authorId: body.authorId || null,
         defaultLocale: body.defaultLocale || 'fr',
-        ...(publishedAt ? { publishedAt } : {}),
-        featured: body.featured,
-        isPremium: body.isPremium,
+        publishedAt,
+        featured: body.featured || false,
+        isPremium: body.isPremium || false,
         premiumPrice: body.premiumPrice ? parseFloat(body.premiumPrice) : null,
-        readTime: body.readTime ? String(body.readTime) : null,
-        mainImageUrl: body.mainImageUrl || null,
+        readTime: body.readTime,
+        mainImageUrl: body.mainImageUrl,
         mainImageAlt: body.mainImageAlt || null,
         externalLink: body.externalLink || null,
         additionalImages: body.additionalImages || [],
@@ -71,16 +69,10 @@ export async function PUT(
         articleTags: { include: { tag: true } },
       },
     });
-    if (body.tags !== undefined) {
-      await syncArticleTags(id, body.tags, body.content);
-    } else {
-      const extracted = tagNamesFromContent(body.content);
-      if (extracted.length) {
-        await syncArticleTags(id, [...tagsFromArticle(article), ...extracted], body.content);
-      }
-    }
+
+    await syncArticleTags(article.id, body.tags, body.content);
     const withTags = await prisma.article.findUnique({
-      where: { id },
+      where: { id: article.id },
       include: {
         category: true,
         author: true,
@@ -88,7 +80,6 @@ export async function PUT(
       },
     });
     const saved = withTags || article;
-    // Bounded wait: never hang the save if the public site is slow/unreachable.
     await revalidatePublicArticle({
       slug: saved.slug,
       categorySlug: saved.category?.slug,
@@ -97,39 +88,12 @@ export async function PUT(
       ...saved,
       views: Number(saved.views),
       tags: tagsFromArticle(saved),
-    });
+    }, { status: 201 });
   } catch (error) {
-    console.error('[articles PUT]', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to update article',
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 },
-    );
-  }
-}
-
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const existing = await prisma.article.findUnique({
-      where: { id },
-      include: { category: true },
-    });
-    await prisma.article.delete({
-      where: { id },
-    });
-    await revalidatePublicArticle({
-      slug: existing?.slug,
-      categorySlug: existing?.category?.slug,
-    });
-    return NextResponse.json({ message: 'Article deleted successfully' });
-  } catch (error) {
-    console.error('[articles DELETE]', error);
-    return NextResponse.json({ error: 'Failed to delete article' }, { status: 500 });
+    console.error('Error creating article:', error);
+    return NextResponse.json({
+      error: 'Failed to create article',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
