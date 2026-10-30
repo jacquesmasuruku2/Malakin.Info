@@ -1,138 +1,78 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { syncArticleTags, tagsFromArticle } from '@/lib/tags';
-import { tagNamesFromContent } from '@/lib/tag-name';
-import { ensureArticlePublicImages } from '@/lib/r2';
-import { revalidatePublicArticle } from '@/lib/revalidate-site';
-import { parseArticlePublishedAt } from '@/lib/datetime-local';
-import { buildArticleSlug } from '@/lib/article-slug';
+import Link from 'next/link';
+import SmartImage from '@/components/SmartImage';
+import { getDateLocale } from '@/lib/copy';
 
-export const maxDuration = 60;
+export type ListingArticle = {
+  id: string;
+  slug: string;
+  title: string;
+  publishedAt?: string | Date | null;
+  dateLabel?: string | null;
+  mainImageUrl?: string | null;
+  mainImageAlt?: string | null;
+  category?: { title?: string | null } | null;
+  categoryTitle?: string | null;
+};
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const article = await prisma.article.findUnique({
-      where: { id },
-      include: {
-        category: true,
-        author: true,
-        articleTags: { include: { tag: true } },
-      },
-    });
-    if (!article) {
-      return NextResponse.json({ error: 'Article not found' }, { status: 404 });
-    }
-    return NextResponse.json({
-      ...article,
-      views: Number(article.views),
-      tags: tagsFromArticle(article),
-    });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch article' }, { status: 500 });
-  }
-}
+export default function ArticleListingGrid({
+  articles,
+  locale,
+  hrefFor,
+}: {
+  articles: ListingArticle[];
+  locale: string;
+  hrefFor?: (article: ListingArticle) => string;
+}) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10 overflow-hidden">
+      {articles.map((item, index) => {
+        const href = hrefFor ? hrefFor(item) : `/${locale}/${item.slug}`;
+        const categoryTitle = item.categoryTitle || item.category?.title || null;
+        const publishedAt = item.publishedAt ? new Date(item.publishedAt) : null;
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const rawBody = await request.json();
-    const body = await ensureArticlePublicImages(rawBody);
-    const publishedAt = parseArticlePublishedAt(body.publishedAt) || new Date();
-    const generatedSlug = buildArticleSlug(body.title, publishedAt);
-    const finalSlug = body.slug && /^\d{8}-/.test(String(body.slug)) ? body.slug : generatedSlug;
-
-    const article = await prisma.article.update({
-      where: { id },
-      data: {
-        title: body.title,
-        slug: finalSlug,
-        excerpt: body.excerpt,
-        content: body.content,
-        categoryId: body.categoryId,
-        authorId: body.authorId || null,
-        defaultLocale: body.defaultLocale || 'fr',
-        publishedAt,
-        featured: body.featured,
-        isPremium: body.isPremium,
-        premiumPrice: body.premiumPrice ? parseFloat(body.premiumPrice) : null,
-        readTime: body.readTime ? String(body.readTime) : null,
-        mainImageUrl: body.mainImageUrl || null,
-        mainImageAlt: body.mainImageAlt || null,
-        externalLink: body.externalLink || null,
-        additionalImages: body.additionalImages || [],
-        additionalImageDescriptions: body.additionalImageDescriptions || [],
-      },
-      include: {
-        category: true,
-        author: true,
-        articleTags: { include: { tag: true } },
-      },
-    });
-    if (body.tags !== undefined) {
-      await syncArticleTags(id, body.tags, body.content);
-    } else {
-      const extracted = tagNamesFromContent(body.content);
-      if (extracted.length) {
-        await syncArticleTags(id, [...tagsFromArticle(article), ...extracted], body.content);
-      }
-    }
-    const withTags = await prisma.article.findUnique({
-      where: { id },
-      include: {
-        category: true,
-        author: true,
-        articleTags: { include: { tag: true } },
-      },
-    });
-    const saved = withTags || article;
-    await revalidatePublicArticle({
-      slug: saved.slug,
-      categorySlug: saved.category?.slug,
-    });
-    return NextResponse.json({
-      ...saved,
-      views: Number(saved.views),
-      tags: tagsFromArticle(saved),
-    });
-  } catch (error) {
-    console.error('[articles PUT]', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to update article',
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 },
-    );
-  }
-}
-
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const existing = await prisma.article.findUnique({
-      where: { id },
-      include: { category: true },
-    });
-    await prisma.article.delete({
-      where: { id },
-    });
-    await revalidatePublicArticle({
-      slug: existing?.slug,
-      categorySlug: existing?.category?.slug,
-    });
-    return NextResponse.json({ message: 'Article deleted successfully' });
-  } catch (error) {
-    console.error('[articles DELETE]', error);
-    return NextResponse.json({ error: 'Failed to delete article' }, { status: 500 });
-  }
+        return (
+          <article key={item.id} className="tag-story min-w-0 max-w-full">
+            <Link href={href} prefetch className="block group min-w-0 w-full">
+              {item.mainImageUrl ? (
+                <div className="mb-3 p-[5px] bg-white">
+                  <div className="article-preview-frame relative aspect-[16/10] w-full overflow-hidden">
+                    <SmartImage
+                      src={item.mainImageUrl}
+                      alt={item.mainImageAlt || item.title}
+                      fill
+                      priority={index < 3}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition-opacity duration-200 group-hover:opacity-90"
+                    />
+                  </div>
+                </div>
+              ) : null}
+              {categoryTitle ? (
+                <span className="mb-1.5 inline-block bg-primary px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+                  {categoryTitle}
+                </span>
+              ) : null}
+              {publishedAt ? (
+                <time
+                  dateTime={publishedAt.toISOString()}
+                  className="block text-xs text-muted-foreground mb-1"
+                >
+                  {publishedAt.toLocaleDateString(getDateLocale(locale), {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  })}
+                </time>
+              ) : item.dateLabel ? (
+                <span className="block text-xs text-muted-foreground mb-1">{item.dateLabel}</span>
+              ) : null}
+              <h2 className="text-[1.05rem] font-bold leading-snug text-foreground group-hover:text-primary line-clamp-3 break-words overflow-wrap-anywhere">
+                {item.title}
+              </h2>
+            </Link>
+          </article>
+        );
+      })}
+    </div>
+  );
 }
