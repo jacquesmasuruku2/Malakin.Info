@@ -25,7 +25,7 @@ export function buildSponsoredTrackingUrl(targetUrl: string, origin: string = 'h
     finalUrl = new URL(raw);
   }
 
-  finalUrl.searchParams.set('utm_source', 'malakinfo');
+  finalUrl.searchParams.set('utm_source', 'malakinfo.com');
   finalUrl.searchParams.set('utm_medium', 'sponsor');
   finalUrl.searchParams.set('utm_campaign', 'article_sponsor');
 
