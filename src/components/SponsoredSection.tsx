@@ -1,4 +1,5 @@
 import React from 'react';
+import { buildSponsoredTrackingUrl } from '@/lib/sponsored-tracking';
 
 export interface SponsoredItem {
   id: string;
@@ -26,11 +27,12 @@ export const SponsoredSection: React.FC<SponsoredSectionProps> = ({ items }) => 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {items.map((item) => {
             const badge = item.categoryBadge || 'Publicité';
+            const sponsorLink = buildSponsoredTrackingUrl(item.targetUrl);
 
             return (
               <a
                 key={item.id}
-                href={item.targetUrl}
+                href={sponsorLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex flex-col overflow-hidden bg-transparent transition-shadow duration-200 hover:shadow-sm"

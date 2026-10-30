@@ -1,3 +1,5 @@
+import { buildSponsoredTrackingUrl } from '@/lib/sponsored-tracking';
+
 export interface ArticleSidebarSponsor {
   id: string;
   title: string;
@@ -27,29 +29,33 @@ export default function ArticleSidebar({ sponsors }: ArticleSidebarProps) {
           </div>
 
           <div className="space-y-2">
-            {sponsors.map((item) => (
-              <a
-                key={item.id}
-                href={item.targetUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block"
-              >
-                <div className="flex items-center justify-center overflow-hidden bg-white">
-                  <img
-                    src={item.imageUrl}
-                    alt={item.title}
-                    className="block h-auto w-full object-cover"
-                  />
-                </div>
+            {sponsors.map((item) => {
+              const sponsorLink = buildSponsoredTrackingUrl(item.targetUrl);
 
-                <div className="mt-2">
-                  <h4 className="line-clamp-2 text-[12px] font-bold leading-snug text-[#0B3B8B] group-hover:text-[#D4AF37]">
-                    {item.title}
-                  </h4>
-                </div>
-              </a>
-            ))}
+              return (
+                <a
+                  key={item.id}
+                  href={sponsorLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group block"
+                >
+                  <div className="flex items-center justify-center overflow-hidden bg-white">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.title}
+                      className="block h-auto w-full object-cover"
+                    />
+                  </div>
+
+                  <div className="mt-2">
+                    <h4 className="line-clamp-2 text-[12px] font-bold leading-snug text-[#0B3B8B] group-hover:text-[#D4AF37]">
+                      {item.title}
+                    </h4>
+                  </div>
+                </a>
+              );
+            })}
           </div>
         </div>
       )}
