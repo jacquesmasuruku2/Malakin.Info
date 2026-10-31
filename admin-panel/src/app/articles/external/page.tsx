@@ -47,12 +47,20 @@ export default function ExternalArticlePage() {
         body: JSON.stringify({ url }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors de la récupération de l\'article');
+        throw new Error(
+          data.error
+          || (response.status === 401
+            ? 'Votre session administrateur a expiré. Reconnectez-vous puis réessayez.'
+            : `Erreur lors de la récupération de l’article (HTTP ${response.status}).`),
+        );
       }
 
+      if (typeof data.content !== 'string' || !data.content.trim()) {
+        throw new Error('Aucun contenu éditorial exploitable n’a été trouvé sur cette page.');
+      }
       setContent(data.content);
       
       // Extract title from URL as default
