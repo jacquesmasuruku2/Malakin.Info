@@ -15,8 +15,20 @@ import FavoriteButton from '@/components/FavoriteButton';
 import { getArticleTags } from '@/lib/tags';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 import ArticleDateMeta from '@/components/ArticleDateMeta';
+import ArticleLanguageLinks from '@/components/ArticleLanguageLinks';
+import type { Metadata } from 'next';
+import { getLocalizedArticleMetadata } from '@/lib/article-metadata';
 
 export const revalidate = 60;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string[] }>;
+}): Promise<Metadata> {
+  const { locale, slug } = await params;
+  return getLocalizedArticleMetadata(locale, slug[slug.length - 1]);
+}
 
 export default async function ActualitesCatchAllPage({ 
   params 
@@ -115,8 +127,8 @@ export default async function ActualitesCatchAllPage({
     }));
 
     const readTime = article.readTime ? `${article.readTime} ${t.readTime}` : `5 ${t.readTime}`;
-    const displayTitle = translatedArticle.title || article.title;
-    const displayExcerpt = translatedArticle.excerpt || article.excerpt;
+    const displayTitle = translatedArticle.title;
+    const displayExcerpt = translatedArticle.excerpt;
     const displayContent = typeof translatedArticle.content === 'string' ? translatedArticle.content : JSON.stringify(translatedArticle.content ?? '');
 
     return (
@@ -133,6 +145,7 @@ export default async function ActualitesCatchAllPage({
               <ArrowLeft className="w-4 h-4 mr-2" />
               {t.backTo} {translatedCategory.title || article.category?.title || 'Actualités'}
             </Link>
+            <ArticleLanguageLinks articleId={article.id} slug={articleSlug} locale={locale} />
           </div>
         </header>
 

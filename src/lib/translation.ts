@@ -1,23 +1,29 @@
+import 'server-only';
+import { Prisma } from '@prisma/client';
 import { prisma } from './prisma';
 import { translationCache, withCache } from './translationCache';
 
 export interface TranslationContent {
   title: string;
   excerpt: string;
-  content: any;
+  content: unknown;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  mainImageAlt?: string | null;
+  additionalImageDescriptions?: unknown;
 }
 
 export interface ArticleWithTranslation {
   id: string;
   title: string;
   excerpt: string;
-  content: any;
+  content: unknown;
   defaultLocale: string;
   translations: {
     locale: string;
     title: string;
     excerpt: string;
-    content: any;
+    content: unknown;
   }[];
 }
 
@@ -35,7 +41,7 @@ export interface CategoryWithTranslation {
 
 /**
  * Get article content in the requested locale (uncached)
- * Falls back to default locale if translation not available
+ * Only returns a published translation or content authored in the requested locale.
  */
 async function getArticleTranslationUncached(
   articleId: string,
@@ -43,10 +49,30 @@ async function getArticleTranslationUncached(
 ): Promise<TranslationContent> {
   const [article, translation] = await Promise.all([
     prisma.article.findUnique({
-      where: { id: articleId }
+      where: { id: articleId },
+      select: {
+        id: true,
+        title: true,
+        excerpt: true,
+        content: true,
+        mainImageAlt: true,
+        additionalImageDescriptions: true,
+        defaultLocale: true,
+        translationSourceUpdatedAt: true,
+      },
     }),
     prisma.articleTranslation.findFirst({
-      where: { articleId, locale }
+      where: { articleId, locale, status: 'published' },
+      select: {
+        title: true,
+        excerpt: true,
+        content: true,
+        seoTitle: true,
+        seoDescription: true,
+        mainImageAlt: true,
+        additionalImageDescriptions: true,
+        sourceUpdatedAt: true,
+      },
     })
   ]);
 
@@ -54,45 +80,48 @@ async function getArticleTranslationUncached(
     throw new Error('Article not found');
   }
 
-  // If translation exists for requested locale, use it
-  if (translation) {
+  if (
+    translation
+    && (!translation.sourceUpdatedAt
+      || translation.sourceUpdatedAt.getTime() === article.translationSourceUpdatedAt.getTime())
+  ) {
     return {
       title: translation.title,
       excerpt: translation.excerpt,
-      content: translation.content
+      content: translation.content,
+      seoTitle: translation.seoTitle,
+      seoDescription: translation.seoDescription,
+      mainImageAlt: translation.mainImageAlt,
+      additionalImageDescriptions: translation.additionalImageDescriptions,
     };
   }
 
-  // If no translation, check if default locale matches requested locale
   if (article.defaultLocale === locale) {
     return {
       title: article.title,
       excerpt: article.excerpt,
-      content: article.content
+      content: article.content,
+      mainImageAlt: article.mainImageAlt,
+      additionalImageDescriptions: article.additionalImageDescriptions,
     };
   }
 
-  // Fall back to default locale content
-  return {
-    title: article.title,
-    excerpt: article.excerpt,
-    content: article.content
-  };
+  throw new Error(`Published ${locale} translation is unavailable for article ${articleId}`);
 }
 
 /**
  * Get article content in the requested locale (with cache)
- * Falls back to default locale if translation not available
+ * Uses the process-local cache for already persisted translations.
  */
 export const getArticleTranslation = withCache(
   'article',
   getArticleTranslationUncached,
-  1000 * 60 * 30 // 30 minutes TTL
+  1000 * 60
 );
 
 /**
  * Get category content in the requested locale (uncached)
- * Falls back to default locale if translation not available
+ * Only returns a category translation or content authored in the requested locale.
  */
 async function getCategoryTranslationUncached(
   categoryId: string,
@@ -100,10 +129,12 @@ async function getCategoryTranslationUncached(
 ): Promise<{ title: string; description: string | null }> {
   const [category, translation] = await Promise.all([
     prisma.category.findUnique({
-      where: { id: categoryId }
+      where: { id: categoryId },
+      select: { title: true, description: true, defaultLocale: true },
     }),
     prisma.categoryTranslation.findFirst({
-      where: { categoryId, locale }
+      where: { categoryId, locale },
+      select: { title: true, description: true },
     })
   ]);
 
@@ -111,7 +142,6 @@ async function getCategoryTranslationUncached(
     throw new Error('Category not found');
   }
 
-  // If translation exists for requested locale, use it
   if (translation) {
     return {
       title: translation.title,
@@ -119,7 +149,6 @@ async function getCategoryTranslationUncached(
     };
   }
 
-  // If no translation, check if default locale matches requested locale
   if (category.defaultLocale === locale) {
     return {
       title: category.title,
@@ -127,11 +156,7 @@ async function getCategoryTranslationUncached(
     };
   }
 
-  // Fall back to default locale content
-  return {
-    title: category.title,
-    description: category.description
-  };
+  throw new Error(`Published ${locale} category translation is unavailable for category ${categoryId}`);
 }
 
 /**
@@ -141,7 +166,7 @@ async function getCategoryTranslationUncached(
 export const getCategoryTranslation = withCache(
   'category',
   getCategoryTranslationUncached,
-  1000 * 60 * 60 // 1 hour TTL
+  1000 * 60
 );
 
 /**
@@ -152,6 +177,12 @@ export async function saveArticleTranslation(
   locale: string,
   translation: TranslationContent
 ): Promise<void> {
+  const article = await prisma.article.findUnique({
+    where: { id: articleId },
+    select: { translationSourceUpdatedAt: true },
+  });
+  if (!article) throw new Error('Article not found');
+
   await prisma.articleTranslation.upsert({
     where: {
       articleId_locale: {
@@ -162,14 +193,18 @@ export async function saveArticleTranslation(
     update: {
       title: translation.title,
       excerpt: translation.excerpt,
-      content: translation.content
+      content: translation.content as Prisma.InputJsonValue,
+      status: 'draft',
+      sourceUpdatedAt: article.translationSourceUpdatedAt,
     },
     create: {
       articleId,
       locale,
       title: translation.title,
       excerpt: translation.excerpt,
-      content: translation.content
+      content: translation.content as Prisma.InputJsonValue,
+      status: 'draft',
+      sourceUpdatedAt: article.translationSourceUpdatedAt,
     }
   });
 
@@ -214,24 +249,43 @@ export async function saveCategoryTranslation(
 export async function getArticleTranslations(articleId: string) {
   const [article, translations] = await Promise.all([
     prisma.article.findUnique({
-      where: { id: articleId }
+      where: { id: articleId },
+      select: {
+        defaultLocale: true,
+        translationSourceUpdatedAt: true,
+        category: {
+          select: { id: true, defaultLocale: true },
+        },
+      },
     }),
     prisma.articleTranslation.findMany({
-      where: { articleId }
-    })
+      where: { articleId, status: 'published' },
+      select: { locale: true, sourceUpdatedAt: true },
+    }),
   ]);
 
-  if (!article) {
-    throw new Error('Article not found');
-  }
+  if (!article) throw new Error('Article not found');
+
+  const categoryTranslations = await prisma.categoryTranslation.findMany({
+    where: { categoryId: article.category.id },
+    select: { locale: true },
+  });
+  const availableCategoryLocales = new Set(categoryTranslations.map((item) => item.locale));
 
   return {
     defaultLocale: article.defaultLocale,
-    translations: translations.map(t => ({
-      locale: t.locale,
-      title: t.title,
-      excerpt: t.excerpt
-    }))
+    translations: translations
+      .filter((translation) =>
+        !translation.sourceUpdatedAt
+        || translation.sourceUpdatedAt.getTime() === article.translationSourceUpdatedAt.getTime()
+      )
+      .filter((translation) =>
+        article.category.defaultLocale === translation.locale
+        || availableCategoryLocales.has(translation.locale)
+      )
+      .map(t => ({
+        locale: t.locale,
+      }))
   };
 }
 
@@ -266,26 +320,28 @@ export async function applyCategoryLocales<T extends { id: string; title: string
   categories: T[],
   locale: string
 ): Promise<T[]> {
-  if (!categories.length || locale === 'fr') {
-    return categories;
-  }
+  if (!categories.length) return categories;
 
-  const translations = await prisma.categoryTranslation.findMany({
-    where: {
-      locale,
-      categoryId: { in: categories.map((category) => category.id) },
-    },
-    select: { categoryId: true, title: true },
-  });
-
-  if (translations.length === 0) {
-    return categories;
-  }
+  const [sources, translations] = await Promise.all([
+    prisma.category.findMany({
+      where: { id: { in: categories.map((category) => category.id) } },
+      select: { id: true, defaultLocale: true },
+    }),
+    prisma.categoryTranslation.findMany({
+      where: {
+        locale,
+        categoryId: { in: categories.map((category) => category.id) },
+      },
+      select: { categoryId: true, title: true },
+    }),
+  ]);
 
   const translated = new Map(translations.map((item) => [item.categoryId, item.title]));
-  return categories.map((category) => {
+  const sourceLocales = new Map(sources.map((item) => [item.id, item.defaultLocale]));
+  return categories.flatMap((category) => {
+    if (sourceLocales.get(category.id) === locale) return [category];
     const title = translated.get(category.id);
-    return title ? { ...category, title } : category;
+    return title ? [{ ...category, title }] : [];
   });
 }
 
@@ -294,46 +350,69 @@ export async function applyArticleLocales<
     id: string;
     title: string;
     excerpt: string;
+    categoryId?: string;
     category?: { id?: string; title?: string } | null;
   },
 >(articles: T[], locale: string): Promise<T[]> {
-  if (!articles.length || locale === 'fr') {
-    return articles;
-  }
+  if (!articles.length) return articles;
 
-  const [translations, categoryTranslations] = await Promise.all([
+  const categoryIds = articles
+    .map((article) => article.category?.id)
+    .filter((id): id is string => Boolean(id));
+  const [translations, categoryTranslations, sourceArticles, sourceCategories] = await Promise.all([
     prisma.articleTranslation.findMany({
       where: {
         locale,
         articleId: { in: articles.map((article) => article.id) },
+        status: 'published',
       },
-      select: { articleId: true, title: true, excerpt: true },
+      select: { articleId: true, title: true, excerpt: true, sourceUpdatedAt: true },
     }),
     prisma.categoryTranslation.findMany({
       where: {
         locale,
-        categoryId: {
-          in: articles
-            .map((article) => article.category?.id)
-            .filter((id): id is string => Boolean(id)),
-        },
+        categoryId: { in: categoryIds },
       },
       select: { categoryId: true, title: true },
+    }),
+    prisma.article.findMany({
+      where: { id: { in: articles.map((article) => article.id) } },
+      select: { id: true, defaultLocale: true, translationSourceUpdatedAt: true },
+    }),
+    prisma.category.findMany({
+      where: { id: { in: categoryIds } },
+      select: { id: true, defaultLocale: true },
     }),
   ]);
 
   const translated = new Map(translations.map((item) => [item.articleId, item]));
   const translatedCategories = new Map(categoryTranslations.map((item) => [item.categoryId, item.title]));
+  const sourceById = new Map(sourceArticles.map((item) => [item.id, item]));
+  const categoryLocaleById = new Map(sourceCategories.map((item) => [item.id, item.defaultLocale]));
 
-  return articles.map((article) => {
+  return articles.flatMap((article) => {
+    const source = sourceById.get(article.id);
     const match = translated.get(article.id);
+    const isSourceLocale = source?.defaultLocale === locale;
+    if (!isSourceLocale && (!match || (
+      match.sourceUpdatedAt
+      && match.sourceUpdatedAt.getTime() !== source?.translationSourceUpdatedAt.getTime()
+    ))) {
+      return [];
+    }
+
     const categoryTitle = article.category?.id ? translatedCategories.get(article.category.id) : undefined;
-    return {
+    const categoryIsSourceLocale = article.category?.id
+      ? categoryLocaleById.get(article.category.id) === locale
+      : true;
+    if (!categoryIsSourceLocale && !categoryTitle) return [];
+
+    return [{
       ...article,
-      ...(match ? { title: match.title, excerpt: match.excerpt } : {}),
-      ...(article.category && categoryTitle
+      ...(!isSourceLocale && match ? { title: match.title, excerpt: match.excerpt } : {}),
+      ...(article.category && categoryIsSourceLocale === false && categoryTitle
         ? { category: { ...article.category, title: categoryTitle } }
         : {}),
-    };
+    }];
   });
 }

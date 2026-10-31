@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, 
   FileText, 
+  BookOpen,
   FolderOpen, 
   Users, 
   Settings, 
@@ -59,6 +60,7 @@ export default function AdminLayout({
   const sidebarItems = [
     { name: 'Tableau de bord', href: '/', icon: LayoutDashboard },
     { name: 'Articles', href: '/articles', icon: FileText },
+    { name: 'Blogs', href: '/blog-posts', icon: BookOpen },
     { name: 'Catégories', href: '/categories', icon: FolderOpen },
     { name: 'Auteurs', href: '/authors', icon: Users },
     { name: 'Radio', href: '/radio', icon: Radio },

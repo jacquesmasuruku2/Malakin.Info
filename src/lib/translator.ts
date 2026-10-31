@@ -1,3 +1,5 @@
+import 'server-only';
+
 /**
  * Translation Service
  * Handles automatic translation of content using various translation APIs
@@ -23,7 +25,7 @@ export class Translator {
   private apiUrl: string;
   private apiKey?: string;
 
-  constructor(apiUrl: string = 'https://libretranslate.com/translate', apiKey?: string) {
+  constructor(apiUrl: string, apiKey?: string) {
     this.apiUrl = apiUrl;
     this.apiKey = apiKey;
   }
@@ -83,7 +85,6 @@ export class Translator {
       // Extract text content, translate it, then rebuild HTML
       const tagRegex = /<[^>]*>/g;
       const tags: string[] = [];
-      let cleanText = html;
       let match;
 
       // Extract and store tags
@@ -173,6 +174,10 @@ export class Translator {
  * This simulates translation by adding a prefix to show it's "translated"
  */ 
 export class MockTranslator extends Translator {
+  constructor() {
+    super('http://127.0.0.1:5000/translate');
+  }
+
   async translate(
     text: string,
     sourceLang: string,
@@ -234,14 +239,13 @@ export class MockTranslator extends Translator {
  * Get translator instance based on environment
  */
 export function getTranslator(): Translator {
-  const useMock = process.env.USE_MOCK_TRANSLATOR === 'true';
-  const apiUrl = process.env.TRANSLATION_API_URL;
-  const apiKey = process.env.TRANSLATION_API_KEY;
+  const useMock = process.env.NODE_ENV !== 'production'
+    && process.env.USE_MOCK_TRANSLATOR === 'true';
+  const apiUrl = process.env.LIBRETRANSLATE_URL;
+  const apiKey = process.env.LIBRETRANSLATE_API_KEY;
 
-  if (useMock || !apiUrl) {
-    console.log('Using mock translator for development');
-    return new MockTranslator();
-  }
+  if (useMock) return new MockTranslator();
+  if (!apiUrl) throw new Error('LIBRETRANSLATE_URL is not configured on the server.');
 
   return new Translator(apiUrl, apiKey);
 }

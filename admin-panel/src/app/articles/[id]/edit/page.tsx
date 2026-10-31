@@ -3,10 +3,9 @@
 import AdminLayout from '@/components/AdminLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import WordEditor from '@/components/WordEditor';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Save, Upload, X, Loader2 } from 'lucide-react';
-import { getApiUrl } from '@/lib/api';
 import TagInput from '@/components/TagInput';
 import { toDatetimeLocalValue } from '@/lib/datetime-local';
 
@@ -32,6 +31,36 @@ interface Article {
   tags?: Array<string | { name?: string | null; slug?: string | null }>;
 }
 
+interface ArticleTranslationDraft {
+  title: string;
+  excerpt: string;
+  content: string | Record<string, unknown>;
+  mainImageAlt: string;
+  additionalImageDescriptions: string[];
+  seoTitle: string;
+  seoDescription: string;
+  categoryTitle: string;
+  categoryDescription: string;
+  status: 'draft' | 'published';
+}
+
+function scheduleTranslationRefresh(
+  refresh: () => Promise<void>,
+  onError: (error: unknown) => void,
+) {
+  return setInterval(() => {
+    refresh().catch(onError);
+  }, 2500);
+}
+
+function scheduleEditorDataLoad(loaders: Array<() => Promise<void>>) {
+  return setTimeout(() => {
+    loaders.forEach((load) => {
+      void load();
+    });
+  }, 0);
+}
+
 export default function EditArticlePage() {
   const router = useRouter();
   const params = useParams();
@@ -44,6 +73,25 @@ export default function EditArticlePage() {
   const [autoSaving, setAutoSaving] = useState(false);
   const [translationLoading, setTranslationLoading] = useState(false);
   const [translationTargetLocale, setTranslationTargetLocale] = useState('en');
+  const [translation, setTranslation] = useState<ArticleTranslationDraft>({
+    title: '',
+    excerpt: '',
+    content: '',
+    mainImageAlt: '',
+    additionalImageDescriptions: [],
+    seoTitle: '',
+    seoDescription: '',
+    categoryTitle: '',
+    categoryDescription: '',
+    status: 'draft',
+  });
+  const [translationJob, setTranslationJob] = useState<{
+    status: string;
+    attempts: number;
+    lastError: string | null;
+  } | null>(null);
+  const [translationOutdated, setTranslationOutdated] = useState(false);
+  const [translationError, setTranslationError] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const localeOptions = ['fr', 'en', 'es', 'sw', 'ln', 'rw'];
   const [formData, setFormData] = useState<{
@@ -96,12 +144,6 @@ export default function EditArticlePage() {
     return () => clearTimeout(timer);
   }, [formData, articleId]);
 
-  useEffect(() => {
-    fetchArticle();
-    fetchCategories();
-    fetchAuthors();
-  }, [articleId]);
-
   const normalizeArticleContent = (content: unknown) => {
     if (typeof content === 'string') {
       return content || '<p></p>';
@@ -114,7 +156,36 @@ export default function EditArticlePage() {
     return '<p></p>';
   };
 
-  const fetchArticle = async () => {
+  const loadTranslation = useCallback(async (locale: string) => {
+    const response = await fetch(
+      `/api/articles/${articleId}/translations?locale=${encodeURIComponent(locale)}`,
+      { cache: 'no-store' },
+    );
+    const data = await response.json();
+    if (!response.ok) throw new Error(data?.error || 'Impossible de charger la traduction.');
+
+    const saved = data.translation;
+    const descriptions = saved?.additionalImageDescriptions;
+    setTranslationOutdated(saved?.status === 'outdated');
+    setTranslation({
+      title: saved?.title || '',
+      excerpt: saved?.excerpt || '',
+      content: saved?.content === undefined ? '' : normalizeArticleContent(saved.content),
+      mainImageAlt: saved?.mainImageAlt || '',
+      additionalImageDescriptions: Array.isArray(descriptions)
+        ? descriptions.map((description: unknown) => String(description ?? ''))
+        : [],
+      seoTitle: saved?.seoTitle || '',
+      seoDescription: saved?.seoDescription || '',
+      categoryTitle: data.category?.title || '',
+      categoryDescription: data.category?.description || '',
+      status: saved?.status === 'published' ? 'published' : 'draft',
+    });
+    setTranslationJob(data.job || null);
+    setTranslationError('');
+  }, [articleId]);
+
+  const fetchArticle = useCallback(async () => {
     try {
       const response = await fetch(`/api/articles/${articleId}`);
       const data: Article = await response.json();
@@ -145,14 +216,22 @@ export default function EditArticlePage() {
         additionalImageDescriptions: data.additionalImageDescriptions || [],
         tags,
       });
+      const targetLocale = data.defaultLocale === 'fr' ? 'en' : 'fr';
+      setTranslationTargetLocale(targetLocale);
+      try {
+        await loadTranslation(targetLocale);
+      } catch (error) {
+        console.error('Failed to fetch translation:', error);
+        setTranslationError(error instanceof Error ? error.message : 'Erreur de chargement.');
+      }
     } catch (error) {
       console.error('Failed to fetch article:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [articleId, loadTranslation]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await fetch('/api/categories');
       if (!response.ok) throw new Error('Failed to fetch categories');
@@ -161,9 +240,9 @@ export default function EditArticlePage() {
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     }
-  };
+  }, []);
 
-  const fetchAuthors = async () => {
+  const fetchAuthors = useCallback(async () => {
     try {
       const response = await fetch('/api/authors');
       const data = await response.json();
@@ -171,7 +250,25 @@ export default function EditArticlePage() {
     } catch (error) {
       console.error('Failed to fetch authors:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const timer = scheduleEditorDataLoad([fetchArticle, fetchCategories, fetchAuthors]);
+    return () => clearTimeout(timer);
+  }, [fetchArticle, fetchCategories, fetchAuthors]);
+
+  const refreshTranslation = useCallback(
+    () => loadTranslation(translationTargetLocale),
+    [loadTranslation, translationTargetLocale],
+  );
+  const translationJobStatus = translationJob?.status;
+  useEffect(() => {
+    if (!translationJobStatus || !['queued', 'processing'].includes(translationJobStatus)) return;
+    const timer = scheduleTranslationRefresh(refreshTranslation, (error) => {
+      console.error('Failed to refresh translation job:', error);
+    });
+    return () => clearInterval(timer);
+  }, [refreshTranslation, translationJobStatus]);
 
   const handleImageUpload = async (file: File, isMainImage: boolean = true, index?: number) => {
     setUploadingImage(true);
@@ -279,10 +376,10 @@ export default function EditArticlePage() {
     setTranslationLoading(true);
 
     try {
-      const response = await fetch(getApiUrl(`/api/translate/article/${articleId}`), {
+      const response = await fetch(`/api/articles/${articleId}/translations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetLocale: translationTargetLocale }),
+        body: JSON.stringify({ locale: translationTargetLocale }),
       });
 
       const data = await response.json();
@@ -291,10 +388,43 @@ export default function EditArticlePage() {
         throw new Error(data?.error || 'La traduction a échoué.');
       }
 
-      alert(data?.message || 'Traduction créée avec succès.');
+      setTranslationJob({ status: data.status || 'queued', attempts: 0, lastError: null });
+      alert('Traduction ajoutée à la file. Elle sera enregistrée en brouillon pour relecture.');
+      await refreshTranslation();
     } catch (error) {
       console.error('Failed to generate translation:', error);
       alert(error instanceof Error ? error.message : 'La traduction a échoué.');
+    } finally {
+      setTranslationLoading(false);
+    }
+  };
+
+  const handleSaveTranslation = async () => {
+    if (!translation.title.trim() || !translation.excerpt.trim() || !translation.categoryTitle.trim()) {
+      setTranslationError('Le titre, le chapeau et la catégorie traduits sont obligatoires.');
+      return;
+    }
+
+    setTranslationLoading(true);
+    setTranslationError('');
+    try {
+      const response = await fetch(
+        `/api/articles/${articleId}/translations/${translationTargetLocale}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...translation,
+            content: translation.content,
+          }),
+        },
+      );
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || 'Impossible d’enregistrer la traduction.');
+      await refreshTranslation();
+    } catch (error) {
+      console.error('Failed to save translation:', error);
+      setTranslationError(error instanceof Error ? error.message : 'Erreur de sauvegarde.');
     } finally {
       setTranslationLoading(false);
     }
@@ -323,8 +453,8 @@ export default function EditArticlePage() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-3xl font-bold text-primary tracking-tight">Modifier l'article</h1>
-                <p className="text-secondary mt-1">Modifier et publier l'article existant</p>
+                <h1 className="text-3xl font-bold text-primary tracking-tight">Modifier l&apos;article</h1>
+                <p className="text-secondary mt-1">Modifier et publier l&apos;article existant</p>
               </div>
               <div className="flex items-center gap-3">
                 {autoSaving && (
@@ -406,7 +536,7 @@ export default function EditArticlePage() {
 
             <div className="card rounded-xl shadow-sm border overflow-hidden lg:sticky lg:top-4">
               <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                <h2 className="text-lg font-semibold text-primary">Paramètres de l'article</h2>
+                <h2 className="text-lg font-semibold text-primary">Paramètres de l&apos;article</h2>
               </div>
               <div className="p-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -431,7 +561,11 @@ export default function EditArticlePage() {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Langue de base</label>
                     <select
                       value={formData.defaultLocale}
-                      onChange={(e) => setFormData({ ...formData, defaultLocale: e.target.value })}
+                      onChange={(e) => {
+                        const defaultLocale = e.target.value;
+                        setFormData({ ...formData, defaultLocale });
+                        setTranslationTargetLocale(defaultLocale === 'fr' ? 'en' : 'fr');
+                      }}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     >
                       {localeOptions.map((locale) => (
@@ -461,11 +595,18 @@ export default function EditArticlePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Créer une traduction</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Traduire l’article</label>
                     <div className="flex gap-2">
                       <select
                         value={translationTargetLocale}
-                        onChange={(e) => setTranslationTargetLocale(e.target.value)}
+                        onChange={(e) => {
+                          const locale = e.target.value;
+                          setTranslationTargetLocale(locale);
+                          loadTranslation(locale).catch((error) => {
+                            console.error('Failed to fetch translation:', error);
+                            setTranslationError(error instanceof Error ? error.message : 'Erreur de chargement.');
+                          });
+                        }}
                         className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       >
                         {localeOptions
@@ -482,9 +623,12 @@ export default function EditArticlePage() {
                         disabled={translationLoading}
                         className="px-4 py-3 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                       >
-                        {translationLoading ? '...' : 'Traduire'}
+                        {translationLoading ? '...' : 'Générer'}
                       </button>
                     </div>
+                    <p className="mt-2 text-xs text-gray-500">
+                      La génération crée un brouillon; la version publique ne change qu’après validation.
+                    </p>
                   </div>
                 </div>
 
@@ -567,17 +711,17 @@ export default function EditArticlePage() {
                       />
                     )}
                     <p className="text-sm text-gray-500">
-                      Collez l'URL de votre image ou uploadez-la directement vers Cloudflare R2.
+                      Collez l&apos;URL de votre image ou uploadez-la directement vers Cloudflare R2.
                     </p>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Images supplémentaires (jusqu'à 4)
+                    Images supplémentaires (jusqu&apos;à 4)
                   </label>
                   <p className="text-sm text-gray-500 mb-3">
-                    Ajoutez jusqu'à 4 images supplémentaires pour illustrer votre article (captures d'écran, etc.).
+                    Ajoutez jusqu&apos;à 4 images supplémentaires pour illustrer votre article (captures d&apos;écran, etc.).
                   </p>
                   <div className="space-y-3">
                     {formData.additionalImages.map((url, index) => (
@@ -673,7 +817,7 @@ export default function EditArticlePage() {
                     placeholder="https://www.example.com"
                   />
                   <p className="text-sm text-gray-500 mt-2">
-                    Si ce champ est rempli, les visiteurs seront redirigés vers cette URL au clic sur l'article.
+                    Si ce champ est rempli, les visiteurs seront redirigés vers cette URL au clic sur l&apos;article.
                   </p>
                 </div>
 
@@ -711,7 +855,7 @@ export default function EditArticlePage() {
                 {formData.isPremium && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Prix de l'article ($)
+                      Prix de l&apos;article ($)
                     </label>
                     <input
                       type="number"
@@ -729,6 +873,175 @@ export default function EditArticlePage() {
               </div>
             </div>
             </div>
+
+            <section className="card rounded-xl border p-6 shadow-sm">
+              <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-primary">Éditeur de traduction</h2>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Corrigez la traduction complète, ses métadonnées et les textes éditoriaux associés.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-gray-100 px-3 py-1 text-sm">
+                    Tâche : {translationJob?.status || 'aucune'}
+                  </span>
+                  {translationJob && (
+                    <span className="text-xs text-gray-500">Tentatives : {translationJob.attempts}</span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => refreshTranslation().catch((error) => {
+                      setTranslationError(error instanceof Error ? error.message : 'Erreur de chargement.');
+                    })}
+                    className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+                  >
+                    Actualiser
+                  </button>
+                </div>
+              </div>
+
+              {translationJob?.lastError && (
+                <p role="alert" className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                  Échec : {translationJob.lastError}
+                </p>
+              )}
+              {translationOutdated && (
+                <p role="status" className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+                  Le contenu source a changé. Cette traduction est obsolète et n’est plus publiée; relisez-la ou régénérez-la avant de la publier.
+                </p>
+              )}
+              {translationError && (
+                <p role="alert" className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                  {translationError}
+                </p>
+              )}
+              {!translation.title && (
+                <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+                  Aucune traduction enregistrée pour cette langue. Générez-en une ou saisissez-la ci-dessous.
+                </p>
+              )}
+
+              <div className="grid gap-5 lg:grid-cols-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Titre
+                  <input
+                    value={translation.title}
+                    onChange={(event) => setTranslation({ ...translation, title: event.target.value })}
+                    className="mt-2 w-full rounded-lg border px-3 py-2 font-normal"
+                  />
+                </label>
+                <label className="block text-sm font-semibold text-gray-700">
+                  Catégorie
+                  <input
+                    value={translation.categoryTitle}
+                    onChange={(event) => setTranslation({ ...translation, categoryTitle: event.target.value })}
+                    className="mt-2 w-full rounded-lg border px-3 py-2 font-normal"
+                  />
+                </label>
+                <label className="block text-sm font-semibold text-gray-700 lg:col-span-2">
+                  Chapeau
+                  <textarea
+                    value={translation.excerpt}
+                    onChange={(event) => setTranslation({ ...translation, excerpt: event.target.value })}
+                    rows={3}
+                    className="mt-2 w-full rounded-lg border px-3 py-2 font-normal"
+                  />
+                </label>
+                <label className="block text-sm font-semibold text-gray-700 lg:col-span-2">
+                  Article complet
+                  <div className="mt-2">
+                    <WordEditor
+                      content={translation.content}
+                      onChange={(content) => setTranslation({ ...translation, content })}
+                      locale={translationTargetLocale}
+                      enableSocialEmbed
+                    />
+                  </div>
+                </label>
+                <label className="block text-sm font-semibold text-gray-700">
+                  Texte alternatif de l’image principale
+                  <input
+                    value={translation.mainImageAlt}
+                    onChange={(event) => setTranslation({ ...translation, mainImageAlt: event.target.value })}
+                    className="mt-2 w-full rounded-lg border px-3 py-2 font-normal"
+                  />
+                </label>
+                <label className="block text-sm font-semibold text-gray-700">
+                  Description de la catégorie
+                  <textarea
+                    value={translation.categoryDescription}
+                    onChange={(event) => setTranslation({ ...translation, categoryDescription: event.target.value })}
+                    rows={2}
+                    className="mt-2 w-full rounded-lg border px-3 py-2 font-normal"
+                  />
+                </label>
+                <label className="block text-sm font-semibold text-gray-700">
+                  Titre SEO
+                  <input
+                    value={translation.seoTitle}
+                    onChange={(event) => setTranslation({ ...translation, seoTitle: event.target.value })}
+                    className="mt-2 w-full rounded-lg border px-3 py-2 font-normal"
+                  />
+                </label>
+                <label className="block text-sm font-semibold text-gray-700">
+                  Description SEO
+                  <textarea
+                    value={translation.seoDescription}
+                    onChange={(event) => setTranslation({ ...translation, seoDescription: event.target.value })}
+                    rows={2}
+                    className="mt-2 w-full rounded-lg border px-3 py-2 font-normal"
+                  />
+                </label>
+                {formData.additionalImages.length > 0 && (
+                  <div className="lg:col-span-2">
+                    <p className="mb-2 text-sm font-semibold text-gray-700">Légendes des images supplémentaires</p>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {formData.additionalImages.map((_, index) => (
+                        <input
+                          key={index}
+                          value={translation.additionalImageDescriptions[index] || ''}
+                          onChange={(event) => {
+                            const descriptions = [...translation.additionalImageDescriptions];
+                            descriptions[index] = event.target.value;
+                            setTranslation({ ...translation, additionalImageDescriptions: descriptions });
+                          }}
+                          aria-label={`Légende traduite de l’image ${index + 1}`}
+                          placeholder={`Légende de l’image ${index + 1}`}
+                          className="w-full rounded-lg border px-3 py-2"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <label className="block text-sm font-semibold text-gray-700">
+                  État éditorial
+                  <select
+                    value={translation.status}
+                    onChange={(event) => setTranslation({
+                      ...translation,
+                      status: event.target.value === 'published' ? 'published' : 'draft',
+                    })}
+                    className="mt-2 w-full rounded-lg border px-3 py-2 font-normal"
+                  >
+                    <option value="draft">Brouillon (non indexable)</option>
+                    <option value="published">Publier cette traduction</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSaveTranslation}
+                  disabled={translationLoading}
+                  className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  <Save className="h-4 w-4" />
+                  {translationLoading ? 'Enregistrement...' : 'Enregistrer la traduction'}
+                </button>
+              </div>
+            </section>
 
             <div className="flex items-center justify-end gap-4 pt-6">
               <button

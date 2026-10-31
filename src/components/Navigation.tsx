@@ -267,6 +267,9 @@ export default function Navigation() {
               >
                 <Menu className="h-6 w-6" />
               </button>
+              <Link href={`/${locale}/blog`} className="rounded-full border border-border px-3 py-2 text-xs font-semibold">
+                {locale === 'en' ? 'Blogs' : 'Blogs'}
+              </Link>
             </div>
 
             <div className="pointer-events-none absolute left-12 right-12 top-1/2 flex -translate-y-1/2 justify-center sm:left-20 sm:right-20 md:left-0 md:right-0">
@@ -413,6 +416,9 @@ export default function Navigation() {
             </Link>
             <Link href={`/${locale}/actualites`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.news}
+            </Link>
+            <Link href={`/${locale}/blog`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
+              {locale === 'en' ? 'Blogs' : 'Blogs'}
             </Link>
             <Link href={`/${locale}/politique`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.politics}

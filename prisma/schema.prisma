@@ -72,9 +72,12 @@ model Article {
   views             BigInt             @default(0)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
+  translationSourceUpdatedAt DateTime   @default(now())
   defaultLocale     String             @default("fr")
   author            Author?            @relation(fields: [authorId], references: [id])
   category          Category           @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  translations      ArticleTranslation[]
+  translationJobs   TranslationJob[]
   comments          Comment[]
   likes             Like[]
   favorites         UserFavorite[]
@@ -133,18 +136,45 @@ model SponsoredArticle {
 }
 
 model ArticleTranslation {
-  id        String   @id @default(cuid())
-  articleId String
-  locale    String
-  title     String
-  excerpt   String
-  content   Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(cuid())
+  articleId       String
+  locale          String
+  title           String
+  excerpt         String
+  content         Json
+  mainImageAlt    String?
+  additionalImageDescriptions Json?
+  seoTitle        String?
+  seoDescription  String?
+  status          String   @default("published")
+  sourceUpdatedAt DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  article         Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   @@unique([articleId, locale])
   @@index([articleId])
   @@index([locale])
+  @@index([status, locale])
+}
+
+model TranslationJob {
+  id              String   @id @default(cuid())
+  articleId       String
+  locale          String
+  status          String   @default("queued")
+  attempts        Int      @default(0)
+  lastError       String?
+  sourceUpdatedAt DateTime?
+  queuedAt        DateTime @default(now())
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  article         Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, locale])
+  @@index([status, queuedAt])
 }
 
 model User {
@@ -452,26 +482,71 @@ model JobApplicationMessage {
 }
 
 model BlogPost {
-  id           String   @id @default(cuid())
-  title        String
-  slug         String   @unique
-  excerpt      String
-  content      Json
-  type         String
-  authorId     String?
-  publishedAt  DateTime
-  mainImageUrl String?
-  mainImageAlt String?
-  readTime     String?
-  featured     Boolean  @default(false)
-  views        BigInt   @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  author       Author?  @relation(fields: [authorId], references: [id])
+  id                        String                      @id @default(cuid())
+  title                     String
+  slug                      String                      @unique
+  excerpt                   String
+  content                   Json
+  type                      String
+  authorId                  String?
+  publishedAt               DateTime
+  mainImageUrl              String?
+  mainImageAlt              String?
+  readTime                  String?
+  featured                  Boolean                     @default(false)
+  views                     BigInt                      @default(0)
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime                    @updatedAt
+  defaultLocale             String                      @default("fr")
+  translationSourceUpdatedAt DateTime                    @default(now())
+  author                    Author?                     @relation(fields: [authorId], references: [id])
+  translations              BlogPostTranslation[]
+  translationJobs           BlogPostTranslationJob[]
 
   @@index([type])
   @@index([publishedAt(sort: Desc)])
   @@index([featured])
+}
+
+model BlogPostTranslation {
+  id              String   @id @default(cuid())
+  blogPostId      String
+  locale          String
+  title           String
+  excerpt         String
+  content         Json
+  mainImageAlt    String?
+  seoTitle        String?
+  seoDescription  String?
+  status          String   @default("draft")
+  sourceUpdatedAt DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  blogPost        BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+
+  @@unique([blogPostId, locale])
+  @@index([blogPostId])
+  @@index([locale])
+  @@index([status, locale])
+}
+
+model BlogPostTranslationJob {
+  id              String   @id @default(cuid())
+  blogPostId      String
+  locale          String
+  status          String   @default("queued")
+  attempts        Int      @default(0)
+  lastError       String?
+  sourceUpdatedAt DateTime?
+  queuedAt        DateTime @default(now())
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  blogPost        BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+
+  @@unique([blogPostId, locale])
+  @@index([status, queuedAt])
 }
 
 model LiveEvent {

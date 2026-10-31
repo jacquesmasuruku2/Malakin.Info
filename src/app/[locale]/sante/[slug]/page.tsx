@@ -22,6 +22,8 @@ import { getPremiumPreviewContent, hasPremiumAccess } from '@/lib/premium-access
 import { withRetry } from '@/lib/database';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 import ArticleDateMeta from '@/components/ArticleDateMeta';
+import ArticleLanguageLinks from '@/components/ArticleLanguageLinks';
+import { getLocalizedArticleMetadata } from '@/lib/article-metadata';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -32,61 +34,7 @@ export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; category: string; slug: string }> }): Promise<Metadata> {
   const { locale, category, slug } = await params;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com';
-
-  const article = await withRetry(() => prisma.article.findUnique({
-    where: { slug },
-    include: {
-      category: true,
-      author: true,
-    },
-  } as any)) as any;
-
-  if (!article) {
-    return {
-      title: 'Article non trouvé | Malakinfo.com',
-    };
-  }
-
-  const canonicalUrl = `${baseUrl}/${locale}/${slug}`;
-  const absoluteImageUrl = article.mainImageUrl
-    ? (article.mainImageUrl.startsWith('http') ? article.mainImageUrl : `${baseUrl}${article.mainImageUrl}`)
-    : null;
-
-  return {
-    title: article.title,
-    description: article.excerpt || article.title,
-    icons: {
-      icon: absoluteImageUrl ?? '/images/logo.png',
-      shortcut: absoluteImageUrl ?? '/images/logo.png',
-      apple: absoluteImageUrl ?? '/images/logo.png',
-    },
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    openGraph: {
-      type: 'article',
-      locale: locale === 'fr' ? 'fr_FR' : 'en_US',
-      url: canonicalUrl,
-      title: article.title,
-      description: article.excerpt || article.title,
-      siteName: 'MalakInfo',
-      images: absoluteImageUrl ? [
-        {
-          url: absoluteImageUrl,
-          width: 1200,
-          height: 630,
-          alt: article.title,
-        },
-      ] : [],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: article.title,
-      description: article.excerpt || article.title,
-      images: absoluteImageUrl ? [absoluteImageUrl] : [],
-    },
-  };
+  return getLocalizedArticleMetadata(locale, slug);
 }
 
 export default async function ArticlePage({

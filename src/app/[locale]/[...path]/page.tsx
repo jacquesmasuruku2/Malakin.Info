@@ -1,6 +1,5 @@
-import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { Calendar, Clock, User, ArrowLeft } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import { notFound, redirect } from 'next/navigation';
 import { Metadata } from 'next';
 import CommentsSection from '@/components/CommentsSection';
@@ -12,7 +11,12 @@ import ReadAlsoRenderer from '@/components/ReadAlsoRenderer';
 import ArticleSidebar, { type ArticleSidebarSponsor } from '@/components/ArticleSidebar';
 import { SponsoredSection } from '@/components/SponsoredSection';
 import ViewIncrementer from '@/components/ViewIncrementer';
-import { getArticleTranslation, getCategoryTranslation, applyArticleLocales } from '@/lib/translation';
+import {
+  getArticleTranslation,
+  getArticleTranslations,
+  getCategoryTranslation,
+  applyArticleLocales,
+} from '@/lib/translation';
 import { getMessages } from '@/lib/i18n';
 import { pickCopy, t as ui } from '@/lib/copy';
 import { getPremiumPreviewContent, hasPremiumAccess } from '@/lib/premium-access';
@@ -23,6 +27,7 @@ import FavoriteButton from '@/components/FavoriteButton';
 import { getArticleTags, prepareArticleHtml, normalizeArticleHtmlContent } from '@/lib/tags';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 import ArticleDateMeta from '@/components/ArticleDateMeta';
+import ArticleLanguageLinks from '@/components/ArticleLanguageLinks';
 
 export const revalidate = 60;
 
@@ -55,7 +60,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       }
 
       return {
-        title: 'Article non trouvé | Malakinfo.com',
+        title: 'Article unavailable | MalakInfo',
+        robots: { index: false, follow: true },
       };
     }
 
@@ -63,15 +69,29 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const canonicalUrl = `${baseUrl}/${locale}/${slug}`;
     const translatedArticle = await getArticleTranslation(article.id, locale);
     const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
+    const availableTranslations = await getArticleTranslations(article.id);
+    const languageAlternates = Object.fromEntries(
+      [...new Set([article.defaultLocale, ...availableTranslations.translations.map((item) => item.locale)])]
+        .filter((item) => item === 'fr' || item === 'en')
+        .map((item) => [item === 'fr' ? 'fr-FR' : 'en-US', `${baseUrl}/${item}/${slug}`]),
+    );
+    const metadataTitle = translatedArticle.seoTitle || translatedArticle.title;
+    const metadataDescription = translatedArticle.seoDescription || translatedArticle.excerpt;
 
     const absoluteImageUrl = article.mainImageUrl
       ? (article.mainImageUrl.startsWith('http') ? article.mainImageUrl : `${baseUrl}${article.mainImageUrl}`)
       : null;
 
     return {
-      title: translatedArticle.title || article.title,
-      description: translatedArticle.excerpt || article.excerpt || article.title,
-      keywords: [translatedCategory.title || article.category?.title || 'actualités', 'MalakInfo', 'Malaki', 'Malaki Info', 'Afrique', 'actualités'],
+      title: metadataTitle,
+      description: metadataDescription,
+      keywords: [
+        translatedCategory.title,
+        'MalakInfo',
+        'Malaki',
+        'Malaki Info',
+        ...(locale === 'en' ? ['Africa', 'news', 'journalism'] : ['Afrique', 'actualités', 'journalisme']),
+      ],
       authors: article.author ? [{ name: article.author.name }] : [{ name: 'MalakInfo' }],
       creator: 'MalakInfo',
       publisher: 'MalakInfo',
@@ -82,13 +102,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       },
       alternates: {
         canonical: canonicalUrl,
+        languages: languageAlternates,
       },
       openGraph: {
         type: 'article',
         locale: locale === 'fr' ? 'fr_FR' : 'en_US',
         url: canonicalUrl,
-        title: translatedArticle.title || article.title,
-        description: translatedArticle.excerpt || article.excerpt || article.title,
+        title: metadataTitle,
+        description: metadataDescription,
         siteName: 'MalakInfo',
         publishedTime: article.publishedAt?.toISOString(),
         modifiedTime: article.updatedAt?.toISOString(),
@@ -99,21 +120,23 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
             url: absoluteImageUrl,
             width: 1200,
             height: 630,
-            alt: translatedArticle.title || article.title,
+            alt: translatedArticle.title,
           },
         ] : [],
       },
       twitter: {
         card: 'summary_large_image',
-        title: translatedArticle.title || article.title,
-        description: translatedArticle.excerpt || article.excerpt || article.title,
+        title: metadataTitle,
+        description: metadataDescription,
         images: absoluteImageUrl ? [absoluteImageUrl] : [],
         creator: '@Malakinfo1',
       },
     };
   } catch (error) {
+    console.error('[article metadata]', error);
     return {
-      title: 'Erreur | Malakinfo.com',
+      title: 'Article unavailable | MalakInfo',
+      robots: { index: false, follow: true },
     };
   }
 }
@@ -152,7 +175,6 @@ export default async function CatchAllArticlePage({
               title={translatedCategory.title || category.title}
               description={
                 translatedCategory.description
-                || category.description
                 || pickCopy(locale, {
                   fr: 'Retrouvez les articles de cette rubrique.',
                   en: 'Browse articles from this section.',
@@ -187,8 +209,9 @@ export default async function CatchAllArticlePage({
     const translatedArticle = await getArticleTranslation(article.id, locale);
     const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
     const premiumAccess = article.isPremium ? await hasPremiumAccess(article.id) : true;
-    const displayTitle = translatedArticle.title || article.title;
-    const displayExcerpt = translatedArticle.excerpt || article.excerpt;
+    const displayTitle = translatedArticle.title;
+    const displayExcerpt = translatedArticle.excerpt;
+    const displayMainImageAlt = translatedArticle.mainImageAlt || translatedArticle.title;
     const displayContent = premiumAccess
       ? normalizeArticleHtmlContent(translatedArticle.content)
       : '';
@@ -312,6 +335,7 @@ export default async function CatchAllArticlePage({
                   },
                 ]}
               />
+              <ArticleLanguageLinks articleId={article.id} slug={slug} locale={locale} />
             </div>
           </header>
 
@@ -360,12 +384,12 @@ export default async function CatchAllArticlePage({
                     <div className="article-image-frame">
                       <img
                         src={article.mainImageUrl}
-                        alt={article.mainImageAlt || displayTitle}
+                        alt={displayMainImageAlt}
                         className="h-auto w-full object-cover"
                       />
                     </div>
-                    {article.mainImageAlt && (
-                      <p className="mt-2 text-sm italic text-gray-500">{article.mainImageAlt}</p>
+                    {displayMainImageAlt && (
+                      <p className="mt-2 text-sm italic text-gray-500">{displayMainImageAlt}</p>
                     )}
                   </div>
                 )}

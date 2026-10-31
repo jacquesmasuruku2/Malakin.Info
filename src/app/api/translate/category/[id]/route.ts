@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getTranslator } from '@/lib/translator';
 import { saveCategoryTranslation } from '@/lib/translation';
+import { isTranslationAdminAuthorized } from '@/lib/translation-auth';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!isTranslationAdminAuthorized(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -17,6 +22,9 @@ export async function POST(
         { error: 'Target locale is required' },
         { status: 400 }
       );
+    }
+    if (!['fr', 'en', 'es', 'sw', 'ln', 'rw'].includes(targetLocale)) {
+      return NextResponse.json({ error: 'Unsupported target locale' }, { status: 400 });
     }
 
     // Get the category
@@ -32,10 +40,12 @@ export async function POST(
     }
 
     // Check if translation already exists
-    const existingTranslation = await (prisma as any).categoryTranslation.findFirst({
+    const existingTranslation = await prisma.categoryTranslation.findUnique({
       where: {
-        categoryId: id,
-        locale: targetLocale
+        categoryId_locale: {
+          categoryId: id,
+          locale: targetLocale,
+        },
       }
     });
 

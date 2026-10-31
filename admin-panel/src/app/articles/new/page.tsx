@@ -111,10 +111,10 @@ export default function NewArticlePage() {
       ) {
         setTranslationLoading(true);
         try {
-          const translationResponse = await fetch(`/api/translate/article/${createdArticle.id}`, {
+          const translationResponse = await fetch(`/api/articles/${createdArticle.id}/translations`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ targetLocale: translationTargetLocale }),
+            body: JSON.stringify({ locale: translationTargetLocale }),
           });
 
           if (!translationResponse.ok) {
@@ -363,7 +363,11 @@ export default function NewArticlePage() {
                     </label>
                     <select
                       value={formData.defaultLocale}
-                      onChange={(e) => setFormData({ ...formData, defaultLocale: e.target.value })}
+                      onChange={(e) => {
+                        const defaultLocale = e.target.value;
+                        setFormData({ ...formData, defaultLocale });
+                        setTranslationTargetLocale(defaultLocale === 'fr' ? 'en' : 'fr');
+                      }}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     >
                       {localeOptions.map((locale) => (

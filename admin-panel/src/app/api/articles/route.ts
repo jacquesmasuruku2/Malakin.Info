@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
     await revalidatePublicArticle({
       slug: saved.slug,
       categorySlug: saved.category?.slug,
+      paths: ['/sitemap.xml'],
     });
     return NextResponse.json({
       ...saved,

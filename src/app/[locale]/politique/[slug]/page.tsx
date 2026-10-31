@@ -4,6 +4,18 @@ import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, ArrowLeft, Share2, Bookmark } from 'lucide-react';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 import { getArticleTags, prepareArticleHtml, normalizeArticleHtmlContent } from '@/lib/tags';
+import type { Metadata } from 'next';
+import { getLocalizedArticleMetadata } from '@/lib/article-metadata';
+import ArticleLanguageLinks from '@/components/ArticleLanguageLinks';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}): Promise<Metadata> {
+  const { locale, slug } = await params;
+  return getLocalizedArticleMetadata(locale, slug);
+}
 
 export default async function SanteArticlePage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params;
@@ -42,6 +54,7 @@ export default async function SanteArticlePage({ params }: { params: Promise<{ l
         </Link>
 
         <header className="mb-8">
+          <ArticleLanguageLinks articleId={article.id} slug={slug} locale={locale} />
           <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
             <span className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
@@ -77,11 +90,11 @@ export default async function SanteArticlePage({ params }: { params: Promise<{ l
         <div className="flex items-center gap-4 border-t border-border pt-6">
           <button className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <Share2 className="w-4 h-4" />
-            Partager
+            {locale === 'en' ? 'Share' : 'Partager'}
           </button>
           <button className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <Bookmark className="w-4 h-4" />
-            Sauvegarder
+            {locale === 'en' ? 'Save' : 'Sauvegarder'}
           </button>
         </div>
       </article>

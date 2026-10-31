@@ -1,31 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isTranslationAdminAuthorized } from '@/lib/translation-auth';
 
-const SUPPORTED_TRANSLATION_LOCALES = ['fr', 'en', 'es', 'sw'] as const;
+const SUPPORTED_TRANSLATION_LOCALES = ['fr', 'en', 'es', 'sw', 'ln', 'rw'] as const;
 type SupportedTranslationLocale = (typeof SUPPORTED_TRANSLATION_LOCALES)[number];
-
-const FALLBACK_LOCALE: SupportedTranslationLocale = 'fr';
-const LIBRETRANSLATE_URL =
-  process.env.LIBRETRANSLATE_URL ?? 'http://127.0.0.1:5000/translate';
-
-function resolveLocale(locale?: string | null): SupportedTranslationLocale {
-  const normalized = (locale ?? 'fr').toLowerCase();
-
-  if (normalized === 'ln' || normalized === 'rw') {
-    return FALLBACK_LOCALE;
-  }
-
-  if ((SUPPORTED_TRANSLATION_LOCALES as readonly string[]).includes(normalized)) {
-    return normalized as SupportedTranslationLocale;
-  }
-
-  return FALLBACK_LOCALE;
-}
 
 function isPlainText(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
 export async function POST(request: NextRequest) {
+  if (!isTranslationAdminAuthorized(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
     const text = body?.text;
@@ -41,11 +28,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const resolvedSourceLang = resolveLocale(sourceLang);
-    const resolvedTargetLang = resolveLocale(targetLang);
+    if (
+      !(SUPPORTED_TRANSLATION_LOCALES as readonly string[]).includes(sourceLang)
+      || !(SUPPORTED_TRANSLATION_LOCALES as readonly string[]).includes(targetLang)
+    ) {
+      return NextResponse.json({ error: 'Unsupported source or target locale.' }, { status: 400 });
+    }
 
-    // Le serveur LibreTranslate ne supporte pas les langues non incluses dans ses modèles.
-    // Pour 'ln' et 'rw', on bascule automatiquement sur 'fr'.
+    const resolvedSourceLang = sourceLang as SupportedTranslationLocale;
+    const resolvedTargetLang = targetLang as SupportedTranslationLocale;
+    const libreTranslateUrl = process.env.LIBRETRANSLATE_URL;
+    if (!libreTranslateUrl) {
+      return NextResponse.json({ error: 'Translation service is not configured.' }, { status: 503 });
+    }
+
     const payload = {
       q: text,
       source: resolvedSourceLang,
@@ -56,12 +52,14 @@ export async function POST(request: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-    const response = await fetch(LIBRETRANSLATE_URL, {
+    const apiKey = process.env.LIBRETRANSLATE_API_KEY;
+    const response = await fetch(libreTranslateUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(apiKey ? { 'x-api-key': apiKey } : {}),
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, ...(apiKey ? { api_key: apiKey } : {}) }),
       signal: controller.signal,
     });
 
@@ -105,8 +103,5 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  return NextResponse.json({
-    ok: true,
-    message: 'Route de traduction accessible. Utiliser une requête POST avec { text, sourceLang, targetLang }.',
-  });
+  return NextResponse.json({ error: 'Method not allowed.' }, { status: 405 });
 }

@@ -15,8 +15,20 @@ import FavoriteButton from '@/components/FavoriteButton';
 import { getArticleTags } from '@/lib/tags';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 import ArticleDateMeta from '@/components/ArticleDateMeta';
+import ArticleLanguageLinks from '@/components/ArticleLanguageLinks';
+import type { Metadata } from 'next';
+import { getLocalizedArticleMetadata } from '@/lib/article-metadata';
 
 export const revalidate = 60;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string[] }>;
+}): Promise<Metadata> {
+  const { locale, slug } = await params;
+  return getLocalizedArticleMetadata(locale, slug[slug.length - 1]);
+}
 
 export default async function CultureCatchAllPage({ 
   params 
@@ -126,6 +138,7 @@ export default async function CultureCatchAllPage({
         {/* Header */}
         <header className="bg-muted/50 border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
               href={`/${locale}/${article.category?.slug || 'actualites'}`}
               className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors"
@@ -133,6 +146,8 @@ export default async function CultureCatchAllPage({
               <ArrowLeft className="w-4 h-4 mr-2" />
               {t.backTo} {translatedCategory.title || article.category?.title || 'Actualités'}
             </Link>
+            <ArticleLanguageLinks articleId={article.id} slug={articleSlug} locale={locale} />
+            </div>
           </div>
         </header>
 

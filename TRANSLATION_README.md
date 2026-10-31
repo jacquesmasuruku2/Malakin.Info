@@ -1,187 +1,46 @@
-# Système de Traduction Multilingue
+# Traductions éditoriales (français / anglais)
 
-## Vue d'ensemble
+## Architecture en place
 
-Ce système permet de traduire automatiquement le contenu des articles et des catégories selon la langue du site (fr/en). Les traductions sont stockées dans la base de données et servies avec un système de cache pour optimiser les performances.
+- Les articles restent dans `Article`; une seule ligne par langue est enregistrée dans `ArticleTranslation`, liée à l’article d’origine.
+- Les billets de blog restent dans `BlogPost`; leurs contenus localisés sont enregistrés séparément dans `BlogPostTranslation` sans dupliquer les entrées source.
+- `TranslationJob` conserve l’état, le nombre de tentatives et la dernière erreur. Les jobs démarrent immédiatement après la réponse; le worker planifié les reprend aussi après une interruption.
+- `BlogPostTranslationJob` applique le même suivi, la reprise et la relance aux billets de blog.
+- Une traduction générée est un brouillon. Un administrateur la corrige dans l’éditeur de l’article puis la publie explicitement.
+- Les noms et descriptions de catégories sont enregistrés dans `CategoryTranslation`. Les catégories manquantes sont traduites lors du premier job d’article, puis éditables avec la traduction de l’article.
+- Les versions non publiées, absentes ou obsolètes ne sont pas affichées sous une URL de langue cible. Les routes indisponibles ont une page 404 localisée et `noindex`.
+- Les URL des articles conservent le même slug entre langues (`/fr/mon-article` et `/en/mon-article`). Le sitemap ne publie que les langues avec traduction éditoriale et catégorie disponibles.
+- Les billets ont des routes dédiées (`/fr/blog/mon-billet` et `/en/blog/mon-billet`), une liste localisée et des métadonnées/canoniques `hreflang`; une langue absente répond en 404 `noindex`.
 
-## Architecture
+## LibreTranslate auto-hébergé
 
-### Base de données
-
-Le schéma Prisma a été étendu avec les tables suivantes :
-
-- **ArticleTranslation** : Stocke les traductions des articles
-- **CategoryTranslation** : Stocke les traductions des catégories
-- **Article.defaultLocale** : Langue par défaut de l'article
-- **Category.defaultLocale** : Langue par défaut de la catégorie
-
-### Services
-
-1. **translation.ts** : Gestion des traductions avec cache
-2. **translator.ts** : Service de traduction (Mock ou API réelle)
-3. **translationCache.ts** : Système de cache pour les traductions
-
-### API Endpoints
-
-- `POST /api/translate/article/[id]` : Traduire un article
-- `POST /api/translate/category/[id]` : Traduire une catégorie
-
-## Configuration
-
-### Variables d'environnement
-
-Ajoutez ces variables à votre fichier `.env` :
+Configurer ces variables **uniquement côté serveur** du site public et du backoffice :
 
 ```env
-# Activer le traducteur mock pour le développement
-USE_MOCK_TRANSLATOR="true"
-
-# URL de l'API de traduction (optionnel)
-TRANSLATION_API_URL="https://libretranslate.com/translate"
-
-# Clé API pour le service de traduction (optionnel)
-TRANSLATION_API_KEY=""
+LIBRETRANSLATE_URL="http://libretranslate:5000/translate"
+LIBRETRANSLATE_API_KEY="secret-fourni-par-votre-instance"
 ```
 
-### Services de traduction
+`LIBRETRANSLATE_URL` doit être joignable depuis les processus Next.js. Ne pas utiliser de variable `NEXT_PUBLIC_*` pour l’URL ou la clé. Sans instance configurée, la tâche échoue explicitement et son erreur est visible dans le backoffice. Les appels ont un délai maximal et les erreurs HTTP ne créent pas de traduction de remplacement.
 
-**Pour le développement (Mock)** :
-```env
-USE_MOCK_TRANSLATOR="true"
-```
+Les anciennes routes `/api/translate/*` du site public exigent le secret serveur `TRANSLATION_ADMIN_API_KEY` dans un en-tête `Authorization: Bearer …`; le backoffice actuel utilise ses routes authentifiées et ne transmet jamais la clé LibreTranslate au navigateur.
 
-**Pour la production (API réelle)** :
-```env
-USE_MOCK_TRANSLATOR="false"
-TRANSLATION_API_URL="https://libretranslate.com/translate"
-TRANSLATION_API_KEY="your-api-key"
-```
+## Flux éditorial
 
-## Utilisation
+1. À la création d’un article ou d’un billet de blog, le backoffice met en file la langue cible sélectionnée; depuis l’édition, un administrateur peut également générer ou relancer une tâche.
+2. Next.js démarre la tâche après l’envoi de la réponse. En complément, le cron Vercel appelle chaque cinq minutes `/api/translation-jobs/worker`; ce worker récupère les tâches en attente et remet en file celles restées en cours depuis plus de cinq minutes. Le job et ses erreurs restent enregistrés en base; l’interface actualise son état.
+3. Le contenu HTML est envoyé à LibreTranslate au format HTML. Les articles structurés conservent leur structure et seuls les champs de texte éditorial sont traduits; URLs et attributs de liens restent inchangés.
+4. Le résultat est enregistré avec l’état `draft`. Dans **Éditeur de traduction**, corriger le titre, le chapeau, le corps, les textes alternatifs/légendes, la catégorie et le SEO, puis choisir « Publier cette traduction ».
+5. Si le texte source est modifié, les traductions existantes deviennent `outdated`; les versions obsolètes sont retirées des pages publiques et du sitemap jusqu’à leur révision.
 
-### Traduction automatique dans les pages
+## Migration additive
 
-Les pages d'articles chargent automatiquement les traductions selon la locale :
+Les schémas Prisma du site et du backoffice sont synchronisés. Les migrations additives créent `TranslationJob` et `BlogPostTranslationJob`, ajoutent les tables de contenu traduit, les champs SEO/captions et les horodatages éditoriaux nécessaires. Les lignes de traduction d’articles déjà présentes restent publiées. Aucune table d’article, de billet, d’utilisateur, de commentaire ou de statistiques n’est remplacée.
 
-```typescript
-import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
+En déploiement, exécuter les migrations Prisma habituelles (`prisma migrate deploy`) avant d’utiliser l’éditeur. Les répertoires `prisma/migrations` du site et `admin-panel/prisma/migrations` contiennent la même migration pour garder les deux clients alignés sur la base partagée.
 
-// La traduction est automatique selon la locale de l'URL
-const translatedArticle = await getArticleTranslation(article.id, locale);
-const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
-```
+Le worker exige `CRON_SECRET`, configuré dans le projet Vercel du backoffice; Vercel l’envoie comme jeton Bearer. En dehors de Vercel, configurer un ordonnanceur externe pour appeler cette route avec `Authorization: Bearer <CRON_SECRET>` toutes les cinq minutes. Le traitement immédiat via `after()` reste une optimisation; l’ordonnanceur constitue le mécanisme de reprise.
 
-### Traduction manuelle via API
+## Périmètre des sources de contenu
 
-**Traduire un article** :
-```bash
-curl -X POST https://malakinfo.com/api/translate/article/[article-id] \
-  -H "Content-Type: application/json" \
-  -d '{"targetLocale": "en"}'
-```
-
-**Traduire une catégorie** :
-```bash
-curl -X POST https://malakinfo.com/api/translate/category/[category-id] \
-  -H "Content-Type: application/json" \
-  -d '{"targetLocale": "en"}'
-```
-
-### Gestion des traductions
-
-**Voir les traductions disponibles** :
-```typescript
-import { getArticleTranslations } from '@/lib/translation';
-
-const translations = await getArticleTranslations(articleId);
-// Returns: { defaultLocale: 'fr', translations: [...] }
-```
-
-**Sauvegarder une traduction manuelle** :
-```typescript
-import { saveArticleTranslation } from '@/lib/translation';
-
-await saveArticleTranslation(articleId, 'en', {
-  title: 'Translated Title',
-  excerpt: 'Translated excerpt',
-  content: '<p>Translated content</p>'
-});
-```
-
-## Migration de la base de données
-
-Pour appliquer les changements de schéma :
-
-```bash
-# Option 1: Utiliser Prisma (recommandé)
-npx prisma db push
-
-# Option 2: Utiliser le script de migration personnalisé
-node migrate-translation.js
-```
-
-## Cache
-
-Le système de cache améliore les performances :
-
-- **TTL par défaut** : 30 minutes pour les articles, 1 heure pour les catégories
-- **Invalidation automatique** : Le cache est invalidé lors de la mise à jour des traductions
-- **Statistiques** : Vous pouvez vérifier l'état du cache avec `translationCache.getStats()`
-
-## Flux de traduction
-
-1. **Visiteur accède à** `/fr/science-tech/article-slug`
-2. **Système vérifie** si une traduction française existe
-3. **Si oui** : Affiche le contenu traduit
-4. **Si non** : Affiche le contenu original (langue par défaut)
-5. **Pour générer une traduction** : Utiliser l'API de traduction
-
-## Exemples d'URL
-
-- **Français** : `https://malakinfo.com/fr/science-tech/informatique-quantique`
-- **Anglais** : `https://malakinfo.com/en/science-tech/informatique-quantique`
-
-Le même slug est utilisé, mais le contenu change selon la locale.
-
-## Dépannage
-
-### Les traductions ne s'affichent pas
-
-1. Vérifiez que les tables de traduction existent dans la base de données
-2. Vérifiez que `defaultLocale` est défini sur les articles/catégories
-3. Consultez les logs pour les erreurs de traduction
-
-### Erreur de connexion à l'API de traduction
-
-1. Vérifiez que `TRANSLATION_API_URL` est correct
-2. Vérifiez que `TRANSLATION_API_KEY` est valide (si requis)
-3. Pour le développement, utilisez `USE_MOCK_TRANSLATOR="true"`
-
-### Problèmes de cache
-
-```typescript
-// Vider le cache manuellement
-import { translationCache } from '@/lib/translationCache';
-
-translationCache.clear(); // Tout vider
-translationCache.clearType('article'); // Vider les articles
-translationCache.clearId('article-id'); // Vider un article spécifique
-```
-
-## Extension du système
-
-### Ajouter une nouvelle langue
-
-1. Ajoutez la locale au middleware `src/middleware.ts`
-2. Mettez à jour les traductions statiques dans les composants
-3. Générez les traductions via l'API
-
-### Support pour d'autres types de contenu
-
-Le système peut être étendu pour :
-- Blog posts
-- Media
-- Press releases
-- Job offers
-
-Suivez le même pattern que pour les articles et catégories.
+Les articles d’actualité utilisent les tables Prisma `Article` et `Category`. Les billets du modèle `BlogPost` ont maintenant des routes publiques `/[locale]/blog`, une gestion dédiée dans le backoffice et un parcours de traduction éditoriale. Les données Sanity ne sont pas converties implicitement afin de préserver les données et le comportement existants.
