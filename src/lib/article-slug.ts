@@ -1,82 +1,36 @@
-import Link from 'next/link';
-import SmartImage from '@/components/SmartImage';
-import { getDateLocale } from '@/lib/copy';
-import { buildArticleSlug } from '@/lib/article-slug';
+export function normalizeSlug(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 
-export type ListingArticle = {
-  id: string;
-  slug: string;
-  title: string;
-  publishedAt?: string | Date | null;
-  dateLabel?: string | null;
-  mainImageUrl?: string | null;
-  mainImageAlt?: string | null;
-  category?: { title?: string | null } | null;
-  categoryTitle?: string | null;
-};
+export function buildArticleSlug(title: string, publishedAt?: string | Date | null): string {
+  const safeDate = publishedAt ? new Date(publishedAt) : new Date();
+  const validDate = Number.isNaN(safeDate.getTime()) ? new Date() : safeDate;
+  const datePart = validDate.toISOString().slice(0, 10).replace(/-/g, '');
+  const slugBase = normalizeSlug(title) || 'article';
 
-export default function ArticleListingGrid({
-  articles,
-  locale,
-  hrefFor,
-}: {
-  articles: ListingArticle[];
-  locale: string;
-  hrefFor?: (article: ListingArticle) => string;
-}) {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10 overflow-hidden">
-      {articles.map((item, index) => {
-        const normalizedSlug = /^\d{8}-/.test(item.slug)
-          ? item.slug
-          : buildArticleSlug(item.title, item.publishedAt || undefined);
-        const href = hrefFor ? hrefFor(item) : `/${locale}/${normalizedSlug}`;
-        const categoryTitle = item.categoryTitle || item.category?.title || null;
-        const publishedAt = item.publishedAt ? new Date(item.publishedAt) : null;
+  return `${datePart}-${slugBase}`.replace(/-+/g, '-').replace(/^-|-$/g, '');
+}
 
-        return (
-          <article key={item.id} className="tag-story min-w-0 max-w-full">
-            <Link href={href} prefetch className="block group min-w-0 w-full">
-              {item.mainImageUrl ? (
-                <div className="mb-3 p-[5px] bg-white">
-                  <div className="article-preview-frame relative aspect-[16/10] w-full overflow-hidden">
-                    <SmartImage
-                      src={item.mainImageUrl}
-                      alt={item.mainImageAlt || item.title}
-                      fill
-                      priority={index < 3}
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover transition-opacity duration-200 group-hover:opacity-90"
-                    />
-                  </div>
-                </div>
-              ) : null}
-              {categoryTitle ? (
-                <span className="mb-1.5 inline-block bg-primary px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
-                  {categoryTitle}
-                </span>
-              ) : null}
-              {publishedAt ? (
-                <time
-                  dateTime={publishedAt.toISOString()}
-                  className="block text-xs text-muted-foreground mb-1"
-                >
-                  {publishedAt.toLocaleDateString(getDateLocale(locale), {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                  })}
-                </time>
-              ) : item.dateLabel ? (
-                <span className="block text-xs text-muted-foreground mb-1">{item.dateLabel}</span>
-              ) : null}
-              <h2 className="text-[1.05rem] font-bold leading-snug text-foreground group-hover:text-primary line-clamp-3 break-words overflow-wrap-anywhere">
-                {item.title}
-              </h2>
-            </Link>
-          </article>
-        );
-      })}
-    </div>
-  );
+export function stripDatePrefix(slug: string): string {
+  return slug.replace(/^\d{8}-/, '');
+}
+
+export function getArticleSlugCandidates(slug: string): string[] {
+  const cleaned = slug.trim();
+  if (!cleaned) return [];
+
+  const stripped = stripDatePrefix(cleaned);
+  return Array.from(new Set([cleaned, stripped].filter(Boolean)));
+}
+
+export function isDatePrefixedSlug(slug: string): boolean {
+  return /^\d{8}-/.test(slug);
 }
