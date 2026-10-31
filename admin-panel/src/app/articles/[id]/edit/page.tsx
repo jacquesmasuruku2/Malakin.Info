@@ -69,6 +69,7 @@ export default function EditArticlePage() {
   const [categories, setCategories] = useState<{ id: string; title: string }[]>([]);
   const [authors, setAuthors] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [saving, setSaving] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
   const [translationLoading, setTranslationLoading] = useState(false);
@@ -135,6 +136,8 @@ export default function EditArticlePage() {
   });
 
   useEffect(() => {
+    if (loading || loadError) return;
+
     const timer = setTimeout(() => {
       localStorage.setItem(`article-draft-${articleId}`, JSON.stringify(formData));
       setAutoSaving(true);
@@ -142,7 +145,7 @@ export default function EditArticlePage() {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [formData, articleId]);
+  }, [formData, articleId, loading, loadError]);
 
   const normalizeArticleContent = (content: unknown) => {
     if (typeof content === 'string') {
@@ -186,9 +189,18 @@ export default function EditArticlePage() {
   }, [articleId]);
 
   const fetchArticle = useCallback(async () => {
+    setLoading(true);
+    setLoadError('');
     try {
       const response = await fetch(`/api/articles/${articleId}`);
-      const data: Article = await response.json();
+      const data = await response.json().catch(() => null) as (Article & { error?: string }) | null;
+      if (!response.ok) {
+        throw new Error(data?.error || `Impossible de charger l’article (${response.status}).`);
+      }
+      if (!data || typeof data !== 'object' || data.id !== articleId || data.content == null) {
+        throw new Error('La réponse de l’API ne contient pas le contenu attendu de l’article.');
+      }
+
       const normalizedContent = normalizeArticleContent(data.content);
       const tags = Array.isArray(data.tags)
         ? data.tags
@@ -226,6 +238,7 @@ export default function EditArticlePage() {
       }
     } catch (error) {
       console.error('Failed to fetch article:', error);
+      setLoadError(error instanceof Error ? error.message : 'Erreur de chargement de l’article.');
     } finally {
       setLoading(false);
     }
@@ -443,6 +456,26 @@ export default function EditArticlePage() {
           <p className="text-gray-500 mt-4">En cours de chargement...</p>
         </div>
       </AdminLayout>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <ProtectedRoute>
+        <AdminLayout>
+          <div className="mx-auto max-w-3xl space-y-4 p-8">
+            <p role="alert" className="rounded-lg bg-red-50 p-4 text-red-800">{loadError}</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => void fetchArticle()} className="rounded-lg bg-blue-600 px-4 py-2 text-white">
+                Réessayer
+              </button>
+              <button type="button" onClick={() => router.push('/articles')} className="rounded-lg border px-4 py-2">
+                Retour aux articles
+              </button>
+            </div>
+          </div>
+        </AdminLayout>
+      </ProtectedRoute>
     );
   }
 

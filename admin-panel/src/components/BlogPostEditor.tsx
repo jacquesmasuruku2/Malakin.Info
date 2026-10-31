@@ -91,6 +91,7 @@ export default function BlogPostEditor({ mode }: { mode: 'create' | 'edit' }) {
   const [loading, setLoading] = useState(mode === 'edit');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
   const [uploading, setUploading] = useState(false);
 
   const loadTranslation = useCallback(async (locale = targetLocale) => {
@@ -113,14 +114,22 @@ export default function BlogPostEditor({ mode }: { mode: 'create' | 'edit' }) {
   }, [postId, targetLocale]);
 
   const loadPost = useCallback(async () => {
-    if (!postId) return;
+    if (!postId) {
+      setLoadError('Identifiant du billet manquant.');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setLoadError('');
     try {
-      const [postResponse, authorsResponse] = await Promise.all([
-        fetch(`/api/blog-posts/${postId}`),
-        fetch('/api/authors'),
-      ]);
-      const [post, authorsData] = await Promise.all([postResponse.json(), authorsResponse.json()]);
+      const postResponse = await fetch(`/api/blog-posts/${postId}`, { cache: 'no-store' });
+      const post = await postResponse.json().catch(() => null);
       if (!postResponse.ok) throw new Error(post?.error || 'Impossible de charger le billet.');
+      if (!post || typeof post !== 'object' || post.id !== postId || post.content == null) {
+        throw new Error('La réponse de l’API ne contient pas le contenu attendu du billet.');
+      }
+
       setForm({
         ...blankPost(),
         ...post,
@@ -128,27 +137,35 @@ export default function BlogPostEditor({ mode }: { mode: 'create' | 'edit' }) {
         authorId: post.authorId || '',
         content: post.content ?? '',
       });
-      setAuthors(Array.isArray(authorsData) ? authorsData : []);
       const initialLocale = post.defaultLocale === 'fr' ? 'en' : 'fr';
       setTargetLocale(initialLocale);
       setLoading(false);
-      const translationResponse = await fetch(
-        `/api/blog-posts/${postId}/translations?locale=${initialLocale}`,
-        { cache: 'no-store' },
-      );
-      const translationData = await translationResponse.json();
-      if (!translationResponse.ok) throw new Error(translationData?.error || 'Impossible de charger la traduction.');
-      setTranslation({
-        ...blankTranslation(),
-        ...translationData.translation,
-        content: translationData.translation?.content ?? '',
-        status: translationData.translation?.status === 'published' ? 'published' : 'draft',
-      });
-      setTranslationOutdated(translationData.translation?.status === 'outdated');
-      setJob(translationData.job || null);
+      try {
+        const translationResponse = await fetch(
+          `/api/blog-posts/${postId}/translations?locale=${initialLocale}`,
+          { cache: 'no-store' },
+        );
+        const translationData = await translationResponse.json();
+        if (!translationResponse.ok) {
+          throw new Error(translationData?.error || 'Impossible de charger la traduction.');
+        }
+        setTranslation({
+          ...blankTranslation(),
+          ...translationData.translation,
+          content: translationData.translation?.content ?? '',
+          status: translationData.translation?.status === 'published' ? 'published' : 'draft',
+        });
+        setTranslationOutdated(translationData.translation?.status === 'outdated');
+        setJob(translationData.job || null);
+      } catch (translationLoadError) {
+        console.error('Failed to load blog translation:', translationLoadError);
+        setError(translationLoadError instanceof Error
+          ? translationLoadError.message
+          : 'Impossible de charger la traduction.');
+      }
     } catch (loadError) {
       console.error('Failed to load blog post:', loadError);
-      setError(loadError instanceof Error ? loadError.message : 'Erreur de chargement.');
+      setLoadError(loadError instanceof Error ? loadError.message : 'Erreur de chargement.');
       setLoading(false);
     }
   }, [postId]);
@@ -286,6 +303,26 @@ export default function BlogPostEditor({ mode }: { mode: 'create' | 'edit' }) {
 
   if (loading) {
     return <AdminLayout><p className="p-8 text-center">Chargement…</p></AdminLayout>;
+  }
+
+  if (mode === 'edit' && loadError) {
+    return (
+      <ProtectedRoute>
+        <AdminLayout>
+          <div className="mx-auto max-w-3xl space-y-4 p-8">
+            <p role="alert" className="rounded-lg bg-red-50 p-4 text-red-800">{loadError}</p>
+            <div className="flex gap-3">
+              <button type="button" onClick={() => void loadPost()} className="rounded-lg bg-blue-600 px-4 py-2 text-white">
+                Réessayer
+              </button>
+              <button type="button" onClick={() => router.push('/blog-posts')} className="rounded-lg border px-4 py-2">
+                Retour aux blogs
+              </button>
+            </div>
+          </div>
+        </AdminLayout>
+      </ProtectedRoute>
+    );
   }
 
   return (
