@@ -2,7 +2,7 @@
 
 import AdminLayout from '@/components/AdminLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { 
   Plus, 
@@ -47,6 +47,9 @@ export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<{id: string, title: string}[]>([]);
   const [loading, setLoading] = useState(true);
+  const [articlesError, setArticlesError] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [deletingArticleId, setDeletingArticleId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -59,34 +62,33 @@ export default function ArticlesPage() {
     articleTitle: ''
   });
 
-  useEffect(() => {
-    fetchArticles();
-    fetchCategories();
-  }, []);
-
-  const fetchArticles = async () => {
+  const fetchArticles = useCallback(async () => {
+    setLoading(true);
+    setArticlesError('');
     try {
-      const response = await fetch('/api/articles');
+      const response = await fetch('/api/articles', { cache: 'no-store' });
+      const payload = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const details = typeof payload?.details === 'string' ? payload.details : '';
+        const databaseUnavailable = /Can't reach database server|P1001/i.test(details);
+        throw new Error(databaseUnavailable
+          ? 'La base de données est momentanément inaccessible. Vérifiez la connexion réseau et DATABASE_URL, puis réessayez.'
+          : payload?.error || `Impossible de charger les articles (HTTP ${response.status}).`);
       }
-      const data = await response.json();
-      // Ensure data is an array before setting state
-      if (Array.isArray(data)) {
-        setArticles(data);
+      if (Array.isArray(payload)) {
+        setArticles(payload);
       } else {
-        console.error('API returned non-array data:', data);
-        setArticles([]);
+        throw new Error('La réponse de l’API articles est invalide.');
       }
     } catch (error) {
       console.error('Failed to fetch articles:', error);
-      setArticles([]); // Set empty array on error
+      setArticlesError(error instanceof Error ? error.message : 'Erreur lors du chargement des articles.');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await fetch('/api/categories');
       if (!response.ok) {
@@ -104,15 +106,34 @@ export default function ArticlesPage() {
       console.error('Failed to fetch categories:', error);
       setCategories([]); // Set empty array on error
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void fetchArticles();
+      void fetchCategories();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchArticles, fetchCategories]);
 
   const deleteArticle = async (id: string) => {
+    if (deletingArticleId) return;
+    setDeletingArticleId(id);
+    setDeleteError('');
     try {
-      await fetch(`/api/articles/${id}`, { method: 'DELETE' });
-      fetchArticles();
+      const response = await fetch(`/api/articles/${id}`, { method: 'DELETE' });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error || `Impossible de supprimer l’article (HTTP ${response.status}).`);
+      }
+      await fetchArticles();
       setDeleteDialog({ isOpen: false, articleId: null, articleTitle: '' });
     } catch (error) {
       console.error('Failed to delete article:', error);
+      setDeleteError(error instanceof Error ? error.message : 'Erreur lors de la suppression.');
+      setDeleteDialog({ isOpen: false, articleId: null, articleTitle: '' });
+    } finally {
+      setDeletingArticleId(null);
     }
   };
 
@@ -145,10 +166,6 @@ export default function ArticlesPage() {
     (safeCurrentPage - 1) * pageSize,
     safeCurrentPage * pageSize
   );
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, filterCategory, filterStatus]);
 
   return (
     <ProtectedRoute>
@@ -186,7 +203,10 @@ export default function ArticlesPage() {
                 type="text"
                 placeholder="Rechercher un article..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
               />
             </div>
@@ -194,7 +214,10 @@ export default function ArticlesPage() {
               <div className="relative flex-1 sm:flex-none">
                 <select
                   value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
+                  onChange={(e) => {
+                    setFilterStatus(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="appearance-none pl-4 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white w-full sm:w-auto"
                 >
                   <option value="all">Tous les statuts</option>
@@ -207,7 +230,10 @@ export default function ArticlesPage() {
               <div className="relative flex-1 sm:flex-none">
                 <select
                   value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
+                  onChange={(e) => {
+                    setFilterCategory(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="appearance-none pl-4 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white w-full sm:w-auto"
                 >
                   <option value="all">Toutes les catégories</option>
@@ -357,7 +383,17 @@ export default function ArticlesPage() {
             </div>
           )}
 
-          {!loading && filteredArticles.length === 0 && (
+          {articlesError && (
+            <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+              <span>{articlesError}</span>
+              <button type="button" onClick={() => void fetchArticles()} disabled={loading} className="rounded-md border border-red-300 px-3 py-1.5 font-medium disabled:opacity-50">
+                {loading ? 'Chargement…' : 'Réessayer'}
+              </button>
+            </div>
+          )}
+          {deleteError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">{deleteError}</p>}
+
+          {!loading && !articlesError && filteredArticles.length === 0 && (
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">Aucun article trouvé</p>
@@ -401,6 +437,7 @@ export default function ArticlesPage() {
           confirmText="Supprimer"
           cancelText="Annuler"
           type="danger"
+          isBusy={deletingArticleId !== null}
         />
         </div>
       </AdminLayout>

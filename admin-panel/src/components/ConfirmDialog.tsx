@@ -11,6 +11,7 @@ interface ConfirmDialogProps {
   confirmText?: string;
   cancelText?: string;
   type?: 'danger' | 'warning' | 'info';
+  isBusy?: boolean;
 }
 
 export default function ConfirmDialog({
@@ -21,7 +22,8 @@ export default function ConfirmDialog({
   message,
   confirmText = 'Confirmer',
   cancelText = 'Annuler',
-  type = 'danger'
+  type = 'danger',
+  isBusy = false,
 }: ConfirmDialogProps) {
   if (!isOpen) return null;
 
@@ -50,7 +52,9 @@ export default function ConfirmDialog({
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={() => {
+          if (!isBusy) onClose();
+        }}
       />
 
       {/* Dialog */}
@@ -63,6 +67,7 @@ export default function ConfirmDialog({
           </div>
           <button
             onClick={onClose}
+            disabled={isBusy}
             className="rounded-md p-1 text-gray-400 transition-colors hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             aria-label="Fermer"
             title="Fermer"
@@ -80,12 +85,14 @@ export default function ConfirmDialog({
         <div className="flex items-center justify-end gap-3 p-4 bg-gray-50 border-t border-gray-200">
           <button
             onClick={onClose}
+            disabled={isBusy}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
+            disabled={isBusy}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${styles.button}`}
           >
             {confirmText}
