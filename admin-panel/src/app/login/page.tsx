@@ -3,7 +3,8 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff } from 'lucide-react';
+import Image from 'next/image';
+import { ExternalLink, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 
 export default function LoginPage() {
@@ -36,14 +37,25 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f3f4f6] p-4">
-      <section className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">MalakInfo</p>
+    <main className="flex min-h-screen items-center justify-center bg-[#f3f5f2] p-4">
+      <section className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5 sm:p-9">
+        <div className="mb-7 flex justify-center border-b border-slate-100 pb-6">
+          <Image
+            src="https://malakinfo.com/images/logo.png"
+            alt="MalakInfo"
+            width={2160}
+            height={700}
+            preload
+            unoptimized
+            className="h-14 w-44 object-contain"
+          />
+        </div>
+        <p className="text-xs font-semibold uppercase text-slate-500">Administration</p>
         <h1 className="mt-2 text-2xl font-bold text-slate-900">Connexion admin</h1>
         <p className="mt-2 text-sm text-slate-600">Accédez au tableau de bord pour gérer le site.</p>
 
         {error && (
-          <p className="mt-5 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p className="mt-5 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
             {error}
           </p>
         )}
@@ -58,7 +70,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/15"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/15"
               required
               autoFocus
               autoComplete="email"
@@ -75,7 +87,7 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 pr-11 text-sm text-slate-900 outline-none focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/15"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 pr-11 text-sm text-slate-900 outline-none transition focus:border-[#0b3b8b] focus:ring-2 focus:ring-[#0b3b8b]/15"
                 required
                 autoComplete="current-password"
               />
@@ -98,11 +110,20 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-[#0b3b8b] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#082a63] disabled:cursor-not-allowed disabled:opacity-60"
+            className="min-h-11 w-full rounded-lg bg-[#0b3b8b] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#082a63] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0b3b8b] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Connexion…' : 'Se connecter'}
           </button>
         </form>
+        <a
+          href="https://malakinfo.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-6 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0b3b8b]"
+        >
+          <ExternalLink className="h-4 w-4" />
+          Retour au site
+        </a>
       </section>
     </main>
   );

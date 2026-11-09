@@ -259,7 +259,7 @@ export default function Navigation() {
               </form>
             </div>
 
-            <div className="md:hidden flex items-center space-x-2">
+            <div className="md:hidden flex items-center">
               <button
                 type="button"
                 className="p-2 text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]"
@@ -267,9 +267,6 @@ export default function Navigation() {
               >
                 <Menu className="h-6 w-6" />
               </button>
-              <Link href={`/${locale}/blog`} className="rounded-full border border-border px-3 py-2 text-xs font-semibold">
-                {locale === 'en' ? 'Blogs' : 'Blogs'}
-              </Link>
             </div>
 
             <div className="pointer-events-none absolute left-12 right-12 top-1/2 flex -translate-y-1/2 justify-center sm:left-20 sm:right-20 md:left-0 md:right-0">

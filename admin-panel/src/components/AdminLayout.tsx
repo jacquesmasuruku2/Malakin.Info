@@ -2,18 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, 
   FileText, 
-  BookOpen,
   FolderOpen, 
   Users, 
   Settings, 
   LogOut,
   Menu,
   X,
-  Shield,
   Inbox,
   Briefcase,
   Handshake,
@@ -26,7 +25,7 @@ import {
   Radio,
   Music,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 
@@ -60,7 +59,6 @@ export default function AdminLayout({
   const sidebarItems = [
     { name: 'Tableau de bord', href: '/', icon: LayoutDashboard },
     { name: 'Articles', href: '/articles', icon: FileText },
-    { name: 'Blogs', href: '/blog-posts', icon: BookOpen },
     { name: 'Catégories', href: '/categories', icon: FolderOpen },
     { name: 'Auteurs', href: '/authors', icon: Users },
     { name: 'Radio', href: '/radio', icon: Radio },
@@ -75,21 +73,27 @@ export default function AdminLayout({
     { name: 'Candidatures', href: '/job-applications', icon: ClipboardList },
     { name: 'Paramètres', href: '/settings', icon: Settings },
   ];
+  const activeHref = sidebarItems
+    .filter((item) => pathname === item.href || (item.href !== '/' && pathname.startsWith(`${item.href}/`)))
+    .sort((first, second) => second.href.length - first.href.length)[0]?.href;
 
   return (
     <div className="admin-shell min-h-screen" style={{ backgroundColor: 'var(--bg-color)' }}>
       {/* Mobile header */}
-      <div className={`sticky top-0 z-40 lg:hidden bg-white border-b border-gray-200 px-4 py-3 transition-transform duration-200 ${isEditorToolbarActive ? '-translate-y-full' : 'translate-y-0'}`}>
-        <div className="flex items-center justify-between">
+      <div className={`sticky top-0 z-40 border-b px-4 py-2.5 transition-transform duration-200 lg:hidden ${isEditorToolbarActive ? '-translate-y-full' : 'translate-y-0'}`} style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}>
+        <div className="flex items-center justify-between gap-3">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="rounded-md p-2 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="rounded-lg p-2 text-secondary transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
             aria-label={isSidebarOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            aria-expanded={isSidebarOpen}
           >
-            {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
-          <h1 className="text-lg font-semibold">Admin Panel</h1>
-          <div className="w-10" />
+          <Link href="/" className="flex min-w-0 items-center justify-center" aria-label="MalakInfo, tableau de bord">
+            <Image src="https://malakinfo.com/images/logo.png" alt="MalakInfo" width={2160} height={700} unoptimized className="h-9 w-32 object-contain" />
+          </Link>
+          <span className="w-9" aria-hidden="true" />
         </div>
       </div>
 
@@ -101,22 +105,25 @@ export default function AdminLayout({
           } ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
-          style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}
+          style={{ backgroundColor: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)', borderRightWidth: 1 }}
         >
           <div className="flex flex-col h-full">
             {/* Logo */}
-            <div className={`flex items-center border-b p-4 ${isSidebarCollapsed ? 'justify-center' : 'space-x-2'} lg:p-6`} style={{ borderColor: 'var(--sidebar-border)' }}>
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--primary)' }}>
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <div className={isSidebarCollapsed ? 'hidden' : ''}>
-                <span className="font-heading font-bold text-xl" style={{ color: 'var(--primary)' }}>Malakin</span>
-                <span className="font-heading font-bold text-xl" style={{ color: 'var(--text-primary)' }}>.info</span>
-              </div>
+            <div className={`relative flex min-h-[76px] items-center border-b py-3 ${isSidebarCollapsed ? 'gap-1 px-2' : 'gap-3 px-4 lg:px-5'}`} style={{ borderColor: 'var(--sidebar-border)' }}>
+              <Link href="/" className={`flex min-w-0 items-center ${isSidebarCollapsed ? 'shrink-0' : 'flex-1'}`} aria-label="MalakInfo, tableau de bord">
+                <Image
+                  src="https://malakinfo.com/images/logo.png"
+                  alt="MalakInfo"
+                  width={2160}
+                  height={700}
+                  unoptimized
+                  className={`object-contain ${isSidebarCollapsed ? 'h-5 w-8' : 'h-11 w-40'}`}
+                />
+              </Link>
               <button
                 type="button"
                 onClick={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
-                className={`hidden lg:inline-flex items-center justify-center rounded-md p-2 text-secondary transition-colors hover:bg-gray-100 hover:text-primary ${isSidebarCollapsed ? '' : 'ml-auto'}`}
+                className={`hidden items-center justify-center rounded-lg text-secondary transition-colors hover:bg-black/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] lg:inline-flex ${isSidebarCollapsed ? 'ml-auto p-1' : 'p-2'}`}
                 aria-label={isSidebarCollapsed ? 'Afficher les libellés du menu' : 'Masquer les libellés du menu'}
                 title={isSidebarCollapsed ? 'Afficher les libellés' : 'Masquer les libellés'}
               >
@@ -125,24 +132,26 @@ export default function AdminLayout({
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 overflow-y-auto p-4">
-              <ul className="space-y-1">
+            <nav className="flex-1 overflow-y-auto px-3 py-5" aria-label="Navigation principale">
+              <ul className="space-y-1.5">
                 {sidebarItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = pathname === item.href;
+                  const isActive = activeHref === item.href;
                   return (
                     <li key={item.name}>
                       <Link
                         href={item.href}
-                        className={`flex items-center rounded-md py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${isSidebarCollapsed ? 'justify-center px-2' : 'space-x-3 px-4'}`}
+                        aria-current={isActive ? 'page' : undefined}
+                        className={`group relative flex items-center rounded-lg py-2.5 text-sm font-medium transition-colors hover:bg-black/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${isSidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3.5'}`}
                         title={isSidebarCollapsed ? item.name : undefined}
                         style={{
                           backgroundColor: isActive ? 'var(--primary-bg)' : 'transparent',
-                          color: isActive ? 'var(--primary)' : 'var(--text-secondary)'
+                          color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                          boxShadow: isActive ? 'inset 3px 0 0 var(--primary)' : undefined,
                         }}
                         onClick={() => setIsSidebarOpen(false)}
                       >
-                        <Icon className="w-5 h-5" />
+                        <Icon className="h-[18px] w-[18px] shrink-0" />
                         <span className={isSidebarCollapsed ? 'hidden' : ''}>{item.name}</span>
                       </Link>
                     </li>
@@ -164,7 +173,7 @@ export default function AdminLayout({
                 <span className={isSidebarCollapsed ? 'hidden' : ''}>Se déconnecter</span>
               </button>
               <a
-                href="https://malakin-info.vercel.app"
+                href="https://malakinfo.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`mt-2 flex items-center rounded-md py-3 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${isSidebarCollapsed ? 'justify-center px-2' : 'space-x-3 px-4'}`}
@@ -181,14 +190,15 @@ export default function AdminLayout({
         {/* Overlay for mobile */}
         {isSidebarOpen && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] lg:hidden"
             onClick={() => setIsSidebarOpen(false)}
+            aria-hidden="true"
           />
         )}
 
         {/* Main content */}
         <main className={`min-w-0 flex-1 min-h-screen transition-[margin] duration-300 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
-          <div className="p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto w-full max-w-[1680px] p-4 sm:p-6 lg:p-8">
             {children}
           </div>
         </main>
