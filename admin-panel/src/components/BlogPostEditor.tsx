@@ -4,7 +4,7 @@ import AdminLayout from '@/components/AdminLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import WordEditor from '@/components/WordEditor';
 import { useCallback, useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { toDatetimeLocalValue } from '@/lib/datetime-local';
 
 type BlogPostForm = {
@@ -78,10 +78,12 @@ function scheduleRefresh(refresh: () => Promise<void>) {
   }, 2500);
 }
 
-export default function BlogPostEditor({ mode }: { mode: 'create' | 'edit' }) {
+type BlogPostEditorProps =
+  | { mode: 'create'; postId?: never }
+  | { mode: 'edit'; postId: string };
+
+export default function BlogPostEditor({ mode, postId }: BlogPostEditorProps) {
   const router = useRouter();
-  const params = useParams<{ id?: string }>();
-  const postId = mode === 'edit' ? params.id : undefined;
   const [form, setForm] = useState<BlogPostForm>(blankPost);
   const [translation, setTranslation] = useState<BlogTranslationForm>(blankTranslation);
   const [authors, setAuthors] = useState<Array<{ id: string; name: string }>>([]);
