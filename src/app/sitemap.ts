@@ -13,7 +13,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPaths = [
     '',
     '/actualites',
-    '/blog',
     '/politique',
     '/economie',
     '/societe',
@@ -114,46 +113,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     });
 
-    const blogPosts = await prisma.blogPost.findMany({
-      where: { publishedAt: { lte: currentDate } },
-      select: {
-        slug: true,
-        defaultLocale: true,
-        updatedAt: true,
-        translationSourceUpdatedAt: true,
-        translations: {
-          where: { locale: { in: [...locales] }, status: 'published' },
-          select: { locale: true, sourceUpdatedAt: true, updatedAt: true },
-        },
-      },
-      orderBy: { publishedAt: 'desc' },
-      take: 1000,
-    });
-    const blogPages: MetadataRoute.Sitemap = blogPosts.flatMap((post) =>
-      locales.flatMap((locale) => {
-        if (locale !== post.defaultLocale) {
-          const translation = post.translations.find((item) => item.locale === locale);
-          if (!translation) return [];
-          if (
-            !translation.sourceUpdatedAt
-            || translation.sourceUpdatedAt.getTime() !== post.translationSourceUpdatedAt.getTime()
-          ) return [];
-          return [{
-            url: `${SITE_URL}/${locale}/blog/${post.slug}`,
-            lastModified: translation.updatedAt,
-            changeFrequency: 'weekly' as const,
-            priority: 0.6,
-          }];
-        }
-        return [{
-          url: `${SITE_URL}/${locale}/blog/${post.slug}`,
-          lastModified: post.translationSourceUpdatedAt || post.updatedAt,
-          changeFrequency: 'weekly' as const,
-          priority: 0.6,
-        }];
-      }),
-    );
-
     const archiveYears = await getArchiveYears()
     const archiveYearPages: MetadataRoute.Sitemap = archiveYears.flatMap((year) =>
       locales.map((locale) => ({
@@ -178,7 +137,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }))
     )
 
-    return [...staticPages, ...articlePages, ...blogPages, ...archiveYearPages, ...tagPages]
+    return [...staticPages, ...articlePages, ...archiveYearPages, ...tagPages]
   } catch (error) {
     console.error('Error generating sitemap:', error)
     return staticPages

@@ -13,7 +13,7 @@ const PAGE_ALIASES: Record<string, string> = {
   'test-authors': 'equipe',
 };
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (pathname.startsWith('/api/')) {

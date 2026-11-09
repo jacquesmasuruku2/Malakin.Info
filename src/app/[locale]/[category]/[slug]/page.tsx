@@ -20,10 +20,11 @@ import Paywall from '@/components/Paywall';
 import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 import { getPremiumPreviewContent, hasPremiumAccess } from '@/lib/premium-access';
 import { withRetry } from '@/lib/database';
-import ArticleListingGrid from '@/components/ArticleListingGrid';
+import CategoryArticlesSidebar from '@/components/CategoryArticlesSidebar';
 import ArticleDateMeta from '@/components/ArticleDateMeta';
 import { getLocalizedArticleMetadata } from '@/lib/article-metadata';
 import { getArticleUrl } from '@/lib/article-url';
+import { applyArticleLocales } from '@/lib/translation';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -49,7 +50,6 @@ export default async function ArticlePage({
     backTo: locale === 'fr' ? 'Retour à' : 'Back to',
     readTime: locale === 'fr' ? 'min de lecture' : 'min read',
     share: locale === 'fr' ? 'Partager' : 'Share',
-    relatedArticles: locale === 'fr' ? 'Articles similaires' : 'Related Articles',
     seeAllArticles: locale === 'fr' ? 'Voir tous les articles de cet auteur' : 'See all articles by this author',
     teamMalakin: locale === 'fr' ? 'Équipe Malakinfo' : 'Malakinfo Team',
   };
@@ -84,21 +84,22 @@ export default async function ArticlePage({
     const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
     const premiumAccess = article.isPremium ? await hasPremiumAccess(article.id) : true;
 
-    const relatedArticles: any[] = await withRetry(() => prisma.article.findMany({
+    const relatedArticles: any[] = await applyArticleLocales(await withRetry(() => prisma.article.findMany({
       where: {
         categoryId: article.categoryId,
         id: { not: article.id },
+        publishedAt: { lte: new Date() },
       },
       include: {
         category: true,
         author: true,
         articleTags: { include: { tag: true } },
       },
-      take: 4,
+      take: 10,
       orderBy: {
         publishedAt: 'desc',
       },
-    } as any)) || [];
+    } as any)) || [], locale);
 
     const sponsoredFromDb = await withRetry(() => prisma.sponsoredArticle.findMany({
       where: {
@@ -292,7 +293,14 @@ export default async function ArticlePage({
             </article>
 
             <aside className="w-full min-w-0 xl:sticky xl:top-6 xl:self-start">
-              <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
+              <div className="flex flex-col gap-8">
+                <CategoryArticlesSidebar
+                  articles={relatedArticles}
+                  categoryTitle={translatedCategory.title || article.category?.title}
+                  locale={locale}
+                />
+                <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
+              </div>
             </aside>
           </div>
         </main>
@@ -305,14 +313,6 @@ export default async function ArticlePage({
           </div>
         )}
 
-        {relatedArticles.length > 0 && (
-          <section className="mx-auto max-w-6xl px-4 pb-12 pt-12 md:px-6">
-            <h2 className="mb-6 text-xl font-bold text-foreground md:text-2xl">
-              {t.relatedArticles}
-            </h2>
-            <ArticleListingGrid articles={relatedArticles} locale={locale} />
-          </section>
-        )}
       </div>
     );
   } catch (error) {

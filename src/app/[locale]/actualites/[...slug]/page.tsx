@@ -13,11 +13,12 @@ import ViewIncrementer from '@/components/ViewIncrementer';
 import { getArticleTranslation, getCategoryTranslation } from '@/lib/translation';
 import FavoriteButton from '@/components/FavoriteButton';
 import { getArticleTags } from '@/lib/tags';
-import ArticleListingGrid from '@/components/ArticleListingGrid';
+import CategoryArticlesSidebar from '@/components/CategoryArticlesSidebar';
 import ArticleDateMeta from '@/components/ArticleDateMeta';
 import ArticleLanguageLinks from '@/components/ArticleLanguageLinks';
 import type { Metadata } from 'next';
 import { getLocalizedArticleMetadata } from '@/lib/article-metadata';
+import { applyArticleLocales } from '@/lib/translation';
 
 export const revalidate = 60;
 
@@ -45,7 +46,6 @@ export default async function ActualitesCatchAllPage({
     backTo: locale === 'fr' ? 'Retour à' : 'Back to',
     readTime: locale === 'fr' ? 'min de lecture' : 'min read',
     share: locale === 'fr' ? 'Partager' : 'Share',
-    relatedArticles: locale === 'fr' ? 'Articles similaires' : 'Related Articles',
     seeAllArticles: locale === 'fr' ? 'Voir tous les articles de cet auteur' : 'See all articles by this author',
     teamMalakin: locale === 'fr' ? 'Équipe Malakinfo' : 'Malakinfo Team',
   };
@@ -71,21 +71,22 @@ export default async function ActualitesCatchAllPage({
     const translatedArticle = await getArticleTranslation(article.id, locale);
     const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
 
-    const relatedArticles: any[] = await prisma.article.findMany({
+    const relatedArticles: any[] = await applyArticleLocales(await prisma.article.findMany({
       where: {
         categoryId: article.categoryId,
         id: { not: article.id },
+        publishedAt: { lte: new Date() },
       },
       include: {
         category: true,
         author: true,
         articleTags: { include: { tag: true } },
       },
-      take: 4,
+      take: 10,
       orderBy: {
         publishedAt: 'desc',
       },
-    } as any);
+    } as any) as any, locale);
 
     const sponsoredFromDb = await prisma.sponsoredArticle.findMany({
       where: {
@@ -236,7 +237,14 @@ export default async function ActualitesCatchAllPage({
             </article>
 
             <aside className="w-full min-w-0 xl:justify-self-end xl:sticky xl:top-6 xl:self-start">
-              <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
+              <div className="flex flex-col gap-8">
+                <CategoryArticlesSidebar
+                  articles={relatedArticles}
+                  categoryTitle={translatedCategory.title || article.category?.title}
+                  locale={locale}
+                />
+                <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
+              </div>
             </aside>
           </div>
         </div>
@@ -249,14 +257,6 @@ export default async function ActualitesCatchAllPage({
           </div>
         )}
 
-        {relatedArticles.length > 0 && (
-          <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 border-t border-border">
-            <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground mb-6 sm:mb-8">
-              {t.relatedArticles}
-            </h2>
-            <ArticleListingGrid articles={relatedArticles} locale={locale} />
-          </section>
-        )}
       </div>
     );
   } catch (error) {

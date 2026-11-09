@@ -319,6 +319,52 @@
     0% { transform: translateX(0%); }
     100% { transform: translateX(-100%); }
   }
+
+  .footer-partners-marquee {
+    overflow: hidden;
+  }
+
+  .footer-partners-track {
+    display: flex;
+    width: max-content;
+    animation: footer-partners-scroll var(--footer-partners-duration, 36s) linear infinite;
+  }
+
+  .footer-partners-group {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: clamp(2rem, 5vw, 4rem);
+    padding-right: clamp(2rem, 5vw, 4rem);
+  }
+
+  .footer-partners-marquee:hover .footer-partners-track,
+  .footer-partners-marquee:focus-within .footer-partners-track {
+    animation-play-state: paused;
+  }
+
+  @keyframes footer-partners-scroll {
+    to { transform: translateX(-50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .footer-partners-track {
+      width: 100%;
+      justify-content: center;
+      animation: none;
+    }
+
+    .footer-partners-group {
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding-right: 0;
+    }
+
+    .footer-partners-group[aria-hidden='true'] {
+      display: none;
+    }
+  }
 }
 
 @layer utilities {

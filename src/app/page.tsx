@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { ArrowRight, Calendar, Clock, TrendingUp } from 'lucide-react';
-import NewsletterSignupInline from '@/components/NewsletterSignupInline';
 import RadioHomeButton from '@/components/RadioHomeButton';
 
 export const revalidate = 60;
@@ -289,13 +288,18 @@ export default async function Home() {
 
       {/* Newsletter */}
       <section className="bg-secondary py-16 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <NewsletterSignupInline
-            locale="fr"
-            title="Restez informé"
-            subtitle="Abonnez-vous à notre newsletter pour recevoir les dernières actualités directement dans votre boîte mail."
-            buttonText="S'abonner"
-          />
+        <div className="mx-auto flex max-w-7xl flex-col items-center px-4 text-center sm:px-6 lg:px-8">
+          <h2 className="font-heading text-2xl font-bold sm:text-3xl">Restez informé</h2>
+          <p className="mt-3 text-sm text-white/85 sm:text-base">
+            Abonnez-vous à notre newsletter pour recevoir les dernières actualités directement dans votre boîte mail.
+          </p>
+          <Link
+            href="/newsletter"
+            className="mt-6 inline-flex items-center gap-2 bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+          >
+            S&apos;abonner
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </div>
       </section>
     </div>

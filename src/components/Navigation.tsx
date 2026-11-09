@@ -414,9 +414,6 @@ export default function Navigation() {
             <Link href={`/${locale}/actualites`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.news}
             </Link>
-            <Link href={`/${locale}/blog`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
-              {locale === 'en' ? 'Blogs' : 'Blogs'}
-            </Link>
             <Link href={`/${locale}/politique`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.politics}
             </Link>

@@ -3,14 +3,19 @@ export type NewsletterSubscribeResult =
   | { status: 'already_subscribed' }
   | { status: 'error'; message: string };
 
-export async function subscribeToNewsletter(email: string): Promise<NewsletterSubscribeResult> {
+const defaultInterests = ['actualites', 'economie', 'culture', 'sport', 'tech'];
+
+export async function subscribeToNewsletter(
+  email: string,
+  interests: string[] = defaultInterests,
+): Promise<NewsletterSubscribeResult> {
   const response = await fetch('/api/newsletter', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       email,
       consent: true,
-      interests: ['actualites', 'economie', 'culture', 'sport', 'tech'],
+      interests,
     }),
   });
 

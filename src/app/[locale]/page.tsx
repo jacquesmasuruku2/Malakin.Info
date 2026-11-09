@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { ArrowRight, Radio } from 'lucide-react';
 import AdSenseAd from '@/components/AdSenseAd';
-import NewsletterSignupInline from '@/components/NewsletterSignupInline';
 import SmartImage from '@/components/SmartImage';
 import { ADSENSE_SLOTS } from '@/lib/adsense';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
@@ -363,13 +362,16 @@ export default async function Home({
 
       {/* Newsletter Section */}
       <section className="border-t border-border bg-muted py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <NewsletterSignupInline
-            locale={normalizedLocale}
-            title={t.stayInformed}
-            subtitle={t.newsletterSubtitle}
-            buttonText={t.subscribe}
-          />
+        <div className="mx-auto flex max-w-7xl flex-col items-center px-4 text-center sm:px-6 lg:px-8">
+          <h2 className="font-heading text-2xl font-bold text-foreground sm:text-3xl">{t.stayInformed}</h2>
+          <p className="mt-3 text-sm text-muted-foreground sm:text-base">{t.newsletterSubtitle}</p>
+          <Link
+            href={`/${normalizedLocale}/newsletter`}
+            className="mt-6 inline-flex items-center gap-2 bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+          >
+            {t.subscribe}
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </div>
       </section>
     </div>

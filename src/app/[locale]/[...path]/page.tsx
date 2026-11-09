@@ -25,7 +25,7 @@ import ArticleAuthorLink from '@/components/ArticleAuthorLink';
 import CategoryArticlesList from '@/components/CategoryArticlesList';
 import FavoriteButton from '@/components/FavoriteButton';
 import { getArticleTags, prepareArticleHtml, normalizeArticleHtmlContent } from '@/lib/tags';
-import ArticleListingGrid from '@/components/ArticleListingGrid';
+import CategoryArticlesSidebar from '@/components/CategoryArticlesSidebar';
 import ArticleDateMeta from '@/components/ArticleDateMeta';
 import ArticleLanguageLinks from '@/components/ArticleLanguageLinks';
 import { getArticleUrl } from '@/lib/article-url';
@@ -35,6 +35,7 @@ export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; path: string[] }> }): Promise<Metadata> {
   const { locale, path } = await params;
+  if (path[0] === 'blog') notFound();
   const slug = path[path.length - 1];
 
   try {
@@ -152,6 +153,7 @@ export default async function CatchAllArticlePage({
   params: Promise<{ locale: string; path: string[] }>
 }) {
   const { locale, path } = await params;
+  if (path[0] === 'blog') notFound();
   const messages = getMessages(locale);
   const tArticle = messages.article;
   const slug = path[path.length - 1];
@@ -272,7 +274,8 @@ export default async function CatchAllArticlePage({
           category: true,
           author: true,
         },
-        take: 4,
+        publishedAt: { lte: new Date() },
+        take: 10,
         orderBy: {
           publishedAt: 'desc',
         },
@@ -443,7 +446,14 @@ export default async function CatchAllArticlePage({
               </article>
 
               <aside className="w-full min-w-0 xl:justify-self-end xl:sticky xl:top-6 xl:self-start">
-                <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
+                <div className="flex flex-col gap-8">
+                  <CategoryArticlesSidebar
+                    articles={relatedArticles}
+                    categoryTitle={translatedCategory.title || article.category?.title}
+                    locale={locale}
+                  />
+                  <ArticleSidebar locale={locale} sponsors={sponsoredArticles} />
+                </div>
               </aside>
             </div>
           </div>
@@ -456,14 +466,6 @@ export default async function CatchAllArticlePage({
             </div>
           )}
 
-          {relatedArticles.length > 0 && (
-            <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 border-t border-border">
-              <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground mb-6 sm:mb-8">
-                {tArticle.relatedArticles}
-              </h2>
-              <ArticleListingGrid articles={relatedArticles} locale={locale} />
-            </section>
-          )}
         </div>
       </>
     );

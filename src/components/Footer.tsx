@@ -3,10 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Mail, Phone, MapPin, ArrowUp, Heart } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type CSSProperties } from 'react';
 import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
-import { t as tCopy } from '@/lib/copy';
-import { subscribeToNewsletter } from '@/lib/newsletter-client';
 import type { FooterPartner } from '@/lib/footer-partners';
 
 const headingClass = 'mb-5 text-[13px] font-semibold uppercase tracking-[0.12em] text-white/95';
@@ -18,9 +16,6 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [newsletterStatus, setNewsletterStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [isNewsletterSubmitting, setIsNewsletterSubmitting] = useState(false);
   const scrollTopHideTimer = useRef<number | undefined>(undefined);
 
   const locale = getLocaleFromPathname(pathname);
@@ -66,52 +61,6 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleNewsletterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const email = newsletterEmail.trim();
-    if (!email || !email.includes('@')) {
-      setNewsletterStatus({ type: 'error', text: locale === 'fr' ? 'Veuillez saisir une adresse email valide.' : 'Please enter a valid email address.' });
-      return;
-    }
-
-    setIsNewsletterSubmitting(true);
-    setNewsletterStatus(null);
-
-    try {
-      const result = await subscribeToNewsletter(email);
-
-      if (result.status === 'already_subscribed') {
-        setNewsletterStatus({
-          type: 'error',
-          text: tCopy(locale, 'newsletterAlreadySubscribed'),
-        });
-        return;
-      }
-
-      if (result.status === 'error') {
-        setNewsletterStatus({
-          type: 'error',
-          text: result.message || tCopy(locale, 'newsletterError'),
-        });
-        return;
-      }
-
-      setNewsletterStatus({
-        type: 'success',
-        text: tCopy(locale, 'newsletterThanks'),
-      });
-      setNewsletterEmail('');
-    } catch {
-      setNewsletterStatus({
-        type: 'error',
-        text: tCopy(locale, 'newsletterError'),
-      });
-    } finally {
-      setIsNewsletterSubmitting(false);
-    }
   };
 
   const socialIcons = {
@@ -179,15 +128,6 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
     { label: nav.health, href: `/${locale}/sante` },
   ];
 
-  const sectionLinks = [
-    { label: nav.security, href: `/${locale}/securite` },
-    { label: nav.environment, href: `/${locale}/environnement` },
-    { label: nav.culture, href: `/${locale}/culture` },
-    { label: nav.sport, href: `/${locale}/sport` },
-    { label: nav.employment, href: `/${locale}/emploi` },
-    { label: nav.religion, href: `/${locale}/religion` },
-  ];
-
   const aboutLinks = [
     { label: t.whoAreWe, href: `/${locale}/a-propos` },
     { label: t.ourMission, href: `/${locale}/mission` },
@@ -215,6 +155,40 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
     { label: nav.religion, href: `/${locale}/religion` },
   ];
 
+  const renderPartnerLogo = (partner: FooterPartner, key: string, decorative = false) => {
+    const logo = (
+      <img
+        src={partner.imageUrl}
+        alt={decorative ? '' : partner.companyName}
+        title={decorative ? undefined : partner.companyName}
+        className="max-h-12 w-auto max-w-[180px] object-contain"
+      />
+    );
+    const className =
+      'footer-partners-item flex h-12 w-[180px] shrink-0 items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white';
+
+    if (decorative || !partner.websiteUrl) {
+      return (
+        <span key={key} aria-hidden={decorative || undefined} className={className}>
+          {logo}
+        </span>
+      );
+    }
+
+    return (
+      <a
+        key={key}
+        href={partner.websiteUrl}
+        target="_blank"
+        rel="noopener noreferrer sponsored"
+        className={className}
+        aria-label={partner.companyName}
+      >
+        {logo}
+      </a>
+    );
+  };
+
   return (
     <footer className="bg-[#20578f] text-white pb-24 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -228,7 +202,7 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
           </button>
         )}
 
-        <nav className="flex flex-wrap gap-x-8 gap-y-3 border-b border-white/15 py-5 text-[13px] font-medium uppercase tracking-[0.08em] text-white/80">
+        <nav className="flex flex-wrap justify-center gap-x-8 gap-y-3 border-b border-white/15 py-5 text-center text-[13px] font-medium uppercase tracking-[0.08em] text-white/80 md:justify-start md:text-left">
           {topRubriques.map((item) => (
             <Link key={item.href} href={item.href} className="hover:text-white">
               {item.label}
@@ -236,20 +210,12 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
           ))}
         </nav>
 
-        <div className="grid grid-cols-1 gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-10 py-12 text-left sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <h3 className={headingClass}>{t.inTheNews}</h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap justify-start gap-2">
               {newsTopics.map((item) => (
                 <Link key={item.href + item.label} href={item.href} className={chipClass}>
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-            <h3 className={`${headingClass} mt-8`}>{t.sections}</h3>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
-              {sectionLinks.map((item) => (
-                <Link key={item.href} href={item.href} className={textLinkClass}>
                   {item.label}
                 </Link>
               ))}
@@ -258,7 +224,6 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
 
           <div>
             <h3 className={headingClass}>{t.aboutMalakin}</h3>
-            <p className="mb-4 text-sm leading-relaxed text-white/70">{t.description}</p>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
               {aboutLinks.map((item) => (
                 <Link key={item.href + item.label} href={item.href} className={textLinkClass}>
@@ -279,7 +244,7 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
             </div>
           </div>
 
-          <div>
+          <div className="lg:flex lg:flex-col">
             <h3 className={headingClass}>{t.services}</h3>
             <div className="space-y-2.5">
               <Link href={`/${locale}/archives`} className={`${textLinkClass} block`}>
@@ -289,40 +254,16 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
                 {t.rssFeeds}
               </Link>
             </div>
-            <p className="mt-8 mb-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-white/95">
+            <Link
+              href={`/${locale}/newsletter`}
+              className="mt-8 inline-flex min-h-11 items-center justify-center rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-[#20578f] transition hover:bg-white/90 lg:mt-auto lg:self-start"
+            >
               Newsletter
-            </p>
-            <p className="mb-4 text-sm text-white/70">
-              {locale === 'fr'
-                ? 'Abonnez-vous pour recevoir les dernières actualités directement dans votre boîte mail.'
-                : 'Subscribe to receive the latest news directly in your inbox.'}
-            </p>
-            <form onSubmit={handleNewsletterSubmit} className="space-y-2.5">
-              <input
-                type="email"
-                value={newsletterEmail}
-                onChange={(event) => setNewsletterEmail(event.target.value)}
-                placeholder={locale === 'fr' ? 'Entrez votre adresse email' : 'Enter your email address'}
-                className="w-full rounded-md border border-white/20 bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-white focus:outline-none"
-                aria-label="Email newsletter"
-              />
-              <button
-                type="submit"
-                disabled={isNewsletterSubmitting}
-                className="w-full rounded-md bg-[#0b3b8b] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0a3276] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isNewsletterSubmitting ? (locale === 'fr' ? 'Envoi...' : 'Sending...') : (locale === 'fr' ? 'S\'abonner' : 'Subscribe')}
-              </button>
-              {newsletterStatus && (
-                <p className={`text-sm ${newsletterStatus.type === 'success' ? 'text-emerald-300' : 'text-red-300'}`}>
-                  {newsletterStatus.text}
-                </p>
-              )}
-            </form>
+            </Link>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-white/20 py-5 text-sm text-white/90">
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 border-t border-white/20 py-5 text-sm text-white/90">
           {Object.entries(socialIcons).map(([name, { icon: Icon, color, url }]) => (
             <a
               key={name}
@@ -339,7 +280,7 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pb-6 text-sm text-white/85">
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pb-6 text-center text-sm text-white/85">
           <a href="mailto:contact@malakinfo.com" className="inline-flex items-center gap-2 hover:text-white">
             <Mail className="w-4 h-4 text-white/90" />
             {t.contactEmail}
@@ -362,35 +303,27 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
             {locale === 'fr' ? 'Nos partenaires' : 'Our partners'}
           </h2>
           {partners.length > 0 ? (
-            <div className="mx-auto mt-6 grid max-w-6xl grid-cols-1 justify-items-center gap-y-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-              {partners.map((partner) => {
-                const logo = (
-                  <img
-                    src={partner.imageUrl}
-                    alt={partner.companyName}
-                    title={partner.companyName}
-                    className="max-h-12 w-auto max-w-[180px] object-contain brightness-0 invert opacity-90 transition-opacity hover:opacity-100"
-                  />
-                );
-
-                return partner.websiteUrl ? (
-                  <a
-                    key={partner.id}
-                    href={partner.websiteUrl}
-                    target="_blank"
-                    rel="noopener noreferrer sponsored"
-                    className="flex h-12 w-full items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                    aria-label={partner.companyName}
-                  >
-                    {logo}
-                  </a>
-                ) : (
-                  <span key={partner.id} className="flex h-12 w-full items-center justify-center">
-                    {logo}
-                  </span>
-                );
-              })}
-            </div>
+            partners.length > 6 ? (
+              <div className="footer-partners-marquee mx-auto mt-6 max-w-6xl">
+                <div
+                  className="footer-partners-track"
+                  style={{ '--footer-partners-duration': `${partners.length * 6}s` } as CSSProperties}
+                >
+                  <div className="footer-partners-group">
+                    {partners.map((partner) => renderPartnerLogo(partner, partner.id))}
+                  </div>
+                  <div className="footer-partners-group" aria-hidden="true">
+                    {partners.map((partner) =>
+                      renderPartnerLogo(partner, `${partner.id}-duplicate`, true),
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mx-auto mt-6 flex max-w-6xl flex-wrap justify-center gap-x-8 gap-y-8">
+                {partners.map((partner) => renderPartnerLogo(partner, partner.id))}
+              </div>
+            )
           ) : (
             <div className="mt-4 text-center">
               <Link
@@ -404,7 +337,7 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
         </section>
 
         <div className="flex flex-col gap-5 py-6 sm:flex-row sm:items-end sm:justify-between">
-          <nav aria-label={locale === 'fr' ? 'Informations légales' : 'Legal information'} className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-white/90">
+          <nav aria-label={locale === 'fr' ? 'Informations légales' : 'Legal information'} className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-center text-sm text-white/90 md:justify-start md:text-left">
             {[
               t.legalNotices,
               t.privacyPolicy,
@@ -421,7 +354,7 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
             ))}
           </nav>
 
-          <div className="flex flex-col gap-1 text-xs text-white/75 sm:items-end">
+          <div className="flex flex-col items-center gap-1 text-center text-xs text-white/75 md:items-end md:text-right">
             <p className="font-semibold tracking-wide text-white">MalakInfo</p>
             <p>
               {locale === 'fr'

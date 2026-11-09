@@ -251,13 +251,22 @@ export default function ServicesModal() {
         </div>
 
         <footer className="shrink-0 border-t border-border bg-background p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <a
-            href="https://malakinfo.com/en/compte/connexion"
-            onClick={closeServices}
-            className="flex min-h-12 items-center justify-center rounded-lg bg-primary px-4 py-3 text-base font-bold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            {locale === 'fr' ? 'Se connecter' : 'Sign in'}
-          </a>
+          <div className="flex gap-3">
+            <Link
+              href={`/${locale}/compte/connexion`}
+              onClick={closeServices}
+              className="flex min-h-12 flex-1 items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              {locale === 'fr' ? 'Se connecter' : 'Sign in'}
+            </Link>
+            <Link
+              href={`/${locale}/nous-soutenir`}
+              onClick={closeServices}
+              className="flex min-h-12 flex-1 items-center justify-center rounded-lg bg-secondary px-4 py-3 text-sm font-bold text-secondary-foreground transition-colors hover:bg-secondary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2"
+            >
+              {t.subscribe}
+            </Link>
+          </div>
         </footer>
       </aside>
     </>
