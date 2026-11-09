@@ -9,10 +9,10 @@ import { t as tCopy } from '@/lib/copy';
 import { subscribeToNewsletter } from '@/lib/newsletter-client';
 import type { FooterPartner } from '@/lib/footer-partners';
 
-const headingClass = 'mb-5 text-[13px] font-semibold uppercase tracking-[0.12em] text-[#d4af37]';
-const textLinkClass = 'text-[15px] text-white/85 transition-colors hover:text-[#d4af37]';
+const headingClass = 'mb-5 text-[13px] font-semibold uppercase tracking-[0.12em] text-white/95';
+const textLinkClass = 'text-[15px] text-white/85 transition-colors hover:text-white';
 const chipClass =
-  'inline-flex items-center rounded-full border border-white/25 px-3.5 py-1.5 text-[13px] text-white/90 transition-colors hover:border-[#d4af37] hover:text-[#d4af37]';
+  'inline-flex items-center rounded-full border border-white/25 px-3.5 py-1.5 text-[13px] text-white/90 transition-colors hover:border-white hover:text-white';
 
 export default function Footer({ partners = [] }: { partners?: FooterPartner[] }) {
   const pathname = usePathname();
@@ -216,7 +216,7 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
   ];
 
   return (
-    <footer className="bg-[#081c3d] text-white pb-24 md:pb-0">
+    <footer className="bg-[#20578f] text-white pb-24 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {showScrollTop && (
           <button
@@ -230,7 +230,7 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
 
         <nav className="flex flex-wrap gap-x-8 gap-y-3 border-b border-white/15 py-5 text-[13px] font-medium uppercase tracking-[0.08em] text-white/80">
           {topRubriques.map((item) => (
-            <Link key={item.href} href={item.href} className="hover:text-[#d4af37]">
+            <Link key={item.href} href={item.href} className="hover:text-white">
               {item.label}
             </Link>
           ))}
@@ -289,7 +289,7 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
                 {t.rssFeeds}
               </Link>
             </div>
-            <p className="mt-8 mb-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-[#d4af37]">
+            <p className="mt-8 mb-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-white/95">
               Newsletter
             </p>
             <p className="mb-4 text-sm text-white/70">
@@ -303,7 +303,7 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
                 value={newsletterEmail}
                 onChange={(event) => setNewsletterEmail(event.target.value)}
                 placeholder={locale === 'fr' ? 'Entrez votre adresse email' : 'Enter your email address'}
-                className="w-full rounded-md border border-white/20 bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-[#d4af37] focus:outline-none"
+                className="w-full rounded-md border border-white/20 bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-white focus:outline-none"
                 aria-label="Email newsletter"
               />
               <button
@@ -322,31 +322,14 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-white/15 py-5 text-sm text-white/70">
-          {[
-            t.legalNotices,
-            t.privacyPolicy,
-            t.termsOfUse,
-            t.cookies,
-          ].map((item, index) => (
-            <Link
-              key={item}
-              href={`/${locale}/${['mentions-legales', 'politique-confidentialite', 'conditions-utilisation', 'cookies'][index]}`}
-              className="hover:text-[#d4af37]"
-            >
-              {item}
-            </Link>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-white/15 py-5 text-sm text-white/85">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-white/20 py-5 text-sm text-white/90">
           {Object.entries(socialIcons).map(([name, { icon: Icon, color, url }]) => (
             <a
               key={name}
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 hover:text-[#d4af37]"
+              className="inline-flex items-center gap-2 hover:text-white"
             >
               <span style={{ color }}>
                 <Icon />
@@ -356,40 +339,37 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pb-5 text-sm text-white/70">
-          <a href="mailto:contact@malakinfo.com" className="inline-flex items-center gap-2 hover:text-[#d4af37]">
-            <Mail className="w-4 h-4 text-[#d4af37]" />
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pb-6 text-sm text-white/85">
+          <a href="mailto:contact@malakinfo.com" className="inline-flex items-center gap-2 hover:text-white">
+            <Mail className="w-4 h-4 text-white/90" />
             {t.contactEmail}
           </a>
-          <a href="tel:+243998258441" className="inline-flex items-center gap-2 hover:text-[#d4af37]">
-            <Phone className="w-4 h-4 text-[#d4af37]" />
+          <a href="tel:+243998258441" className="inline-flex items-center gap-2 hover:text-white">
+            <Phone className="w-4 h-4 text-white/90" />
             +243 998 258 441
           </a>
           <span className="inline-flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-[#d4af37]" />
+            <MapPin className="w-4 h-4 text-white/90" />
             {t.location}
           </span>
         </div>
 
-        <div className="flex flex-col gap-5 border-t border-white/15 py-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold tracking-wide text-white">MalakInfo</p>
-            <p className="mt-1 text-xs text-white/50">
-              {locale === 'fr'
-                ? 'Aussi connu sous les noms Malaki et Malaki Info'
-                : 'Also known as Malaki and Malaki Info'}
-            </p>
-          </div>
-
-          <div className="flex flex-1 flex-wrap items-center justify-start gap-x-8 gap-y-4 sm:justify-center lg:px-8">
-            {partners.length > 0 ? (
-              partners.map((partner) => {
+        <section aria-labelledby="footer-partners-title" className="border-y border-white/25 py-6">
+          <h2
+            id="footer-partners-title"
+            className="text-center text-[13px] font-semibold uppercase tracking-[0.08em] text-white/95"
+          >
+            {locale === 'fr' ? 'Nos partenaires' : 'Our partners'}
+          </h2>
+          {partners.length > 0 ? (
+            <div className="mx-auto mt-6 grid max-w-6xl grid-cols-1 justify-items-center gap-y-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+              {partners.map((partner) => {
                 const logo = (
                   <img
                     src={partner.imageUrl}
                     alt={partner.companyName}
                     title={partner.companyName}
-                    className="h-8 w-auto max-w-[120px] object-contain opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0 sm:h-9"
+                    className="max-h-12 w-auto max-w-[180px] object-contain brightness-0 invert opacity-90 transition-opacity hover:opacity-100"
                   />
                 );
 
@@ -399,33 +379,62 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
                     href={partner.websiteUrl}
                     target="_blank"
                     rel="noopener noreferrer sponsored"
-                    className="inline-flex items-center"
+                    className="flex h-12 w-full items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                     aria-label={partner.companyName}
                   >
                     {logo}
                   </a>
                 ) : (
-                  <span key={partner.id} className="inline-flex items-center">
+                  <span key={partner.id} className="flex h-12 w-full items-center justify-center">
                     {logo}
                   </span>
                 );
-              })
-            ) : (
+              })}
+            </div>
+          ) : (
+            <div className="mt-4 text-center">
               <Link
                 href={`/${locale}/partenariats`}
-                className="text-xs uppercase tracking-[0.14em] text-white/45 transition hover:text-[#d4af37]"
+                className="text-xs uppercase tracking-[0.14em] text-white/75 transition hover:text-white"
               >
                 {locale === 'fr' ? 'Espace partenaires' : 'Partner space'}
               </Link>
-            )}
-          </div>
+            </div>
+          )}
+        </section>
 
-          <p className="flex flex-wrap items-center gap-2 text-xs text-white/50 sm:justify-end">
-            <span>© {currentYear} MalakInfo.com</span>
-            <span>{t.copyright}</span>
-            <span>{t.madeWith}</span>
-            <Heart className="inline h-3 w-3 text-[#e63946]" />
-          </p>
+        <div className="flex flex-col gap-5 py-6 sm:flex-row sm:items-end sm:justify-between">
+          <nav aria-label={locale === 'fr' ? 'Informations légales' : 'Legal information'} className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-white/90">
+            {[
+              t.legalNotices,
+              t.privacyPolicy,
+              t.termsOfUse,
+              t.cookies,
+            ].map((item, index) => (
+              <Link
+                key={item}
+                href={`/${locale}/${['mentions-legales', 'politique-confidentialite', 'conditions-utilisation', 'cookies'][index]}`}
+                className="hover:text-white"
+              >
+                {item}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex flex-col gap-1 text-xs text-white/75 sm:items-end">
+            <p className="font-semibold tracking-wide text-white">MalakInfo</p>
+            <p>
+              {locale === 'fr'
+                ? 'Aussi connu sous les noms Malaki et Malaki Info'
+                : 'Also known as Malaki and Malaki Info'}
+            </p>
+            <p className="flex flex-wrap items-center gap-1 sm:justify-end">
+              <span>© {currentYear} MalakInfo.com</span>
+              <span>{t.copyright}</span>
+              <span>{t.madeWith}</span>
+              <Heart className="inline h-3 w-3 text-[#e63946]" />
+            </p>
+          </div>
         </div>
       </div>
     </footer>
