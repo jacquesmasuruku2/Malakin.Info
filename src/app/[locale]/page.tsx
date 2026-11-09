@@ -129,25 +129,6 @@ export default async function Home({
     publishedAt: article.publishedAt ? new Date(article.publishedAt) : null,
   }));
 
-  const tNav = messages.nav;
-  const allLabels: Record<string, string> = {
-    fr: 'Tout',
-    en: 'All',
-    es: 'Todo',
-    sw: 'Zote',
-    ln: 'Nionso',
-    rw: 'Byose',
-  };
-  const categoryFilters = [
-    { name: allLabels[normalizedLocale] || 'Tout', slug: 'all', href: `/${locale}` },
-    { name: tNav.news, slug: 'actualites', href: `/${locale}/actualites` },
-    { name: tNav.politics, slug: 'politique', href: `/${locale}/politique` },
-    { name: tNav.economy, slug: 'economie', href: `/${locale}/economie` },
-    { name: tNav.culture, slug: 'culture', href: `/${locale}/culture` },
-    { name: tNav.sport, slug: 'sport', href: `/${locale}/sport` },
-    { name: tNav.scienceTech, slug: 'science-tech', href: `/${locale}/science-tech` },
-  ];
-
   const filteredFeaturedNews = featuredNews;
   const filteredLatestNews = latestNews;
 
@@ -180,41 +161,8 @@ export default async function Home({
           </div>
         </div>
       ) : null}
-      {activeRadio?.streamUrl ? (
-        <section className="bg-[#1f7a6a]">
-          <div className="mx-auto flex max-w-7xl justify-center px-3 py-5 sm:px-6">
-            <RadioOnAirWidget
-              name={activeRadio.name || 'Radio MalakInfo'}
-              onlineLabel={t.onAir}
-            />
-          </div>
-        </section>
-      ) : null}
-
       {/* Main Editorial Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8 border-b border-border pb-4">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {categoryFilters.map((item) => {
-              const isActive = item.slug === 'all';
-              return (
-                <Link
-                  key={item.slug}
-                  href={item.href}
-                  prefetch
-                  className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-                    isActive
-                      ? 'border-secondary bg-secondary/10 text-foreground'
-                      : 'border-border bg-card text-muted-foreground hover:border-foreground hover:text-foreground'
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
           <div className="lg:col-span-7">
             {filteredFeaturedNews.length > 0 && (

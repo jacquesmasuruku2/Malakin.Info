@@ -1,15 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { X } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Briefcase, Home, Search, X } from 'lucide-react';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { useState, useEffect } from 'react';
 import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
 import { isMenuHubSlug, uniqueMenuLinks } from '@/lib/menu';
 
 type MenuLink = { name: string; href: string };
-type MenuSection = { title: string; href?: string; items?: MenuLink[] };
 
 type CategoryPayload = {
   slug?: string;
@@ -17,89 +16,17 @@ type CategoryPayload = {
   articleCount?: number;
 };
 
-function MenuTree({
-  sections,
-  expandedCategory,
-  setExpandedCategory,
-  closeServices,
-}: {
-  sections: MenuSection[];
-  expandedCategory: string | null;
-  setExpandedCategory: (title: string | null) => void;
-  closeServices: () => void;
-}) {
-  return (
-    <div className="space-y-0">
-      {sections.map((category) => {
-        if (category.href) {
-          return (
-            <Link
-              key={category.href || category.title}
-              href={category.href}
-              onClick={closeServices}
-              className="block border-b border-border px-3 py-3 text-sm font-semibold text-foreground transition-colors hover:text-secondary"
-            >
-              {category.title}
-            </Link>
-          );
-        }
-
-        const isExpanded = expandedCategory === category.title;
-        return (
-          <div key={category.title} className="border-b border-border">
-            <button
-              type="button"
-              className="flex w-full items-center justify-between px-3 py-3 text-left text-sm font-semibold text-foreground transition-colors hover:text-secondary"
-              onClick={() => setExpandedCategory(isExpanded ? null : category.title)}
-            >
-              <span>{category.title}</span>
-              <span
-                className={`text-xs text-muted-foreground transition-transform duration-200 ${
-                  isExpanded ? 'rotate-90' : ''
-                }`}
-              >
-                ›
-              </span>
-            </button>
-
-            <div
-              className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                isExpanded ? 'max-h-[min(16rem,40vh)] opacity-100' : 'max-h-0 opacity-0'
-              }`}
-            >
-              {isExpanded && category.items && (
-                <div className="space-y-0.5 bg-muted px-2 py-2">
-                  {category.items.map((item) => (
-                    <Link
-                      key={`${item.href}-${item.name}`}
-                      href={item.href}
-                      onClick={closeServices}
-                      className="block rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary/10 hover:text-secondary"
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 export default function ServicesModal() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isServicesOpen, closeServices } = useServicesModal();
   const locale = getLocaleFromPathname(pathname);
   const t = getMessages(locale).nav;
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [newsCategories, setNewsCategories] = useState<MenuLink[] | null>(null);
 
   useEffect(() => {
     if (!isServicesOpen) {
-      setExpandedCategory(null);
       return;
     }
 
@@ -112,6 +39,16 @@ export default function ServicesModal() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isServicesOpen, closeServices]);
+
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = searchQuery.trim();
+    if (!query) return;
+
+    closeServices();
+    setSearchQuery('');
+    router.push(`/${locale}/recherche?q=${encodeURIComponent(query)}`);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -162,69 +99,21 @@ export default function ServicesModal() {
     { name: t.security, href: `/${locale}/securite` },
   ];
 
-  const menuCategories: MenuSection[] = [
-    { title: t.home, href: `/${locale}` },
-    {
-      title: t.news,
-      items: uniqueMenuLinks([
-        { name: t.allNews, href: `/${locale}/actualites` },
-        ...(newsCategories ?? fallbackNewsCategories),
-      ]),
-    },
-    {
-      title: t.media,
-      items: [
-        { name: locale === 'fr' ? 'Tous les médias' : 'All media', href: `/${locale}/medias` },
-        { name: locale === 'fr' ? 'Diffusion en direct' : 'Live broadcasts', href: `/${locale}/diffusion-en-direct` },
-        { name: t.videos, href: `/${locale}/medias/videos` },
-        { name: t.live, href: `/${locale}/medias/live` },
-      ],
-    },
-    {
-      title: t.religion,
-      items: [
-        { name: locale === 'fr' ? 'Toute la rubrique' : 'All religion', href: `/${locale}/religion` },
-        {
-          name: locale === 'fr' ? 'Sermons Branham' : 'Branham sermons',
-          href: `/${locale}/religion/message-du-temps/branham/sermons`,
-        },
-      ],
-    },
-    {
-      title: t.culture,
-      items: [{ name: locale === 'fr' ? 'Toute la culture' : 'All culture', href: `/${locale}/culture` }],
-    },
-    {
-      title: t.sport,
-      items: [{ name: locale === 'fr' ? 'Tout le sport' : 'All sport', href: `/${locale}/sport` }],
-    },
-    {
-      title: t.scienceTech,
-      items: [
-        { name: locale === 'fr' ? 'Toute la rubrique' : 'All science & tech', href: `/${locale}/science-tech` },
-        { name: t.natureEnvironment, href: `/${locale}/science-tech/nature-environnement` },
-      ],
-    },
-    {
-      title: t.practicalInfo,
-      items: [{ name: locale === 'fr' ? 'Toutes les infos' : 'All practical info', href: `/${locale}/infos-pratiques` }],
-    },
-  ];
+  const newsMenuItems = uniqueMenuLinks([
+    { name: t.allNews, href: `/${locale}/actualites` },
+    ...(newsCategories ?? fallbackNewsCategories),
+  ]);
 
-  const reservedHrefs = new Set(
-    menuCategories.flatMap((section) => [
-      ...(section.href ? [section.href] : []),
-      ...(section.items?.map((item) => item.href) ?? []),
-    ])
-  );
-
-  const servicesItems = uniqueMenuLinks([
-    { name: t.contact, href: `/${locale}/contact` },
-    { name: t.employment, href: `/${locale}/emploi` },
-    { name: t.search, href: `/${locale}/recherche` },
+  const otherSections: MenuLink[] = uniqueMenuLinks([
+    { name: t.media, href: `/${locale}/medias` },
+    { name: t.religion, href: `/${locale}/religion` },
+    { name: t.culture, href: `/${locale}/culture` },
+    { name: t.sport, href: `/${locale}/sport` },
+    { name: t.scienceTech, href: `/${locale}/science-tech` },
+    { name: t.practicalInfo, href: `/${locale}/infos-pratiques` },
     { name: t.partnerships, href: `/${locale}/partenaires` },
-    { name: t.support, href: `/${locale}/nous-soutenir` },
-  ]).filter((item) => !reservedHrefs.has(item.href));
+    { name: t.contact, href: `/${locale}/contact` },
+  ]);
 
   return (
     <>
@@ -233,60 +122,113 @@ export default function ServicesModal() {
           isServicesOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={closeServices}
+        aria-hidden="true"
       />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-[70] w-[88vw] max-w-[420px] border-r border-border bg-background text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.25)] transition-transform duration-300 ease-out ${
+        className={`fixed inset-y-0 left-0 z-[70] flex h-dvh w-full max-w-[min(100vw,28rem)] flex-col border-r border-border bg-background font-sans text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.25)] transition-transform duration-300 ease-out ${
           isServicesOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         aria-label={t.servicesMalakin}
+        role="dialog"
+        aria-modal="true"
+        aria-hidden={!isServicesOpen}
       >
-        <div className="flex items-center justify-between border-b border-border bg-background px-4 py-3">
-          <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-foreground">
-            {t.servicesMalakin}
-          </h3>
+        <header className="flex items-center gap-2 border-b border-border bg-muted/50 px-3 py-2.5">
+          <form onSubmit={handleSearch} className="flex min-w-0 flex-1 items-center gap-2">
+            <Search className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder={t.searchPlaceholder}
+              aria-label={t.search}
+              className="h-10 min-w-0 flex-1 border-0 bg-transparent text-sm font-semibold text-foreground outline-none placeholder:text-muted-foreground focus:ring-0"
+            />
+            <button
+              type="submit"
+              className="sr-only"
+              aria-label={t.search}
+            >
+              {t.search}
+            </button>
+          </form>
           <button
             type="button"
             onClick={closeServices}
-            className="inline-flex items-center gap-1.5 rounded-md p-2 text-foreground transition-colors hover:bg-muted hover:text-secondary"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             aria-label={t.close}
+            title={t.close}
           >
-            <span className="text-[10px] font-bold uppercase tracking-[0.12em]">{t.close}</span>
-            <X className="h-4 w-4" />
+            <X className="h-7 w-7" />
           </button>
-        </div>
+        </header>
 
-        <div className="h-[calc(100vh-57px)] overflow-y-auto px-4 py-4">
-          <div className="mb-6">
-            <h4 className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-              {t.services}
-            </h4>
-            <div className="space-y-2">
-              {servicesItems.map((item) => (
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <Link
+            href={`/${locale}`}
+            onClick={closeServices}
+            className="flex min-h-[58px] items-center gap-3 border-b border-border px-5 text-base font-black uppercase text-foreground transition-colors hover:bg-muted"
+          >
+            <Home className="h-6 w-6 shrink-0" aria-hidden="true" />
+            {t.home}
+          </Link>
+
+          <section aria-labelledby="mobile-news-heading" className="border-b border-border px-5 py-4">
+            <h2 id="mobile-news-heading" className="mb-3 text-base font-black uppercase tracking-[0.12em] text-foreground">
+              {t.news}
+            </h2>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              {newsMenuItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={closeServices}
-                  className="block rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-sm text-foreground transition-colors hover:border-secondary/60 hover:bg-secondary/10 hover:text-secondary"
+                  className="flex min-h-11 items-center py-2 text-[15px] font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
-                  {item.name}
+                  <span className="line-clamp-2">{item.name}</span>
                 </Link>
               ))}
             </div>
-          </div>
+          </section>
 
-          <div>
-            <h4 className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-              Malakinfo Services
-            </h4>
-            <MenuTree
-              sections={menuCategories}
-              expandedCategory={expandedCategory}
-              setExpandedCategory={setExpandedCategory}
-              closeServices={closeServices}
-            />
-          </div>
+          <section aria-labelledby="mobile-employment-heading" className="border-b border-border">
+            <h2 id="mobile-employment-heading" className="border-b border-border px-5 py-3 text-base font-black uppercase tracking-[0.12em] text-foreground">
+              {locale === 'fr' ? 'Offres d’emploi' : 'Job openings'}
+            </h2>
+            <Link
+              href={`/${locale}/emploi`}
+              onClick={closeServices}
+              className="flex min-h-12 items-center gap-3 px-5 py-2.5 text-[15px] font-semibold text-foreground transition-colors hover:bg-muted hover:text-primary"
+            >
+              <Briefcase className="h-5 w-5" aria-hidden="true" />
+              {t.employment}
+            </Link>
+          </section>
+
+          <section aria-label={t.services} className="grid grid-cols-2 gap-x-4 gap-y-1 px-5 py-3">
+            {otherSections.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={closeServices}
+                className="flex min-h-11 items-center py-2 text-sm font-semibold text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <span className="line-clamp-2">{item.name}</span>
+              </Link>
+            ))}
+          </section>
         </div>
+
+        <footer className="shrink-0 border-t border-border bg-background p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <a
+            href="https://malakinfo.com/en/compte/connexion"
+            onClick={closeServices}
+            className="flex min-h-12 items-center justify-center rounded-lg bg-primary px-4 py-3 text-base font-bold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          >
+            {locale === 'fr' ? 'Se connecter' : 'Sign in'}
+          </a>
+        </footer>
       </aside>
     </>
   );
