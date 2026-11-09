@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadImageToR2 } from '@/lib/r2';
+import { requireAdmin } from '@/lib/admin-session';
 
 export const runtime = 'nodejs';
 
@@ -67,6 +68,9 @@ function inferFileType(file: File) {
 }
 
 export async function POST(request: NextRequest) {
+  const { response: authResponse } = await requireAdmin();
+  if (authResponse) return authResponse;
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;

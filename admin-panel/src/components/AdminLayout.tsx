@@ -65,6 +65,7 @@ export default function AdminLayout({
     { name: 'Émissions radio', href: '/radio/programs', icon: ListVideo },
     { name: 'Lives', href: '/lives', icon: Video },
     { name: 'Médias', href: '/media', icon: Music },
+    { name: 'Partenaires', href: '/partnerships', icon: Handshake },
     { name: 'Sponsors', href: '/sponsored', icon: Handshake },
     { name: 'Abonnement', href: '/newsletter', icon: Mail },
     { name: 'Envoyer une newsletter', href: '/newsletter/send', icon: Send },

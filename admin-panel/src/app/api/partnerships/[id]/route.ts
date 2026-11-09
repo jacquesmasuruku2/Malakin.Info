@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/admin-session';
+import { revalidatePublicArticle } from '@/lib/revalidate-site';
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { response: authResponse } = await requireAdmin();
+  if (authResponse) return authResponse;
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -38,6 +43,7 @@ export async function PATCH(
       },
     });
 
+    await revalidatePublicArticle({ paths: ['/fr', '/en'] });
     return NextResponse.json(partnership);
   } catch (error) {
     console.error('Error updating partnership:', error);
@@ -52,12 +58,16 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { response: authResponse } = await requireAdmin();
+  if (authResponse) return authResponse;
+
   try {
     const { id } = await params;
     await prisma.partnership.delete({
       where: { id },
     });
 
+    await revalidatePublicArticle({ paths: ['/fr', '/en'] });
     return NextResponse.json({ message: 'Partnership deleted successfully' });
   } catch (error) {
     console.error('Error deleting partnership:', error);
