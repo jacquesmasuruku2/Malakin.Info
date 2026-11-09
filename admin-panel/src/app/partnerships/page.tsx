@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import AdminLayout from '@/components/AdminLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Building2, ExternalLink, ImagePlus, LoaderCircle, Plus, Upload } from 'lucide-react';
@@ -13,7 +13,7 @@ type FooterPartner = {
   phone: string | null;
   type: string;
   description: string | null;
-  imageUrl: string;
+  imageUrl: string | null;
   websiteUrl: string | null;
   status: string;
   createdAt: string;
@@ -43,38 +43,49 @@ const emptyForm: PartnerForm = {
 
 export default function PartnersPage() {
   const [partners, setPartners] = useState<FooterPartner[]>([]);
+  const [requests, setRequests] = useState<FooterPartner[]>([]);
   const [form, setForm] = useState<PartnerForm>(emptyForm);
+  const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const formSectionRef = useRef<HTMLElement | null>(null);
 
-  const loadPartners = async () => {
+  const fetchPartnerships = useCallback(async (): Promise<FooterPartner[]> => {
+    const response = await fetch('/api/partnerships', { cache: 'no-store' });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data?.error || 'Impossible de charger les partenaires.');
+    return Array.isArray(data) ? data : [];
+  }, []);
+
+  const loadPartners = useCallback(async () => {
     try {
-      const response = await fetch('/api/partnerships?status=approved', { cache: 'no-store' });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error || 'Impossible de charger les partenaires.');
-      setPartners(Array.isArray(data) ? data : []);
+      const allPartnerships = await fetchPartnerships();
+      setPartners(allPartnerships.filter((partnership) => partnership.status === 'approved'));
+      setRequests(allPartnerships.filter((partnership) => partnership.status === 'pending'));
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Impossible de charger les partenaires.');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [fetchPartnerships]);
 
   useEffect(() => {
     let cancelled = false;
 
-    fetch('/api/partnerships?status=approved', { cache: 'no-store' })
-      .then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data?.error || 'Impossible de charger les partenaires.');
-        if (!cancelled) setPartners(Array.isArray(data) ? data : []);
+    fetchPartnerships()
+      .then((allPartnerships) => {
+        if (cancelled) return;
+        setPartners(allPartnerships.filter((partnership) => partnership.status === 'approved'));
+        setRequests(allPartnerships.filter((partnership) => partnership.status === 'pending'));
       })
       .catch((loadError: unknown) => {
-        if (!cancelled) setError(loadError instanceof Error ? loadError.message : 'Impossible de charger les partenaires.');
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : 'Impossible de charger les partenaires.');
+        }
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -83,7 +94,7 @@ export default function PartnersPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fetchPartnerships]);
 
   const updateForm = (key: keyof PartnerForm, value: string) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -121,22 +132,52 @@ export default function PartnersPage() {
     setNotice('');
 
     try {
-      const response = await fetch('/api/partnerships', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
+      const response = await fetch(
+        editingRequestId ? `/api/partnerships/${editingRequestId}` : '/api/partnerships',
+        {
+          method: editingRequestId ? 'PATCH' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            editingRequestId
+              ? { status: 'approved', imageUrl: form.imageUrl, websiteUrl: form.websiteUrl || null }
+              : form,
+          ),
+        },
+      );
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'La publication du partenaire a échoué.');
 
       setForm(emptyForm);
+      setEditingRequestId(null);
       setPartners((current) => [data, ...current]);
-      setNotice('Le partenaire est publié dans le footer.');
+      setRequests((current) => current.filter((request) => request.id !== data.id));
+      setNotice(
+        editingRequestId
+          ? `${data.companyName} est publié dans le footer.`
+          : 'Le partenaire est publié dans le footer.',
+      );
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : 'La publication du partenaire a échoué.');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const prepareRequest = (request: FooterPartner) => {
+    setEditingRequestId(request.id);
+    setForm({
+      companyName: request.companyName,
+      contactName: request.contactName,
+      email: request.email,
+      phone: request.phone || '',
+      type: request.type,
+      description: request.description || '',
+      websiteUrl: request.websiteUrl || '',
+      imageUrl: request.imageUrl || '',
+    });
+    setError('');
+    setNotice(`Demande de ${request.companyName} prête à être publiée après l’ajout de son logo.`);
+    formSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const handleUnpublish = async (partner: FooterPartner) => {
@@ -148,7 +189,7 @@ export default function PartnersPage() {
       const response = await fetch(`/api/partnerships/${partner.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'pending' }),
+        body: JSON.stringify({ status: 'unpublished' }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || 'Le retrait du partenaire a échoué.');
@@ -182,13 +223,15 @@ export default function PartnersPage() {
           {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
           {notice && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</p>}
 
-          <section className="card rounded-lg border p-5 shadow-sm sm:p-6" style={{ borderColor: 'var(--card-border)' }}>
+          <section ref={formSectionRef} className="card scroll-mt-24 rounded-lg border p-5 shadow-sm sm:p-6" style={{ borderColor: 'var(--card-border)' }}>
             <div className="mb-5 flex items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary-bg)] text-primary">
                 <Plus className="h-5 w-5" />
               </span>
               <div>
-                <h2 className="text-lg font-semibold text-primary">Publier un partenaire</h2>
+                <h2 className="text-lg font-semibold text-primary">
+                  {editingRequestId ? 'Finaliser la demande' : 'Publier un partenaire'}
+                </h2>
                 <p className="mt-1 text-sm text-secondary">Le logo est requis pour l’affichage dans le footer.</p>
               </div>
             </div>
@@ -250,10 +293,77 @@ export default function PartnersPage() {
               <div className="flex justify-end border-t pt-4 sm:col-span-2" style={{ borderColor: 'var(--card-border)' }}>
                 <button type="submit" disabled={isSaving || isUploading || !form.imageUrl} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50">
                   {isSaving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                  {isSaving ? 'Publication…' : 'Publier dans le footer'}
+                  {isSaving ? 'Publication…' : editingRequestId ? 'Publier cette demande dans le footer' : 'Publier dans le footer'}
                 </button>
               </div>
             </form>
+          </section>
+
+          <section aria-labelledby="partnership-requests-heading">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <h2 id="partnership-requests-heading" className="text-lg font-semibold text-primary">Demandes reçues</h2>
+                <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                  {requests.length} en attente
+                </span>
+              </div>
+              <button type="button" onClick={() => void loadPartners()} className="text-sm font-semibold text-secondary hover:text-primary">Actualiser</button>
+            </div>
+            {isLoading ? (
+              <div className="card rounded-lg border p-6 text-sm text-secondary" style={{ borderColor: 'var(--card-border)' }}>Chargement des demandes…</div>
+            ) : requests.length === 0 ? (
+              <div className="card rounded-lg border p-6 text-sm text-secondary" style={{ borderColor: 'var(--card-border)' }}>Aucune demande en attente pour le moment.</div>
+            ) : (
+              <div className="grid gap-3 lg:grid-cols-2">
+                {requests.map((request) => (
+                  <article key={request.id} className="card min-w-0 rounded-lg border p-4 sm:p-5" style={{ borderColor: 'var(--card-border)' }}>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-primary">{request.companyName}</h3>
+                        <p className="mt-0.5 text-sm text-secondary">{request.type} · {new Date(request.createdAt).toLocaleDateString('fr-FR')}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => prepareRequest(request)}
+                        className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-semibold text-primary transition hover:bg-[var(--primary-bg)]"
+                        style={{ borderColor: 'var(--card-border)' }}
+                      >
+                        <Plus className="h-4 w-4" />
+                        Préparer la publication
+                      </button>
+                    </div>
+                    <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+                      <div>
+                        <dt className="text-xs font-medium text-secondary">Contact</dt>
+                        <dd className="text-primary">{request.contactName}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs font-medium text-secondary">E-mail</dt>
+                        <dd><a href={`mailto:${request.email}`} className="break-all text-primary underline-offset-2 hover:underline">{request.email}</a></dd>
+                      </div>
+                      {request.phone && (
+                        <div>
+                          <dt className="text-xs font-medium text-secondary">Téléphone</dt>
+                          <dd><a href={`tel:${request.phone}`} className="text-primary hover:underline">{request.phone}</a></dd>
+                        </div>
+                      )}
+                      {request.websiteUrl && (
+                        <div>
+                          <dt className="text-xs font-medium text-secondary">Site web</dt>
+                          <dd><a href={request.websiteUrl} target="_blank" rel="noopener noreferrer" className="break-all text-primary hover:underline">{request.websiteUrl}</a></dd>
+                        </div>
+                      )}
+                    </dl>
+                    {request.description && (
+                      <div className="mt-4 border-t pt-3" style={{ borderColor: 'var(--card-border)' }}>
+                        <p className="mb-1 text-xs font-medium text-secondary">Message de la demande</p>
+                        <p className="whitespace-pre-wrap break-words text-sm text-primary">{request.description}</p>
+                      </div>
+                    )}
+                  </article>
+                ))}
+              </div>
+            )}
           </section>
 
           <section aria-labelledby="published-partners-heading">
@@ -269,7 +379,11 @@ export default function PartnersPage() {
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {partners.map((partner) => (
                   <article key={partner.id} className="card flex min-w-0 items-center gap-4 rounded-lg border p-4" style={{ borderColor: 'var(--card-border)' }}>
-                    <img src={partner.imageUrl} alt={`Logo ${partner.companyName}`} className="h-14 w-24 shrink-0 rounded border border-[var(--card-border)] bg-white p-1.5 object-contain" />
+                    {partner.imageUrl ? (
+                      <img src={partner.imageUrl} alt={`Logo ${partner.companyName}`} className="h-14 w-24 shrink-0 rounded border border-[var(--card-border)] bg-white p-1.5 object-contain" />
+                    ) : (
+                      <span className="flex h-14 w-24 shrink-0 items-center justify-center rounded border border-[var(--card-border)] text-xs text-secondary">Sans logo</span>
+                    )}
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate font-semibold text-primary">{partner.companyName}</h3>
                       <p className="truncate text-xs text-secondary">{partner.type}</p>
