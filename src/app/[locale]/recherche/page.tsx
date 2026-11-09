@@ -1,6 +1,13 @@
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import { Search, Calendar, Clock, ArrowRight } from 'lucide-react';
 import SearchContent from './SearchContent';
+
+export const metadata: Metadata = {
+  title: 'Recherche | MalakInfo',
+  description: 'Rechercher des articles, auteurs, médias et sujets dans les actualités MalakInfo.',
+  robots: { index: false, follow: true },
+};
 
 export default function RecherchePage() {
   return (

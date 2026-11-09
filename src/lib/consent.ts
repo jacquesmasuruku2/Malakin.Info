@@ -16,7 +16,7 @@ export const CONSENT_CATEGORIES = [
 ] as const;
 
 export const DEFAULT_CONSENT_PREFERENCES: ConsentPreferences = Object.fromEntries(
-  CONSENT_CATEGORIES.map((category) => [category.key, true]),
+  CONSENT_CATEGORIES.map((category) => [category.key, category.required]),
 );
 
 export function hasCustomizedConsent() {

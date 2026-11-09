@@ -2,8 +2,23 @@ import Link from 'next/link';
 import { ArrowRight, Briefcase, Calendar, MapPin } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
+import type { Metadata } from 'next';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
 
 export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const english = locale === 'en';
+  return getLocalizedPageMetadata(
+    locale,
+    '/emploi',
+    english ? 'Jobs and careers' : 'Offres d’emploi',
+    english
+      ? 'Explore editorial and professional opportunities published by MalakInfo.'
+      : 'Découvrez les offres d’emploi et opportunités professionnelles publiées par MalakInfo.',
+  );
+}
 
 function stripHtml(html: string) {
   return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();

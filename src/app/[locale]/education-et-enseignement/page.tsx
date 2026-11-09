@@ -5,8 +5,18 @@ import { pickCopy, t } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 import { articleListingSelect } from '@/lib/article-listing';
+import type { Metadata } from 'next';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
 
 export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const english = locale === 'en';
+  return getLocalizedPageMetadata(locale, '/education-et-enseignement',
+    english ? 'Education and learning in Africa' : 'Éducation et enseignement',
+    english ? 'Education news, schools, universities and learning across Africa.' : 'Actualités de l’éducation, des écoles, universités et de l’enseignement en Afrique.');
+}
 
 export default async function EducationPage({
   params,

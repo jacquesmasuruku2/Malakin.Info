@@ -6,10 +6,6 @@ Allow: /
 User-agent: Mediapartners-Google
 Allow: /
 
-# Allow Googlebot
-User-agent: Googlebot
-Allow: /
-
 # Disallow admin areas and internal test pages
 Disallow: /compte/
 Disallow: /studio/
@@ -19,4 +15,3 @@ Disallow: /en/test-authors
 
 # Sitemap
 Sitemap: https://malakinfo.com/sitemap.xml
-Sitemap: https://malakinfo.com/rss.xml

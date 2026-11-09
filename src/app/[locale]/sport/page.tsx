@@ -5,8 +5,18 @@ import { pickCopy, t } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 import { articleListingSelect } from '@/lib/article-listing';
+import type { Metadata } from 'next';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
 
 export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const english = locale === 'en';
+  return getLocalizedPageMetadata(locale, '/sport',
+    english ? 'African sports news' : 'Actualités sportives africaines',
+    english ? 'Sports news, competitions and athletes from Africa and around the world.' : 'Actualités sportives, compétitions et parcours d’athlètes en Afrique et dans le monde.');
+}
 
 export default async function SportPage({
   params,

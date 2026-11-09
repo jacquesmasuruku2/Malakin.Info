@@ -5,8 +5,18 @@ import { pickCopy, t } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 import { articleListingSelect } from '@/lib/article-listing';
+import type { Metadata } from 'next';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
 
 export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const english = locale === 'en';
+  return getLocalizedPageMetadata(locale, '/religion',
+    english ? 'Religion and faith in Africa' : 'Religion et spiritualité en Afrique',
+    english ? 'News and perspectives on religion, faith and spiritual life across Africa.' : 'Actualités et regards sur les religions, la foi et la vie spirituelle en Afrique.');
+}
 
 async function getReligionArticles() {
   try {

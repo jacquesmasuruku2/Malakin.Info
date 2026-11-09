@@ -13,8 +13,27 @@ import { applyArticleLocales } from '@/lib/translation';
 import { getDateLocale, t as ui } from '@/lib/copy';
 import { articleListingSelect } from '@/lib/article-listing';
 import { getArticleUrl } from '@/lib/article-url';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
+import type { Metadata } from 'next';
 
 export const revalidate = 60;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const english = locale === 'en';
+  return getLocalizedPageMetadata(
+    locale,
+    '',
+    english ? 'African News and Analysis' : 'Actualités africaines et analyses',
+    english
+      ? 'Independent African news, reporting and analysis from MalakInfo.'
+      : 'Actualités, reportages et analyses indépendants sur l’Afrique et le monde par MalakInfo.',
+  );
+}
 
 export default async function Home({
   params,

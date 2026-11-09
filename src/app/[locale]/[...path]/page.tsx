@@ -29,6 +29,7 @@ import ArticleListingGrid from '@/components/ArticleListingGrid';
 import ArticleDateMeta from '@/components/ArticleDateMeta';
 import ArticleLanguageLinks from '@/components/ArticleLanguageLinks';
 import { getArticleUrl } from '@/lib/article-url';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
 
 export const revalidate = 60;
 
@@ -50,12 +51,15 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       if (path.length === 1) {
         const category = await prisma.category.findUnique({
           where: { slug },
+          include: { _count: { select: { articles: true } } },
         });
         if (category) {
           const translatedCategory = await getCategoryTranslation(category.id, locale);
+          const title = translatedCategory.title || category.title;
+          const description = translatedCategory.description || category.description || category.title;
           return {
-            title: translatedCategory.title || category.title,
-            description: translatedCategory.description || category.description || category.title,
+            ...getLocalizedPageMetadata(locale, `/${slug}`, title, description),
+            ...(category._count.articles === 0 ? { robots: { index: false, follow: true } } : {}),
           };
         }
       }

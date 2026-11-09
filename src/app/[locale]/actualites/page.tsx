@@ -6,6 +6,32 @@ import { applyArticleLocales } from '@/lib/translation';
 import { getDateLocale, t, pickCopy } from '@/lib/copy';
 import { getArchiveYears, isValidArchiveYear, yearRange } from '@/lib/archives';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
+import type { Metadata } from 'next';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ page?: string; year?: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const english = locale === 'en';
+  const metadata = getLocalizedPageMetadata(
+    locale,
+    '/actualites',
+    english ? 'Latest African news' : 'Dernières actualités africaines',
+    english
+      ? 'The latest news, reporting and analysis from Africa and around the world.'
+      : 'Les dernières actualités, reportages et analyses sur l’Afrique et le monde.',
+  );
+
+  return resolvedSearchParams.page || resolvedSearchParams.year
+    ? { ...metadata, robots: { index: false, follow: true } }
+    : metadata;
+}
 
 function actualitesHref(locale: string, options: { page?: number; year?: number | null }) {
   const params = new URLSearchParams();

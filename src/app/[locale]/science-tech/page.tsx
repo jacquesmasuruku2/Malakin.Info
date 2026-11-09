@@ -5,8 +5,18 @@ import { pickCopy, t } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 import { articleListingSelect } from '@/lib/article-listing';
+import type { Metadata } from 'next';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
 
 export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const english = locale === 'en';
+  return getLocalizedPageMetadata(locale, '/science-tech',
+    english ? 'Science and technology in Africa' : 'Science et technologie en Afrique',
+    english ? 'Science, technology and innovation news from Africa and around the world.' : 'Actualités de la science, des technologies et de l’innovation en Afrique et dans le monde.');
+}
 
 export default async function ScienceTechPage({
   params,

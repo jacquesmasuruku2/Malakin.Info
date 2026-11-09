@@ -1,11 +1,13 @@
 import { prisma } from '@/lib/prisma'
 import { SITE_NAME, SITE_URL } from '@/lib/site-legal'
+import { getArticleUrl } from '@/lib/article-url'
 
 export async function GET() {
   let items = ''
 
   try {
     const articles = await prisma.article.findMany({
+      where: { publishedAt: { lte: new Date() } },
       orderBy: { publishedAt: 'desc' },
       take: 30,
       select: {
@@ -20,8 +22,8 @@ export async function GET() {
       .map((article) => `
     <item>
       <title><![CDATA[${article.title}]]></title>
-      <link>${SITE_URL}/fr/${article.slug}</link>
-      <guid>${SITE_URL}/fr/${article.slug}</guid>
+      <link>${SITE_URL}${getArticleUrl('fr', article.slug, article.publishedAt)}</link>
+      <guid>${SITE_URL}${getArticleUrl('fr', article.slug, article.publishedAt)}</guid>
       <description><![CDATA[${article.excerpt}]]></description>
       <pubDate>${article.publishedAt.toUTCString()}</pubDate>
     </item>`)

@@ -50,6 +50,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const articles = await prisma.article.findMany({
+      where: { publishedAt: { lte: currentDate } },
       select: {
         slug: true,
         publishedAt: true,

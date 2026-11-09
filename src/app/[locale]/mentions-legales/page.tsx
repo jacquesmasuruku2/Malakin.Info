@@ -1,5 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
+import { SITE_URL } from '@/lib/site-legal';
 import {
   HOSTING_PROVIDER,
   LEGAL_UPDATED_AT,
@@ -10,10 +12,18 @@ import {
   SITE_PHONE,
 } from '@/lib/site-legal';
 
-export const metadata: Metadata = {
-  title: 'Mentions légales - Malakinfo.com',
-  description: 'Mentions légales du site Malakinfo.com',
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  if (locale === 'en') {
+    return {
+      title: 'Legal notice | MalakInfo',
+      description: 'Legal information for MalakInfo.',
+      alternates: { canonical: `${SITE_URL}/fr/mentions-legales` },
+      robots: { index: false, follow: true },
+    };
+  }
+  return getLocalizedPageMetadata(locale, '/mentions-legales', 'Mentions légales', 'Mentions légales de MalakInfo.', ['fr']);
+}
 
 export default async function LegalNoticesPage({
   params,

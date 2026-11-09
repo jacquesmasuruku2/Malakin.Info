@@ -1,4 +1,6 @@
 import { Metadata } from 'next';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
+import { SITE_URL } from '@/lib/site-legal';
 import {
   ABOUTADS_OPTOUT_URL,
   GOOGLE_ADS_SETTINGS_URL,
@@ -7,10 +9,18 @@ import {
   SITE_EMAIL,
 } from '@/lib/site-legal';
 
-export const metadata: Metadata = {
-  title: 'Politique de cookies - Malakinfo.com',
-  description: 'Politique de cookies de Malakinfo.com',
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  if (locale === 'en') {
+    return {
+      title: 'Cookie policy | MalakInfo',
+      description: 'Cookie information for MalakInfo.',
+      alternates: { canonical: `${SITE_URL}/fr/cookies` },
+      robots: { index: false, follow: true },
+    };
+  }
+  return getLocalizedPageMetadata(locale, '/cookies', 'Politique de cookies', 'Informations sur les cookies et les choix de consentement sur MalakInfo.', ['fr']);
+}
 
 export default function CookiesPolicyPage() {
   return (
@@ -24,14 +34,14 @@ export default function CookiesPolicyPage() {
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Qu’est-ce qu’un cookie ?</h2>
             <p className="text-muted-foreground">
-              Un cookie est un petit fichier texte déposé sur votre appareil lorsque vous visitez un site. Il permet de mémoriser vos préférences, de mesurer l’audience et d’afficher des publicités. Les cookies non essentiels sont acceptés par défaut tant que vous n’avez pas personnalisé vos choix.
+              Un cookie est un petit fichier texte déposé sur votre appareil lorsque vous visitez un site. Il permet de mémoriser vos préférences, de mesurer l’audience et d’afficher des publicités. Les cookies non essentiels restent désactivés tant que vous n’avez pas fait votre choix.
             </p>
           </section>
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Consentement par défaut</h2>
             <p className="text-muted-foreground">
-              Tant que vous n’avez pas personnalisé vos choix, MalakInfo considère que les cookies non essentiels (mesure d’audience, publicité, personnalisation des contenus) sont <strong className="font-semibold text-foreground">acceptés par défaut</strong> et les applique. Les cookies strictement nécessaires au fonctionnement du site restent toujours actifs.
+              Tant que vous n’avez pas personnalisé vos choix, les cookies non essentiels (mesure d’audience, publicité, personnalisation des contenus) restent <strong className="font-semibold text-foreground">désactivés</strong>. Les cookies strictement nécessaires au fonctionnement du site restent toujours actifs.
             </p>
             <p className="text-muted-foreground mt-3">
               Vous pouvez à tout moment refuser tout ou partie de ces cookies, ou revenir à une acceptation complète, en suivant la procédure ci-dessous. Vos nouveaux choix remplacent alors le réglage par défaut et sont mémorisés sur votre appareil.
@@ -41,7 +51,7 @@ export default function CookiesPolicyPage() {
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Comment modifier vos choix</h2>
             <p className="text-muted-foreground mb-4">
-              Pour changer le consentement par défaut, procédez ainsi :
+              Pour modifier ou enregistrer vos choix, procédez ainsi :
             </p>
             <ol className="list-decimal pl-6 text-muted-foreground space-y-3">
               <li>

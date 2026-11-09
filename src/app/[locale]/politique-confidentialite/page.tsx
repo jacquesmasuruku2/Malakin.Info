@@ -1,5 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
+import { SITE_URL } from '@/lib/site-legal';
 import {
   ABOUTADS_OPTOUT_URL,
   GOOGLE_ADS_SETTINGS_URL,
@@ -13,10 +15,24 @@ import {
   SITE_PHONE,
 } from '@/lib/site-legal';
 
-export const metadata: Metadata = {
-  title: 'Politique de confidentialité - Malakinfo.com',
-  description: 'Politique de confidentialité de Malakinfo.com, y compris l’usage de Google AdSense, des cookies et des données personnelles.',
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  if (locale === 'en') {
+    return {
+      title: 'Privacy policy | MalakInfo',
+      description: 'Privacy policy for MalakInfo.',
+      alternates: { canonical: `${SITE_URL}/fr/politique-confidentialite` },
+      robots: { index: false, follow: true },
+    };
+  }
+  return getLocalizedPageMetadata(
+    locale,
+    '/politique-confidentialite',
+    'Politique de confidentialité',
+    'Politique de confidentialité de MalakInfo, notamment sur les cookies, la publicité et les données personnelles.',
+    ['fr'],
+  );
+}
 
 export default async function PrivacyPolicyPage({
   params,

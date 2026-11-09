@@ -1,8 +1,18 @@
 import CategoryArticlesList from '@/components/CategoryArticlesList';
 import { pickCopy } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
+import type { Metadata } from 'next';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
 
 export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const english = locale === 'en';
+  return getLocalizedPageMetadata(locale, '/societe',
+    english ? 'Society and daily life in Africa' : 'Société et vie quotidienne en Afrique',
+    english ? 'Stories on daily life, education and social issues across Africa.' : 'Reportages sur la vie quotidienne, l’éducation et les enjeux de société en Afrique.');
+}
 
 export default async function SocietePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

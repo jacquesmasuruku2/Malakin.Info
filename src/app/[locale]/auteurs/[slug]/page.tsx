@@ -5,8 +5,46 @@ import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { withRetry } from '@/lib/database';
 import { articleListingSelect } from '@/lib/article-listing';
+import type { Metadata } from 'next';
+import { plainTextFromBio } from '@/lib/author-bio';
+import { SITE_URL } from '@/lib/site-legal';
 
 export const revalidate = 60;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const author = await prisma.author.findUnique({
+    where: { slug },
+    select: { name: true, bio: true, imageUrl: true },
+  });
+
+  if (!author) {
+    return { title: 'Auteur indisponible | MalakInfo', robots: { index: false, follow: true } };
+  }
+
+  const title = `${author.name} | MalakInfo`;
+  const description = plainTextFromBio(author.bio).slice(0, 160)
+    || `Articles et publications de ${author.name} sur MalakInfo.`;
+  const canonical = `${SITE_URL}/${locale}/auteurs/${slug}`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: 'website',
+      url: canonical,
+      title,
+      description,
+      siteName: 'MalakInfo',
+      images: author.imageUrl ? [{ url: author.imageUrl, alt: author.name }] : [],
+    },
+  };
+}
 
 async function getAuthorBySlug(slug: string) {
   const fetchAuthor = async () => {

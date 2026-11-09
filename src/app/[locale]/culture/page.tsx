@@ -5,8 +5,23 @@ import { pickCopy, t } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 import { articleListingSelect } from '@/lib/article-listing';
+import type { Metadata } from 'next';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
 
 export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const english = locale === 'en';
+  return getLocalizedPageMetadata(
+    locale,
+    '/culture',
+    english ? 'African culture, arts and media' : 'Culture, arts et médias africains',
+    english
+      ? 'Stories on music, cinema, arts and cultural life across Africa.'
+      : 'Musique, cinéma, arts et tendances de la vie culturelle africaine.',
+  );
+}
 
 export default async function CulturePage({
   params,

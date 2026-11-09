@@ -6,6 +6,7 @@ import ServicesModal from "@/components/ServicesModal";
 import LazyRadioPlayer from "@/components/LazyRadioPlayer";
 import ConsentScripts from "@/components/ConsentScripts";
 import SiteJsonLd from "@/components/SiteJsonLd";
+import { ADSENSE_CLIENT } from '@/lib/adsense';
 import "./globals.css";
 import "./site-animations.css";
 import "./legacy.css";
@@ -42,6 +43,9 @@ export const metadata: Metadata = {
   authors: [{ name: "MalakInfo" }],
   creator: "MalakInfo",
   publisher: "MalakInfo",
+  other: {
+    'google-adsense-account': ADSENSE_CLIENT,
+  },
   applicationName: "MalakInfo",
   formatDetection: {
     email: false,
@@ -54,17 +58,9 @@ export const metadata: Metadata = {
     shortcut: '/images/logo.png',
     apple: '/images/logo.png',
   },
-  alternates: {
-    canonical: '/',
-    languages: {
-      'fr-FR': '/fr',
-      'en-US': '/en',
-    },
-  },
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
-    url: 'https://malakinfo.com',
     title: "MalakInfo (Malaki Info) | L'info qui traverse les frontières",
     description:
       "MalakInfo — aussi appelé Malaki ou Malaki Info — informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel.",

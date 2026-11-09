@@ -1,11 +1,21 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
+import { SITE_URL } from '@/lib/site-legal';
 import { LEGAL_UPDATED_AT, SITE_EMAIL } from '@/lib/site-legal';
 
-export const metadata: Metadata = {
-  title: 'Conditions d\'utilisation - Malakinfo.com',
-  description: 'Conditions d\'utilisation du site Malakinfo.com',
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  if (locale === 'en') {
+    return {
+      title: 'Terms of use | MalakInfo',
+      description: 'Terms of use for MalakInfo.',
+      alternates: { canonical: `${SITE_URL}/fr/conditions-utilisation` },
+      robots: { index: false, follow: true },
+    };
+  }
+  return getLocalizedPageMetadata(locale, '/conditions-utilisation', 'Conditions d’utilisation', 'Conditions d’utilisation du site MalakInfo.', ['fr']);
+}
 
 export default async function TermsOfUsePage({
   params,

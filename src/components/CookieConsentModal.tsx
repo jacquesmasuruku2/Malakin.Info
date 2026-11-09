@@ -554,7 +554,7 @@ export default function CookieConsentModal() {
                 type="button"
                 aria-label="Fermer la fenêtre de consentement"
                 className="rounded-full bg-[#d4af37] px-3 py-2 text-sm font-medium text-[#081c3d] transition hover:bg-[#e4c65c]"
-                onClick={() => handleConsent('true')}
+                onClick={() => setIsVisible(false)}
               >
                 ×
               </button>

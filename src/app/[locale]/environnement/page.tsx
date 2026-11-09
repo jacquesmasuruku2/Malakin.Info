@@ -1,8 +1,18 @@
 import CategoryArticlesList from '@/components/CategoryArticlesList';
 import { pickCopy } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
+import type { Metadata } from 'next';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
 
 export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const english = locale === 'en';
+  return getLocalizedPageMetadata(locale, '/environnement',
+    english ? 'Environment and climate in Africa' : 'Environnement et climat en Afrique',
+    english ? 'News on climate, biodiversity and environmental challenges across Africa.' : 'Actualités sur le climat, la biodiversité et les enjeux environnementaux en Afrique.');
+}
 
 export default async function EnvironnementPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

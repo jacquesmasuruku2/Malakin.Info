@@ -16,7 +16,6 @@ const PAGE_ALIASES: Record<string, string> = {
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // Ensure the admin panel (dashboard.malakinfo.com) can call main-site APIs.
   if (pathname.startsWith('/api/')) {
     if (request.method === 'OPTIONS') {
       return corsOptions(request);
@@ -42,12 +41,6 @@ export function middleware(request: NextRequest) {
   if (segments.length >= 2) {
     const [locale, slug] = segments;
     if (
-      slug === 'blog' &&
-      supportedLocales.includes(locale as (typeof supportedLocales)[number])
-    ) {
-      return NextResponse.redirect(new URL(`/${locale}/actualites`, request.url), 308);
-    }
-    if (
       slug === 'nous-soutenir' &&
       segments[2] === 'faire-un-don' &&
       supportedLocales.includes(locale as (typeof supportedLocales)[number])
@@ -68,6 +61,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/api/:path*',
-    '/((?!api|_next/static|_next/image|images|favicon.ico|ads.txt|robots.txt|sitemap.xml|rss.xml).*)',
+    '/((?!api|_next/static|_next/image|images|favicon.ico|ads.txt|robots.txt|sitemap.xml|rss.xml|sw\\.js).*)',
   ],
 };

@@ -5,8 +5,23 @@ import { pickCopy, t } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 import { articleListingSelect } from '@/lib/article-listing';
+import type { Metadata } from 'next';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
 
 export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const english = locale === 'en';
+  return getLocalizedPageMetadata(
+    locale,
+    '/politique',
+    english ? 'African politics and diplomacy' : 'Politique et diplomatie',
+    english
+      ? 'Political news, institutions, diplomacy and analysis from Africa and the world.'
+      : 'Actualités politiques, institutions, diplomatie et analyses d’Afrique et du monde.',
+  );
+}
 
 export default async function PolitiquePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

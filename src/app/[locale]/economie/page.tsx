@@ -5,8 +5,23 @@ import { pickCopy, t } from '@/lib/copy';
 import { getMessages } from '@/lib/i18n';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 import { articleListingSelect } from '@/lib/article-listing';
+import type { Metadata } from 'next';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
 
 export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const english = locale === 'en';
+  return getLocalizedPageMetadata(
+    locale,
+    '/economie',
+    english ? 'African economy news and analysis' : 'Actualités économiques',
+    english
+      ? 'Business, markets and economic transformation in Africa and around the world.'
+      : 'Entreprises, marchés et transformations économiques en Afrique et dans le monde.',
+  );
+}
 
 export default async function EconomyPage({
   params,

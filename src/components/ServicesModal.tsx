@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Briefcase, Home, Search, X } from 'lucide-react';
+import { FaFacebookF, FaInstagram, FaXTwitter } from 'react-icons/fa6';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { useState, useEffect } from 'react';
 import { getLocaleFromPathname, getMessages } from '@/lib/i18n';
@@ -193,9 +194,38 @@ export default function ServicesModal() {
           </section>
 
           <section aria-labelledby="mobile-employment-heading" className="border-b border-border">
-            <h2 id="mobile-employment-heading" className="border-b border-border px-5 py-3 text-base font-black uppercase tracking-[0.12em] text-foreground">
-              {locale === 'fr' ? 'Offres d’emploi' : 'Job openings'}
-            </h2>
+            <div className="flex items-center justify-center gap-3 border-b border-border px-5 py-2.5" aria-label="Réseaux sociaux MalakInfo">
+              <a
+                href="https://www.facebook.com/profile.php?id=61593119312402"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="MalakInfo sur Facebook"
+                title="Facebook"
+                className="flex h-10 w-12 items-center justify-center rounded-md text-[#1877F2] transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <FaFacebookF className="h-5 w-5" aria-hidden="true" />
+              </a>
+              <a
+                href="https://x.com/Malakinfo1"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="MalakInfo sur X"
+                title="X"
+                className="flex h-10 w-12 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <FaXTwitter className="h-5 w-5" aria-hidden="true" />
+              </a>
+              <a
+                href="https://www.instagram.com/malakinfo/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="MalakInfo sur Instagram"
+                title="Instagram"
+                className="flex h-10 w-12 items-center justify-center rounded-md text-[#E1306C] transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <FaInstagram className="h-5 w-5" aria-hidden="true" />
+              </a>
+            </div>
             <Link
               href={`/${locale}/emploi`}
               onClick={closeServices}

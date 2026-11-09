@@ -13,7 +13,7 @@ export async function translateText(
     throw new Error(`Unsupported translation locale: ${sourceLocale} -> ${targetLocale}`);
   }
 
-  const endpoint = process.env.LIBRETRANSLATE_URL;
+  const endpoint = process.env.LIBRETRANSLATE_URL || process.env.TRANSLATION_API_URL;
   if (!endpoint) {
     throw new Error('LIBRETRANSLATE_URL is not configured on the server.');
   }

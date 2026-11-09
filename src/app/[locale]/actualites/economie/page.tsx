@@ -2,8 +2,18 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { applyArticleLocales } from '@/lib/translation';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
+import type { Metadata } from 'next';
+import { getLocalizedPageMetadata } from '@/lib/page-metadata';
 
 export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const english = locale === 'en';
+  return getLocalizedPageMetadata(locale, '/actualites/economie',
+    english ? 'Economy news' : 'Actualités économiques',
+    english ? 'Business, markets and economic news from Africa and around the world.' : 'Actualités des entreprises, des marchés et de l’économie en Afrique et dans le monde.');
+}
 
 export default async function EconomiePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
