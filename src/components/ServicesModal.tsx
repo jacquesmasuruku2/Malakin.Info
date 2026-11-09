@@ -255,14 +255,14 @@ export default function ServicesModal() {
             <Link
               href={`/${locale}/compte/connexion`}
               onClick={closeServices}
-              className="flex min-h-12 flex-1 items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="flex min-h-11 flex-1 items-center justify-center rounded-md bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:bg-secondary hover:text-secondary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               {locale === 'fr' ? 'Se connecter' : 'Sign in'}
             </Link>
             <Link
               href={`/${locale}/nous-soutenir`}
               onClick={closeServices}
-              className="flex min-h-12 flex-1 items-center justify-center rounded-lg bg-secondary px-4 py-3 text-sm font-bold text-secondary-foreground transition-colors hover:bg-secondary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2"
+              className="flex min-h-11 flex-1 items-center justify-center rounded-md bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:bg-secondary hover:text-secondary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               {t.subscribe}
             </Link>
