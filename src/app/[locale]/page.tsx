@@ -12,6 +12,7 @@ import RadioOnAirWidget from '@/components/RadioOnAirWidget';
 import { applyArticleLocales } from '@/lib/translation';
 import { getDateLocale, t as ui } from '@/lib/copy';
 import { articleListingSelect } from '@/lib/article-listing';
+import { getArticleUrl } from '@/lib/article-url';
 
 export const revalidate = 60;
 
@@ -102,6 +103,7 @@ export default async function Home({
   const featuredNews = featuredArticles.map(article => ({
     id: article.id,
     slug: article.slug,
+    publishedAt: article.publishedAt,
     categorySlug: article.category?.slug || 'actualites',
     category: article.category?.title || ui(normalizedLocale, 'news'),
     title: article.title,
@@ -218,7 +220,7 @@ export default async function Home({
             {filteredFeaturedNews.length > 0 && (
               <article className="mb-8 border-b border-border pb-8">
                 <div className="overflow-hidden border border-border bg-card">
-                  <Link href={`/${locale}/${filteredFeaturedNews[0].slug}`} className="group block">
+                  <Link href={getArticleUrl(locale, filteredFeaturedNews[0].slug, filteredFeaturedNews[0].publishedAt)} className="group block">
                     <div className="relative h-72 sm:h-80 md:h-[30rem] overflow-hidden bg-muted">
                       <SmartImage
                         src={filteredFeaturedNews[0].image}
@@ -273,7 +275,7 @@ export default async function Home({
                     {filteredFeaturedNews.slice(1, 3).map((story) => (
                       <Link
                         key={story.id}
-                        href={`/${locale}/${story.slug}`}
+                        href={getArticleUrl(locale, story.slug, story.publishedAt)}
                         className="group block border-l border-border pl-4 first:border-l-0 first:pl-0"
                       >
                         <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-secondary">
@@ -300,7 +302,7 @@ export default async function Home({
                       key={news.id}
                       className="group border border-border bg-card text-card-foreground transition-all duration-200 hover:-translate-y-1 hover:border-secondary"
                     >
-                      <Link href={`/${locale}/${news.slug}`} prefetch className="block p-[5px] bg-white">
+                      <Link href={getArticleUrl(locale, news.slug, news.publishedAt)} prefetch className="block p-[5px] bg-white">
                         <div className="article-preview-frame relative h-52">
                           <SmartImage
                             src={news.image}
@@ -319,7 +321,7 @@ export default async function Home({
                         <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                           <span className="text-secondary">{news.date}</span>
                         </div>
-                        <Link href={`/${locale}/${news.slug}`} className="block">
+                        <Link href={getArticleUrl(locale, news.slug, news.publishedAt)} className="block">
                           <h3 className="font-heading text-xl font-bold leading-tight text-foreground hover:text-secondary transition-colors line-clamp-3 cursor-pointer">
                             {news.title}
                           </h3>
@@ -369,7 +371,7 @@ export default async function Home({
                           {news.publishedAt ? news.publishedAt.toLocaleTimeString(getDateLocale(normalizedLocale), { hour: '2-digit', minute: '2-digit', hour12: false }) : news.time || '00:00'}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <Link href={`/${locale}/${news.slug}`} className="block">
+                          <Link href={getArticleUrl(locale, news.slug, news.publishedAt)} className="block">
                             <h4 className="font-heading font-semibold text-foreground text-sm hover:text-secondary transition-colors line-clamp-3 leading-snug m-0">
                               {news.title}
                             </h4>

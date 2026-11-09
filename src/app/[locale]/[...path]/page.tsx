@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock } from 'lucide-react';
-import { notFound, redirect } from 'next/navigation';
+import { notFound, redirect, unstable_rethrow } from 'next/navigation';
 import { Metadata } from 'next';
 import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
@@ -28,6 +28,7 @@ import { getArticleTags, prepareArticleHtml, normalizeArticleHtmlContent } from 
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 import ArticleDateMeta from '@/components/ArticleDateMeta';
 import ArticleLanguageLinks from '@/components/ArticleLanguageLinks';
+import { getArticleUrl } from '@/lib/article-url';
 
 export const revalidate = 60;
 
@@ -66,14 +67,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     }
 
     const baseUrl = 'https://malakinfo.com';
-    const canonicalUrl = `${baseUrl}/${locale}/${slug}`;
+    const canonicalUrl = `${baseUrl}${getArticleUrl(locale, slug, article.publishedAt)}`;
     const translatedArticle = await getArticleTranslation(article.id, locale);
     const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
     const availableTranslations = await getArticleTranslations(article.id);
     const languageAlternates = Object.fromEntries(
       [...new Set([article.defaultLocale, ...availableTranslations.translations.map((item) => item.locale)])]
         .filter((item) => item === 'fr' || item === 'en')
-        .map((item) => [item === 'fr' ? 'fr-FR' : 'en-US', `${baseUrl}/${item}/${slug}`]),
+        .map((item) => [item === 'fr' ? 'fr-FR' : 'en-US', `${baseUrl}${getArticleUrl(item, slug, article.publishedAt)}`]),
     );
     const metadataTitle = translatedArticle.seoTitle || translatedArticle.title;
     const metadataDescription = translatedArticle.seoDescription || translatedArticle.excerpt;
@@ -193,7 +194,7 @@ export default async function CatchAllArticlePage({
       notFound();
     }
 
-    const canonicalArticlePath = `/${locale}/${slug}`;
+    const canonicalArticlePath = getArticleUrl(locale, slug, article.publishedAt);
     const currentPath = `/${locale}/${path.join('/')}`;
 
     if (currentPath !== canonicalArticlePath) {
@@ -205,7 +206,7 @@ export default async function CatchAllArticlePage({
     }
 
     const baseUrl = 'https://malakinfo.com';
-    const canonicalUrl = `${baseUrl}/${locale}/${slug}`;
+    const canonicalUrl = `${baseUrl}${canonicalArticlePath}`;
     const translatedArticle = await getArticleTranslation(article.id, locale);
     const translatedCategory = await getCategoryTranslation(article.categoryId, locale);
     const premiumAccess = article.isPremium ? await hasPremiumAccess(article.id) : true;
@@ -335,7 +336,7 @@ export default async function CatchAllArticlePage({
                   },
                 ]}
               />
-              <ArticleLanguageLinks articleId={article.id} slug={slug} locale={locale} />
+              <ArticleLanguageLinks articleId={article.id} slug={slug} locale={locale} publishedAt={article.publishedAt} />
             </div>
           </header>
 
@@ -345,7 +346,7 @@ export default async function CatchAllArticlePage({
                 <div className="sticky top-24">
                   <ShareButtons
                     title={displayTitle}
-                    url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${slug}`}
+                    url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}${canonicalArticlePath}`}
                     locale={locale}
                     orientation="vertical"
                   />
@@ -397,7 +398,7 @@ export default async function CatchAllArticlePage({
                 <div className="xl:hidden">
                   <ShareButtons
                     title={displayTitle}
-                    url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${slug}`}
+                    url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}${canonicalArticlePath}`}
                     locale={locale}
                   />
                 </div>
@@ -463,6 +464,7 @@ export default async function CatchAllArticlePage({
       </>
     );
   } catch (error) {
+    unstable_rethrow(error);
     console.error('Error fetching article:', error);
     notFound();
   }

@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
 import { getArticleTranslation, getArticleTranslations, getCategoryTranslation } from '@/lib/translation';
 import { SITE_URL } from '@/lib/site-legal';
+import { getArticleUrl } from '@/lib/article-url';
 
 export async function getLocalizedArticleMetadata(locale: string, slug: string): Promise<Metadata> {
   try {
@@ -35,14 +36,14 @@ export async function getLocalizedArticleMetadata(locale: string, slug: string):
       getArticleTranslations(article.id),
     ]);
 
-    const canonical = `${SITE_URL}/${locale}/${slug}`;
+    const canonical = `${SITE_URL}${getArticleUrl(locale, slug, article.publishedAt)}`;
     const image = article.mainImageUrl
       ? (article.mainImageUrl.startsWith('http') ? article.mainImageUrl : `${SITE_URL}${article.mainImageUrl}`)
       : undefined;
     const languages = Object.fromEntries(
       [...new Set([article.defaultLocale, ...available.translations.map((item) => item.locale)])]
         .filter((item) => item === 'fr' || item === 'en')
-        .map((item) => [item === 'fr' ? 'fr-FR' : 'en-US', `${SITE_URL}/${item}/${slug}`]),
+        .map((item) => [item === 'fr' ? 'fr-FR' : 'en-US', `${SITE_URL}${getArticleUrl(item, slug, article.publishedAt)}`]),
     );
     const title = content.seoTitle || content.title;
     const description = content.seoDescription || content.excerpt;

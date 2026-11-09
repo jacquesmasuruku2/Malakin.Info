@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Playfair_Display } from 'next/font/google';
 import { prisma } from '@/lib/prisma';
 import { Calendar, Clock, User, Bookmark, ArrowLeft } from 'lucide-react';
-import { notFound, redirect } from 'next/navigation';
+import { notFound, redirect, unstable_rethrow } from 'next/navigation';
 import type { Metadata } from 'next';
 import CommentsSection from '@/components/CommentsSection';
 import ShareButtons from '@/components/ShareButtons';
@@ -23,6 +23,7 @@ import { withRetry } from '@/lib/database';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
 import ArticleDateMeta from '@/components/ArticleDateMeta';
 import { getLocalizedArticleMetadata } from '@/lib/article-metadata';
+import { getArticleUrl } from '@/lib/article-url';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -67,7 +68,7 @@ export default async function ArticlePage({
       notFound();
     }
 
-    const canonicalArticlePath = `/${locale}/${slug}`;
+    const canonicalArticlePath = getArticleUrl(locale, slug, article.publishedAt);
     const currentPath = `/${locale}/${category}/${slug}`;
 
     if (currentPath !== canonicalArticlePath) {
@@ -315,6 +316,7 @@ export default async function ArticlePage({
       </div>
     );
   } catch (error) {
+    unstable_rethrow(error);
     console.error('Error fetching article:', error);
     notFound();
   }

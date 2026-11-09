@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import SmartImage from '@/components/SmartImage';
 import { getDateLocale } from '@/lib/copy';
+import { getArticleUrl } from '@/lib/article-url';
 
 export type ListingArticle = {
   id: string;
@@ -26,7 +27,7 @@ export default function ArticleListingGrid({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10 overflow-hidden">
       {articles.map((item, index) => {
-        const href = hrefFor ? hrefFor(item) : `/${locale}/${item.slug}`;
+        const href = hrefFor ? hrefFor(item) : getArticleUrl(locale, item.slug, item.publishedAt);
         const categoryTitle = item.categoryTitle || item.category?.title || null;
         const publishedAt = item.publishedAt ? new Date(item.publishedAt) : null;
 

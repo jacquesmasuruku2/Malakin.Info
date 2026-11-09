@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next'
 import { prisma } from '@/lib/prisma'
 import { getArchiveYears } from '@/lib/archives'
 import { SITE_URL } from '@/lib/site-legal'
+import { getArticleUrl } from '@/lib/article-url'
 
 export const revalidate = 3600;
 
@@ -51,6 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const articles = await prisma.article.findMany({
       select: {
         slug: true,
+        publishedAt: true,
         categoryId: true,
         updatedAt: true,
         translationSourceUpdatedAt: true,
@@ -101,7 +103,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }
 
         return [{
-        url: `${SITE_URL}/${locale}/${article.slug}`,
+        url: `${SITE_URL}${getArticleUrl(locale, article.slug, article.publishedAt)}`,
         lastModified: locale === article.defaultLocale
           ? article.translationSourceUpdatedAt
           : translations.get(locale)?.updatedAt || article.updatedAt,
