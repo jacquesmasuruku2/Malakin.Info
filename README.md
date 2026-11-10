@@ -169,7 +169,7 @@ R2_SECRET_ACCESS_KEY=...
 R2_BUCKET_NAME=...
 ```
 
-`DATABASE_URL` doit être disponible au build et au runtime pour le panel en Production. Pour un Preview, ajouter également `NEXT_PUBLIC_MAIN_SITE_URL` si le panel doit relayer certaines opérations vers le site principal. Les identifiants R2 du panel doivent autoriser la lecture/écriture d’objets dans le bucket, et le domaine public `media.malakinfo.com` doit pointer vers ce bucket.
+`DATABASE_URL` doit être disponible au build et au runtime pour le panel en Production. Un Preview peut compiler sans cette variable, mais ses APIs qui utilisent Prisma nécessitent une base Preview au runtime. Ajouter également `NEXT_PUBLIC_MAIN_SITE_URL` si le panel doit relayer certaines opérations vers le site principal. Les identifiants R2 du panel doivent autoriser la lecture/écriture d’objets dans le bucket, et le domaine public `media.malakinfo.com` doit pointer vers ce bucket.
 
 ## Base de données et migrations
 
