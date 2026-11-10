@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Briefcase, Home, Search, X } from 'lucide-react';
+import { Briefcase, Home, Search, TrendingUp, X } from 'lucide-react';
 import { FaFacebookF, FaInstagram, FaXTwitter } from 'react-icons/fa6';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { useState, useEffect } from 'react';
@@ -237,6 +237,14 @@ export default function ServicesModal() {
           </section>
 
           <section aria-label={t.services} className="grid grid-cols-2 gap-x-4 gap-y-1 px-5 py-3">
+            <Link
+              href={`/${locale}/marches`}
+              onClick={closeServices}
+              className="flex min-h-11 items-center gap-2 py-2 text-sm font-semibold text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <TrendingUp className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{t.markets}</span>
+            </Link>
             {otherSections.map((item) => (
               <Link
                 key={item.href}
