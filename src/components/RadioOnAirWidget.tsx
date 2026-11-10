@@ -13,12 +13,14 @@ export default function RadioOnAirWidget({
   name,
   onlineLabel,
   compact = false,
+  onDarkBackground = false,
   isPlaying: isPlayingProp,
   onToggle,
 }: {
   name?: string;
   onlineLabel?: string;
   compact?: boolean;
+  onDarkBackground?: boolean;
   isPlaying?: boolean;
   onToggle?: () => void;
 }) {
@@ -66,13 +68,21 @@ export default function RadioOnAirWidget({
     <button
       type="button"
       onClick={() => (onToggle ? onToggle() : window.dispatchEvent(new Event(RADIO_TOGGLE_EVENT)))}
-      className={`group inline-flex max-w-full items-center rounded-full bg-white shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.22)] ${
+      className={`group inline-flex max-w-full items-center rounded-full ${
+        onDarkBackground
+          ? 'bg-transparent text-white'
+          : 'bg-card shadow-[0_8px_24px_rgba(0,0,0,0.18)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.22)]'
+      } transition hover:-translate-y-0.5 ${
         compact ? 'gap-1 py-0.5 pl-0.5 pr-0.5 sm:gap-2 sm:py-1 sm:pl-1 sm:pr-1' : 'gap-1.5 py-1 pl-1 pr-1 sm:gap-3 sm:py-1.5 sm:pl-1.5 sm:pr-1.5'
       }`}
       aria-label={isPlaying ? `Mettre ${stationName} en pause` : `Écouter ${stationName} ${resolvedLabel}`}
     >
       <span
-        className={`flex shrink-0 items-center justify-center rounded-full border-2 border-[#2f6fbf] bg-white text-[#2f6fbf] transition group-hover:bg-[#eef4fc] ${
+        className={`flex shrink-0 items-center justify-center rounded-full border-2 transition ${
+          onDarkBackground
+            ? 'border-white bg-white text-primary group-hover:bg-white/90'
+            : 'border-primary bg-card text-primary group-hover:bg-primary/10'
+        } ${
           compact ? 'h-7 w-7 sm:h-9 sm:w-9' : 'h-8 w-8 sm:h-12 sm:w-12'
         }`}
       >
@@ -87,7 +97,7 @@ export default function RadioOnAirWidget({
         {bars.map((height, index) => (
           <span
             key={index}
-            className="w-[3px] origin-bottom rounded-full bg-[#1f7a6a]"
+            className={`w-[3px] origin-bottom rounded-full ${onDarkBackground ? 'bg-white' : 'bg-primary'}`}
             style={{
               height,
               animation: isPlaying ? `radioOnAirBar 0.85s ease-in-out ${index * 0.08}s infinite` : undefined,
@@ -97,7 +107,9 @@ export default function RadioOnAirWidget({
       </span>
 
       <span
-        className={`min-w-0 truncate px-0.5 font-medium tracking-tight text-[#1b5c52] sm:px-1 sm:font-semibold ${
+        className={`min-w-0 truncate px-0.5 font-medium tracking-tight ${
+          onDarkBackground ? 'text-white' : 'text-primary'
+        } sm:px-1 sm:font-semibold ${
           compact
             ? 'max-w-[8.5rem] text-[10px] leading-none sm:max-w-[14rem] sm:text-sm'
             : 'max-w-[9.5rem] text-[11px] leading-none sm:max-w-none sm:text-base'
@@ -107,7 +119,9 @@ export default function RadioOnAirWidget({
       </span>
 
       <span
-        className={`flex shrink-0 items-center justify-center rounded-full bg-[#1f7a6a] text-white ${
+        className={`flex shrink-0 items-center justify-center rounded-full ${
+          onDarkBackground ? 'bg-white text-primary' : 'bg-primary text-primary-foreground'
+        } ${
           compact ? 'h-7 w-7 sm:h-9 sm:w-9' : 'h-8 w-8 sm:h-12 sm:w-12'
         }`}
       >

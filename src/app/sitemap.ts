@@ -35,6 +35,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/conditions-utilisation',
     '/nous-soutenir',
     '/partenariats',
+    '/marches',
+    '/marches/or',
+    '/marches/bitcoin',
+    '/marches/ethereum',
+    '/marches/cardano',
+    '/marches/solana',
+    '/marches/bnb',
+    '/marches/xrp',
+    '/marches/dogecoin',
     '/archives',
   ]
 

@@ -10,6 +10,7 @@ import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { getMessages, getLocaleFromPathname } from '@/lib/i18n';
 import LanguageSwitcher from './LanguageSwitcher';
 import NavAccountIcon from './NavAccountIcon';
+import MarketTicker from './MarketTicker';
 import { logoutLocalSession } from '@/lib/theme';
 import { useAccountUser } from '@/lib/use-account-user';
 
@@ -444,6 +445,8 @@ export default function Navigation() {
           </div>
         </div>
       </div>
+
+      <MarketTicker locale={locale} />
 
       <SearchBar isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </nav>

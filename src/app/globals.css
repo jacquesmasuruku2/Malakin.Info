@@ -149,6 +149,30 @@
 }
 
 @layer utilities {
+  @keyframes market-ticker-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .market-ticker-track {
+    animation: market-ticker-scroll 60s linear infinite;
+  }
+
+  .market-ticker-viewport:hover .market-ticker-track,
+  .market-ticker-viewport:focus-within .market-ticker-track {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .market-ticker-track {
+      animation: none;
+    }
+  }
+
   @keyframes newsletter-backdrop-in {
     from { opacity: 0; }
     to { opacity: 1; }

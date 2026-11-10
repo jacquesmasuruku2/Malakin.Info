@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { ArrowRight, Radio } from 'lucide-react';
+import { ArrowRight, Newspaper, Radio } from 'lucide-react';
 import AdSenseAd from '@/components/AdSenseAd';
 import SmartImage from '@/components/SmartImage';
 import { ADSENSE_SLOTS } from '@/lib/adsense';
@@ -144,6 +144,7 @@ export default async function Home({
     readTime: article.readTime ? `${article.readTime} min` : '3 min',
     author: article.author,
     image: article.mainImageUrl || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=300&fit=crop',
+    thumbnail: article.mainImageUrl,
     publishedAt: article.publishedAt ? new Date(article.publishedAt) : null,
   }));
 
@@ -312,41 +313,61 @@ export default async function Home({
             <div className="sticky top-20">
               <div className="bg-card border border-border">
                 <div className="flex items-center justify-between gap-3 bg-primary px-4 py-2 text-primary-foreground">
-                  <h3 className="font-heading flex items-center text-lg font-bold uppercase tracking-wide">
+                  <h3 className="font-heading flex items-center text-lg font-bold uppercase tracking-wide text-white">
                       {t.latestFeed}
                       <span className="ml-2 animate-pulse">›</span>
                   </h3>
                 </div>
                 {activeRadio?.streamUrl ? (
-                  <div className="flex justify-center bg-[#1f7a6a] px-3 py-3">
+                  <div className="flex justify-center bg-primary px-3 py-3">
                     <RadioOnAirWidget
                       compact
+                      onDarkBackground
                       name={activeRadio.name || 'Radio MalakInfo'}
                       onlineLabel={t.onAir}
                     />
                   </div>
                 ) : null}
-                <div className="divide-y divide-border">
+                <div className="space-y-1.5 p-1.5">
                   {filteredLatestNews.slice(0, 8).map((news) => (
                     <article
                       key={news.id}
-                      className="px-3 py-2 hover:bg-muted transition-colors"
+                      className="group overflow-hidden rounded-lg border border-border/60 bg-card transition-colors hover:bg-muted/60"
                     >
-                      <div className="flex items-start gap-2 sm:gap-3 min-w-0">
-                        <span className="text-secondary font-bold text-[10px] sm:text-xs whitespace-nowrap pt-0.5">
-                          {news.publishedAt ? news.publishedAt.toLocaleTimeString(getDateLocale(normalizedLocale), { hour: '2-digit', minute: '2-digit', hour12: false }) : news.time || '00:00'}
+                      <Link
+                        href={getArticleUrl(locale, news.slug, news.publishedAt)}
+                        className="flex min-w-0 items-center gap-2.5 p-2"
+                      >
+                        <span className="relative h-14 w-[72px] shrink-0 overflow-hidden rounded-md bg-muted">
+                          {news.thumbnail ? (
+                            <SmartImage
+                              src={news.thumbnail}
+                              alt={news.title}
+                              fill
+                              sizes="72px"
+                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            />
+                          ) : (
+                            <span
+                              aria-hidden="true"
+                              className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/15 via-muted to-secondary/20 text-primary"
+                            >
+                              <Newspaper className="h-4 w-4" />
+                            </span>
+                          )}
                         </span>
-                        <div className="min-w-0 flex-1">
-                          <Link href={getArticleUrl(locale, news.slug, news.publishedAt)} className="block">
-                            <h4 className="font-heading font-semibold text-foreground text-sm hover:text-secondary transition-colors line-clamp-3 leading-snug m-0">
-                              {news.title}
-                            </h4>
-                          </Link>
-                          <span className="text-[10px] sm:text-xs text-muted-foreground mt-1 block">
+                        <span className="min-w-0 flex-1">
+                          <span className="mb-0.5 block text-[9px] font-bold tabular-nums text-secondary">
+                            {news.publishedAt ? news.publishedAt.toLocaleTimeString(getDateLocale(normalizedLocale), { hour: '2-digit', minute: '2-digit', hour12: false }) : news.time || '00:00'}
+                          </span>
+                          <span className="line-clamp-2 font-heading text-xs font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
+                            {news.title}
+                          </span>
+                          <span className="mt-0.5 block truncate text-[9px] font-medium text-muted-foreground">
                             {news.category}
                           </span>
-                        </div>
-                      </div>
+                        </span>
+                      </Link>
                     </article>
                   ))}
                 </div>

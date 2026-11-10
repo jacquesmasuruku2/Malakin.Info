@@ -190,7 +190,7 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
   };
 
   return (
-    <footer className="bg-[#20578f] text-white pb-24 md:pb-0">
+    <footer className="bg-[#0b3b8b] text-white pb-24 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {showScrollTop && (
           <button
