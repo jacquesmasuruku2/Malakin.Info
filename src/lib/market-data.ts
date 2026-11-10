@@ -12,6 +12,7 @@ const GOLD_API_URL = 'https://api.gold-api.com/price/XAU';
 const EXCHANGE_RATES_URL = 'https://open.er-api.com/v6/latest/USD';
 const MARKET_CACHE_SECONDS = 2;
 const EXCHANGE_RATE_CACHE_SECONDS = 21_600;
+const COINGECKO_TIMEOUT_MS = 2_000;
 
 type CoinGeckoMarketRow = {
   id: string;
@@ -125,25 +126,59 @@ function parseBinanceRows(value: unknown): BinanceTickerRow[] {
 
 function createCryptoQuote(
   asset: (typeof MARKET_ASSETS)[number],
-  row: CoinGeckoMarketRow,
+  row: CoinGeckoMarketRow | undefined,
   binanceRow: BinanceTickerRow,
 ): MarketQuote {
   return {
     ...asset,
-    priceUsd: row.current_price,
+    // USDT is the live Binance quote fallback when CoinGecko is unavailable.
+    priceUsd: row?.current_price ?? binanceRow.lastPrice,
     priceUsdt: binanceRow.lastPrice,
-    change24h: row.price_change_percentage_24h,
+    change24h: row?.price_change_percentage_24h ?? binanceRow.priceChangePercent,
     change24hUsdt: binanceRow.priceChangePercent,
-    marketCapUsd: row.market_cap,
-    volume24hUsd: row.total_volume,
-    high24hUsd: row.high_24h,
-    low24hUsd: row.low_24h,
+    marketCapUsd: row?.market_cap ?? null,
+    volume24hUsd: row?.total_volume ?? binanceRow.quoteVolume,
+    high24hUsd: row?.high_24h ?? binanceRow.highPrice,
+    low24hUsd: row?.low_24h ?? binanceRow.lowPrice,
     high24hUsdt: binanceRow.highPrice,
     low24hUsdt: binanceRow.lowPrice,
     volume24hUsdt: binanceRow.quoteVolume,
-    sourceUpdatedAt: row.last_updated,
+    sourceUpdatedAt: row?.last_updated ?? new Date(binanceRow.closeTime).toISOString(),
     sourceUpdatedAtUsdt: new Date(binanceRow.closeTime).toISOString(),
   };
+}
+
+async function getOptionalCoinGeckoRows(
+  result: PromiseSettledResult<Response>,
+): Promise<CoinGeckoMarketRow[] | null> {
+  if (result.status === 'rejected') {
+    console.warn('CoinGecko market metadata is unavailable:', result.reason);
+    return null;
+  }
+  if (!result.value.ok) {
+    console.warn(`CoinGecko responded with HTTP ${result.value.status}; using Binance quotes.`);
+    return null;
+  }
+
+  try {
+    return parseCoinGeckoRows(await result.value.json());
+  } catch (error) {
+    console.warn('CoinGecko returned invalid market metadata; using Binance quotes:', error);
+    return null;
+  }
+}
+
+function getRequiredResponse(
+  result: PromiseSettledResult<Response>,
+  source: string,
+): Response {
+  if (result.status === 'rejected') {
+    throw new Error(`${source} request failed: ${String(result.reason)}`);
+  }
+  if (!result.value.ok) {
+    throw new Error(`${source} responded with HTTP ${result.value.status}.`);
+  }
+  return result.value;
 }
 
 export async function getMarketSnapshot(): Promise<MarketSnapshot> {
@@ -158,10 +193,10 @@ export async function getMarketSnapshot(): Promise<MarketSnapshot> {
     const binanceUrl = new URL('https://api.binance.com/api/v3/ticker/24hr');
     binanceUrl.searchParams.set('symbols', JSON.stringify(symbols));
 
-    const [cryptoResponse, goldResponse, exchangeRatesResponse, binanceResponse] = await Promise.all([
+    const [cryptoResult, goldResult, exchangeRatesResult, binanceResult] = await Promise.allSettled([
       fetch(COINGECKO_URL, {
         next: { revalidate: MARKET_CACHE_SECONDS },
-        signal: AbortSignal.timeout(10_000),
+        signal: AbortSignal.timeout(COINGECKO_TIMEOUT_MS),
       }),
       fetch(GOLD_API_URL, {
         next: { revalidate: MARKET_CACHE_SECONDS },
@@ -177,33 +212,18 @@ export async function getMarketSnapshot(): Promise<MarketSnapshot> {
       }),
     ]);
 
-    if (!cryptoResponse.ok) {
-      throw new Error(`CoinGecko responded with HTTP ${cryptoResponse.status}.`);
-    }
-    if (!goldResponse.ok) {
-      throw new Error(`Gold API responded with HTTP ${goldResponse.status}.`);
-    }
-    if (!exchangeRatesResponse.ok) {
-      throw new Error(`Exchange rate API responded with HTTP ${exchangeRatesResponse.status}.`);
-    }
-    if (!binanceResponse.ok) {
-      throw new Error(`Binance responded with HTTP ${binanceResponse.status}.`);
-    }
+    const cryptoRows = await getOptionalCoinGeckoRows(cryptoResult);
+    const goldResponse = getRequiredResponse(goldResult, 'Gold API');
+    const exchangeRatesResponse = getRequiredResponse(exchangeRatesResult, 'Exchange rate API');
+    const binanceResponse = getRequiredResponse(binanceResult, 'Binance');
 
-    const [cryptoData, goldData, exchangeRatesData, binanceData]: [
-      unknown,
-      unknown,
-      unknown,
-      unknown,
-    ] =
+    const [goldData, exchangeRatesData, binanceData]: [unknown, unknown, unknown] =
       await Promise.all([
-        cryptoResponse.json(),
         goldResponse.json(),
         exchangeRatesResponse.json(),
         binanceResponse.json(),
       ]);
-    const cryptoRows = parseCoinGeckoRows(cryptoData);
-    const cryptoById = new Map(cryptoRows.map((row) => [row.id, row]));
+    const cryptoById = new Map((cryptoRows ?? []).map((row) => [row.id, row]));
     const binanceRows = parseBinanceRows(binanceData);
     const binanceBySymbol = new Map(binanceRows.map((row) => [row.symbol, row]));
     const goldPrice = isRecord(goldData) ? finiteNumber(goldData.price) : null;
@@ -262,9 +282,6 @@ export async function getMarketSnapshot(): Promise<MarketSnapshot> {
 
     const cryptoQuotes = MARKET_ASSETS.filter((asset) => asset.type === 'crypto').map((asset) => {
       const row = cryptoById.get(asset.id);
-      if (!row) {
-        throw new Error(`CoinGecko did not return a quote for ${asset.id}.`);
-      }
       const binanceRow = binanceBySymbol.get(`${asset.symbol}USDT`);
       if (!binanceRow) {
         throw new Error(`Binance did not return a quote for ${asset.symbol}USDT.`);
