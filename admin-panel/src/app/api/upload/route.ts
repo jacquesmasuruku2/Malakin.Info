@@ -147,8 +147,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        error:
-          'Upload impossible : Access Denied sur R2. Dans Cloudflare → R2 → Manage API Tokens, créez un token avec permission « Object Read & Write » (pas Read seul), puis mettez à jour R2_ACCESS_KEY_ID + R2_SECRET_ACCESS_KEY sur dash-malakin ET malakinfo, et redéployez.',
+        error: 'Échec de l’upload vers R2 et du relais vers le site principal.',
         details: errors.join(' | '),
       },
       { status: 500 },
@@ -164,4 +163,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

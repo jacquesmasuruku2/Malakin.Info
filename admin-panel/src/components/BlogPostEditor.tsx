@@ -292,7 +292,9 @@ export default function BlogPostEditor({ mode, postId }: BlogPostEditorProps) {
       const response = await fetch('/api/upload', { method: 'POST', body: uploadData });
       const data = await response.json();
       if (!response.ok || !data.url || String(data.url).startsWith('data:')) {
-        throw new Error(data?.error || 'Impossible de publier l’image.');
+        const message = typeof data?.error === 'string' ? data.error : 'Impossible de publier l’image.';
+        const details = typeof data?.details === 'string' ? data.details : '';
+        throw new Error(details ? `${message} ${details}` : message);
       }
       updateForm('mainImageUrl', data.url);
     } catch (uploadError) {

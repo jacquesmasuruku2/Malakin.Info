@@ -233,20 +233,21 @@ function normalizeImportedWordHtml(html: string): string {
   }
 }
 
-async function uploadBlogImage(file: File): Promise<string | null> {
+async function uploadBlogImage(file: File): Promise<string> {
   const body = new FormData();
   body.append('file', file);
   body.append('folder', 'Images_blogs');
 
   const response = await fetch('/api/upload', { method: 'POST', body });
-  const data = await response.json().catch(() => ({}));
+  const data = await response.json().catch(() => ({} as Record<string, unknown>));
   if (!response.ok) {
-    console.error('[WordEditor upload]', data?.error || data?.details || response.status);
-    return null;
+    const error = typeof data.error === 'string' ? data.error : `Échec de l’upload (${response.status}).`;
+    const details = typeof data.details === 'string' ? data.details : '';
+    throw new Error(details ? `${error} ${details}` : error);
   }
 
   if (!data?.success || !data.url || String(data.url).startsWith('data:')) {
-    return null;
+    throw new Error('Le serveur n’a pas renvoyé d’URL publique pour l’image.');
   }
   return String(data.url);
 }
@@ -450,20 +451,20 @@ export default function WordEditor({
     setUploadingInlineImage(true);
     try {
       for (const file of images) {
-        const src = await uploadBlogImage(file);
-        if (!src) {
-          alert("Erreur lors de l'upload de l'image");
-          continue;
+        try {
+          const src = await uploadBlogImage(file);
+          const suggested = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
+          const caption = window.prompt(
+            "Description de l'image (légende affichée sous la photo) :",
+            suggested
+          );
+          if (caption === null) continue;
+          const text = caption.trim() || suggested;
+          currentEditor.chain().focus().setImage({ src, alt: text }).updateAttributes('image', { caption: text, alt: text }).run();
+        } catch (error) {
+          console.error('[WordEditor upload]', error);
+          alert(error instanceof Error ? error.message : "Erreur lors de l'upload de l'image");
         }
-
-        const suggested = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
-        const caption = window.prompt(
-          "Description de l'image (légende affichée sous la photo) :",
-          suggested
-        );
-        if (caption === null) continue;
-        const text = caption.trim() || suggested;
-        currentEditor.chain().focus().setImage({ src, alt: text }).updateAttributes('image', { caption: text, alt: text }).run();
       }
     } finally {
       setUploadingInlineImage(false);
