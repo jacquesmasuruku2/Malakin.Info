@@ -28,6 +28,12 @@ export default function Navigation() {
 
   const locale = getLocaleFromPathname(pathname);
   const t = getMessages(locale).nav;
+  const homePath = `/${locale}`;
+  const economyPath = `/${locale}/economie`;
+  const showMarketTicker =
+    pathname === homePath ||
+    pathname === economyPath ||
+    pathname?.startsWith(`${economyPath}/`);
 
   // detect mobile viewport
   useEffect(() => {
@@ -446,7 +452,7 @@ export default function Navigation() {
         </div>
       </div>
 
-      <MarketTicker locale={locale} />
+      {showMarketTicker && <MarketTicker locale={locale} />}
 
       <SearchBar isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </nav>

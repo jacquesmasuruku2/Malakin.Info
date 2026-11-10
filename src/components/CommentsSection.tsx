@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { ThumbsUp, MessageCircle, Send, User as UserIcon } from 'lucide-react';
+import { ThumbsUp, MessageCircle, MessagesSquare, Send, User as UserIcon } from 'lucide-react';
 import { authFetch } from '@/lib/client-auth';
 import { useAccountUser } from '@/lib/use-account-user';
 
@@ -33,7 +33,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [showCommentForm, setShowCommentForm] = useState(true);
+  const [showCommentForm, setShowCommentForm] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
@@ -360,9 +360,13 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
                 setShowCommentForm(true);
               }
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition"
+            aria-expanded={isAuthenticated && showCommentForm}
+            aria-controls="article-comment-form"
+            className="inline-flex items-center gap-2.5 rounded-xl border border-primary/20 bg-primary/[0.06] px-4 py-2.5 text-sm font-semibold text-primary transition hover:border-primary/40 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           >
-            <MessageCircle className="w-4 h-4" />
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-background text-primary shadow-sm">
+              <MessagesSquare className="h-[18px] w-[18px]" strokeWidth={1.8} />
+            </span>
             {t.writeComment}
           </button>
         </div>
@@ -396,32 +400,42 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
       )}
 
       {showCommentForm && isAuthenticated && (
-        <div className="mb-6 rounded-3xl border border-border bg-muted/70 p-6">
+        <div
+          id="article-comment-form"
+          className="mb-6 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5"
+        >
+          <div className="mb-3 flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <MessagesSquare className="h-[18px] w-[18px]" strokeWidth={1.8} />
+            </span>
+            <h3 className="text-sm font-semibold text-foreground">{t.writeComment}</h3>
+          </div>
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder={t.placeholder}
-            rows={4}
-            className="w-full rounded-3xl border border-border bg-background px-4 py-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+            aria-label={t.writeComment}
+            rows={3}
+            className="w-full resize-y rounded-xl border border-border bg-background px-3.5 py-3 text-sm leading-relaxed text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
           />
-          <div className="mt-4 flex flex-wrap justify-end gap-3">
+          <div className="mt-3 flex flex-wrap justify-end gap-2">
             <button
               type="button"
               onClick={() => {
                 setShowCommentForm(false);
                 setNewComment('');
               }}
-              className="rounded-2xl border border-border bg-muted px-4 py-2 text-sm text-foreground hover:bg-muted/80 transition"
+              className="rounded-lg px-3.5 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
             >
               {t.cancel}
             </button>
             <button
               type="button"
               onClick={handleSubmitComment}
-              className="rounded-2xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
             >
-              <Send className="w-4 h-4 inline-block" />
-              <span>{t.submit}</span>
+              <Send className="h-4 w-4" />
+              {t.submit}
             </button>
           </div>
         </div>
