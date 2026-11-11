@@ -1,6 +1,7 @@
 import { lookup } from 'node:dns/promises';
 import { BlockList, isIP } from 'node:net';
 import { NextResponse } from 'next/server';
+import sanitizeHtml from 'sanitize-html';
 import { requireAdmin } from '@/lib/admin-session';
 
 const MAX_HTML_BYTES = 5 * 1024 * 1024;
@@ -159,6 +160,85 @@ function absolutizeAttributeUrls(html: string, baseUrl: URL): string {
   );
 }
 
+function getAttribute(tag: string, name: string): string {
+  const match = tag.match(new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i'));
+  return match?.[1] || match?.[2] || match?.[3] || '';
+}
+
+function decodeHtmlEntities(value: string): string {
+  const namedEntities: Record<string, string> = {
+    amp: '&',
+    apos: "'",
+    gt: '>',
+    lt: '<',
+    quot: '"',
+    nbsp: ' ',
+  };
+
+  return value.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (entity, code: string) => {
+    if (code[0] !== '#') return namedEntities[code.toLowerCase()] ?? entity;
+    const hexadecimal = code[1]?.toLowerCase() === 'x';
+    const value = Number.parseInt(code.slice(hexadecimal ? 2 : 1), hexadecimal ? 16 : 10);
+    return Number.isFinite(value) && value > 0 && value <= 0x10ffff
+      ? String.fromCodePoint(value)
+      : entity;
+  });
+}
+
+function plainText(value: string): string {
+  return decodeHtmlEntities(value.replace(/<[^>]*>/g, ' '))
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getMetaContent(html: string, names: string[]): string {
+  const metaTags = html.match(/<meta\b[^>]*>/gi) || [];
+  for (const name of names) {
+    const tag = metaTags.find((candidate) => {
+      const property = getAttribute(candidate, 'property').toLowerCase();
+      const metaName = getAttribute(candidate, 'name').toLowerCase();
+      return property === name || metaName === name;
+    });
+    const content = tag ? getAttribute(tag, 'content') : '';
+    if (content) return plainText(content);
+  }
+  return '';
+}
+
+function extractArticleMetadata(html: string, content: string, baseUrl: URL) {
+  const titleTag = html.match(/<title\b[^>]*>([\s\S]*?)<\/title\s*>/i)?.[1] || '';
+  const heading = content.match(/<h1\b[^>]*>([\s\S]*?)<\/h1\s*>/i)?.[1] || '';
+  const imageValue = getMetaContent(html, [
+    'og:image',
+    'og:image:url',
+    'twitter:image',
+    'twitter:image:src',
+  ]) || getAttribute(content.match(/<img\b[^>]*>/i)?.[0] || '', 'src');
+
+  let imageUrl: string | null = null;
+  if (imageValue) {
+    try {
+      const image = new URL(imageValue, baseUrl);
+      if (['http:', 'https:'].includes(image.protocol) && !image.username && !image.password) {
+        imageUrl = image.href;
+      }
+    } catch {
+      imageUrl = null;
+    }
+  }
+
+  return {
+    title: getMetaContent(html, ['og:title', 'twitter:title', 'title'])
+      || plainText(heading)
+      || plainText(titleTag)
+      || baseUrl.hostname,
+    excerpt: getMetaContent(html, ['og:description', 'twitter:description', 'description']),
+    imageUrl,
+    author: getMetaContent(html, ['author', 'article:author']),
+    publishedAt: getMetaContent(html, ['article:published_time', 'datepublished', 'date']),
+  };
+}
+
 function extractArticleHtml(html: string, baseUrl: URL): string {
   const match = html.match(/<article\b[^>]*>([\s\S]*?)<\/article\s*>/i)
     || html.match(/<main\b[^>]*>([\s\S]*?)<\/main\s*>/i)
@@ -172,7 +252,21 @@ function extractArticleHtml(html: string, baseUrl: URL): string {
     .replace(/\s(?:on[a-z]+|srcdoc)\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
     .replace(/\sstyle\s*=\s*(["'])[^"']*url\s*\(\s*["']?\s*javascript:[^"']*\1/gi, '');
 
-  return absolutizeAttributeUrls(content, baseUrl);
+  return sanitizeHtml(absolutizeAttributeUrls(content, baseUrl), {
+    allowedTags: [
+      'a', 'blockquote', 'br', 'caption', 'code', 'del', 'em', 'figcaption', 'figure',
+      'h2', 'h3', 'h4', 'hr', 'img', 'li', 'ol', 'p', 'pre', 's', 'span', 'strong',
+      'sub', 'sup', 'table', 'tbody', 'td', 'th', 'thead', 'tr', 'u', 'ul',
+    ],
+    allowedAttributes: {
+      a: ['href', 'target', 'rel', 'title'],
+      img: ['src', 'alt', 'title', 'width', 'height', 'loading'],
+      td: ['colspan', 'rowspan'],
+      th: ['colspan', 'rowspan', 'scope'],
+    },
+    allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+    allowedSchemesAppliedToAttributes: ['href', 'src'],
+  });
 }
 
 async function fetchPage(startUrl: URL): Promise<{ response: Response; finalUrl: URL }> {
@@ -248,7 +342,11 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ content, originalUrl: finalUrl.href });
+    return NextResponse.json({
+      ...extractArticleMetadata(html, content, finalUrl),
+      content,
+      originalUrl: finalUrl.href,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue.';
     console.error('[proxy-article] Failed to fetch external page:', message);

@@ -7,10 +7,46 @@ import { ArrowLeft, ExternalLink, RefreshCw, Save } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+type ImportedArticle = {
+  title: string;
+  excerpt: string;
+  imageUrl: string | null;
+  author: string;
+  publishedAt: string;
+  content: string;
+  originalUrl: string;
+};
+
+type CategoryOption = { id: string; title: string };
+type AuthorOption = { id: string; name: string };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function slugify(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[character] || character);
+}
+
 export default function ExternalArticlePage() {
   const router = useRouter();
   const [url, setUrl] = useState('');
-  const [content, setContent] = useState('');
+  const [importedArticle, setImportedArticle] = useState<ImportedArticle | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showSaveForm, setShowSaveForm] = useState(false);
@@ -25,8 +61,8 @@ export default function ExternalArticlePage() {
     authorId: '',
   });
   
-  const [categories, setCategories] = useState<any[]>([]);
-  const [authors, setAuthors] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [authors, setAuthors] = useState<AuthorOption[]>([]);
 
   const fetchArticle = async () => {
     if (!url.trim()) {
@@ -36,7 +72,7 @@ export default function ExternalArticlePage() {
 
     setLoading(true);
     setError('');
-    setContent('');
+    setImportedArticle(null);
 
     try {
       const response = await fetch('/api/proxy-article', {
@@ -58,18 +94,29 @@ export default function ExternalArticlePage() {
         );
       }
 
-      if (typeof data.content !== 'string' || !data.content.trim()) {
+      if (
+        typeof data.content !== 'string'
+        || !data.content.trim()
+        || typeof data.originalUrl !== 'string'
+      ) {
         throw new Error('Aucun contenu éditorial exploitable n’a été trouvé sur cette page.');
       }
-      setContent(data.content);
-      
-      // Extract title from URL as default
-      const urlParts = url.split('/').filter(Boolean);
-      const defaultTitle = urlParts[urlParts.length - 1]?.replace(/-/g, ' ') || '';
+      const article: ImportedArticle = {
+        title: typeof data.title === 'string' ? data.title : '',
+        excerpt: typeof data.excerpt === 'string' ? data.excerpt : '',
+        imageUrl: typeof data.imageUrl === 'string' ? data.imageUrl : null,
+        author: typeof data.author === 'string' ? data.author : '',
+        publishedAt: typeof data.publishedAt === 'string' ? data.publishedAt : '',
+        content: data.content,
+        originalUrl: data.originalUrl,
+      };
+      setImportedArticle(article);
+      const title = article.title || new URL(article.originalUrl).hostname;
       setArticleData(prev => ({
         ...prev,
-        title: defaultTitle,
-        slug: urlParts[urlParts.length - 1] || '',
+        title,
+        slug: slugify(title) || slugify(new URL(article.originalUrl).pathname.split('/').pop() || 'article'),
+        excerpt: article.excerpt,
       }));
       
       // Fetch categories and authors for the save form
@@ -85,8 +132,13 @@ export default function ExternalArticlePage() {
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories');
-      const data = await response.json();
-      setCategories(data);
+      const data: unknown = await response.json();
+      if (!response.ok || !Array.isArray(data)) {
+        throw new Error('Impossible de charger les catégories.');
+      }
+      setCategories(data.filter((item): item is CategoryOption => (
+        isRecord(item) && typeof item.id === 'string' && typeof item.title === 'string'
+      )));
     } catch (err) {
       console.error('Failed to fetch categories:', err);
     }
@@ -95,8 +147,13 @@ export default function ExternalArticlePage() {
   const fetchAuthors = async () => {
     try {
       const response = await fetch('/api/authors');
-      const data = await response.json();
-      setAuthors(data);
+      const data: unknown = await response.json();
+      if (!response.ok || !Array.isArray(data)) {
+        throw new Error('Impossible de charger les auteurs.');
+      }
+      setAuthors(data.filter((item): item is AuthorOption => (
+        isRecord(item) && typeof item.id === 'string' && typeof item.name === 'string'
+      )));
     } catch (err) {
       console.error('Failed to fetch authors:', err);
     }
@@ -108,6 +165,10 @@ export default function ExternalArticlePage() {
   };
 
   const handleSave = async () => {
+    if (!importedArticle) {
+      setError('Chargez un article externe avant de l’enregistrer.');
+      return;
+    }
     if (!articleData.title || !articleData.slug || !articleData.categoryId) {
       setError('Veuillez remplir le titre, le slug et la catégorie');
       return;
@@ -117,6 +178,11 @@ export default function ExternalArticlePage() {
     setError('');
 
     try {
+      const sourceHost = new URL(importedArticle.originalUrl).hostname;
+      const sourceAttribution = [
+        `Source : <a href="${escapeHtml(importedArticle.originalUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(sourceHost)}</a>`,
+        importedArticle.author ? `— ${escapeHtml(importedArticle.author)}` : '',
+      ].filter(Boolean).join(' ');
       const response = await fetch('/api/articles', {
         method: 'POST',
         headers: {
@@ -124,9 +190,10 @@ export default function ExternalArticlePage() {
         },
         body: JSON.stringify({
           ...articleData,
-          content: JSON.stringify(content),
+          content: `${importedArticle.content}<p><strong>${sourceAttribution}</strong></p>`,
           publishedAt: new Date().toISOString(),
-          mainImageUrl: null,
+          mainImageUrl: importedArticle.imageUrl,
+          mainImageAlt: articleData.title,
         }),
       });
 
@@ -158,7 +225,7 @@ export default function ExternalArticlePage() {
               </Link>
               <div>
                 <h1 className="text-3xl font-bold text-primary">Article Externe</h1>
-                <p className="text-secondary mt-1">Afficher le contenu d'un article depuis une URL externe</p>
+                <p className="text-secondary mt-1">Afficher le contenu d&apos;un article depuis une URL externe</p>
               </div>
             </div>
           </div>
@@ -171,6 +238,7 @@ export default function ExternalArticlePage() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://articles.rfi.fr/fr/..."
+                aria-describedby="external-article-url-help"
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
               />
               <button
@@ -191,6 +259,9 @@ export default function ExternalArticlePage() {
                 )}
               </button>
             </form>
+            <p id="external-article-url-help" className="mt-3 text-sm text-gray-600">
+              Utilisez une URL HTTP ou HTTPS dont le domaine pointe uniquement vers des adresses IP publiques. Les adresses locales ou privées ne sont pas autorisées.
+            </p>
           </div>
 
           {/* Error Message */}
@@ -201,7 +272,7 @@ export default function ExternalArticlePage() {
           )}
 
           {/* Article Content */}
-          {content && (
+          {importedArticle && (
             <>
               <div className="flex items-center justify-between mb-4">
                 <button
@@ -313,12 +384,50 @@ export default function ExternalArticlePage() {
                 </div>
               )}
 
-              <div className="card rounded-lg shadow-sm border p-6">
-                <div 
-                  className="prose prose-sm sm:prose-base max-w-none"
-                  dangerouslySetInnerHTML={{ __html: content }}
-                />
-              </div>
+              <article className="card mx-auto max-w-4xl overflow-hidden rounded-xl border bg-white shadow-sm">
+                {importedArticle.imageUrl && (
+                  <img
+                    src={importedArticle.imageUrl}
+                    alt={importedArticle.title}
+                    className="aspect-video w-full object-cover"
+                  />
+                )}
+                <div className="p-6 sm:p-10">
+                  <a
+                    href={importedArticle.originalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:underline"
+                  >
+                    Source originale : {new URL(importedArticle.originalUrl).hostname}
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                  <h2 className="mt-4 font-heading text-3xl font-black leading-tight text-primary sm:text-4xl">
+                    {importedArticle.title}
+                  </h2>
+                  {importedArticle.excerpt && (
+                    <p className="mt-4 text-lg leading-relaxed text-gray-600">
+                      {importedArticle.excerpt}
+                    </p>
+                  )}
+                  {(importedArticle.author || importedArticle.publishedAt) && (
+                    <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-b pb-5 text-sm text-gray-500">
+                      {importedArticle.author && <span>Par {importedArticle.author}</span>}
+                      {importedArticle.publishedAt && (
+                        <time dateTime={importedArticle.publishedAt}>
+                              {Number.isNaN(Date.parse(importedArticle.publishedAt))
+                                ? importedArticle.publishedAt
+                                : new Date(importedArticle.publishedAt).toLocaleDateString('fr-FR')}
+                        </time>
+                      )}
+                    </div>
+                  )}
+                  <div
+                    className="prose prose-lg mt-8 max-w-none break-words leading-relaxed prose-headings:font-bold prose-headings:text-primary prose-a:text-blue-700 prose-img:mx-auto prose-img:h-auto prose-img:max-w-full prose-img:rounded-lg prose-blockquote:border-l-4 prose-blockquote:border-blue-700 prose-figcaption:text-sm prose-figcaption:italic"
+                    dangerouslySetInnerHTML={{ __html: importedArticle.content }}
+                  />
+                </div>
+              </article>
             </>
           )}
 
@@ -326,7 +435,7 @@ export default function ExternalArticlePage() {
           {loading && (
             <div className="card rounded-lg shadow-sm border p-12 text-center">
               <RefreshCw className="w-12 h-12 text-gray-300 mx-auto mb-4 animate-spin" />
-              <p className="text-gray-500">Chargement de l'article...</p>
+              <p className="text-gray-500">Chargement de l&apos;article...</p>
             </div>
           )}
         </div>

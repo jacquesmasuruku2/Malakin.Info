@@ -301,6 +301,8 @@ export default function WordEditor({
             class: 'border-l-4 border-gray-300 pl-4 italic',
           },
         },
+        link: false,
+        underline: false,
       }),
       Underline,
       TextAlign.configure({
