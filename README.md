@@ -102,6 +102,8 @@ npm run build
 npm start
 ```
 
+Le build génère également `public/legacy-browser.css`, une feuille de styles compatible avec Chrome 81. Elle est chargée uniquement par les navigateurs détectés comme anciens.
+
 ## Installation du panel admin
 
 ```bash

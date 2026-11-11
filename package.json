@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma migrate deploy && next build",
+    "build": "prisma migrate deploy && next build && node scripts/build-legacy-css.mjs",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate"
@@ -46,6 +46,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "lightningcss": "^1.33.0",
+    "postcss": "^8.5.32",
+    "postcss-selector-parser": "^7.2.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
