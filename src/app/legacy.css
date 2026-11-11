@@ -40,31 +40,12 @@ html.legacy-browser body {
   margin-left: auto;
 }
 
-.legacy-browser .flex,
-.legacy-browser .grid {
-  display: block;
-}
-
 .legacy-browser .flex > *,
 .legacy-browser .grid > * {
   max-width: 100%;
 }
 
-.legacy-browser .inline-flex,
-.legacy-browser .inline-block {
-  display: inline-block;
-}
-
 .legacy-browser .hidden {
-  display: none !important;
-}
-
-.legacy-browser .md\:flex,
-.legacy-browser .md\:block {
-  display: block !important;
-}
-
-.legacy-browser .md\:hidden {
   display: none !important;
 }
 
@@ -243,7 +224,6 @@ html.legacy-browser body {
 }
 
 @media screen and (-ms-high-contrast: active), screen and (-ms-high-contrast: none) {
-  .legacy-browser .md\:flex,
   .legacy-browser .md\:block {
     display: block !important;
   }

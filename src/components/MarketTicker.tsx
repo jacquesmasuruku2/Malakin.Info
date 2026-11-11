@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, Pause, Play, Radio } from 'lucide-react';
 import { useMarket } from '@/contexts/MarketContext';
-import { isMarketQuoteFresh } from '@/lib/market-config';
+import { isMarketQuoteFresh, MARKET_ASSETS } from '@/lib/market-config';
 import {
   convertMarketValue,
   formatMarketPrice,
@@ -19,15 +19,25 @@ export default function MarketTicker({ locale }: MarketTickerProps) {
   const [isPaused, setIsPaused] = useState(false);
 
   const isFrench = locale === 'fr';
+  const tickerAssets = (snapshot?.assets ?? MARKET_ASSETS).filter(
+    (asset) => asset.type === 'crypto',
+  );
+  const visibleAssets = tickerAssets.filter((asset) => {
+    if (snapshot) return true;
+    const quote = liveQuotes[asset.id];
+    return quote && isMarketQuoteFresh(quote.sourceUpdatedAt);
+  });
+  const hasTickerData = snapshot !== null || visibleAssets.length > 0;
+  const displayCurrency = snapshot ? currency : 'USD';
 
   return (
     <div className="border-b border-border bg-background text-foreground">
       <div className="mx-auto flex min-h-12 max-w-7xl items-center gap-2 px-4 sm:px-6 lg:px-8">
-        {error && !snapshot ? (
+        {error && !hasTickerData ? (
           <p className="min-w-0 flex-1 text-xs text-muted-foreground">
             {isFrench ? 'Cours momentanément indisponibles' : 'Quotes temporarily unavailable'}
           </p>
-        ) : snapshot ? (
+        ) : hasTickerData ? (
           <>
             <div
               className="market-ticker-viewport min-w-0 flex-1 overflow-hidden py-2"
@@ -44,16 +54,20 @@ export default function MarketTicker({ locale }: MarketTickerProps) {
                     aria-hidden={copy === 1 ? true : undefined}
                     inert={copy === 1}
                   >
-                    {snapshot.assets.filter((asset) => asset.type === 'crypto').map((asset) => {
+                    {visibleAssets.map((asset) => {
                       const candidateLiveQuote = liveQuotes[asset.id];
                       const liveQuote =
                         candidateLiveQuote &&
                         isMarketQuoteFresh(candidateLiveQuote.sourceUpdatedAt)
                           ? candidateLiveQuote
                           : undefined;
-                      const priceUsdt = liveQuote?.priceUsdt ?? asset.priceUsdt;
+                      const snapshotQuote = snapshot?.assets.find((quote) => quote.id === asset.id);
+                      const priceUsdt = liveQuote?.priceUsdt ?? snapshotQuote?.priceUsdt ?? null;
                       const change24h =
-                        liveQuote?.change24h ?? asset.change24hUsdt ?? asset.change24h;
+                        liveQuote?.change24h ??
+                        snapshotQuote?.change24hUsdt ??
+                        snapshotQuote?.change24h ??
+                        null;
                       const trendClass =
                         change24h === null || change24h === 0
                           ? 'text-muted-foreground'
@@ -76,7 +90,7 @@ export default function MarketTicker({ locale }: MarketTickerProps) {
                           </span>
                           <span className={`text-xs font-bold tabular-nums ${trendClass}`}>
                             {TrendIcon && <TrendIcon aria-hidden="true" className="mr-0.5 inline h-3 w-3" />}
-                            {priceUsdt !== null
+                            {snapshot && priceUsdt !== null
                               ? formatMarketPrice(
                                   convertMarketValue(
                                     priceUsdt * usdtUsdRate,
@@ -86,15 +100,23 @@ export default function MarketTicker({ locale }: MarketTickerProps) {
                                   locale,
                                   currency,
                                 )
-                              : formatMarketPrice(
-                                  convertMarketValue(
-                                    asset.priceUsd,
-                                    snapshot.exchangeRates,
+                              : snapshot && snapshotQuote
+                                ? formatMarketPrice(
+                                    convertMarketValue(
+                                      snapshotQuote.priceUsd,
+                                      snapshot.exchangeRates,
+                                      currency,
+                                    ),
+                                    locale,
                                     currency,
-                                  ),
-                                  locale,
-                                  currency,
-                                )}
+                                  )
+                                : liveQuote
+                                  ? formatMarketPrice(
+                                      liveQuote.priceUsdt * usdtUsdRate,
+                                      locale,
+                                      displayCurrency,
+                                    )
+                                  : '—'}
                           </span>
                         </span>
                       );
