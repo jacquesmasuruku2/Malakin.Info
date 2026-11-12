@@ -439,6 +439,9 @@ export default function Navigation() {
             <Link href={`/${locale}/sport`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.sport}
             </Link>
+            <Link href={`/${locale}/matches-en-direct`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
+              {locale === 'en' ? 'Live matches' : 'Matches en direct'}
+            </Link>
             <Link href={`/${locale}/partenaires`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.partnerships}
             </Link>

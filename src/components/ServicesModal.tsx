@@ -110,6 +110,7 @@ export default function ServicesModal() {
     { name: t.religion, href: `/${locale}/religion` },
     { name: t.culture, href: `/${locale}/culture` },
     { name: t.sport, href: `/${locale}/sport` },
+    { name: locale === 'en' ? 'Live matches' : 'Matches en direct', href: `/${locale}/matches-en-direct` },
     { name: t.scienceTech, href: `/${locale}/science-tech` },
     { name: t.practicalInfo, href: `/${locale}/infos-pratiques` },
     { name: t.partnerships, href: `/${locale}/partenaires` },

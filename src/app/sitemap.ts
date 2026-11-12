@@ -21,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/environnement',
     '/culture',
     '/sport',
+    '/matches-en-direct',
     '/religion',
     '/science-tech',
     '/emploi',
