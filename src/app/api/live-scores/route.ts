@@ -59,6 +59,7 @@ function parseMatch(value: unknown): LiveScoreMatch {
     },
     league: {
       id: value.league.id,
+      season: nullableNumber(value.league.season),
       name: value.league.name,
       logo: nullableString(value.league.logo),
       country: nullableString(value.league.country),

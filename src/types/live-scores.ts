@@ -12,6 +12,7 @@ export type LiveScoreMatch = {
   };
   league: {
     id: number;
+    season: number | null;
     name: string;
     logo: string | null;
     country: string | null;
@@ -50,12 +51,68 @@ export type LiveMatchEvent = {
     name: string | null;
   };
   player: {
+    id: number | null;
     name: string | null;
   };
   assist: {
+    id: number | null;
     name: string | null;
   };
   type: string;
   detail: string | null;
   comments: string | null;
+};
+
+export type MatchLineupPlayer = {
+  id: number | null;
+  name: string;
+  number: number | null;
+  position: string | null;
+  grid: string | null;
+};
+
+export type MatchLineup = {
+  team: {
+    id: number | null;
+    name: string;
+    logo: string | null;
+  };
+  formation: string | null;
+  startingXI: MatchLineupPlayer[];
+  substitutes: MatchLineupPlayer[];
+  coach: string | null;
+};
+
+export type MatchStandingEntry = {
+  rank: number;
+  team: {
+    id: number | null;
+    name: string;
+    logo: string | null;
+  };
+  points: number;
+  goalsDiff: number;
+  played: number | null;
+  form: string | null;
+  description: string | null;
+};
+
+export type MatchStandingGroup = {
+  name: string | null;
+  entries: MatchStandingEntry[];
+};
+
+export type MatchStandings = {
+  league: string;
+  groups: MatchStandingGroup[];
+};
+
+export type MatchDetailsData = {
+  events: LiveMatchEvent[];
+  lineups: MatchLineup[];
+  standings: MatchStandings | null;
+  unavailable: {
+    lineups: boolean;
+    standings: boolean;
+  };
 };

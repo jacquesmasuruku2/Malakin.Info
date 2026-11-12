@@ -16,7 +16,15 @@ import {
   X,
 } from 'lucide-react';
 import Image from 'next/image';
-import type { LiveMatchEvent, LiveScoreMatch } from '@/types/live-scores';
+import type {
+  LiveMatchEvent,
+  LiveScoreMatch,
+  MatchDetailsData,
+  MatchLineup,
+  MatchLineupPlayer,
+  MatchStandingEntry,
+  MatchStandings,
+} from '@/types/live-scores';
 
 type LiveScoresProps = {
   locale?: string;
@@ -107,6 +115,7 @@ function isLiveScoreMatch(value: unknown): value is LiveScoreMatch {
     isNullableString(value.fixture.status.long) &&
     isRecord(value.league) &&
     typeof value.league.id === 'number' &&
+    isNullableNumber(value.league.season) &&
     typeof value.league.name === 'string' &&
     isNullableString(value.league.logo) &&
     isNullableString(value.league.country) &&
@@ -140,13 +149,104 @@ function isLiveMatchEvent(value: unknown): value is LiveMatchEvent {
     isRecord(value.team) &&
     isNullableString(value.team.name) &&
     isRecord(value.player) &&
+    isNullableNumber(value.player.id) &&
     isNullableString(value.player.name) &&
     isRecord(value.assist) &&
+    isNullableNumber(value.assist.id) &&
     isNullableString(value.assist.name) &&
     typeof value.type === 'string' &&
     isNullableString(value.detail) &&
     isNullableString(value.comments)
   );
+}
+
+function isMatchLineupPlayer(value: unknown): value is MatchLineupPlayer {
+  return (
+    isRecord(value) &&
+    isNullableNumber(value.id) &&
+    typeof value.name === 'string' &&
+    isNullableNumber(value.number) &&
+    isNullableString(value.position) &&
+    isNullableString(value.grid)
+  );
+}
+
+function isMatchLineup(value: unknown): value is MatchLineup {
+  return (
+    isRecord(value) &&
+    isRecord(value.team) &&
+    isNullableNumber(value.team.id) &&
+    typeof value.team.name === 'string' &&
+    isNullableString(value.team.logo) &&
+    isNullableString(value.formation) &&
+    Array.isArray(value.startingXI) &&
+    value.startingXI.every(isMatchLineupPlayer) &&
+    Array.isArray(value.substitutes) &&
+    value.substitutes.every(isMatchLineupPlayer) &&
+    isNullableString(value.coach)
+  );
+}
+
+function isMatchStandingEntry(value: unknown): value is MatchStandingEntry {
+  return (
+    isRecord(value) &&
+    typeof value.rank === 'number' &&
+    isRecord(value.team) &&
+    isNullableNumber(value.team.id) &&
+    typeof value.team.name === 'string' &&
+    isNullableString(value.team.logo) &&
+    typeof value.points === 'number' &&
+    typeof value.goalsDiff === 'number' &&
+    isNullableNumber(value.played) &&
+    isNullableString(value.form) &&
+    isNullableString(value.description)
+  );
+}
+
+function isMatchStandings(value: unknown): value is MatchStandings {
+  return (
+    isRecord(value) &&
+    typeof value.league === 'string' &&
+    Array.isArray(value.groups) &&
+    value.groups.every(
+      (group) =>
+        isRecord(group) &&
+        isNullableString(group.name) &&
+        Array.isArray(group.entries) &&
+        group.entries.every(isMatchStandingEntry),
+    )
+  );
+}
+
+function isMatchDetailsData(value: unknown): value is MatchDetailsData {
+  return (
+    isRecord(value) &&
+    Array.isArray(value.events) &&
+    value.events.every(isLiveMatchEvent) &&
+    Array.isArray(value.lineups) &&
+    value.lineups.every(isMatchLineup) &&
+    (value.standings === null || isMatchStandings(value.standings)) &&
+    isRecord(value.unavailable) &&
+    typeof value.unavailable.lineups === 'boolean' &&
+    typeof value.unavailable.standings === 'boolean'
+  );
+}
+
+function getJerseyNumber(
+  lineups: MatchLineup[],
+  playerId: number | null,
+  playerName: string | null,
+): number | null {
+  const players = lineups.flatMap((lineup) => [...lineup.startingXI, ...lineup.substitutes]);
+  const playerById =
+    playerId === null ? undefined : players.find((player) => player.id === playerId);
+  const playerByName =
+    playerName === null
+      ? undefined
+      : players.find(
+          (player) => normalizeSearch(player.name) === normalizeSearch(playerName),
+        );
+  return playerById?.number ?? playerByName?.number ?? null;
 }
 
 type MatchEventKind = 'goal' | 'missed-penalty' | 'yellow-card' | 'red-card' | 'substitution' | 'other';
@@ -439,7 +539,14 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(null);
   const [events, setEvents] = useState<LiveMatchEvent[]>([]);
-  const [isEventsLoading, setIsEventsLoading] = useState(false);
+  const [lineups, setLineups] = useState<MatchLineup[]>([]);
+  const [standings, setStandings] = useState<MatchStandings | null>(null);
+  const [detailsUnavailable, setDetailsUnavailable] = useState({
+    lineups: false,
+    standings: false,
+  });
+  const [activeDetailsTab, setActiveDetailsTab] = useState<'events' | 'lineups' | 'standings'>('events');
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const [eventsError, setEventsError] = useState(false);
   const favoritesSnapshot = useSyncExternalStore(
     subscribeToFavorites,
@@ -545,9 +652,17 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
 
     const controller = new AbortController();
 
-    async function loadEvents() {
+    async function loadMatchDetails() {
       try {
-        const response = await fetch(`/api/match-details?id=${selectedFixtureId}`, {
+        const searchParams = new URLSearchParams({ id: String(selectedFixtureId) });
+        if (selectedMatch?.league.id) {
+          searchParams.set('leagueId', String(selectedMatch.league.id));
+        }
+        if (selectedMatch?.league.season !== null && selectedMatch?.league.season !== undefined) {
+          searchParams.set('season', String(selectedMatch.league.season));
+        }
+
+        const response = await fetch(`/api/match-details?${searchParams.toString()}`, {
           cache: 'no-store',
           signal: controller.signal,
         });
@@ -556,32 +671,37 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
         }
 
         const payload: unknown = await response.json();
-        if (
-          !isRecord(payload) ||
-          !Array.isArray(payload.events) ||
-          !payload.events.every(isLiveMatchEvent)
-        ) {
+        if (!isMatchDetailsData(payload)) {
           throw new Error('Match details API returned an invalid response.');
         }
 
-        if (!controller.signal.aborted) setEvents(payload.events);
+        if (!controller.signal.aborted) {
+          setEvents(payload.events);
+          setLineups(payload.lineups);
+          setStandings(payload.standings);
+          setDetailsUnavailable(payload.unavailable);
+        }
       } catch (error) {
         if (controller.signal.aborted) return;
-        console.error('Unable to load football match events:', error);
+        console.error('Unable to load match details:', error);
         setEventsError(true);
       } finally {
-        if (!controller.signal.aborted) setIsEventsLoading(false);
+        if (!controller.signal.aborted) setIsDetailsLoading(false);
       }
     }
 
-    void loadEvents();
+    void loadMatchDetails();
     return () => controller.abort();
-  }, [selectedFixtureId]);
+  }, [selectedFixtureId, selectedMatch?.league.id, selectedMatch?.league.season]);
 
   function openMatchDetails(fixtureId: number) {
     setEvents([]);
+    setLineups([]);
+    setStandings(null);
+    setDetailsUnavailable({ lineups: false, standings: false });
     setEventsError(false);
-    setIsEventsLoading(true);
+    setActiveDetailsTab('events');
+    setIsDetailsLoading(true);
     setSelectedFixtureId(fixtureId);
   }
 
@@ -958,7 +1078,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
             <header className="flex items-start justify-between gap-4 border-b border-border px-5 py-4 sm:px-6">
               <div className="min-w-0">
                 <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-primary">
-                  {english ? 'Match highlights' : 'Temps forts du match'}
+                  {english ? 'Match details' : 'Détails du match'}
                 </p>
                 <h2 id="match-details-title" className="text-lg font-bold text-foreground sm:text-xl">
                   {selectedMatch
@@ -984,149 +1104,390 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
               </button>
             </header>
 
+            <div
+              role="tablist"
+              aria-label={english ? 'Match information' : 'Informations du match'}
+              className="flex gap-1 overflow-x-auto border-b border-border px-4 py-2 sm:px-6"
+            >
+              {([
+                ['events', english ? 'Highlights' : 'Temps forts'],
+                ['lineups', english ? 'Lineups' : 'Compositions'],
+                ['standings', english ? 'Standings' : 'Classement'],
+              ] as const).map(([tab, label]) => (
+                <button
+                  key={tab}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeDetailsTab === tab}
+                  onClick={() => setActiveDetailsTab(tab)}
+                  className={`shrink-0 rounded-lg px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                    activeDetailsTab === tab
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
             <div className="min-h-0 overflow-y-auto px-5 py-5 sm:px-6">
-              {selectedMatch && view === 'finished' && (
-                <section className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-4">
-                  <h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-primary">
-                    {english ? 'How the match ended' : 'Résumé final'}
-                  </h3>
-                  <p className="text-sm font-medium text-foreground">
-                    {getMatchEndMinute(selectedMatch, events)
-                      ? `${getMatchEndMinute(selectedMatch, events)}' — `
-                      : ''}
-                    {getFinishedNarration(selectedMatch, english)}
-                  </p>
-                </section>
-              )}
-              {isEventsLoading ? (
+              {isDetailsLoading ? (
                 <div role="status" className="flex min-h-40 flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
                   <LoaderCircle className="h-7 w-7 animate-spin text-primary" aria-hidden="true" />
-                  {english ? 'Loading match events…' : 'Chargement des temps forts…'}
+                  {english ? 'Loading match information…' : 'Chargement des informations du match…'}
                 </div>
               ) : eventsError ? (
                 <p role="alert" className="rounded-xl border border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
                   {english
-                    ? 'Match events are temporarily unavailable. Please try again later.'
-                    : 'Les temps forts sont temporairement indisponibles. Réessayez plus tard.'}
+                    ? 'Match information is temporarily unavailable. Please try again later.'
+                    : 'Les informations du match sont temporairement indisponibles. Réessayez plus tard.'}
                 </p>
-              ) : events.length === 0 ? (
-                <p className="rounded-xl border border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
-                  {english
-                    ? 'No events are available for this match yet.'
-                    : "Aucun temps fort n'est disponible pour ce match pour le moment."}
-                </p>
-              ) : (
-                <ol className="relative space-y-5 before:absolute before:bottom-4 before:left-[15px] before:top-4 before:w-px before:bg-border">
-                  {events.slice().reverse().map((event, reverseIndex) => {
-                    const index = events.length - reverseIndex - 1;
-                    const kind = getMatchEventKind(event);
-                    const detail = kind === 'goal' ? getGoalDetail(event.detail, english) : event.detail;
-                    const Icon = kind === 'substitution' ? ArrowLeftRight : kind === 'other' || kind === 'missed-penalty' ? CircleAlert : CircleDot;
+              ) : activeDetailsTab === 'events' ? (
+                <>
+                  {selectedMatch && view === 'finished' && (
+                    <section className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-4">
+                      <h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-primary">
+                        {english ? 'How the match ended' : 'Résumé final'}
+                      </h3>
+                      <p className="text-sm font-medium text-foreground">
+                        {getMatchEndMinute(selectedMatch, events)
+                          ? `${getMatchEndMinute(selectedMatch, events)}' — `
+                          : ''}
+                        {getFinishedNarration(selectedMatch, english)}
+                      </p>
+                    </section>
+                  )}
+                  {events.length === 0 ? (
+                    <p className="rounded-xl border border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
+                      {english
+                        ? 'No events are available for this match yet.'
+                        : "Aucun temps fort n'est disponible pour ce match pour le moment."}
+                    </p>
+                  ) : (
+                    <ol className="relative space-y-5 before:absolute before:bottom-4 before:left-[15px] before:top-4 before:w-px before:bg-border">
+                      {events.slice().reverse().map((event, reverseIndex) => {
+                        const index = events.length - reverseIndex - 1;
+                        const kind = getMatchEventKind(event);
+                        const detail = kind === 'goal' ? getGoalDetail(event.detail, english) : event.detail;
+                        const Icon =
+                          kind === 'substitution'
+                            ? ArrowLeftRight
+                            : kind === 'other' || kind === 'missed-penalty'
+                              ? CircleAlert
+                              : CircleDot;
+                        const playerOutNumber = getJerseyNumber(
+                          lineups,
+                          event.player.id,
+                          event.player.name,
+                        );
+                        const playerInNumber = getJerseyNumber(
+                          lineups,
+                          event.assist.id,
+                          event.assist.name,
+                        );
 
-                    return (
-                      <li
-                        key={`${event.time.elapsed}-${event.time.extra ?? 0}-${event.type}-${index}`}
-                        className="relative flex gap-3"
-                      >
-                        <span
-                          className={`z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-background ${
-                            kind === 'goal'
-                              ? 'text-emerald-600 dark:text-emerald-400'
-                              : kind === 'red-card'
-                                ? 'text-red-600 dark:text-red-400'
-                                : kind === 'yellow-card'
-                                  ? 'text-amber-500'
-                                  : kind === 'substitution'
-                                    ? 'text-primary'
-                                    : 'text-muted-foreground'
-                          }`}
-                        >
-                          {kind === 'yellow-card' || kind === 'red-card' ? (
+                        return (
+                          <li
+                            key={`${event.time.elapsed}-${event.time.extra ?? 0}-${event.type}-${index}`}
+                            className="relative flex gap-3"
+                          >
                             <span
-                              className={`h-4 w-3 rounded-sm ${
-                                kind === 'red-card' ? 'bg-red-600' : 'bg-amber-400'
+                              className={`z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-background ${
+                                kind === 'goal'
+                                  ? 'text-emerald-600 dark:text-emerald-400'
+                                  : kind === 'red-card'
+                                    ? 'text-red-600 dark:text-red-400'
+                                    : kind === 'yellow-card'
+                                      ? 'text-amber-500'
+                                      : kind === 'substitution'
+                                        ? 'text-primary'
+                                        : 'text-muted-foreground'
                               }`}
-                            />
-                          ) : (
-                            <Icon className="h-4 w-4" aria-hidden="true" />
-                          )}
-                        </span>
-
-                        <div className="min-w-0 flex-1 rounded-xl border border-border bg-card px-4 py-3">
-                          <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-                            <span className="text-sm font-bold text-foreground">
-                              {event.time.elapsed}
-                              {event.time.extra !== null && event.time.extra > 0
-                                ? `+${event.time.extra}`
-                                : ''}
-                              &apos;
+                            >
+                              {kind === 'yellow-card' || kind === 'red-card' ? (
+                                <span
+                                  className={`h-4 w-3 rounded-sm ${
+                                    kind === 'red-card' ? 'bg-red-600' : 'bg-amber-400'
+                                  }`}
+                                />
+                              ) : (
+                                <Icon className="h-4 w-4" aria-hidden="true" />
+                              )}
                             </span>
-                            {event.team.name && (
-                              <span className="text-xs text-muted-foreground">{event.team.name}</span>
-                            )}
-                          </div>
 
-                          <p className="text-sm font-semibold text-foreground">
-                            {kind === 'missed-penalty'
-                              ? english
-                                ? 'Penalty missed'
-                                : 'Penalty manqué'
-                              : kind === 'goal'
-                              ? english
-                                ? 'Goal'
-                                : 'But'
-                              : kind === 'yellow-card'
-                                ? english
-                                  ? 'Yellow card'
-                                  : 'Carton jaune'
-                                : kind === 'red-card'
+                            <div className="min-w-0 flex-1 rounded-xl border border-border bg-card px-4 py-3">
+                              <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                <span className="text-sm font-bold text-foreground">
+                                  {event.time.elapsed}
+                                  {event.time.extra !== null && event.time.extra > 0
+                                    ? `+${event.time.extra}`
+                                    : ''}
+                                  &apos;
+                                </span>
+                                {event.team.name && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {event.team.name}
+                                  </span>
+                                )}
+                              </div>
+
+                              <p className="text-sm font-semibold text-foreground">
+                                {kind === 'missed-penalty'
                                   ? english
-                                    ? 'Red card'
-                                    : 'Carton rouge'
-                                  : kind === 'substitution'
+                                    ? 'Penalty missed'
+                                    : 'Penalty manqué'
+                                  : kind === 'goal'
                                     ? english
-                                      ? 'Substitution'
-                                      : 'Remplacement'
-                                    : detail ?? event.type}
-                          </p>
+                                      ? 'Goal'
+                                      : 'But'
+                                    : kind === 'yellow-card'
+                                      ? english
+                                        ? 'Yellow card'
+                                        : 'Carton jaune'
+                                      : kind === 'red-card'
+                                        ? english
+                                          ? 'Red card'
+                                          : 'Carton rouge'
+                                        : kind === 'substitution'
+                                          ? english
+                                            ? 'Substitution'
+                                            : 'Remplacement'
+                                          : detail ?? event.type}
+                              </p>
 
-                          {kind === 'substitution' ? (
-                            <div className="mt-1 space-y-0.5 text-sm text-muted-foreground">
-                              {event.player.name && (
-                                <p>
-                                  {english ? 'Out:' : 'Sortie :'} {event.player.name}
+                              {kind === 'substitution' ? (
+                                <div className="mt-1 space-y-0.5 text-sm text-muted-foreground">
+                                  {event.player.name && (
+                                    <p>
+                                      {english ? 'Out:' : 'Sortie :'}{' '}
+                                      {playerOutNumber !== null ? `#${playerOutNumber} ` : ''}
+                                      {event.player.name}
+                                    </p>
+                                  )}
+                                  {event.assist.name && (
+                                    <p>
+                                      {english ? 'In:' : 'Entrée :'}{' '}
+                                      {playerInNumber !== null ? `#${playerInNumber} ` : ''}
+                                      {event.assist.name}
+                                    </p>
+                                  )}
+                                </div>
+                              ) : (
+                                event.player.name && (
+                                  <p className="mt-1 text-sm text-muted-foreground">
+                                    {event.player.name}
+                                  </p>
+                                )
+                              )}
+
+                              {kind === 'goal' && detail && (
+                                <p className="mt-1 text-xs font-medium text-primary">{detail}</p>
+                              )}
+                              {kind === 'goal' && event.assist.name && (
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                  {english ? 'Assist:' : 'Passe décisive :'} {event.assist.name}
                                 </p>
                               )}
-                              {event.assist.name && (
-                                <p>
-                                  {english ? 'In:' : 'Entrée :'} {event.assist.name}
+                              {eventCommentaries[index] && (
+                                <p className="mt-2 rounded-lg bg-muted/60 px-3 py-2 text-sm leading-relaxed text-foreground">
+                                  {eventCommentaries[index]}
                                 </p>
                               )}
                             </div>
-                          ) : (
-                            event.player.name && (
-                              <p className="mt-1 text-sm text-muted-foreground">{event.player.name}</p>
-                            )
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  )}
+                </>
+              ) : activeDetailsTab === 'lineups' ? (
+                detailsUnavailable.lineups ? (
+                  <p role="status" className="rounded-xl border border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
+                    {english
+                      ? 'Lineups are temporarily unavailable for this match.'
+                      : 'Les compositions sont temporairement indisponibles pour ce match.'}
+                  </p>
+                ) : lineups.length === 0 ? (
+                  <p className="rounded-xl border border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
+                    {english
+                      ? 'Official lineups have not been published for this match.'
+                      : 'Les compositions officielles ne sont pas disponibles pour ce match.'}
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {lineups.map((lineup) => (
+                      <section
+                        key={lineup.team.id ?? lineup.team.name}
+                        className="overflow-hidden rounded-xl border border-border bg-card"
+                      >
+                        <header className="flex items-center justify-between gap-3 border-b border-border bg-muted/40 px-4 py-3">
+                          <div className="flex min-w-0 items-center gap-2">
+                            {lineup.team.logo && (
+                              <Image
+                                src={lineup.team.logo}
+                                alt=""
+                                width={28}
+                                height={28}
+                                className="h-7 w-7 object-contain"
+                              />
+                            )}
+                            <h3 className="truncate font-semibold text-foreground">{lineup.team.name}</h3>
+                          </div>
+                          {lineup.formation && (
+                            <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
+                              {lineup.formation}
+                            </span>
                           )}
-
-                          {kind === 'goal' && detail && (
-                            <p className="mt-1 text-xs font-medium text-primary">{detail}</p>
-                          )}
-                          {kind === 'goal' && event.assist.name && (
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              {english ? 'Assist:' : 'Passe décisive :'} {event.assist.name}
-                            </p>
-                          )}
-                          {eventCommentaries[index] && (
-                            <p className="mt-2 rounded-lg bg-muted/60 px-3 py-2 text-sm leading-relaxed text-foreground">
-                              {eventCommentaries[index]}
-                            </p>
-                          )}
+                        </header>
+                        <div className="grid gap-4 p-4 sm:grid-cols-2">
+                          <div>
+                            <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                              {english ? 'Starting XI' : 'Onze de départ'}
+                            </h4>
+                            <ol className="space-y-1.5">
+                              {lineup.startingXI.map((player, index) => (
+                                <li
+                                  key={player.id ?? `${player.name}-${index}`}
+                                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-muted/50"
+                                >
+                                  <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-md bg-primary/10 px-1 text-xs font-bold text-primary">
+                                    {player.number ?? '—'}
+                                  </span>
+                                  <span className="min-w-0 flex-1 truncate font-medium text-foreground">
+                                    {player.name}
+                                  </span>
+                                  {player.position && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {player.position}
+                                    </span>
+                                  )}
+                                </li>
+                              ))}
+                            </ol>
+                          </div>
+                          <div>
+                            <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                              {english ? 'Substitutes' : 'Remplaçants'}
+                            </h4>
+                            {lineup.substitutes.length > 0 ? (
+                              <ol className="space-y-1.5">
+                                {lineup.substitutes.map((player, index) => (
+                                  <li
+                                    key={player.id ?? `${player.name}-${index}`}
+                                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-muted/50"
+                                  >
+                                    <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-md bg-muted px-1 text-xs font-bold text-foreground">
+                                      {player.number ?? '—'}
+                                    </span>
+                                    <span className="min-w-0 flex-1 truncate text-foreground">
+                                      {player.name}
+                                    </span>
+                                    {player.position && (
+                                      <span className="text-xs text-muted-foreground">
+                                        {player.position}
+                                      </span>
+                                    )}
+                                  </li>
+                                ))}
+                              </ol>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                {english ? 'No substitutes listed.' : 'Aucun remplaçant indiqué.'}
+                              </p>
+                            )}
+                            {lineup.coach && (
+                              <p className="mt-3 border-t border-border pt-3 text-xs text-muted-foreground">
+                                {english ? 'Coach:' : 'Entraîneur :'} {lineup.coach}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </li>
-                    );
-                  })}
-                </ol>
+                      </section>
+                    ))}
+                  </div>
+                )
+              ) : detailsUnavailable.standings ? (
+                <p role="status" className="rounded-xl border border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
+                  {english
+                    ? 'Standings are temporarily unavailable.'
+                    : 'Le classement est temporairement indisponible.'}
+                </p>
+              ) : !standings ? (
+                <p className="rounded-xl border border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
+                  {english
+                    ? 'No standings are available for this competition.'
+                    : 'Aucun classement n’est disponible pour cette compétition.'}
+                </p>
+              ) : (
+                <div className="space-y-5">
+                  <h3 className="font-semibold text-foreground">{standings.league}</h3>
+                  {standings.groups.map((group, groupIndex) => (
+                    <section key={group.name ?? groupIndex} className="overflow-hidden rounded-xl border border-border">
+                      {group.name && (
+                        <h4 className="border-b border-border bg-muted/40 px-3 py-2 text-sm font-semibold text-foreground">
+                          {group.name}
+                        </h4>
+                      )}
+                      <div className="overflow-x-auto">
+                        <table className="w-full min-w-[34rem] text-left text-xs">
+                          <thead className="bg-muted/30 text-muted-foreground">
+                            <tr>
+                              <th className="px-3 py-2 font-semibold">{english ? '#' : 'Rang'}</th>
+                              <th className="px-3 py-2 font-semibold">{english ? 'Team' : 'Équipe'}</th>
+                              <th className="px-3 py-2 text-center font-semibold">MJ</th>
+                              <th className="px-3 py-2 text-center font-semibold">+/-</th>
+                              <th className="px-3 py-2 text-center font-semibold">{english ? 'Pts' : 'Pts'}</th>
+                              <th className="px-3 py-2 font-semibold">{english ? 'Form' : 'Forme'}</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border">
+                            {group.entries.map((entry) => {
+                              const isMatchTeam =
+                                entry.team.id !== null &&
+                                (entry.team.id === selectedMatch?.teams.home.id ||
+                                  entry.team.id === selectedMatch?.teams.away.id);
+                              return (
+                                <tr
+                                  key={entry.team.id ?? `${groupIndex}-${entry.rank}-${entry.team.name}`}
+                                  className={isMatchTeam ? 'bg-primary/5 font-semibold' : ''}
+                                >
+                                  <td className="px-3 py-2 text-muted-foreground">{entry.rank}</td>
+                                  <td className="px-3 py-2">
+                                    <span className="flex items-center gap-2">
+                                      {entry.team.logo && (
+                                        <Image
+                                          src={entry.team.logo}
+                                          alt=""
+                                          width={20}
+                                          height={20}
+                                          className="h-5 w-5 object-contain"
+                                        />
+                                      )}
+                                      <span className="text-foreground">{entry.team.name}</span>
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2 text-center text-muted-foreground">
+                                    {entry.played ?? '—'}
+                                  </td>
+                                  <td className="px-3 py-2 text-center text-muted-foreground">
+                                    {entry.goalsDiff > 0 ? `+${entry.goalsDiff}` : entry.goalsDiff}
+                                  </td>
+                                  <td className="px-3 py-2 text-center font-bold text-foreground">
+                                    {entry.points}
+                                  </td>
+                                  <td className="px-3 py-2 text-muted-foreground">
+                                    {entry.form ?? '—'}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  ))}
+                </div>
               )}
             </div>
           </section>
