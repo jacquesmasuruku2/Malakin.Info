@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import type { LiveScoreMatch } from '@/types/live-scores';
 
 const LIVE_FIXTURES_URL = 'https://v3.football.api-sports.io/fixtures?live=all';
+const FIXTURES_URL = 'https://v3.football.api-sports.io/fixtures';
 const CACHE_SECONDS = 900;
+const FINISHED_STATUSES = new Set(['FT', 'AET', 'PEN', 'AWD', 'WO']);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -14,6 +16,14 @@ function nullableNumber(value: unknown): number | null {
 
 function nullableString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
+}
+
+function parsePenaltyScore(value: unknown): { home: number | null; away: number | null } | null {
+  if (!isRecord(value) || !isRecord(value.penalty)) return null;
+  return {
+    home: nullableNumber(value.penalty.home),
+    away: nullableNumber(value.penalty.away),
+  };
 }
 
 function parseMatch(value: unknown): LiveScoreMatch {
@@ -38,8 +48,11 @@ function parseMatch(value: unknown): LiveScoreMatch {
   return {
     fixture: {
       id: value.fixture.id,
+      date: nullableString(value.fixture.date),
+      venue: isRecord(value.fixture.venue) ? nullableString(value.fixture.venue.name) : null,
       status: {
         elapsed: nullableNumber(value.fixture.status.elapsed),
+        extra: nullableNumber(value.fixture.status.extra),
         short: nullableString(value.fixture.status.short),
         long: nullableString(value.fixture.status.long),
       },
@@ -49,6 +62,7 @@ function parseMatch(value: unknown): LiveScoreMatch {
       name: value.league.name,
       logo: nullableString(value.league.logo),
       country: nullableString(value.league.country),
+      round: nullableString(value.league.round),
     },
     teams: {
       home: {
@@ -65,6 +79,9 @@ function parseMatch(value: unknown): LiveScoreMatch {
     goals: {
       home: nullableNumber(value.goals.home),
       away: nullableNumber(value.goals.away),
+    },
+    score: {
+      penalty: parsePenaltyScore(value.score),
     },
   };
 }
@@ -98,7 +115,19 @@ function getCompetitionPriority(match: LiveScoreMatch): number {
   return 2;
 }
 
-export async function GET() {
+function getKinshasaDate(): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Kinshasa',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const dateParts = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
+}
+
+export async function GET(request: Request) {
+  const finishedOnly = new URL(request.url).searchParams.get('view') === 'finished';
   const apiKey = process.env.APISPORTS_KEY;
   if (!apiKey) {
     return NextResponse.json(
@@ -108,7 +137,10 @@ export async function GET() {
   }
 
   try {
-    const response = await fetch(LIVE_FIXTURES_URL, {
+    const url = finishedOnly
+      ? `${FIXTURES_URL}?date=${getKinshasaDate()}&timezone=Africa%2FKinshasa`
+      : LIVE_FIXTURES_URL;
+    const response = await fetch(url, {
       headers: { 'x-apisports-key': apiKey },
       next: { revalidate: CACHE_SECONDS },
       signal: AbortSignal.timeout(15_000),
@@ -129,6 +161,7 @@ export async function GET() {
 
     const matches = payload.response
       .map(parseMatch)
+      .filter((match) => !finishedOnly || FINISHED_STATUSES.has(match.fixture.status.short ?? ''))
       .sort((a, b) => getCompetitionPriority(a) - getCompetitionPriority(b));
 
     return NextResponse.json(
