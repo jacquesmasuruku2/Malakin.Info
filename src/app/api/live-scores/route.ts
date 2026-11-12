@@ -142,6 +142,7 @@ export async function GET(request: Request) {
       ? `${FIXTURES_URL}?date=${getKinshasaDate()}&timezone=Africa%2FKinshasa`
       : LIVE_FIXTURES_URL;
     const response = await fetch(url, {
+      cache: 'force-cache',
       headers: { 'x-apisports-key': apiKey },
       next: { revalidate: CACHE_SECONDS },
       signal: AbortSignal.timeout(15_000),
@@ -152,12 +153,16 @@ export async function GET(request: Request) {
     }
 
     const payload: unknown = await response.json();
-    if (
-      !isRecord(payload) ||
-      hasApiErrors(payload.errors) ||
-      !Array.isArray(payload.response)
-    ) {
+    if (!isRecord(payload) || !Array.isArray(payload.response)) {
       throw new Error('API-SPORTS returned an invalid live fixtures response.');
+    }
+    if (hasApiErrors(payload.errors)) {
+      const errorFields = isRecord(payload.errors) ? Object.keys(payload.errors) : [];
+      if (errorFields.includes('requests')) {
+        throw new Error('API-SPORTS daily request quota exceeded.');
+      }
+      const errorCategories = errorFields.length > 0 ? ` (${errorFields.join(', ')})` : '';
+      throw new Error(`API-SPORTS returned API errors${errorCategories}.`);
     }
 
     const matches = payload.response
@@ -174,10 +179,19 @@ export async function GET(request: Request) {
       },
     );
   } catch (error) {
-    console.error('Live scores request failed:', error);
+    const diagnostic =
+      error instanceof Error ? error.message : 'Unknown API-SPORTS request failure.';
+    const rateLimit = diagnostic === 'API-SPORTS daily request quota exceeded.';
+    console.error('Live scores request failed:', diagnostic);
     return NextResponse.json(
-      { error: 'Les scores sont temporairement indisponibles.' },
-      { status: 502, headers: { 'Cache-Control': 'no-store' } },
+      {
+        code: rateLimit ? 'RATE_LIMIT' : 'UPSTREAM_ERROR',
+        error: rateLimit
+          ? 'Le quota quotidien de requêtes API-SPORTS est atteint.'
+          : 'Les scores sont temporairement indisponibles.',
+        ...(process.env.NODE_ENV === 'development' ? { diagnostic } : {}),
+      },
+      { status: rateLimit ? 429 : 502, headers: { 'Cache-Control': 'no-store' } },
     );
   }
 }

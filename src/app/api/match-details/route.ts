@@ -39,6 +39,7 @@ async function fetchApiResponse(
   revalidate: number,
 ): Promise<unknown[]> {
   const response = await fetch(url, {
+    cache: 'force-cache',
     headers: { 'x-apisports-key': apiKey },
     next: { revalidate },
     signal: AbortSignal.timeout(15_000),

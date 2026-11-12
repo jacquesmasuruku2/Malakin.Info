@@ -249,6 +249,47 @@ function getJerseyNumber(
   return playerById?.number ?? playerByName?.number ?? null;
 }
 
+function getPitchPositions(lineup: MatchLineup) {
+  const players = lineup.startingXI.map((player, index) => {
+    const grid = /^(\d+):(\d+)$/.exec(player.grid ?? '');
+    const position = player.position?.toUpperCase() ?? '';
+    const fallbackRow =
+      position === 'G' || position === 'GK' || position.includes('GOALKEEPER')
+        ? 1
+        : position.startsWith('D')
+          ? 2
+          : position.startsWith('M')
+            ? 3
+            : position.startsWith('F') || position.includes('FORWARD')
+              ? 4
+              : 2;
+
+    return {
+      player,
+      index,
+      row: grid ? Number(grid[1]) : fallbackRow,
+      column: grid ? Number(grid[2]) : index,
+    };
+  });
+  const rowNumbers = players.map(({ row }) => row);
+  const minRow = Math.min(...rowNumbers);
+  const maxRow = Math.max(...rowNumbers);
+
+  return players.map((entry) => {
+    const rowPlayers = players
+      .filter((player) => player.row === entry.row)
+      .sort((a, b) => a.column - b.column || a.index - b.index);
+    const positionInRow = rowPlayers.findIndex((player) => player.index === entry.index);
+    const progress = maxRow === minRow ? 0.5 : (entry.row - minRow) / (maxRow - minRow);
+
+    return {
+      player: entry.player,
+      top: 88 - progress * 76,
+      left: ((positionInRow + 1) / (rowPlayers.length + 1)) * 100,
+    };
+  });
+}
+
 type MatchEventKind = 'goal' | 'missed-penalty' | 'yellow-card' | 'red-card' | 'substitution' | 'other';
 
 function getMatchEventKind(event: LiveMatchEvent): MatchEventKind {
@@ -536,6 +577,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
   const [matches, setMatches] = useState<LiveScoreMatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [hasRateLimitError, setHasRateLimitError] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(null);
   const [events, setEvents] = useState<LiveMatchEvent[]>([]);
@@ -598,12 +640,19 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
     let isMounted = true;
 
     async function refreshScores() {
+      let isRateLimited = false;
       try {
         const endpoint =
           view === 'finished' ? '/api/live-scores?view=finished' : '/api/live-scores';
         const response = await fetch(endpoint, { cache: 'no-store' });
         if (!response.ok) {
-          throw new Error(`Scores API responded with HTTP ${response.status}.`);
+          const errorPayload: unknown = await response.json();
+          isRateLimited = isRecord(errorPayload) && errorPayload.code === 'RATE_LIMIT';
+          const diagnostic =
+            isRecord(errorPayload) && typeof errorPayload.diagnostic === 'string'
+              ? errorPayload.diagnostic
+              : `Scores API responded with HTTP ${response.status}.`;
+          throw new Error(diagnostic);
         }
 
         const payload: unknown = await response.json();
@@ -618,11 +667,15 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
         if (isMounted) {
           setMatches(payload.matches);
           setHasError(false);
+          setHasRateLimitError(false);
           setUpdatedAt(new Date().toISOString());
         }
       } catch (error) {
         console.error('Unable to refresh live football scores:', error);
-        if (isMounted) setHasError(true);
+        if (isMounted) {
+          setHasError(true);
+          setHasRateLimitError(isRateLimited);
+        }
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -709,6 +762,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
     if (nextView === view) return;
     setMatches([]);
     setHasError(false);
+    setHasRateLimitError(false);
     setIsLoading(true);
     setUpdatedAt(null);
     setView(nextView);
@@ -1015,9 +1069,13 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
             </ul>
             {hasError && (
               <p role="status" className="mt-3 text-xs text-muted-foreground">
-                {english
-                  ? 'Refresh failed. Showing the latest available scores.'
-                  : "L'actualisation a échoué. Les derniers scores disponibles sont affichés."}
+                {hasRateLimitError
+                  ? english
+                    ? 'The daily API-SPORTS request quota has been reached. Scores will return when the quota resets.'
+                    : 'Le quota quotidien de requêtes API-SPORTS est atteint. Les scores reviendront après son renouvellement.'
+                  : english
+                    ? 'Refresh failed. Showing the latest available scores.'
+                    : "L'actualisation a échoué. Les derniers scores disponibles sont affichés."}
               </p>
             )}
           </>
@@ -1036,9 +1094,13 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
             role="status"
             className="rounded-xl border border-border bg-card px-5 py-8 text-center text-sm text-muted-foreground"
           >
-            {english
-              ? 'Scores are temporarily unavailable. Please try again shortly.'
-              : 'Les scores ne peuvent pas être chargés pour le moment. Réessayez dans quelques instants.'}
+            {hasRateLimitError
+              ? english
+                ? 'The daily API-SPORTS request quota has been reached. Scores will return when the quota resets.'
+                : 'Le quota quotidien de requêtes API-SPORTS est atteint. Les scores reviendront après son renouvellement.'
+              : english
+                ? 'Scores are temporarily unavailable. Please try again shortly.'
+                : 'Les scores ne peuvent pas être chargés pour le moment. Réessayez dans quelques instants.'}
           </p>
         ) : (
           <p className="rounded-xl border border-border bg-card px-5 py-8 text-center text-sm text-muted-foreground">
@@ -1340,33 +1402,62 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                             </span>
                           )}
                         </header>
-                        <div className="grid gap-4 p-4 sm:grid-cols-2">
-                          <div>
-                            <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                              {english ? 'Starting XI' : 'Onze de départ'}
-                            </h4>
-                            <ol className="space-y-1.5">
-                              {lineup.startingXI.map((player, index) => (
-                                <li
-                                  key={player.id ?? `${player.name}-${index}`}
-                                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-muted/50"
-                                >
-                                  <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-md bg-primary/10 px-1 text-xs font-bold text-primary">
-                                    {player.number ?? '—'}
-                                  </span>
-                                  <span className="min-w-0 flex-1 truncate font-medium text-foreground">
-                                    {player.name}
-                                  </span>
-                                  {player.position && (
-                                    <span className="text-xs text-muted-foreground">
-                                      {player.position}
-                                    </span>
-                                  )}
-                                </li>
-                              ))}
-                            </ol>
-                          </div>
-                          <div>
+                        <div className="p-4 sm:p-5">
+                          <h4 className="mb-3 text-center text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                            {english ? 'Starting XI' : 'Onze de départ'}
+                          </h4>
+                          <ol
+                            aria-label={`${english ? 'Starting XI' : 'Onze de départ'} — ${lineup.team.name}`}
+                            className="relative mx-auto aspect-[4/5] w-full max-w-[24rem] overflow-hidden rounded-xl border-2 border-white/80 bg-emerald-700 shadow-inner"
+                            style={{
+                              backgroundImage:
+                                'repeating-linear-gradient(0deg, transparent 0, transparent 12.5%, rgba(255,255,255,.035) 12.5%, rgba(255,255,255,.035) 25%)',
+                            }}
+                          >
+                            <li
+                              aria-hidden="true"
+                              className="pointer-events-none absolute inset-[3%] rounded-sm border border-white/70"
+                            />
+                            <li
+                              aria-hidden="true"
+                              className="pointer-events-none absolute left-[3%] right-[3%] top-1/2 border-t border-white/70"
+                            />
+                            <li
+                              aria-hidden="true"
+                              className="pointer-events-none absolute left-1/2 top-1/2 h-[22%] aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/70"
+                            />
+                            <li
+                              aria-hidden="true"
+                              className="pointer-events-none absolute left-[24%] right-[24%] top-[3%] h-[15%] border border-t-0 border-white/70"
+                            />
+                            <li
+                              aria-hidden="true"
+                              className="pointer-events-none absolute left-[36%] right-[36%] top-[3%] h-[7%] border border-t-0 border-white/70"
+                            />
+                            <li
+                              aria-hidden="true"
+                              className="pointer-events-none absolute bottom-[3%] left-[24%] right-[24%] h-[15%] border border-b-0 border-white/70"
+                            />
+                            <li
+                              aria-hidden="true"
+                              className="pointer-events-none absolute bottom-[3%] left-[36%] right-[36%] h-[7%] border border-b-0 border-white/70"
+                            />
+                            {getPitchPositions(lineup).map(({ player, top, left }, index) => (
+                              <li
+                                key={player.id ?? `${player.name}-${index}`}
+                                className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 text-center"
+                                style={{ top: `${top}%`, left: `${left}%` }}
+                              >
+                                <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-950/85 text-[11px] font-extrabold text-white shadow-md sm:h-8 sm:w-8 sm:text-xs">
+                                  {player.number ?? '—'}
+                                </span>
+                                <span className="max-w-[4.25rem] truncate rounded bg-slate-950/70 px-1 py-0.5 text-[9px] font-semibold leading-tight text-white shadow-sm sm:max-w-[5rem] sm:text-[10px]">
+                                  {player.name}
+                                </span>
+                              </li>
+                            ))}
+                          </ol>
+                          <div className="mt-5">
                             <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
                               {english ? 'Substitutes' : 'Remplaçants'}
                             </h4>
