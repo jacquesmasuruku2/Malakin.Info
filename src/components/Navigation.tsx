@@ -114,12 +114,10 @@ export default function Navigation() {
     { name: t.scienceTech, href: `/${locale}/science-tech` },
     { name: t.culture, href: `/${locale}/culture` },
     { name: t.sport, href: `/${locale}/sport` },
-    { name: t.partnerships, href: `/${locale}/partenaires` },
     { name: t.supportUs, href: `/${locale}/nous-soutenir` },
   ];
 
   const dropdownItems = [
-    { name: t.media, href: `/${locale}/medias` },
     { name: t.pressReleases, href: `/${locale}/communiques` },
     { name: t.practicalInfo, href: `/${locale}/infos-pratiques` },
     { name: t.religion, href: `/${locale}/religion` },
@@ -140,14 +138,12 @@ export default function Navigation() {
         { name: t.society, href: `/${locale}/societe` },
         { name: t.health, href: `/${locale}/sante` },
         { name: t.security, href: `/${locale}/securite` },
-        { name: t.partnerships, href: `/${locale}/partenaires` },
       ],
     },
     {
       title: t.media,
       icon: Radio,
       items: [
-        { name: locale === 'fr' ? 'Tous les médias' : 'All media', href: `/${locale}/medias` },
         { name: locale === 'fr' ? 'Diffusion en direct' : 'Live broadcasts', href: `/${locale}/diffusion-en-direct` },
         { name: t.videos, href: `/${locale}/medias/videos` },
         { name: t.live, href: `/${locale}/medias/live` },
@@ -205,16 +201,6 @@ export default function Navigation() {
           name: locale === 'fr' ? 'Tous les communiqués' : 'All press releases',
           href: `/${locale}/communiques`,
         },
-      ],
-    },
-    {
-      title: t.partnerships,
-      icon: Handshake,
-      items: [
-        { name: locale === 'fr' ? 'Publicité & Sponsorship' : 'Advertising & Sponsorship', href: `/${locale}/partenaires` },
-        { name: locale === 'fr' ? 'Partenariats Éditoriaux' : 'Editorial Partnerships', href: `/${locale}/partenaires` },
-        { name: locale === 'fr' ? 'Solutions Digitales' : 'Digital Solutions', href: `/${locale}/partenaires` },
-        { name: locale === 'fr' ? 'Partenariats Institutionnels' : 'Institutional Partnerships', href: `/${locale}/partenaires` },
       ],
     },
     {
@@ -442,14 +428,8 @@ export default function Navigation() {
             <Link href={`/${locale}/matches-en-direct`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {locale === 'en' ? 'Live matches' : 'Matches en direct'}
             </Link>
-            <Link href={`/${locale}/partenaires`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
-              {t.partnerships}
-            </Link>
             <Link href={`/${locale}/religion`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
               {t.religion}
-            </Link>
-            <Link href={`/${locale}/medias`} className="whitespace-nowrap border-r border-[#e2e2dc] pr-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#111827] transition-colors hover:text-[#0b3b8b] dark:text-[#e8eef8] dark:hover:text-[#4f8ef7]">
-              {t.media}
             </Link>
           </div>
         </div>

@@ -969,11 +969,11 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
   return (
     <section
       aria-labelledby="live-scores-title"
-      className="border-y border-border bg-muted/40 py-10 sm:py-12"
+      className="w-full min-w-0 border-y border-border bg-muted/40 py-10 sm:py-12"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-          <div>
+      <div className="mx-auto w-full min-w-0 max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-6 flex min-w-0 flex-wrap items-end justify-between gap-3">
+          <div className="min-w-0">
             <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-primary">
               <Activity className="h-4 w-4" aria-hidden="true" />
               Football
@@ -995,7 +995,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                   : `Matches terminés ${finishedDateLabel}`}
             </h1>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex max-w-full items-center gap-2 text-xs text-muted-foreground">
             <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
             {updatedAt
               ? `${english ? 'Updated at' : 'Actualisé à'} ${new Date(updatedAt).toLocaleTimeString(
@@ -1038,7 +1038,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
           </button>
         </div>
 
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="mb-6 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <label className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <input
@@ -1073,7 +1073,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                   setFinishedDaysAgo(daysAgo);
                 }}
                 aria-label={english ? 'Filter finished matches by date' : 'Filtrer les matches terminés par date'}
-                className="h-11 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="h-11 w-full min-w-0 max-w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-auto"
               >
                 <option value={0}>{english ? 'Today' : 'Aujourd’hui'}</option>
                 <option value={1}>{english ? 'Yesterday' : 'Hier'}</option>
@@ -1089,7 +1089,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
             value={selectedCompetition}
             onChange={(event) => setSelectedCompetition(event.target.value)}
             aria-label={english ? 'Filter by competition' : 'Filtrer par compétition'}
-            className="h-11 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="h-11 w-full min-w-0 max-w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-auto"
           >
             <option value="all">{english ? 'All competitions' : 'Toutes les compétitions'}</option>
             {competitions.map((competition) => (
@@ -1102,7 +1102,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
             type="button"
             aria-pressed={favoritesOnly}
             onClick={() => setFavoritesOnly((current) => !current)}
-            className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+            className={`inline-flex h-11 w-full min-w-0 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-auto ${
               favoritesOnly
                 ? 'border-primary bg-primary text-primary-foreground'
                 : 'border-border bg-background text-foreground hover:bg-muted'
@@ -1118,7 +1118,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
             <p role="status" className="sr-only">
               {english ? 'Loading live matches' : 'Chargement des matches en direct'}
             </p>
-            <ul aria-hidden="true" className="grid gap-4 md:grid-cols-2">
+            <ul aria-hidden="true" className="grid min-w-0 gap-4 md:grid-cols-2">
               {[0, 1, 2, 3].map((item) => (
                 <li
                   key={item}
@@ -1137,10 +1137,10 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
           </>
         ) : visibleMatches.length > 0 ? (
           <>
-            <ul className="grid gap-4 md:grid-cols-2">
+            <ul className="grid min-w-0 gap-4 md:grid-cols-2">
               {matchesToRender.map((match) => (
-                <li key={match.fixture.id}>
-                  <div className="relative">
+                <li key={match.fixture.id} className="min-w-0">
+                  <div className="relative min-w-0">
                     <button
                       type="button"
                       onClick={() => openMatchDetails(match.fixture.id)}
@@ -1149,7 +1149,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                           ? `View events for ${match.teams.home.name} versus ${match.teams.away.name}`
                           : `Afficher les temps forts de ${match.teams.home.name} contre ${match.teams.away.name}`
                       }
-                      className="group w-full cursor-pointer rounded-xl border border-border bg-white p-5 text-left shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:bg-card sm:p-6"
+                      className="group w-full min-w-0 cursor-pointer rounded-xl border border-border bg-white p-5 text-left shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:bg-card sm:p-6"
                     >
                     <div className="mb-4 flex items-center justify-between gap-3 pl-10">
                       <div className="flex min-w-0 items-center gap-2.5">
@@ -1315,7 +1315,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                       Math.min(count + 5, visibleMatches.length),
                     )
                   }
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-primary px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="inline-flex min-h-11 max-w-full items-center justify-center whitespace-normal break-words rounded-xl border border-primary px-5 py-2.5 text-center text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 >
                   {english
                     ? `View more past matches for ${teamHistoryName}`
@@ -1377,14 +1377,14 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
               setSelectedFixtureId(null);
             }
           }}
-          className="fixed inset-0 m-0 flex h-dvh max-h-dvh w-screen max-w-none items-center justify-center overflow-hidden border-0 bg-transparent p-3 text-foreground sm:p-6"
+          className="fixed inset-0 m-0 flex h-dvh max-h-dvh w-full max-w-full items-center justify-center overflow-hidden border-0 bg-transparent p-3 text-foreground sm:p-6"
         >
           <div
             aria-hidden="true"
             onClick={() => setSelectedFixtureId(null)}
             className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm"
           />
-          <section className="relative z-10 mx-auto flex h-[92dvh] max-h-[92dvh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
+          <section className="relative z-10 mx-auto flex h-[92dvh] max-h-[92dvh] w-full min-w-0 max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
             <header className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-5 py-4 sm:px-6">
               <div className="min-w-0">
                 <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-primary">
