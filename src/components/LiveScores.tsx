@@ -1125,32 +1125,62 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
 
     async function refreshScores() {
       try {
-        const searchParams = new URLSearchParams();
-        if (view === 'finished') {
-          searchParams.set('view', 'finished');
-          searchParams.set('daysAgo', String(finishedDaysAgo));
-          if (teamHistoryQuery) searchParams.set('team', teamHistoryQuery);
-        }
-        if (view === 'upcoming') searchParams.set('view', 'upcoming');
-        const endpoint =
-          view === 'live' ? '/api/live-scores' : `/api/live-scores?${searchParams.toString()}`;
-        const response = await fetch(endpoint, { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error(`Scores API responded with HTTP ${response.status}.`);
+        const daysToTry: (0 | 1 | 2)[] = [finishedDaysAgo];
+        if (view === 'finished' && !teamHistoryQuery) {
+          if (finishedDaysAgo < 2) {
+            daysToTry.push((finishedDaysAgo + 1) as 1 | 2);
+          }
+          if (finishedDaysAgo === 0) daysToTry.push(2);
         }
 
-        const payload: unknown = await response.json();
-        if (
-          !isRecord(payload) ||
-          !Array.isArray(payload.matches) ||
-          !payload.matches.every(isESPNScoreboardMatch)
-        ) {
-          throw new Error('Scores API returned an invalid response.');
+        let responseMatches: ESPNScoreboardMatch[] = [];
+        let responseTeamName: string | null = null;
+        let effectiveFinishedDaysAgo = finishedDaysAgo;
+
+        for (const daysAgo of daysToTry) {
+          const searchParams = new URLSearchParams();
+          if (view === 'finished') {
+            searchParams.set('view', 'finished');
+            searchParams.set('daysAgo', String(daysAgo));
+            if (teamHistoryQuery) searchParams.set('team', teamHistoryQuery);
+          }
+          if (view === 'upcoming') searchParams.set('view', 'upcoming');
+          const endpoint =
+            view === 'live' ? '/api/live-scores' : `/api/live-scores?${searchParams.toString()}`;
+          const response = await fetch(endpoint, { cache: 'no-store' });
+          if (!response.ok) {
+            throw new Error(`Scores API responded with HTTP ${response.status}.`);
+          }
+
+          const payload: unknown = await response.json();
+          if (
+            !isRecord(payload) ||
+            !Array.isArray(payload.matches) ||
+            !payload.matches.every(isESPNScoreboardMatch)
+          ) {
+            throw new Error('Scores API returned an invalid response.');
+          }
+          if (!isMounted) return;
+
+          responseMatches = payload.matches;
+          responseTeamName =
+            typeof payload.teamName === 'string' ? payload.teamName : null;
+          effectiveFinishedDaysAgo = daysAgo;
+          if (
+            view !== 'finished' ||
+            responseMatches.length > 0 ||
+            daysAgo === daysToTry[daysToTry.length - 1]
+          ) {
+            break;
+          }
         }
 
         if (isMounted) {
-          setMatches(payload.matches.map(toLiveScoreMatch));
-          setTeamHistoryName(typeof payload.teamName === 'string' ? payload.teamName : null);
+          setMatches(responseMatches.map(toLiveScoreMatch));
+          setTeamHistoryName(responseTeamName);
+          if (view === 'finished' && effectiveFinishedDaysAgo !== finishedDaysAgo) {
+            setFinishedDaysAgo(effectiveFinishedDaysAgo);
+          }
           setHasError(false);
           setUpdatedAt(new Date().toISOString());
         }
@@ -1831,8 +1861,8 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                   ? 'No upcoming matches.'
                   : 'Aucun match à venir pour le moment.'
                 : english
-                  ? 'No completed matches today.'
-                  : "Aucun match terminé aujourd'hui."}
+                  ? `No completed matches ${finishedDateLabel}.`
+                  : `Aucun match terminé ${finishedDateLabel}.`}
           </p>
         )}
       </div>
