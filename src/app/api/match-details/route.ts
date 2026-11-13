@@ -392,6 +392,34 @@ function parseStatistics(value: unknown): MatchStatistic[] {
   });
 }
 
+function calculateMatchPlayerRating(value: unknown): number | null {
+  if (!Array.isArray(value)) return null;
+
+  const stats = new Map<string, number>();
+  for (const stat of value) {
+    if (!isRecord(stat)) continue;
+    const name = getString(stat.name);
+    const statValue = getNumber(stat.value);
+    if (name && statValue !== null) stats.set(name, statValue);
+  }
+
+  if ((stats.get('appearances') ?? 0) <= 0) return null;
+
+  const rating =
+    6 +
+    (stats.get('totalGoals') ?? 0) * 1 +
+    (stats.get('goalAssists') ?? 0) * 0.7 +
+    (stats.get('shotsOnTarget') ?? 0) * 0.1 +
+    (stats.get('saves') ?? 0) * 0.15 -
+    (stats.get('yellowCards') ?? 0) * 0.3 -
+    (stats.get('redCards') ?? 0) * 1.5 -
+    (stats.get('ownGoals') ?? 0) * 1.5 -
+    (stats.get('foulsCommitted') ?? 0) * 0.04 -
+    (stats.get('goalsConceded') ?? 0) * 0.12;
+
+  return Math.round(Math.min(10, Math.max(0, rating)) * 10) / 10;
+}
+
 function parseLineupPlayer(value: unknown): MatchLineupPlayer | null {
   if (!isRecord(value) || !isRecord(value.athlete)) return null;
   const name =
@@ -417,8 +445,11 @@ function parseLineupPlayer(value: unknown): MatchLineupPlayer | null {
     grid: null,
     formationPlace: formationPlace !== null && formationPlace > 0 ? formationPlace : null,
     age: null,
+    rating: calculateMatchPlayerRating(value.stats),
     isOnField: false,
     substituted: false,
+    replacesStarterId: null,
+    replacesStarterName: null,
     club: null,
   };
 }
@@ -501,6 +532,12 @@ function applySubstitutions(
           ? incoming.formationPlace
           : outgoing.formationPlace,
       isOnField: true,
+      replacesStarterId:
+        outgoing.replacesStarterId ??
+        (outgoingStartingIndex >= 0 ? outgoing.id : null),
+      replacesStarterName:
+        outgoing.replacesStarterName ??
+        (outgoingStartingIndex >= 0 ? outgoing.name : null),
     };
     const startingXI = lineup.startingXI.slice();
     if (outgoingStartingIndex >= 0) {

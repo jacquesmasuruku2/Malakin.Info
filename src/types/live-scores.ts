@@ -117,8 +117,11 @@ export type MatchLineupPlayer = {
   grid: string | null;
   formationPlace: number | null;
   age: number | null;
+  rating: number | null;
   isOnField: boolean;
   substituted: boolean;
+  replacesStarterId: number | null;
+  replacesStarterName: string | null;
   club: {
     id: number | null;
     name: string;

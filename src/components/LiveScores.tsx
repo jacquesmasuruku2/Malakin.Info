@@ -222,6 +222,39 @@ function getKickoffLabel(date: string | null, english: boolean): string {
   return english ? `${formatted} (Kinshasa time)` : `${formatted} (heure de Kinshasa)`;
 }
 
+function getStartedAtLabel(date: string | null, english: boolean): string {
+  const kickoff = date ? new Date(date) : null;
+  if (!kickoff || !Number.isFinite(kickoff.getTime())) {
+    return english ? 'Time unavailable' : 'Heure indisponible';
+  }
+
+  const locale = english ? 'en-GB' : 'fr-FR';
+  const time = new Intl.DateTimeFormat(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Africa/Kinshasa',
+  }).format(kickoff);
+  const formattedTime = english ? time : time.replace(':', 'h');
+  const offset =
+    new Intl.DateTimeFormat(locale, {
+      timeZone: 'Africa/Kinshasa',
+      timeZoneName: 'shortOffset',
+    })
+      .formatToParts(kickoff)
+      .find((part) => part.type === 'timeZoneName')
+      ?.value.replace(/^UTC/, 'GMT') ?? 'GMT+1';
+
+  return `${formattedTime} (${offset})`;
+}
+
+function hasMatchStarted(match: LiveScoreMatch): boolean {
+  if (match.state === 'in') return true;
+  if (match.state !== 'post') return false;
+  return !/(cancel|postpon|suspend|abandon|void)/i.test(
+    `${match.fixture.status.short ?? ''} ${match.fixture.status.long ?? ''}`,
+  );
+}
+
 function getLiveMinute(match: LiveScoreMatch): string | null {
   if (match.state !== 'in') return null;
   const { elapsed, extra } = match.fixture.status;
@@ -261,8 +294,11 @@ function isMatchLineupPlayer(value: unknown): value is MatchLineupPlayer {
     isNullableString(value.grid) &&
     isNullableNumber(value.formationPlace) &&
     isNullableNumber(value.age) &&
+    isNullableNumber(value.rating) &&
     typeof value.isOnField === 'boolean' &&
     typeof value.substituted === 'boolean' &&
+    isNullableNumber(value.replacesStarterId) &&
+    isNullableString(value.replacesStarterName) &&
     (value.club === null ||
       (isRecord(value.club) &&
         isNullableNumber(value.club.id) &&
@@ -481,6 +517,145 @@ function getLineupPlayerDisplayLabel(
       : `${player.age} ${english ? (player.age === 1 ? 'year' : 'years') : 'ans'}`;
   }
   return player.club?.name ?? (english ? 'Club unavailable' : 'Club indisponible');
+}
+
+function PlayerRatingBadge({
+  player,
+  english,
+}: {
+  player: MatchLineupPlayer;
+  english: boolean;
+}) {
+  const rating =
+    player.rating === null
+      ? null
+      : new Intl.NumberFormat(english ? 'en-US' : 'fr-FR', {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        }).format(player.rating);
+  const accessibleLabel =
+    rating === null
+      ? english
+        ? `Rating unavailable for ${player.name}; no match participation stats are available.`
+        : `Note indisponible pour ${player.name} : aucune statistique de participation n’est disponible.`
+      : english
+        ? `MalakInfo estimated rating for ${player.name}: ${rating} out of 10.`
+        : `Note estimée MalakInfo pour ${player.name} : ${rating} sur 10.`;
+
+  return (
+    <span
+      className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-amber-900 dark:bg-amber-900/40 dark:text-amber-200"
+      title={accessibleLabel}
+      aria-label={accessibleLabel}
+    >
+      {rating === null ? '—/10' : `${rating}/10`}
+    </span>
+  );
+}
+
+function matchesEventPlayer(
+  player: MatchLineupPlayer,
+  eventPlayer: LiveMatchEvent['player'],
+): boolean {
+  if (player.id !== null && eventPlayer.id !== null) return player.id === eventPlayer.id;
+  if (!eventPlayer.name) return false;
+
+  const playerName = normalizeSearch(player.name);
+  const eventName = normalizeSearch(eventPlayer.name);
+  if (playerName === eventName) return true;
+
+  const playerParts = playerName.split(/\s+/);
+  const eventParts = eventName.split(/\s+/);
+  const [shorterName, longerName] =
+    playerParts.length <= eventParts.length
+      ? [playerParts, eventParts]
+      : [eventParts, playerParts];
+  return shorterName.length > 1 && shorterName.every((part) => longerName.includes(part));
+}
+
+function getPlayerGoalContributions(
+  player: MatchLineupPlayer,
+  teamName: string,
+  goalEvents: LiveMatchEvent[],
+): { scored: boolean; assisted: boolean } {
+  let scored = false;
+  let assisted = false;
+  const normalizedTeamName = normalizeSearch(teamName);
+
+  for (const event of goalEvents) {
+    const sameTeam =
+      event.team.name !== null &&
+      normalizeSearch(event.team.name) === normalizedTeamName;
+    const scorerMatchesById =
+      player.id !== null && event.player.id !== null && player.id === event.player.id;
+    const assistMatchesById =
+      player.id !== null && event.assist.id !== null && player.id === event.assist.id;
+
+    if (scorerMatchesById || (sameTeam && matchesEventPlayer(player, event.player))) {
+      scored = true;
+    }
+    if (assistMatchesById || (sameTeam && matchesEventPlayer(player, event.assist))) {
+      assisted = true;
+    }
+  }
+
+  return { scored, assisted };
+}
+
+function getSubstituteForStarter(
+  lineup: MatchLineup,
+  starter: MatchLineupPlayer,
+): MatchLineupPlayer | undefined {
+  return lineup.substitutes.find((player) => {
+    if (!player.isOnField) return false;
+    if (player.replacesStarterId !== null && starter.id !== null) {
+      return player.replacesStarterId === starter.id;
+    }
+    return (
+      player.replacesStarterName !== null &&
+      normalizeSearch(player.replacesStarterName) === normalizeSearch(starter.name)
+    );
+  });
+}
+
+function PlayerGoalContributionMarkers({
+  player,
+  teamName,
+  goalEvents,
+  english,
+}: {
+  player: MatchLineupPlayer;
+  teamName: string;
+  goalEvents: LiveMatchEvent[];
+  english: boolean;
+}) {
+  const { scored, assisted } = getPlayerGoalContributions(player, teamName, goalEvents);
+  if (!scored && !assisted) return null;
+
+  const scorerLabel = english ? 'Goalscorer' : 'Buteur';
+  const assistLabel = english ? 'Assist provider' : 'Passeur décisif';
+  const contributionLabel = [scored ? scorerLabel : null, assisted ? assistLabel : null]
+    .filter((label): label is string => label !== null)
+    .join(' · ');
+
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-0.5"
+      title={contributionLabel}
+      aria-label={contributionLabel}
+    >
+      {scored && (
+        <span role="img" aria-label={scorerLabel}>
+          ⚽
+        </span>
+      )}
+      {assisted && (
+        <span role="img" aria-label={assistLabel}>
+          👟
+        </span>
+      )}
+    </span>
+  );
 }
 
 type MatchEventKind = 'goal' | 'missed-penalty' | 'yellow-card' | 'red-card' | 'substitution' | 'other';
@@ -789,6 +964,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
   const [activeDetailsTab, setActiveDetailsTab] = useState<'events' | 'lineups' | 'standings'>('events');
   const [lineupPlayerDisplayMode, setLineupPlayerDisplayMode] =
     useState<LineupPlayerDisplayMode>('name');
+  const [showPlayerRatings, setShowPlayerRatings] = useState(false);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const [eventsError, setEventsError] = useState(false);
   const [savedFollowedTeams, setSavedFollowedTeams] = useState<FollowedFootballTeam[]>([]);
@@ -924,6 +1100,10 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
       : [];
   const lineupsToDisplay = selectedMatch?.state === 'pre' ? preMatchLineups : lineups;
   const eventCommentaries = getMatchCommentaries(events, selectedMatch, english);
+  const goalEvents = useMemo(
+    () => events.filter((event) => getMatchEventKind(event) === 'goal'),
+    [events],
+  );
   const matchesToRender = teamHistoryName
     ? visibleMatches.slice(0, teamHistoryVisibleCount)
     : visibleMatches;
@@ -1350,7 +1530,10 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
           <>
             <ul className="grid min-w-0 gap-4 md:grid-cols-2">
               {matchesToRender.map((match) => {
-                const kickoffLabel = getKickoffLabel(match.fixture.date, english);
+                const matchHasStarted = hasMatchStarted(match);
+                const kickoffLabel = matchHasStarted
+                  ? getStartedAtLabel(match.fixture.date, english)
+                  : getKickoffLabel(match.fixture.date, english);
                 const liveMinute = getLiveMinute(match);
                 const homeIsFollowed = followedTeams.some(
                   (team) => team.espnTeamId === String(match.teams.home.id),
@@ -1480,7 +1663,14 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                     <p className="mt-4 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-center text-xs font-medium text-muted-foreground">
                       <Clock3 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       <span>
-                        {english ? 'Kick-off:' : 'Coup d’envoi :'} {kickoffLabel}
+                        {matchHasStarted
+                          ? english
+                            ? 'Started at'
+                            : 'Lancé à'
+                          : english
+                            ? 'Kick-off:'
+                            : 'Coup d’envoi :'}{' '}
+                        {kickoffLabel}
                       </span>
                       {liveMinute && (
                         <span className="font-bold text-red-600 dark:text-red-400">
@@ -2132,8 +2322,8 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                           role="group"
                           aria-label={
                             english
-                              ? 'Choose player information to display'
-                              : 'Choisir les informations des joueurs à afficher'
+                              ? 'Choose player information and ratings to display'
+                              : 'Choisir les informations et les notes des joueurs à afficher'
                           }
                           className="inline-flex max-w-full flex-wrap gap-1 rounded-xl border border-border bg-muted/40 p-1"
                         >
@@ -2162,6 +2352,18 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                     : 'Club'}
                             </button>
                           ))}
+                          <button
+                            type="button"
+                            aria-pressed={showPlayerRatings}
+                            onClick={() => setShowPlayerRatings((shown) => !shown)}
+                            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                  showPlayerRatings
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                            }`}
+                          >
+                            {english ? 'Ratings /10' : 'Notes /10'}
+                          </button>
                         </div>
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -2169,6 +2371,13 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                           ? 'Player ages and club details are shown when ESPN provides them.'
                           : 'L’âge et le club des joueurs sont affichés lorsque ces données sont disponibles chez ESPN.'}
                       </p>
+                      {showPlayerRatings && (
+                        <p role="status" className="text-xs text-muted-foreground">
+                          {english
+                            ? 'Ratings are MalakInfo estimates based on available ESPN match statistics. Players without recorded match participation show no rating.'
+                            : 'Les notes sont des estimations MalakInfo calculées à partir des statistiques de match ESPN disponibles. Les joueurs sans participation enregistrée n’ont pas encore de note.'}
+                        </p>
+                      )}
                     </div>
                     {lineupsToDisplay.map((lineup) => (
                       <section
@@ -2198,6 +2407,13 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                           <h4 className="mb-3 text-center text-xs font-bold uppercase tracking-wide text-muted-foreground">
                             {english ? 'Starting XI' : 'Onze de départ'}
                           </h4>
+                          <p className="mb-3 text-center text-[11px] text-muted-foreground">
+                            <span aria-hidden="true">⚽</span>{' '}
+                            {english ? 'Goalscorer' : 'Buteur'}
+                            <span aria-hidden="true"> · </span>
+                            <span aria-hidden="true">👟</span>{' '}
+                            {english ? 'Assist provider' : 'Passeur décisif'}
+                          </p>
                           <ol
                             aria-label={`${english ? 'Starting XI' : 'Onze de départ'} — ${lineup.team.name}`}
                             className="relative mx-auto aspect-[4/5] w-full max-w-[24rem] overflow-hidden rounded-xl border-2 border-white/80 bg-emerald-700 shadow-inner"
@@ -2234,49 +2450,96 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                               aria-hidden="true"
                               className="pointer-events-none absolute bottom-[3%] left-[36%] right-[36%] h-[7%] border border-b-0 border-white/70"
                             />
-                            {getPitchPositions(lineup).map(({ player, top, left }, index) => (
-                              <li
-                                key={player.id ?? `${player.name}-${index}`}
-                                className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 text-center"
-                                style={{ top: `${top}%`, left: `${left}%` }}
-                                aria-label={`${player.number !== null ? `#${player.number} ` : ''}${player.name}${player.position ? `, ${player.position}` : ''}${lineupPlayerDisplayMode === 'name' ? '' : `, ${getLineupPlayerDisplayLabel(player, lineupPlayerDisplayMode, english)}`}${player.substituted ? (english ? ', substituted off' : ', remplacé') : ''}`}
-                                title={`${player.name}${player.position ? ` — ${player.position}` : ''}${lineupPlayerDisplayMode === 'name' ? '' : ` — ${getLineupPlayerDisplayLabel(player, lineupPlayerDisplayMode, english)}`}${player.substituted ? (english ? ' — Substituted off' : ' — Remplacé') : ''}`}
-                              >
-                                <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-950/85 text-[11px] font-extrabold text-white shadow-md sm:h-8 sm:w-8 sm:text-xs">
-                                  {player.number ?? '—'}
-                                </span>
-                                {player.position && (
-                                  <span className="rounded bg-slate-950/70 px-1 py-0.5 text-[8px] font-bold leading-none text-emerald-100 shadow-sm">
-                                    {player.position}
-                                  </span>
-                                )}
-                                <span
-                                  className="inline-flex max-w-[5rem] items-center gap-1 rounded bg-slate-950/70 px-1 py-0.5 text-[9px] font-semibold leading-tight text-white shadow-sm sm:max-w-[6rem] sm:text-[10px]"
+                            {getPitchPositions(lineup).map(({ player, top, left }, index) => {
+                              const replacement = getSubstituteForStarter(lineup, player);
+                              const replacementContributions = replacement
+                                ? getPlayerGoalContributions(
+                                    replacement,
+                                    lineup.team.name,
+                                    goalEvents,
+                                  )
+                                : null;
+                              const replacementScored =
+                                replacementContributions?.scored ?? false;
+                              const replacementAssisted =
+                                replacementContributions?.assisted ?? false;
+
+                              return (
+                                <li
+                                  key={player.id ?? `${player.name}-${index}`}
+                                  className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 text-center"
+                                  style={{ top: `${top}%`, left: `${left}%` }}
+                                  aria-label={`${player.number !== null ? `#${player.number} ` : ''}${player.name}${player.position ? `, ${player.position}` : ''}${lineupPlayerDisplayMode === 'name' ? '' : `, ${getLineupPlayerDisplayLabel(player, lineupPlayerDisplayMode, english)}`}${player.substituted ? (english ? ', substituted off' : ', remplacé') : ''}`}
+                                  title={`${player.name}${player.position ? ` — ${player.position}` : ''}${lineupPlayerDisplayMode === 'name' ? '' : ` — ${getLineupPlayerDisplayLabel(player, lineupPlayerDisplayMode, english)}`}${player.substituted ? (english ? ' — Substituted off' : ' — Remplacé') : ''}`}
                                 >
-                                  {lineupPlayerDisplayMode === 'club' && player.club?.logo && (
-                                    <Image
-                                      src={player.club.logo}
-                                      alt=""
-                                      width={14}
-                                      height={14}
-                                      className="h-3.5 w-3.5 shrink-0 object-contain"
-                                    />
-                                  )}
-                                  <span className="min-w-0 truncate">
-                                    {getLineupPlayerDisplayLabel(
-                                      player,
-                                      lineupPlayerDisplayMode,
-                                      english,
-                                    )}
+                                  <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-950/85 text-[11px] font-extrabold text-white shadow-md sm:h-8 sm:w-8 sm:text-xs">
+                                    {player.number ?? '—'}
                                   </span>
-                                  {player.substituted && (
-                                    <span className="shrink-0 font-bold text-amber-300" aria-hidden="true">
-                                      ↔
+                                  {player.position && (
+                                    <span className="rounded bg-slate-950/70 px-1 py-0.5 text-[8px] font-bold leading-none text-emerald-100 shadow-sm">
+                                      {player.position}
                                     </span>
                                   )}
-                                </span>
-                              </li>
-                            ))}
+                                  <span className="inline-flex max-w-[5rem] items-center gap-1 rounded bg-slate-950/70 px-1 py-0.5 text-[9px] font-semibold leading-tight text-white shadow-sm sm:max-w-[6rem] sm:text-[10px]">
+                                    {lineupPlayerDisplayMode === 'club' && player.club?.logo && (
+                                      <Image
+                                        src={player.club.logo}
+                                        alt=""
+                                        width={14}
+                                        height={14}
+                                        className="h-3.5 w-3.5 shrink-0 object-contain"
+                                      />
+                                    )}
+                                    <span className="min-w-0 truncate">
+                                      {getLineupPlayerDisplayLabel(
+                                        player,
+                                        lineupPlayerDisplayMode,
+                                        english,
+                                      )}
+                                    </span>
+                                    <PlayerGoalContributionMarkers
+                                      player={player}
+                                      teamName={lineup.team.name}
+                                      goalEvents={goalEvents}
+                                      english={english}
+                                    />
+                                    {showPlayerRatings && (
+                                      <PlayerRatingBadge player={player} english={english} />
+                                    )}
+                                    {player.substituted && (
+                                      <span
+                                        className="shrink-0 font-bold text-amber-300"
+                                        aria-hidden="true"
+                                      >
+                                        ↔
+                                      </span>
+                                    )}
+                                  </span>
+                                  {replacement &&
+                                    (showPlayerRatings ||
+                                      replacementScored ||
+                                      replacementAssisted) && (
+                                      <span className="inline-flex max-w-[5rem] items-center gap-1 rounded bg-slate-950/80 px-1 py-0.5 text-[8px] font-semibold leading-tight text-white shadow-sm sm:max-w-[6rem] sm:text-[9px]">
+                                        <span className="min-w-0 truncate">
+                                          {replacement.name}
+                                        </span>
+                                        <PlayerGoalContributionMarkers
+                                          player={replacement}
+                                          teamName={lineup.team.name}
+                                          goalEvents={goalEvents}
+                                          english={english}
+                                        />
+                                        {showPlayerRatings && (
+                                          <PlayerRatingBadge
+                                            player={replacement}
+                                            english={english}
+                                          />
+                                        )}
+                                      </span>
+                                    )}
+                                </li>
+                              );
+                            })}
                           </ol>
                           <div className="mt-5">
                             <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
@@ -2312,6 +2575,15 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                         english,
                                       )}
                                     </span>
+                                    <PlayerGoalContributionMarkers
+                                      player={player}
+                                      teamName={lineup.team.name}
+                                      goalEvents={goalEvents}
+                                      english={english}
+                                    />
+                                    {showPlayerRatings && (
+                                      <PlayerRatingBadge player={player} english={english} />
+                                    )}
                                   </span>
                                   {player.substituted && (
                                     <span
@@ -2366,6 +2638,15 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                           english,
                                         )}
                                       </span>
+                                      <PlayerGoalContributionMarkers
+                                        player={player}
+                                        teamName={lineup.team.name}
+                                        goalEvents={goalEvents}
+                                        english={english}
+                                      />
+                                      {showPlayerRatings && (
+                                        <PlayerRatingBadge player={player} english={english} />
+                                      )}
                                     </span>
                                     {player.isOnField && (
                                       <span className="shrink-0 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
