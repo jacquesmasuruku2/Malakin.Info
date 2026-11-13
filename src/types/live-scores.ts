@@ -116,6 +116,12 @@ export type MatchLineupPlayer = {
   position: string | null;
   grid: string | null;
   formationPlace: number | null;
+  age: number | null;
+  club: {
+    id: number | null;
+    name: string;
+    logo: string | null;
+  } | null;
 };
 
 export type MatchLineup = {

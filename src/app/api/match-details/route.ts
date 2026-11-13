@@ -10,6 +10,25 @@ import type {
 
 const SUMMARY_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/all/summary';
 const CACHE_SECONDS = 60;
+const ROSTER_CACHE_SECONDS = 86_400;
+const ROSTER_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer';
+const LEAGUE_SLUG_PATTERN = /^[a-z0-9._-]{1,80}$/i;
+
+type PlayerRosterInfo = {
+  id: number;
+  number: number | null;
+  age: number | null;
+  clubId: number | null;
+  clubLeagueSlug: string | null;
+  clubName: string | null;
+  clubLogo: string | null;
+};
+
+type TeamProfile = {
+  id: number | null;
+  name: string;
+  logo: string | null;
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -39,6 +58,118 @@ function getLogo(value: unknown): string | null {
     }
   }
   return null;
+}
+
+function getReferenceId(value: unknown, entity: 'teams' | 'leagues'): number | null {
+  if (!isRecord(value)) return null;
+  const id = getNumber(value.id);
+  if (id !== null) return id;
+
+  const reference = getString(value.$ref);
+  const match = reference
+    ? new RegExp(`/${entity}/(\\d+)(?:[/?#]|$)`).exec(reference)
+    : null;
+  return match ? getNumber(match[1]) : null;
+}
+
+function getLeagueSlug(value: unknown): string | null {
+  if (!isRecord(value)) return null;
+  const slug = getString(value.slug);
+  if (slug && LEAGUE_SLUG_PATTERN.test(slug)) return slug;
+
+  const reference = getString(value.$ref);
+  const match = reference ? /\/leagues\/([^/?#]+)/.exec(reference) : null;
+  const referenceSlug = match?.[1] ?? null;
+  return referenceSlug && LEAGUE_SLUG_PATTERN.test(referenceSlug)
+    ? referenceSlug
+    : null;
+}
+
+function parseTeamProfile(value: unknown): TeamProfile | null {
+  if (!isRecord(value)) return null;
+  const name = getString(value.displayName) ?? getString(value.name);
+  if (!name) return null;
+  return {
+    id: getNumber(value.id),
+    name,
+    logo: getLogo(value.logo) ?? getLogo(value.logos),
+  };
+}
+
+function getPlayerAge(value: Record<string, unknown>): number | null {
+  const age = getNumber(value.age);
+  if (age !== null && age >= 0 && age <= 120) return Math.floor(age);
+
+  const dateOfBirth = getString(value.dateOfBirth);
+  if (!dateOfBirth) return null;
+  const birthDate = new Date(dateOfBirth);
+  if (!Number.isFinite(birthDate.getTime())) return null;
+
+  const today = new Date();
+  let calculatedAge = today.getUTCFullYear() - birthDate.getUTCFullYear();
+  if (
+    today.getUTCMonth() < birthDate.getUTCMonth() ||
+    (today.getUTCMonth() === birthDate.getUTCMonth() &&
+      today.getUTCDate() < birthDate.getUTCDate())
+  ) {
+    calculatedAge -= 1;
+  }
+  return calculatedAge >= 0 && calculatedAge <= 120 ? calculatedAge : null;
+}
+
+async function fetchLeagueTeamRoster(
+  leagueSlug: string,
+  teamId: number,
+  context: string,
+): Promise<Record<string, unknown> | null> {
+  if (!LEAGUE_SLUG_PATTERN.test(leagueSlug) || !Number.isSafeInteger(teamId) || teamId <= 0) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(
+      `${ROSTER_URL}/${encodeURIComponent(leagueSlug)}/teams/${teamId}/roster`,
+      {
+        cache: 'force-cache',
+        next: { revalidate: ROSTER_CACHE_SECONDS },
+        signal: AbortSignal.timeout(5_000),
+        headers: { Accept: 'application/json' },
+      },
+    );
+    if (!response.ok) {
+      throw new Error(`ESPN roster responded with HTTP ${response.status}.`);
+    }
+
+    const payload: unknown = await response.json();
+    if (!isRecord(payload) || !Array.isArray(payload.athletes)) {
+      throw new Error('ESPN returned an invalid team roster.');
+    }
+    return payload;
+  } catch (error) {
+    console.error(`Unable to load ESPN roster for ${context}:`, error);
+    return null;
+  }
+}
+
+function parsePlayerRosterInfo(value: unknown): PlayerRosterInfo | null {
+  if (!isRecord(value)) return null;
+  const id = getNumber(value.id);
+  if (id === null) return null;
+
+  const defaultTeam = isRecord(value.defaultTeam) ? value.defaultTeam : null;
+  return {
+    id,
+    number: getNumber(value.jersey) ?? getNumber(value.number),
+    age: getPlayerAge(value),
+    clubId: getReferenceId(value.defaultTeam, 'teams'),
+    clubLeagueSlug: getLeagueSlug(value.defaultLeague),
+    clubName: defaultTeam
+      ? getString(defaultTeam.displayName) ?? getString(defaultTeam.name)
+      : null,
+    clubLogo: defaultTeam
+      ? getLogo(defaultTeam.logo) ?? getLogo(defaultTeam.logos)
+      : null,
+  };
 }
 
 function getClock(value: unknown): { displayMinute: string; elapsed: number; extra: number | null } {
@@ -238,12 +369,18 @@ function parseLineupPlayer(value: unknown): MatchLineupPlayer | null {
   return {
     id: getNumber(value.athlete.id),
     name,
-    number: getNumber(value.jersey),
+    number:
+      getNumber(value.jersey) ??
+      getNumber(value.number) ??
+      getNumber(value.athlete.jersey) ??
+      getNumber(value.athlete.number),
     position: position
       ? getString(position.abbreviation) ?? getString(position.displayName)
       : null,
     grid: null,
     formationPlace: formationPlace !== null && formationPlace > 0 ? formationPlace : null,
+    age: null,
+    club: null,
   };
 }
 
@@ -323,7 +460,7 @@ function applySubstitutions(
   return updatedLineups;
 }
 
-function parseLineups(value: unknown, events: LiveMatchEvent[]): MatchLineup[] {
+function parseLineups(value: unknown): MatchLineup[] {
   if (!Array.isArray(value)) return [];
   const lineups = value.flatMap((teamRoster) => {
     if (!isRecord(teamRoster) || !isRecord(teamRoster.team) || !Array.isArray(teamRoster.roster)) {
@@ -361,7 +498,135 @@ function parseLineups(value: unknown, events: LiveMatchEvent[]): MatchLineup[] {
     }];
   });
 
-  return applySubstitutions(lineups, events);
+  return lineups;
+}
+
+async function enrichLineups(
+  lineups: MatchLineup[],
+  events: LiveMatchEvent[],
+  leagueSlug: string | null,
+): Promise<MatchLineup[]> {
+  const activeLineups = applySubstitutions(lineups, events);
+  if (!leagueSlug || !LEAGUE_SLUG_PATTERN.test(leagueSlug)) return activeLineups;
+
+  const teamRosters = await Promise.all(
+    activeLineups.map((lineup) =>
+      lineup.team.id === null
+        ? Promise.resolve(null)
+        : fetchLeagueTeamRoster(leagueSlug, lineup.team.id, lineup.team.name),
+    ),
+  );
+  const playerProfiles = teamRosters.map((roster) => {
+    const profiles = new Map<number, PlayerRosterInfo>();
+    if (roster && Array.isArray(roster.athletes)) {
+      for (const athlete of roster.athletes) {
+        const profile = parsePlayerRosterInfo(athlete);
+        if (profile) profiles.set(profile.id, profile);
+      }
+    }
+
+    return {
+      profiles,
+      isNational: roster && isRecord(roster.team) && typeof roster.team.isNational === 'boolean'
+        ? roster.team.isNational
+        : null,
+    };
+  });
+  const clubRosterRequests = new Map<string, { leagueSlug: string; teamId: number }>();
+
+  activeLineups.forEach((lineup, index) => {
+    for (const player of lineup.startingXI) {
+      if (player.id === null) continue;
+      const profile = playerProfiles[index].profiles.get(player.id);
+      if (
+        profile?.clubId !== null &&
+        profile?.clubId !== undefined &&
+        profile.clubId !== lineup.team.id &&
+        profile.clubLeagueSlug
+      ) {
+        const key = `${profile.clubLeagueSlug}:${profile.clubId}`;
+        clubRosterRequests.set(key, {
+          leagueSlug: profile.clubLeagueSlug,
+          teamId: profile.clubId,
+        });
+      }
+    }
+  });
+
+  const clubProfiles = new Map<string, TeamProfile>();
+  const clubRosterEntries = Array.from(clubRosterRequests.entries());
+  const clubRosterBatchSize = 8;
+  for (let index = 0; index < clubRosterEntries.length; index += clubRosterBatchSize) {
+    const batch = clubRosterEntries.slice(index, index + clubRosterBatchSize);
+    const results = await Promise.all(
+      batch.map(async ([key, request]) => {
+        const roster = await fetchLeagueTeamRoster(
+          request.leagueSlug,
+          request.teamId,
+          `club ${request.teamId}`,
+        );
+        return [key, roster ? parseTeamProfile(roster.team) : null] as const;
+      }),
+    );
+    for (const [key, profile] of results) {
+      if (profile) clubProfiles.set(key, profile);
+    }
+  }
+
+  return activeLineups.map((lineup, index) => {
+    const { profiles, isNational } = playerProfiles[index];
+    const rosterTeam = teamRosters[index] ? parseTeamProfile(teamRosters[index].team) : null;
+    const matchTeamProfile: TeamProfile | null =
+      lineup.team.id === null
+        ? null
+        : {
+            id: lineup.team.id,
+            name: lineup.team.name,
+            logo: lineup.team.logo ?? rosterTeam?.logo ?? null,
+          };
+    const enrichPlayer = (player: MatchLineupPlayer, showClub: boolean): MatchLineupPlayer => {
+      const profile = player.id === null ? undefined : profiles.get(player.id);
+      let club: TeamProfile | null = null;
+
+      if (showClub && profile) {
+        if (profile.clubId !== null && profile.clubId === lineup.team.id) {
+          club = matchTeamProfile;
+        } else if (profile.clubId !== null && profile.clubLeagueSlug) {
+          const clubKey = `${profile.clubLeagueSlug}:${profile.clubId}`;
+          club =
+            clubProfiles.get(clubKey) ??
+            (profile.clubName
+              ? {
+                  id: profile.clubId,
+                  name: profile.clubName,
+                  logo: profile.clubLogo,
+                }
+              : null);
+        } else if (profile.clubName) {
+          club = {
+            id: profile.clubId,
+            name: profile.clubName,
+            logo: profile.clubLogo,
+          };
+        } else if (isNational === false) {
+          club = matchTeamProfile;
+        }
+      }
+
+      return {
+        ...player,
+        number: player.number ?? profile?.number ?? null,
+        age: profile?.age ?? null,
+        club,
+      };
+    };
+
+    return {
+      ...lineup,
+      startingXI: lineup.startingXI.map((player) => enrichPlayer(player, true)),
+      substitutes: lineup.substitutes.map((player) => enrichPlayer(player, false)),
+    };
+  });
 }
 
 function getStandingStat(entry: Record<string, unknown>, statName: string): number | null {
@@ -453,7 +718,12 @@ export async function GET(request: Request) {
     if (!isRecord(payload)) throw new Error('ESPN returned an invalid match summary.');
     const events = parseEvents(payload);
     const statistics = parseStatistics(payload);
-    const lineups = parseLineups(payload.rosters, events);
+    const header = isRecord(payload.header) ? payload.header : null;
+    const league = header && isRecord(header.league) ? header.league : null;
+    const leagueSlug =
+      getString(league?.slug) ??
+      (isRecord(payload.league) ? getString(payload.league.slug) : null);
+    const lineups = await enrichLineups(parseLineups(payload.rosters), events, leagueSlug);
     const standings = parseStandings(payload.standings);
 
     return NextResponse.json(

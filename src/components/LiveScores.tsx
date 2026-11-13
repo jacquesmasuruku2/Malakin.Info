@@ -221,7 +221,13 @@ function isMatchLineupPlayer(value: unknown): value is MatchLineupPlayer {
     isNullableNumber(value.number) &&
     isNullableString(value.position) &&
     isNullableString(value.grid) &&
-    isNullableNumber(value.formationPlace)
+    isNullableNumber(value.formationPlace) &&
+    isNullableNumber(value.age) &&
+    (value.club === null ||
+      (isRecord(value.club) &&
+        isNullableNumber(value.club.id) &&
+        typeof value.club.name === 'string' &&
+        isNullableString(value.club.logo)))
   );
 }
 
@@ -419,6 +425,22 @@ function getPitchPositions(lineup: MatchLineup) {
       left: ((positionInRow + 1) / (rowPlayers.length + 1)) * 100,
     };
   });
+}
+
+type LineupPlayerDisplayMode = 'name' | 'age' | 'club';
+
+function getLineupPlayerDisplayLabel(
+  player: MatchLineupPlayer,
+  mode: LineupPlayerDisplayMode,
+  english: boolean,
+): string {
+  if (mode === 'name') return player.name;
+  if (mode === 'age') {
+    return player.age === null
+      ? '—'
+      : `${player.age} ${english ? (player.age === 1 ? 'year' : 'years') : 'ans'}`;
+  }
+  return player.club?.name ?? (english ? 'Club unavailable' : 'Club indisponible');
 }
 
 type MatchEventKind = 'goal' | 'missed-penalty' | 'yellow-card' | 'red-card' | 'substitution' | 'other';
@@ -701,6 +723,7 @@ function getMatchCommentaries(
 
 export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
   const english = locale === 'en';
+  const { user, ready: accountReady } = useAccountUser();
   const [view, setView] = useState<ScoresView>('live');
   const [finishedDaysAgo, setFinishedDaysAgo] = useState<0 | 1 | 2>(0);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1835,6 +1858,53 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                         ? 'Lineups and substitutions use ESPN match data and refresh every 60 seconds. ESPN does not provide live player-tracking coordinates.'
                         : 'Les compositions et remplacements suivent les données ESPN et sont actualisés toutes les 60 secondes. ESPN ne fournit pas les coordonnées de déplacement des joueurs en direct.'}
                     </p>
+                    <div className="space-y-2">
+                      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-xs font-semibold text-muted-foreground">
+                          {english ? 'Show players as' : 'Afficher les joueurs par'}
+                        </p>
+                        <div
+                          role="group"
+                          aria-label={
+                            english
+                              ? 'Choose player information to display'
+                              : 'Choisir les informations des joueurs à afficher'
+                          }
+                          className="inline-flex max-w-full flex-wrap gap-1 rounded-xl border border-border bg-muted/40 p-1"
+                        >
+                          {(['name', 'age', 'club'] as const).map((mode) => (
+                            <button
+                              key={mode}
+                              type="button"
+                              aria-pressed={lineupPlayerDisplayMode === mode}
+                              onClick={() => setLineupPlayerDisplayMode(mode)}
+                              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                lineupPlayerDisplayMode === mode
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                              }`}
+                            >
+                              {mode === 'name'
+                                ? english
+                                  ? 'Name'
+                                  : 'Nom'
+                                : mode === 'age'
+                                  ? english
+                                    ? 'Age'
+                                    : 'Âge'
+                                  : english
+                                    ? 'Club'
+                                    : 'Club'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {english
+                          ? 'Player ages and club details are shown when ESPN provides them.'
+                          : 'L’âge et le club des joueurs sont affichés lorsque ces données sont disponibles chez ESPN.'}
+                      </p>
+                    </div>
                     {lineupsToDisplay.map((lineup) => (
                       <section
                         key={lineup.team.id ?? lineup.team.name}
@@ -1904,8 +1974,8 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                 key={player.id ?? `${player.name}-${index}`}
                                 className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 text-center"
                                 style={{ top: `${top}%`, left: `${left}%` }}
-                                aria-label={`${player.number !== null ? `#${player.number} ` : ''}${player.name}${player.position ? `, ${player.position}` : ''}`}
-                                title={`${player.name}${player.position ? ` — ${player.position}` : ''}`}
+                                aria-label={`${player.number !== null ? `#${player.number} ` : ''}${player.name}${player.position ? `, ${player.position}` : ''}${lineupPlayerDisplayMode === 'name' ? '' : `, ${getLineupPlayerDisplayLabel(player, lineupPlayerDisplayMode, english)}`}`}
+                                title={`${player.name}${player.position ? ` — ${player.position}` : ''}${lineupPlayerDisplayMode === 'name' ? '' : ` — ${getLineupPlayerDisplayLabel(player, lineupPlayerDisplayMode, english)}`}`}
                               >
                                 <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-950/85 text-[11px] font-extrabold text-white shadow-md sm:h-8 sm:w-8 sm:text-xs">
                                   {player.number ?? '—'}
@@ -1915,8 +1985,29 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                     {player.position}
                                   </span>
                                 )}
-                                <span className="max-w-[4.25rem] truncate rounded bg-slate-950/70 px-1 py-0.5 text-[9px] font-semibold leading-tight text-white shadow-sm sm:max-w-[5rem] sm:text-[10px]">
-                                  {player.name}
+                                <span
+                                  className={`max-w-[5rem] rounded bg-slate-950/70 px-1 py-0.5 text-[9px] font-semibold leading-tight text-white shadow-sm sm:max-w-[6rem] sm:text-[10px] ${
+                                    lineupPlayerDisplayMode === 'club'
+                                      ? 'inline-flex items-center gap-1'
+                                      : 'truncate'
+                                  }`}
+                                >
+                                  {lineupPlayerDisplayMode === 'club' && player.club?.logo && (
+                                    <Image
+                                      src={player.club.logo}
+                                      alt=""
+                                      width={14}
+                                      height={14}
+                                      className="h-3.5 w-3.5 shrink-0 object-contain"
+                                    />
+                                  )}
+                                  <span className="min-w-0 truncate">
+                                    {getLineupPlayerDisplayLabel(
+                                      player,
+                                      lineupPlayerDisplayMode,
+                                      english,
+                                    )}
+                                  </span>
                                 </span>
                               </li>
                             ))}
@@ -1934,8 +2025,27 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                   <span className="inline-flex h-7 min-w-7 shrink-0 items-center justify-center rounded-md bg-muted px-1 text-xs font-bold text-foreground">
                                     {player.number ?? '—'}
                                   </span>
-                                  <span className="min-w-0 flex-1 break-words leading-snug text-foreground">
-                                    {player.name}
+                                  <span
+                                    className="inline-flex min-w-0 flex-1 items-center gap-1.5 break-words leading-snug text-foreground"
+                                    aria-label={`${player.name}${lineupPlayerDisplayMode === 'name' ? '' : `, ${getLineupPlayerDisplayLabel(player, lineupPlayerDisplayMode, english)}`}`}
+                                    title={player.name}
+                                  >
+                                    {lineupPlayerDisplayMode === 'club' && player.club?.logo && (
+                                      <Image
+                                        src={player.club.logo}
+                                        alt=""
+                                        width={18}
+                                        height={18}
+                                        className="h-[18px] w-[18px] shrink-0 object-contain"
+                                      />
+                                    )}
+                                    <span className="min-w-0 break-words">
+                                      {getLineupPlayerDisplayLabel(
+                                        player,
+                                        lineupPlayerDisplayMode,
+                                        english,
+                                      )}
+                                    </span>
                                   </span>
                                   {player.position && (
                                     <span className="shrink-0 text-xs text-muted-foreground">
@@ -1957,7 +2067,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                     key={player.id ?? `${player.name}-${index}`}
                                     className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-muted/50"
                                   >
-                                    <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-md bg-muted px-1 text-xs font-bold text-foreground">
+                                    <span className="inline-flex h-7 min-w-7 shrink-0 items-center justify-center rounded-md bg-muted px-1 text-xs font-bold text-foreground">
                                       {player.number ?? '—'}
                                     </span>
                                     <span className="min-w-0 flex-1 truncate text-foreground">
