@@ -303,7 +303,9 @@ function isMatchLineupPlayer(value: unknown): value is MatchLineupPlayer {
       (isRecord(value.club) &&
         isNullableNumber(value.club.id) &&
         typeof value.club.name === 'string' &&
-        isNullableString(value.club.logo)))
+        isNullableString(value.club.logo) &&
+        isNullableString(value.club.league) &&
+        isNullableString(value.club.countryCode)))
   );
 }
 
@@ -517,6 +519,14 @@ function getLineupPlayerDisplayLabel(
       : `${player.age} ${english ? (player.age === 1 ? 'year' : 'years') : 'ans'}`;
   }
   return player.club?.name ?? (english ? 'Club unavailable' : 'Club indisponible');
+}
+
+function getCountryDisplayName(countryCode: string | null, english: boolean): string | null {
+  if (!countryCode) return null;
+  return (
+    new Intl.DisplayNames([english ? 'en' : 'fr'], { type: 'region' }).of(countryCode) ??
+    countryCode
+  );
 }
 
 function PlayerRatingBadge({
@@ -753,6 +763,61 @@ function getMatchEndMinute(match: LiveScoreMatch, events: LiveMatchEvent[]): str
   return String(elapsed);
 }
 
+function getCardReason(event: LiveMatchEvent, english: boolean): string {
+  const unavailable = english
+    ? 'Reason not specified by ESPN.'
+    : 'Motif non précisé par ESPN.';
+  const comment = event.comments?.trim();
+  if (!comment) return unavailable;
+
+  const cardLabel = /\b(?:yellow|red)\s+card\b/i.exec(comment);
+  let reason = cardLabel
+    ? comment.slice(cardLabel.index + cardLabel[0].length)
+    : comment;
+  reason = reason
+    .replace(/\s+at\s+\d+(?:\s*\+\s*\d+)?\s*['′]?\s*\.?$/i, '')
+    .replace(/^[\s,;:—–-]+/, '')
+    .trim();
+  if (!reason || /^at\s+\d/i.test(reason)) return unavailable;
+
+  const foulVictim = /\b(?:for\s+)?(?:a\s+)?foul\s+(?:by\s+.+?\s+)?(?:on|against)\s+(.+?)(?:[.!?]|$)/i.exec(
+    reason,
+  )?.[1]?.trim();
+  if (foulVictim) {
+    return english
+      ? `For a foul on ${foulVictim}.`
+      : `Pour une faute commise sur ${foulVictim}.`;
+  }
+
+  const normalizedReason = reason.toLowerCase();
+  if (/\bfoul\b/.test(normalizedReason)) {
+    return english ? 'For a foul.' : 'Pour une faute.';
+  }
+  if (/\bdissent\b/.test(normalizedReason)) {
+    return english ? 'For dissent.' : 'Pour contestation.';
+  }
+  if (/\bhandball\b/.test(normalizedReason)) {
+    return english ? 'For handball.' : 'Pour une main.';
+  }
+  if (/\bsimulation\b/.test(normalizedReason)) {
+    return english ? 'For simulation.' : 'Pour simulation.';
+  }
+  if (/persistent infringement/.test(normalizedReason)) {
+    return english
+      ? 'For persistent infringement.'
+      : 'Pour fautes répétées.';
+  }
+  if (/unsporting (?:behavior|behaviour)/.test(normalizedReason)) {
+    return english
+      ? 'For unsporting behavior.'
+      : 'Pour comportement antisportif.';
+  }
+
+  return english
+    ? `Reason reported by ESPN: ${reason.replace(/[.!?]+$/, '')}.`
+    : `Motif indiqué par ESPN : ${reason.replace(/[.!?]+$/, '')}.`;
+}
+
 function getEventCommentary(
   event: LiveMatchEvent,
   kind: MatchEventKind,
@@ -850,21 +915,9 @@ function getEventCommentary(
       const base = english
         ? `${player} (${team}) receives ${card}.`
         : `${player} (${team}) reçoit ${card}.`;
-      const cardComment = sourceComment?.toLowerCase() === 'foul'
-        ? english
-          ? 'For a foul.'
-          : 'Pour une faute.'
-        : sourceComment?.toLowerCase() === 'dissent'
-          ? english
-            ? 'For dissent.'
-            : 'Pour contestation.'
-          : sourceComment;
-      return [base, cardComment]
-        .filter((value): value is string => Boolean(value))
-        .filter((value, index, values) => values.indexOf(value) === index)
-        .join(' ');
+      return `${base} ${getCardReason(event, english)}`;
     }
-    return event.comments?.trim() || null;
+    return getCardReason(event, english);
   }
   if (kind === 'substitution') {
     const base = event.player.name && event.assist.name
@@ -964,6 +1017,11 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
   const [activeDetailsTab, setActiveDetailsTab] = useState<'events' | 'lineups' | 'standings'>('events');
   const [lineupPlayerDisplayMode, setLineupPlayerDisplayMode] =
     useState<LineupPlayerDisplayMode>('name');
+  const [selectedPitchClub, setSelectedPitchClub] = useState<{
+    lineupKey: string;
+    playerKey: string;
+    club: NonNullable<MatchLineupPlayer['club']>;
+  } | null>(null);
   const [showPlayerRatings, setShowPlayerRatings] = useState(false);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const [eventsError, setEventsError] = useState(false);
@@ -1277,6 +1335,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
     setDetailsUnavailable({ lineups: false, standings: false });
     setEventsError(false);
     setActiveDetailsTab('events');
+    setSelectedPitchClub(null);
     setIsDetailsLoading(true);
     setSelectedFixtureId(fixtureId);
   }
@@ -2493,6 +2552,12 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                 replacementContributions?.scored ?? false;
                               const replacementAssisted =
                                 replacementContributions?.assisted ?? false;
+                              const lineupKey = String(lineup.team.id ?? lineup.team.name);
+                              const playerKey = `${lineupKey}:${player.id ?? `${player.name}-${index}`}`;
+                              const playerClub = player.club;
+                              const isClubSelected =
+                                selectedPitchClub?.lineupKey === lineupKey &&
+                                selectedPitchClub.playerKey === playerKey;
 
                               return (
                                 <li
@@ -2511,22 +2576,65 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                     </span>
                                   )}
                                   <span className="inline-flex max-w-[5rem] items-center gap-1 rounded bg-slate-950/70 px-1 py-0.5 text-[9px] font-semibold leading-tight text-white shadow-sm sm:max-w-[6rem] sm:text-[10px]">
-                                    {lineupPlayerDisplayMode === 'club' && player.club?.logo && (
-                                      <Image
-                                        src={player.club.logo}
-                                        alt=""
-                                        width={14}
-                                        height={14}
-                                        className="h-3.5 w-3.5 shrink-0 object-contain"
-                                      />
+                                    {lineupPlayerDisplayMode === 'club' ? (
+                                      playerClub ? (
+                                        <button
+                                          type="button"
+                                          aria-expanded={isClubSelected}
+                                          aria-label={
+                                            english
+                                              ? `Show ${playerClub.name} club details`
+                                              : `Afficher les détails du club ${playerClub.name}`
+                                          }
+                                          title={
+                                            english
+                                              ? `Show ${playerClub.name} club details`
+                                              : `Afficher les détails du club ${playerClub.name}`
+                                          }
+                                          onClick={() =>
+                                            setSelectedPitchClub((current) =>
+                                              current?.playerKey === playerKey
+                                                ? null
+                                                : {
+                                                    lineupKey,
+                                                    playerKey,
+                                                    club: playerClub,
+                                                  },
+                                            )
+                                          }
+                                          className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 p-1 transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                                        >
+                                          {playerClub.logo ? (
+                                            <Image
+                                              src={playerClub.logo}
+                                              alt=""
+                                              width={20}
+                                              height={20}
+                                              className="h-full w-full object-contain"
+                                            />
+                                          ) : (
+                                            <span aria-hidden="true" className="text-[10px] font-bold">
+                                              {playerClub.name.slice(0, 1)}
+                                            </span>
+                                          )}
+                                        </button>
+                                      ) : (
+                                        <span
+                                          title={english ? 'Club unavailable' : 'Club indisponible'}
+                                          aria-hidden="true"
+                                        >
+                                          —
+                                        </span>
+                                      )
+                                    ) : (
+                                      <span className="min-w-0 truncate">
+                                        {getLineupPlayerDisplayLabel(
+                                          player,
+                                          lineupPlayerDisplayMode,
+                                          english,
+                                        )}
+                                      </span>
                                     )}
-                                    <span className="min-w-0 truncate">
-                                      {getLineupPlayerDisplayLabel(
-                                        player,
-                                        lineupPlayerDisplayMode,
-                                        english,
-                                      )}
-                                    </span>
                                     <PlayerGoalContributionMarkers
                                       player={player}
                                       teamName={lineup.team.name}
@@ -2570,6 +2678,61 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                 </li>
                               );
                             })}
+                            {lineupPlayerDisplayMode === 'club' &&
+                              selectedPitchClub?.lineupKey ===
+                                String(lineup.team.id ?? lineup.team.name) && (
+                                  <li className="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/50 p-3">
+                                    <div
+                                      aria-label={
+                                        english
+                                          ? `${selectedPitchClub.club.name} club details`
+                                          : `Détails du club ${selectedPitchClub.club.name}`
+                                      }
+                                      className="flex w-full max-w-[18rem] items-center gap-3 rounded-xl border border-white/20 bg-slate-950/95 p-3 text-left text-white shadow-xl"
+                                    >
+                                      {selectedPitchClub.club.logo && (
+                                        <Image
+                                          src={selectedPitchClub.club.logo}
+                                          alt=""
+                                          width={40}
+                                          height={40}
+                                          className="h-10 w-10 shrink-0 object-contain"
+                                        />
+                                      )}
+                                      <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm font-bold">
+                                          {selectedPitchClub.club.name}
+                                        </p>
+                                        <p className="mt-0.5 text-xs text-white/75">
+                                          {[
+                                            selectedPitchClub.club.league,
+                                            getCountryDisplayName(
+                                              selectedPitchClub.club.countryCode,
+                                              english,
+                                            ),
+                                          ]
+                                            .filter(Boolean)
+                                            .join(' · ') ||
+                                            (english
+                                              ? 'League details unavailable'
+                                              : 'Détails de la ligue indisponibles')}
+                                        </p>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        aria-label={
+                                          english
+                                            ? 'Close club details'
+                                            : 'Fermer les détails du club'
+                                        }
+                                        onClick={() => setSelectedPitchClub(null)}
+                                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/75 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                                      >
+                                        <X aria-hidden="true" className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  </li>
+                                )}
                           </ol>
                           <div className="mt-5">
                             <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">

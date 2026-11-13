@@ -126,6 +126,8 @@ export type MatchLineupPlayer = {
     id: number | null;
     name: string;
     logo: string | null;
+    league: string | null;
+    countryCode: string | null;
   } | null;
 };
 

@@ -27,6 +27,30 @@ type TeamProfile = {
   id: number | null;
   name: string;
   logo: string | null;
+  league: string | null;
+  countryCode: string | null;
+};
+
+const LEAGUE_COUNTRY_CODES: Record<string, string> = {
+  arg: 'AR',
+  aus: 'AU',
+  bel: 'BE',
+  bra: 'BR',
+  eng: 'GB',
+  esp: 'ES',
+  fra: 'FR',
+  ger: 'DE',
+  gre: 'GR',
+  ita: 'IT',
+  jpn: 'JP',
+  kor: 'KR',
+  mex: 'MX',
+  ned: 'NL',
+  por: 'PT',
+  rus: 'RU',
+  sco: 'GB',
+  tur: 'TR',
+  usa: 'US',
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -71,14 +95,28 @@ function getReferenceId(value: unknown, entity: 'teams' | 'leagues'): number | n
   return match ? getNumber(match[1]) : null;
 }
 
+function getLeagueCountryCode(slug: string | null): string | null {
+  if (!slug) return null;
+  return LEAGUE_COUNTRY_CODES[slug.split('.')[0].toLowerCase()] ?? null;
+}
+
 function parseTeamProfile(value: unknown): TeamProfile | null {
   if (!isRecord(value)) return null;
   const name = getString(value.displayName) ?? getString(value.name);
   if (!name) return null;
+  const defaultLeague = isRecord(value.defaultLeague) ? value.defaultLeague : null;
+  const leagueSlug =
+    (defaultLeague ? getString(defaultLeague.slug) : null) ?? getString(value.leagueAbbrev);
   return {
     id: getNumber(value.id),
     name,
     logo: getLogo(value.logo) ?? getLogo(value.logos),
+    league: defaultLeague
+      ? getString(defaultLeague.shortName) ??
+        getString(defaultLeague.abbreviation) ??
+        getString(defaultLeague.name)
+      : null,
+    countryCode: getLeagueCountryCode(leagueSlug),
   };
 }
 
@@ -677,6 +715,8 @@ async function enrichLineups(
             id: lineup.team.id,
             name: lineup.team.name,
             logo: lineup.team.logo ?? rosterTeam?.logo ?? null,
+            league: rosterTeam?.league ?? null,
+            countryCode: rosterTeam?.countryCode ?? null,
           };
     const enrichPlayer = (player: MatchLineupPlayer, showClub: boolean): MatchLineupPlayer => {
       const profile = player.id === null ? undefined : profiles.get(player.id);
@@ -693,6 +733,8 @@ async function enrichLineups(
                   id: profile.clubId,
                   name: profile.clubName,
                   logo: profile.clubLogo,
+                  league: null,
+                  countryCode: null,
                 }
               : null);
         } else if (profile.clubName) {
@@ -700,6 +742,8 @@ async function enrichLineups(
             id: profile.clubId,
             name: profile.clubName,
             logo: profile.clubLogo,
+            league: null,
+            countryCode: null,
           };
         } else if (isNational === false) {
           club = matchTeamProfile;
