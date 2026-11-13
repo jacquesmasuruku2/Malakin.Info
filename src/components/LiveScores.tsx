@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 import {
   Activity,
   ArrowLeftRight,
+  ChevronDown,
   CircleAlert,
   CircleDot,
   Clock3,
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import type {
+  ESPNScoreboardMatch,
   LiveMatchEvent,
   LiveScoreMatch,
   MatchDetailsData,
@@ -24,13 +26,14 @@ import type {
   MatchLineupPlayer,
   MatchStandingEntry,
   MatchStandings,
+  MatchStatistic,
 } from '@/types/live-scores';
 
 type LiveScoresProps = {
   locale?: string;
 };
 
-const REFRESH_INTERVAL_MS = 300_000;
+const REFRESH_INTERVAL_MS = 60_000;
 const FAVORITES_STORAGE_KEY = 'malakinfo-live-match-favorites';
 const favoriteSubscribers = new Set<() => void>();
 type ScoresView = 'live' | 'finished';
@@ -41,6 +44,7 @@ const TEAM_SEARCH_ALIASES: Record<string, string[]> = {
   espagne: ['spain'],
   italie: ['italy'],
   'pays bas': ['netherlands'],
+  'dr congo': ['congo dr'],
   'republique democratique du congo': ['dr congo', 'congo dr'],
   rdc: ['dr congo', 'congo dr'],
 };
@@ -101,48 +105,97 @@ function isNullableString(value: unknown): value is string | null {
   return value === null || typeof value === 'string';
 }
 
-function isLiveScoreMatch(value: unknown): value is LiveScoreMatch {
+function isESPNScoreboardMatch(value: unknown): value is ESPNScoreboardMatch {
   return (
     isRecord(value) &&
-    isRecord(value.fixture) &&
-    typeof value.fixture.id === 'number' &&
-    isNullableString(value.fixture.date) &&
-    isNullableString(value.fixture.venue) &&
-    isRecord(value.fixture.status) &&
-    isNullableNumber(value.fixture.status.elapsed) &&
-    isNullableNumber(value.fixture.status.extra) &&
-    isNullableString(value.fixture.status.short) &&
-    isNullableString(value.fixture.status.long) &&
     isRecord(value.league) &&
-    typeof value.league.id === 'number' &&
+    typeof value.id === 'number' &&
+    isNullableString(value.date) &&
+    isNullableString(value.venue) &&
+    isNullableNumber(value.league.id) &&
     isNullableNumber(value.league.season) &&
     typeof value.league.name === 'string' &&
     isNullableString(value.league.logo) &&
-    isNullableString(value.league.country) &&
     isNullableString(value.league.round) &&
-    isRecord(value.teams) &&
-    isRecord(value.teams.home) &&
-    isNullableNumber(value.teams.home.id) &&
-    typeof value.teams.home.name === 'string' &&
-    isNullableString(value.teams.home.logo) &&
-    isRecord(value.teams.away) &&
-    isNullableNumber(value.teams.away.id) &&
-    typeof value.teams.away.name === 'string' &&
-    isNullableString(value.teams.away.logo) &&
-    isRecord(value.goals) &&
-    isNullableNumber(value.goals.home) &&
-    isNullableNumber(value.goals.away) &&
-    isRecord(value.score) &&
-    (value.score.penalty === null ||
-      (isRecord(value.score.penalty) &&
-        isNullableNumber(value.score.penalty.home) &&
-        isNullableNumber(value.score.penalty.away)))
+    isRecord(value.status) &&
+    (value.status.state === 'in' || value.status.state === 'post' || value.status.state === 'pre') &&
+    isNullableString(value.status.displayClock) &&
+    isNullableString(value.status.shortDetail) &&
+    isNullableString(value.status.detail) &&
+    isNullableNumber(value.status.elapsed) &&
+    isNullableNumber(value.status.extra) &&
+    isRecord(value.homeTeam) &&
+    isNullableNumber(value.homeTeam.id) &&
+    typeof value.homeTeam.name === 'string' &&
+    isNullableString(value.homeTeam.logo) &&
+    isNullableNumber(value.homeTeam.score) &&
+    isRecord(value.awayTeam) &&
+    isNullableNumber(value.awayTeam.id) &&
+    typeof value.awayTeam.name === 'string' &&
+    isNullableString(value.awayTeam.logo) &&
+    isNullableNumber(value.awayTeam.score)
   );
+}
+
+function toLiveScoreMatch(match: ESPNScoreboardMatch): LiveScoreMatch {
+  const short =
+    match.status.state === 'in'
+      ? 'LIVE'
+      : match.status.state === 'pre'
+        ? 'NS'
+        : /penalt/i.test(match.status.detail ?? '')
+          ? 'PEN'
+          : /extra time|after extra time|aet/i.test(match.status.detail ?? '')
+            ? 'AET'
+            : 'FT';
+
+  return {
+    fixture: {
+      id: match.id,
+      date: match.date,
+      venue: match.venue,
+      status: {
+        elapsed: match.status.elapsed,
+        extra: match.status.extra,
+        short,
+        long: match.status.detail ?? match.status.shortDetail,
+      },
+    },
+    league: {
+      id: match.league.id ?? 0,
+      season: match.league.season,
+      name: match.league.name,
+      logo: match.league.logo,
+      country: null,
+      round: match.league.round,
+    },
+    teams: {
+      home: {
+        id: match.homeTeam.id,
+        name: match.homeTeam.name,
+        logo: match.homeTeam.logo,
+      },
+      away: {
+        id: match.awayTeam.id,
+        name: match.awayTeam.name,
+        logo: match.awayTeam.logo,
+      },
+    },
+    goals: {
+      home: match.homeTeam.score,
+      away: match.awayTeam.score,
+    },
+    score: { penalty: null },
+    state: match.status.state,
+    displayClock: match.status.displayClock,
+  };
 }
 
 function isLiveMatchEvent(value: unknown): value is LiveMatchEvent {
   return (
     isRecord(value) &&
+    typeof value.id === 'string' &&
+    typeof value.displayMinute === 'string' &&
     isRecord(value.time) &&
     typeof value.time.elapsed === 'number' &&
     isNullableNumber(value.time.extra) &&
@@ -167,7 +220,8 @@ function isMatchLineupPlayer(value: unknown): value is MatchLineupPlayer {
     typeof value.name === 'string' &&
     isNullableNumber(value.number) &&
     isNullableString(value.position) &&
-    isNullableString(value.grid)
+    isNullableString(value.grid) &&
+    isNullableNumber(value.formationPlace)
   );
 }
 
@@ -223,6 +277,15 @@ function isMatchDetailsData(value: unknown): value is MatchDetailsData {
     isRecord(value) &&
     Array.isArray(value.events) &&
     value.events.every(isLiveMatchEvent) &&
+    Array.isArray(value.statistics) &&
+    value.statistics.every(
+      (stat) =>
+        isRecord(stat) &&
+        typeof stat.name === 'string' &&
+        typeof stat.label === 'string' &&
+        isNullableString(stat.home) &&
+        isNullableString(stat.away),
+    ) &&
     Array.isArray(value.lineups) &&
     value.lineups.every(isMatchLineup) &&
     (value.standings === null || isMatchStandings(value.standings)) &&
@@ -249,42 +312,110 @@ function getJerseyNumber(
   return playerById?.number ?? playerByName?.number ?? null;
 }
 
-function getPitchPositions(lineup: MatchLineup) {
-  const players = lineup.startingXI.map((player, index) => {
-    const grid = /^(\d+):(\d+)$/.exec(player.grid ?? '');
-    const position = player.position?.toUpperCase() ?? '';
-    const fallbackRow =
-      position === 'G' || position === 'GK' || position.includes('GOALKEEPER')
-        ? 1
-        : position.startsWith('D')
-          ? 2
-          : position.startsWith('M')
-            ? 3
-            : position.startsWith('F') || position.includes('FORWARD')
-              ? 4
-              : 2;
+type PitchLine =
+  | 'goalkeeper'
+  | 'defense'
+  | 'midfield'
+  | 'attackingMidfield'
+  | 'attack'
+  | 'unknown';
 
-    return {
-      player,
-      index,
-      row: grid ? Number(grid[1]) : fallbackRow,
-      column: grid ? Number(grid[2]) : index,
-    };
-  });
-  const rowNumbers = players.map(({ row }) => row);
-  const minRow = Math.min(...rowNumbers);
-  const maxRow = Math.max(...rowNumbers);
+function getPitchLine(position: string | null): PitchLine {
+  const normalized = position?.toUpperCase().replace(/[^A-Z]/g, '') ?? '';
+  if (
+    normalized === 'G' ||
+    normalized === 'GK' ||
+    normalized.includes('GOALKEEPER')
+  ) {
+    return 'goalkeeper';
+  }
+  if (/^(AM|CAM)/.test(normalized)) {
+    return 'attackingMidfield';
+  }
+  if (/^(DM|CDM|CM|LM|RM|MF|M)/.test(normalized) || normalized.includes('MIDFIELDER')) {
+    return 'midfield';
+  }
+  if (/^(CB|CD|LB|RB|LWB|RWB|WB|DF|D)/.test(normalized) || normalized.includes('DEFENDER')) {
+    return 'defense';
+  }
+  if (/^(CF|ST|LF|RF|LW|RW|FW|F|SS|WG)/.test(normalized) || /FORWARD|STRIKER/.test(normalized)) {
+    return 'attack';
+  }
+  return 'unknown';
+}
+
+function getPitchSide(position: string | null): number {
+  const normalized = position?.toUpperCase() ?? '';
+  if (normalized.startsWith('L')) return 0;
+  if (normalized.endsWith('-L') || normalized.endsWith(' L')) return 1;
+  if (normalized.endsWith('-R') || normalized.endsWith(' R')) return 2;
+  if (normalized.startsWith('R')) return 3;
+  return 1.5;
+}
+
+function getPitchPositions(lineup: MatchLineup) {
+  const players = lineup.startingXI.map((player, index) => ({
+    player,
+    index,
+    grid: /^(\d+):(\d+)$/.exec(player.grid ?? ''),
+  }));
+
+  if (players.length > 0 && players.every(({ grid }) => grid !== null)) {
+    const rowNumbers = players.map(({ grid }) => Number(grid![1]));
+    const minRow = Math.min(...rowNumbers);
+    const maxRow = Math.max(...rowNumbers);
+
+    return players.map((entry) => {
+      const rowPlayers = players
+        .filter((candidate) => Number(candidate.grid![1]) === Number(entry.grid![1]))
+        .sort(
+          (a, b) =>
+            Number(a.grid![2]) - Number(b.grid![2]) ||
+            a.index - b.index,
+        );
+      const positionInRow = rowPlayers.findIndex((candidate) => candidate.index === entry.index);
+      const progress = maxRow === minRow
+        ? 0.5
+        : (Number(entry.grid![1]) - minRow) / (maxRow - minRow);
+
+      return {
+        player: entry.player,
+        top: 88 - progress * 76,
+        left: ((positionInRow + 1) / (rowPlayers.length + 1)) * 100,
+      };
+    });
+  }
+
+  const topByLine: Record<PitchLine, number> = {
+    attack: 16,
+    attackingMidfield: 31,
+    midfield: 50,
+    unknown: 56,
+    defense: 70,
+    goalkeeper: 88,
+  };
+  const groupedPlayers = new Map<PitchLine, typeof players>();
+  for (const entry of players) {
+    const line = getPitchLine(entry.player.position);
+    const row = groupedPlayers.get(line) ?? [];
+    row.push(entry);
+    groupedPlayers.set(line, row);
+  }
 
   return players.map((entry) => {
-    const rowPlayers = players
-      .filter((player) => player.row === entry.row)
-      .sort((a, b) => a.column - b.column || a.index - b.index);
-    const positionInRow = rowPlayers.findIndex((player) => player.index === entry.index);
-    const progress = maxRow === minRow ? 0.5 : (entry.row - minRow) / (maxRow - minRow);
+    const line = getPitchLine(entry.player.position);
+    const rowPlayers = groupedPlayers.get(line) ?? [];
+    const sortedRow = rowPlayers.slice().sort(
+      (a, b) =>
+        getPitchSide(a.player.position) - getPitchSide(b.player.position) ||
+        (a.player.formationPlace ?? a.index) - (b.player.formationPlace ?? b.index) ||
+        a.index - b.index,
+    );
+    const positionInRow = sortedRow.findIndex((candidate) => candidate.index === entry.index);
 
     return {
       player: entry.player,
-      top: 88 - progress * 76,
+      top: topByLine[line],
       left: ((positionInRow + 1) / (rowPlayers.length + 1)) * 100,
     };
   });
@@ -571,16 +702,20 @@ function getMatchCommentaries(
 export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
   const english = locale === 'en';
   const [view, setView] = useState<ScoresView>('live');
+  const [finishedDaysAgo, setFinishedDaysAgo] = useState<0 | 1 | 2>(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [teamHistoryName, setTeamHistoryName] = useState<string | null>(null);
+  const [teamHistoryVisibleCount, setTeamHistoryVisibleCount] = useState(5);
   const [selectedCompetition, setSelectedCompetition] = useState('all');
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [matches, setMatches] = useState<LiveScoreMatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [hasRateLimitError, setHasRateLimitError] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(null);
   const [events, setEvents] = useState<LiveMatchEvent[]>([]);
+  const [statistics, setStatistics] = useState<MatchStatistic[]>([]);
   const [lineups, setLineups] = useState<MatchLineup[]>([]);
   const [standings, setStandings] = useState<MatchStandings | null>(null);
   const [detailsUnavailable, setDetailsUnavailable] = useState({
@@ -590,6 +725,21 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
   const [activeDetailsTab, setActiveDetailsTab] = useState<'events' | 'lineups' | 'standings'>('events');
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const [eventsError, setEventsError] = useState(false);
+  useEffect(() => {
+    const nextSearchQuery = searchQuery.trim();
+    const timeoutId = window.setTimeout(
+      () => {
+        setDebouncedSearchQuery(nextSearchQuery);
+        if (view === 'finished' && nextSearchQuery !== debouncedSearchQuery) {
+          setIsLoading(true);
+          setHasError(false);
+        }
+      },
+      400,
+    );
+    return () => window.clearTimeout(timeoutId);
+  }, [debouncedSearchQuery, searchQuery, view]);
+
   const favoritesSnapshot = useSyncExternalStore(
     subscribeToFavorites,
     getFavoritesSnapshot,
@@ -600,6 +750,12 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
     () => Array.from(new Set(matches.map((match) => match.league.name))).sort((a, b) => a.localeCompare(b)),
     [matches],
   );
+  const normalizedDebouncedSearch = normalizeSearch(debouncedSearchQuery);
+  const isMatchupSearch = /\s+(?:vs\.?|contre)\s+/.test(normalizedDebouncedSearch);
+  const teamHistoryQuery =
+    view === 'finished' && normalizedDebouncedSearch.length >= 3 && !isMatchupSearch
+      ? debouncedSearchQuery
+      : null;
   const visibleMatches = useMemo(() => {
     const normalizedQuery = normalizeSearch(searchQuery);
     const versusParts = normalizedQuery.split(/\s+(?:vs\.?|contre)\s+/).filter(Boolean);
@@ -628,54 +784,74 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
         );
       })
       .sort(
-        (a, b) =>
-          Number(favoriteIds.includes(b.fixture.id)) - Number(favoriteIds.includes(a.fixture.id)),
+        (a, b) => teamHistoryName
+          ? (b.fixture.date ?? '').localeCompare(a.fixture.date ?? '')
+          : Number(favoriteIds.includes(b.fixture.id)) -
+            Number(favoriteIds.includes(a.fixture.id)),
       );
-  }, [favoriteIds, favoritesOnly, matches, searchQuery, selectedCompetition]);
+  }, [favoriteIds, favoritesOnly, matches, searchQuery, selectedCompetition, teamHistoryName]);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const selectedMatch = matches.find((match) => match.fixture.id === selectedFixtureId);
+  const preMatchLineups =
+    selectedMatch?.state === 'pre'
+      ? lineups.filter((lineup) => lineup.startingXI.length >= 11)
+      : [];
+  const lineupsToDisplay = selectedMatch?.state === 'pre' ? preMatchLineups : lineups;
   const eventCommentaries = getMatchCommentaries(events, selectedMatch, english);
+  const matchesToRender = teamHistoryName
+    ? visibleMatches.slice(0, teamHistoryVisibleCount)
+    : visibleMatches;
+  const finishedDateLabel =
+    finishedDaysAgo === 0
+      ? english
+        ? 'today'
+        : 'aujourd’hui'
+      : finishedDaysAgo === 1
+        ? english
+          ? 'yesterday'
+          : 'hier'
+        : english
+          ? 'two days ago'
+          : 'avant-hier';
 
   useEffect(() => {
     let isMounted = true;
 
     async function refreshScores() {
-      let isRateLimited = false;
       try {
+        const searchParams = new URLSearchParams();
+        if (view === 'finished') {
+          searchParams.set('view', 'finished');
+          searchParams.set('daysAgo', String(finishedDaysAgo));
+          if (teamHistoryQuery) searchParams.set('team', teamHistoryQuery);
+        }
         const endpoint =
-          view === 'finished' ? '/api/live-scores?view=finished' : '/api/live-scores';
+          view === 'finished'
+            ? `/api/live-scores?${searchParams.toString()}`
+            : '/api/live-scores';
         const response = await fetch(endpoint, { cache: 'no-store' });
         if (!response.ok) {
-          const errorPayload: unknown = await response.json();
-          isRateLimited = isRecord(errorPayload) && errorPayload.code === 'RATE_LIMIT';
-          const diagnostic =
-            isRecord(errorPayload) && typeof errorPayload.diagnostic === 'string'
-              ? errorPayload.diagnostic
-              : `Scores API responded with HTTP ${response.status}.`;
-          throw new Error(diagnostic);
+          throw new Error(`Scores API responded with HTTP ${response.status}.`);
         }
 
         const payload: unknown = await response.json();
         if (
           !isRecord(payload) ||
           !Array.isArray(payload.matches) ||
-          !payload.matches.every(isLiveScoreMatch)
+          !payload.matches.every(isESPNScoreboardMatch)
         ) {
           throw new Error('Scores API returned an invalid response.');
         }
 
         if (isMounted) {
-          setMatches(payload.matches);
+          setMatches(payload.matches.map(toLiveScoreMatch));
+          setTeamHistoryName(typeof payload.teamName === 'string' ? payload.teamName : null);
           setHasError(false);
-          setHasRateLimitError(false);
           setUpdatedAt(new Date().toISOString());
         }
       } catch (error) {
         console.error('Unable to refresh live football scores:', error);
-        if (isMounted) {
-          setHasError(true);
-          setHasRateLimitError(isRateLimited);
-        }
+        if (isMounted) setHasError(true);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -688,7 +864,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
       isMounted = false;
       window.clearInterval(intervalId);
     };
-  }, [view]);
+  }, [finishedDaysAgo, teamHistoryQuery, view]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -704,17 +880,16 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
     if (selectedFixtureId === null) return;
 
     const controller = new AbortController();
+    let hasLoadedDetails = false;
+    let hasCompletedInitialRequest = false;
+    let isRequestInFlight = false;
 
     async function loadMatchDetails() {
+      if (isRequestInFlight) return;
+      isRequestInFlight = true;
+
       try {
         const searchParams = new URLSearchParams({ id: String(selectedFixtureId) });
-        if (selectedMatch?.league.id) {
-          searchParams.set('leagueId', String(selectedMatch.league.id));
-        }
-        if (selectedMatch?.league.season !== null && selectedMatch?.league.season !== undefined) {
-          searchParams.set('season', String(selectedMatch.league.season));
-        }
-
         const response = await fetch(`/api/match-details?${searchParams.toString()}`, {
           cache: 'no-store',
           signal: controller.signal,
@@ -730,25 +905,38 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
 
         if (!controller.signal.aborted) {
           setEvents(payload.events);
+          setStatistics(payload.statistics);
           setLineups(payload.lineups);
           setStandings(payload.standings);
           setDetailsUnavailable(payload.unavailable);
+          setEventsError(false);
+          hasLoadedDetails = true;
         }
       } catch (error) {
         if (controller.signal.aborted) return;
         console.error('Unable to load match details:', error);
-        setEventsError(true);
+        if (!hasLoadedDetails) setEventsError(true);
       } finally {
-        if (!controller.signal.aborted) setIsDetailsLoading(false);
+        isRequestInFlight = false;
+        if (!controller.signal.aborted && !hasCompletedInitialRequest) {
+          hasCompletedInitialRequest = true;
+          setIsDetailsLoading(false);
+        }
       }
     }
 
     void loadMatchDetails();
-    return () => controller.abort();
-  }, [selectedFixtureId, selectedMatch?.league.id, selectedMatch?.league.season]);
+    const intervalId = window.setInterval(loadMatchDetails, REFRESH_INTERVAL_MS);
+
+    return () => {
+      controller.abort();
+      window.clearInterval(intervalId);
+    };
+  }, [selectedFixtureId]);
 
   function openMatchDetails(fixtureId: number) {
     setEvents([]);
+    setStatistics([]);
     setLineups([]);
     setStandings(null);
     setDetailsUnavailable({ lineups: false, standings: false });
@@ -762,7 +950,8 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
     if (nextView === view) return;
     setMatches([]);
     setHasError(false);
-    setHasRateLimitError(false);
+    setTeamHistoryName(null);
+    setTeamHistoryVisibleCount(5);
     setIsLoading(true);
     setUpdatedAt(null);
     setView(nextView);
@@ -797,9 +986,13 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                 ? english
                   ? 'Live matches'
                   : 'Matches en direct'
+                : teamHistoryName
+                  ? english
+                    ? `Last five matches: ${teamHistoryName}`
+                    : `5 derniers matches de ${teamHistoryName}`
                 : english
-                  ? 'Completed matches today'
-                  : 'Matches terminés aujourd’hui'}
+                  ? `Completed matches ${finishedDateLabel}`
+                  : `Matches terminés ${finishedDateLabel}`}
             </h1>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -813,8 +1006,8 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                   },
                 )}`
               : english
-                ? 'Refreshes every 5 minutes'
-                : 'Actualisation toutes les 5 minutes'}
+                ? 'Refreshes every minute'
+                : 'Actualisation toutes les minutes'}
           </div>
         </div>
 
@@ -841,7 +1034,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             }`}
           >
-            {english ? 'Finished today' : 'Terminés aujourd’hui'}
+            {english ? 'Finished' : 'Terminés'}
           </button>
         </div>
 
@@ -851,12 +1044,43 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
             <input
               type="search"
               value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
+              onChange={(event) => {
+                setTeamHistoryName(null);
+                setTeamHistoryVisibleCount(5);
+                setSearchQuery(event.target.value);
+              }}
               placeholder={english ? 'Search a team or match (e.g. France vs Spain)' : 'Rechercher une équipe ou un match (ex. France vs Espagne)'}
               aria-label={english ? 'Search teams or matches' : 'Rechercher une équipe ou un match'}
               className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary"
             />
           </label>
+          {view === 'finished' && !teamHistoryName && (
+            <>
+              <label className="sr-only" htmlFor="live-scores-finished-day">
+                {english ? 'Filter finished matches by date' : 'Filtrer les matches terminés par date'}
+              </label>
+              <select
+                id="live-scores-finished-day"
+                value={finishedDaysAgo}
+                onChange={(event) => {
+                  const value = event.currentTarget.value;
+                  const daysAgo = value === '2' ? 2 : value === '1' ? 1 : 0;
+                  setMatches([]);
+                  setHasError(false);
+                  setIsLoading(true);
+                  setUpdatedAt(null);
+                  setSelectedCompetition('all');
+                  setFinishedDaysAgo(daysAgo);
+                }}
+                aria-label={english ? 'Filter finished matches by date' : 'Filtrer les matches terminés par date'}
+                className="h-11 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <option value={0}>{english ? 'Today' : 'Aujourd’hui'}</option>
+                <option value={1}>{english ? 'Yesterday' : 'Hier'}</option>
+                <option value={2}>{english ? 'Two days ago' : 'Avant-hier'}</option>
+              </select>
+            </>
+          )}
           <label className="sr-only" htmlFor="live-scores-competition">
             {english ? 'Filter by competition' : 'Filtrer par compétition'}
           </label>
@@ -914,7 +1138,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
         ) : visibleMatches.length > 0 ? (
           <>
             <ul className="grid gap-4 md:grid-cols-2">
-              {visibleMatches.map((match) => (
+              {matchesToRender.map((match) => (
                 <li key={match.fixture.id}>
                   <div className="relative">
                     <button
@@ -951,20 +1175,30 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                       </div>
                       <span
                         className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${
-                          view === 'live'
+                          view === 'live' && match.state === 'in'
                             ? 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300'
-                            : 'bg-muted text-muted-foreground'
+                            : view === 'live'
+                              ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
+                              : 'bg-muted text-muted-foreground'
                         }`}
                       >
-                        {view === 'live' ? (
+                        {view === 'live' && match.state === 'in' ? (
                           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
                         ) : (
-                          <Trophy className="h-3 w-3" aria-hidden="true" />
+                          view === 'live' ? (
+                            <Clock3 className="h-3 w-3" aria-hidden="true" />
+                          ) : (
+                            <Trophy className="h-3 w-3" aria-hidden="true" />
+                          )
                         )}
                         {view === 'live'
-                          ? english
-                            ? 'LIVE'
-                            : 'DIRECT'
+                          ? match.state === 'in'
+                            ? english
+                              ? 'LIVE'
+                              : 'DIRECT'
+                            : english
+                              ? 'UPCOMING'
+                              : 'À VENIR'
                           : match.fixture.status.short === 'AET'
                             ? english
                               ? 'After extra time'
@@ -1022,7 +1256,12 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                       </div>
                     </div>
 
-                    {match.fixture.status.elapsed !== null && (
+                    {match.state === 'pre' && match.displayClock ? (
+                      <p className="mt-4 flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground">
+                        <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
+                        {match.displayClock}
+                      </p>
+                    ) : match.fixture.status.elapsed !== null && (
                       <p className="mt-4 flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground">
                         <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
                         {match.fixture.status.elapsed}
@@ -1067,15 +1306,28 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                 </li>
               ))}
             </ul>
+            {teamHistoryName && matchesToRender.length < visibleMatches.length && (
+              <div className="mt-5 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setTeamHistoryVisibleCount((count) =>
+                      Math.min(count + 5, visibleMatches.length),
+                    )
+                  }
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-primary px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                  {english
+                    ? `View more past matches for ${teamHistoryName}`
+                    : `Voir plus de matches passés de ${teamHistoryName}`}
+                </button>
+              </div>
+            )}
             {hasError && (
               <p role="status" className="mt-3 text-xs text-muted-foreground">
-                {hasRateLimitError
-                  ? english
-                    ? 'The daily API-SPORTS request quota has been reached. Scores will return when the quota resets.'
-                    : 'Le quota quotidien de requêtes API-SPORTS est atteint. Les scores reviendront après son renouvellement.'
-                  : english
-                    ? 'Refresh failed. Showing the latest available scores.'
-                    : "L'actualisation a échoué. Les derniers scores disponibles sont affichés."}
+                {english
+                  ? 'Refresh failed. Showing the latest available scores.'
+                  : "L'actualisation a échoué. Les derniers scores disponibles sont affichés."}
               </p>
             )}
           </>
@@ -1094,13 +1346,9 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
             role="status"
             className="rounded-xl border border-border bg-card px-5 py-8 text-center text-sm text-muted-foreground"
           >
-            {hasRateLimitError
-              ? english
-                ? 'The daily API-SPORTS request quota has been reached. Scores will return when the quota resets.'
-                : 'Le quota quotidien de requêtes API-SPORTS est atteint. Les scores reviendront après son renouvellement.'
-              : english
-                ? 'Scores are temporarily unavailable. Please try again shortly.'
-                : 'Les scores ne peuvent pas être chargés pour le moment. Réessayez dans quelques instants.'}
+            {english
+              ? 'Scores are temporarily unavailable. Please try again shortly.'
+              : 'Les scores ne peuvent pas être chargés pour le moment. Réessayez dans quelques instants.'}
           </p>
         ) : (
           <p className="rounded-xl border border-border bg-card px-5 py-8 text-center text-sm text-muted-foreground">
@@ -1136,8 +1384,8 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
             onClick={() => setSelectedFixtureId(null)}
             className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm"
           />
-          <section className="relative z-10 mx-auto flex max-h-[85dvh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
-            <header className="flex items-start justify-between gap-4 border-b border-border px-5 py-4 sm:px-6">
+          <section className="relative z-10 mx-auto flex h-[92dvh] max-h-[92dvh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
+            <header className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-5 py-4 sm:px-6">
               <div className="min-w-0">
                 <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-primary">
                   {english ? 'Match details' : 'Détails du match'}
@@ -1169,7 +1417,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
             <div
               role="tablist"
               aria-label={english ? 'Match information' : 'Informations du match'}
-              className="flex gap-1 overflow-x-auto border-b border-border px-4 py-2 sm:px-6"
+              className="flex shrink-0 gap-1 overflow-x-auto border-b border-border px-4 py-2 sm:px-6"
             >
               {([
                 ['events', english ? 'Highlights' : 'Temps forts'],
@@ -1193,7 +1441,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
               ))}
             </div>
 
-            <div className="min-h-0 overflow-y-auto px-5 py-5 sm:px-6">
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
               {isDetailsLoading ? (
                 <div role="status" className="flex min-h-40 flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
                   <LoaderCircle className="h-7 w-7 animate-spin text-primary" aria-hidden="true" />
@@ -1207,24 +1455,217 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                 </p>
               ) : activeDetailsTab === 'events' ? (
                 <>
-                  {selectedMatch && view === 'finished' && (
-                    <section className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-4">
-                      <h3 className="mb-1 text-xs font-bold uppercase tracking-wide text-primary">
-                        {english ? 'How the match ended' : 'Résumé final'}
+                  {preMatchLineups.length > 0 && (
+                    <section className="mb-5 rounded-2xl border border-primary/20 bg-primary/5 p-4 shadow-sm sm:p-5">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="mb-1 text-xs font-bold uppercase tracking-[0.12em] text-primary">
+                            {english ? 'Pre-match' : 'Avant-match'}
+                          </p>
+                          <h3 className="text-base font-bold text-foreground">
+                            {preMatchLineups.length > 1
+                              ? english
+                                ? 'Official lineups have been announced'
+                                : 'Les compositions officielles sont publiées'
+                              : english
+                                ? 'An official lineup is available'
+                                : 'Une composition officielle est disponible'}
+                          </h3>
+                          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                            {preMatchLineups.length > 1
+                              ? english
+                                ? 'The starting XIs are available before kick-off.'
+                                : 'Les onze de départ sont consultables avant le coup d’envoi.'
+                              : english
+                                ? `The starting lineup for ${preMatchLineups[0].team.name} is available before kick-off.`
+                                : `La composition de ${preMatchLineups[0].team.name} est consultable avant le coup d’envoi.`}
+                          </p>
+                          <ul className="mt-3 flex flex-wrap gap-2">
+                            {preMatchLineups.map((lineup) => (
+                              <li
+                                key={lineup.team.id ?? lineup.team.name}
+                                className="rounded-lg border border-border/70 bg-background/80 px-3 py-2 text-sm"
+                              >
+                                <span className="font-semibold text-foreground">{lineup.team.name}</span>
+                                <span className="ml-2 text-muted-foreground">
+                                  {lineup.formation ?? (english ? 'Formation pending' : 'Formation à confirmer')}
+                                  {' · '}
+                                  {lineup.startingXI.length} {english ? 'starters' : 'titulaires'}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveDetailsTab('lineups')}
+                          className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                        >
+                          {english ? 'View lineups on the pitch' : 'Voir les compositions sur le terrain'}
+                        </button>
+                      </div>
+                    </section>
+                  )}
+                  {statistics.length > 0 && (
+                    <section className="mb-5 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+                      <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                        {english ? 'Match statistics' : 'Statistiques du match'}
                       </h3>
-                      <p className="text-sm font-medium text-foreground">
+                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                        {statistics.map((stat) => {
+                          const homeValue = Number.parseFloat(stat.home ?? '');
+                          const awayValue = Number.parseFloat(stat.away ?? '');
+                          const total = homeValue + awayValue;
+                          const homeWidth = Number.isFinite(total) && total > 0
+                            ? (homeValue / total) * 100
+                            : 50;
+                          const comparable = Number.isFinite(homeValue) && Number.isFinite(awayValue);
+                          const tied = comparable && homeValue === awayValue;
+                          const disciplineMetric = [
+                            'foulsCommitted',
+                            'yellowCards',
+                            'redCards',
+                          ].includes(stat.name);
+                          const homeHasAdvantage = comparable && (
+                            disciplineMetric ? homeValue < awayValue : homeValue > awayValue
+                          );
+                          const awayHasAdvantage = comparable && (
+                            disciplineMetric ? awayValue < homeValue : awayValue > homeValue
+                          );
+                          const homeValueColor = !comparable || tied
+                            ? 'text-foreground'
+                            : homeHasAdvantage
+                              ? 'text-blue-700 dark:text-blue-300'
+                              : 'text-red-700 dark:text-red-300';
+                          const awayValueColor = !comparable || tied
+                            ? 'text-foreground'
+                            : awayHasAdvantage
+                              ? 'text-blue-700 dark:text-blue-300'
+                              : 'text-red-700 dark:text-red-300';
+                          const homeBarColor = !comparable || tied
+                            ? 'bg-slate-400'
+                            : homeHasAdvantage
+                              ? 'bg-blue-600 dark:bg-blue-400'
+                              : 'bg-red-500 dark:bg-red-400';
+                          const awayBarColor = !comparable || tied
+                            ? 'bg-slate-300 dark:bg-slate-700'
+                            : awayHasAdvantage
+                              ? 'bg-blue-600 dark:bg-blue-400'
+                              : 'bg-red-500 dark:bg-red-400';
+                          const cardColor =
+                            stat.name === 'yellowCards'
+                              ? 'bg-amber-400'
+                              : stat.name === 'redCards'
+                                ? 'bg-red-600'
+                                : null;
+                          const cardCount = (value: string | null) => {
+                            const count = Number.parseInt(value ?? '', 10);
+                            return Number.isFinite(count) ? Math.min(Math.max(count, 0), 5) : 0;
+                          };
+                          const label =
+                            stat.name === 'possessionPct'
+                              ? english ? 'Possession' : 'Possession'
+                              : stat.name === 'shotsOnTarget'
+                                ? english ? 'Shots on target' : 'Tirs cadrés'
+                                : stat.name === 'totalShots'
+                                  ? english ? 'Total shots' : 'Tirs'
+                                  : stat.name === 'wonCorners'
+                                    ? english ? 'Corners' : 'Corners'
+                                    : stat.name === 'foulsCommitted'
+                                      ? english ? 'Fouls' : 'Fautes'
+                                      : stat.name === 'yellowCards'
+                                        ? english ? 'Yellow cards' : 'Cartons jaunes'
+                                        : stat.name === 'redCards'
+                                          ? english ? 'Red cards' : 'Cartons rouges'
+                                          : stat.label;
+
+                          return (
+                            <div key={stat.name} className="rounded-xl border border-border/80 bg-background/70 p-3">
+                              <div className="mb-2 flex items-center justify-between gap-2 text-sm">
+                                <span className={`flex min-w-0 items-center gap-1.5 font-bold tabular-nums ${homeValueColor}`}>
+                                  {cardColor &&
+                                    Array.from({ length: cardCount(stat.home) }, (_, index) => (
+                                      <span
+                                        key={`home-card-${index}`}
+                                        aria-hidden="true"
+                                        className={`h-3.5 w-2.5 rounded-[2px] ${cardColor}`}
+                                      />
+                                    ))}
+                                  {stat.home ?? '—'}
+                                </span>
+                                <span className="flex items-center justify-center gap-1.5 text-center text-[11px] font-semibold leading-tight text-muted-foreground sm:text-xs">
+                                  {cardColor && (
+                                    <span
+                                      aria-hidden="true"
+                                      className={`h-3.5 w-2.5 shrink-0 rounded-[2px] ${cardColor}`}
+                                    />
+                                  )}
+                                  {label}
+                                </span>
+                                <span className={`flex min-w-0 items-center justify-end gap-1 font-bold tabular-nums ${awayValueColor}`}>
+                                  {cardColor &&
+                                    Array.from({ length: cardCount(stat.away) }, (_, index) => (
+                                      <span
+                                        key={`away-card-${index}`}
+                                        aria-hidden="true"
+                                        className={`h-3.5 w-2.5 rounded-[2px] ${cardColor}`}
+                                      />
+                                    ))}
+                                  {stat.away ?? '—'}
+                                </span>
+                              </div>
+                              <div
+                                aria-hidden="true"
+                                className="flex h-2 overflow-hidden rounded-full bg-muted"
+                              >
+                                <span
+                                  className={`h-full transition-[width] duration-500 ${homeBarColor}`}
+                                  style={{ width: `${homeWidth}%` }}
+                                />
+                                <span
+                                  className={`h-full transition-[width] duration-500 ${awayBarColor}`}
+                                  style={{ width: `${100 - homeWidth}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  )}
+                  {selectedMatch && view === 'finished' && (
+                    <details className="group mb-5 overflow-hidden rounded-xl border border-primary/20 bg-primary/5">
+                      <summary className="flex cursor-pointer list-none items-start justify-between gap-3 p-4 marker:content-none">
+                        <div className="min-w-0">
+                          <h3 className="text-xs font-bold uppercase tracking-wide text-primary">
+                            {english ? 'How the match ended' : 'Résumé final'}
+                          </h3>
+                          <p className="mt-1 text-sm font-medium leading-relaxed text-foreground">
+                            {getFinishedSummary(selectedMatch, english)}
+                          </p>
+                        </div>
+                        <ChevronDown
+                          className="mt-1 h-4 w-4 shrink-0 text-primary transition-transform group-open:rotate-180"
+                          aria-hidden="true"
+                        />
+                      </summary>
+                      <p className="border-t border-primary/15 px-4 py-3 text-sm leading-relaxed text-foreground">
                         {getMatchEndMinute(selectedMatch, events)
                           ? `${getMatchEndMinute(selectedMatch, events)}' — `
                           : ''}
                         {getFinishedNarration(selectedMatch, english)}
                       </p>
-                    </section>
+                    </details>
                   )}
                   {events.length === 0 ? (
                     <p className="rounded-xl border border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
-                      {english
-                        ? 'No events are available for this match yet.'
-                        : "Aucun temps fort n'est disponible pour ce match pour le moment."}
+                      {selectedMatch?.state === 'pre'
+                        ? english
+                          ? 'Kick-off has not taken place yet. Match events will appear here once the game begins.'
+                          : 'Le match n’a pas encore commencé. Les temps forts apparaîtront ici dès le coup d’envoi.'
+                        : english
+                          ? 'No events are available for this match yet.'
+                          : "Aucun temps fort n'est disponible pour ce match pour le moment."}
                     </p>
                   ) : (
                     <ol className="relative space-y-5 before:absolute before:bottom-4 before:left-[15px] before:top-4 before:w-px before:bg-border">
@@ -1251,7 +1692,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
 
                         return (
                           <li
-                            key={`${event.time.elapsed}-${event.time.extra ?? 0}-${event.type}-${index}`}
+                            key={event.id}
                             className="relative flex gap-3"
                           >
                             <span
@@ -1281,11 +1722,12 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                             <div className="min-w-0 flex-1 rounded-xl border border-border bg-card px-4 py-3">
                               <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                                 <span className="text-sm font-bold text-foreground">
-                                  {event.time.elapsed}
-                                  {event.time.extra !== null && event.time.extra > 0
-                                    ? `+${event.time.extra}`
-                                    : ''}
-                                  &apos;
+                                  {event.displayMinute ||
+                                    `${event.time.elapsed}${
+                                      event.time.extra !== null && event.time.extra > 0
+                                        ? `+${event.time.extra}`
+                                        : ''
+                                    }'`}
                                 </span>
                                 {event.team.name && (
                                   <span className="text-xs text-muted-foreground">
@@ -1364,21 +1806,36 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                   )}
                 </>
               ) : activeDetailsTab === 'lineups' ? (
-                detailsUnavailable.lineups ? (
+                selectedMatch?.state === 'pre' && preMatchLineups.length === 0 ? (
+                  <p role="status" className="rounded-xl border border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
+                    {english
+                      ? 'The complete official lineups have not been announced yet. They will appear here as soon as they are available.'
+                      : 'Les compositions officielles complètes ne sont pas encore publiées. Elles apparaîtront ici dès leur annonce.'}
+                  </p>
+                ) : detailsUnavailable.lineups && selectedMatch?.state !== 'pre' ? (
                   <p role="status" className="rounded-xl border border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
                     {english
                       ? 'Lineups are temporarily unavailable for this match.'
                       : 'Les compositions sont temporairement indisponibles pour ce match.'}
                   </p>
-                ) : lineups.length === 0 ? (
+                ) : lineupsToDisplay.length === 0 ? (
                   <p className="rounded-xl border border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
-                    {english
-                      ? 'Official lineups have not been published for this match.'
-                      : 'Les compositions officielles ne sont pas disponibles pour ce match.'}
+                    {selectedMatch?.state === 'pre'
+                      ? english
+                        ? 'Official lineups have not been published yet. They will appear here as soon as they are announced.'
+                        : 'Les compositions officielles ne sont pas encore publiées. Elles apparaîtront ici dès leur annonce.'
+                      : english
+                        ? 'Official lineups are not available for this match.'
+                        : 'Les compositions officielles ne sont pas disponibles pour ce match.'}
                   </p>
                 ) : (
                   <div className="space-y-4">
-                    {lineups.map((lineup) => (
+                    <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+                      {english
+                        ? 'Lineups and substitutions use ESPN match data and refresh every 60 seconds. ESPN does not provide live player-tracking coordinates.'
+                        : 'Les compositions et remplacements suivent les données ESPN et sont actualisés toutes les 60 secondes. ESPN ne fournit pas les coordonnées de déplacement des joueurs en direct.'}
+                    </p>
+                    {lineupsToDisplay.map((lineup) => (
                       <section
                         key={lineup.team.id ?? lineup.team.name}
                         className="overflow-hidden rounded-xl border border-border bg-card"
@@ -1447,16 +1904,48 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                 key={player.id ?? `${player.name}-${index}`}
                                 className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 text-center"
                                 style={{ top: `${top}%`, left: `${left}%` }}
+                                aria-label={`${player.number !== null ? `#${player.number} ` : ''}${player.name}${player.position ? `, ${player.position}` : ''}`}
+                                title={`${player.name}${player.position ? ` — ${player.position}` : ''}`}
                               >
                                 <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-950/85 text-[11px] font-extrabold text-white shadow-md sm:h-8 sm:w-8 sm:text-xs">
                                   {player.number ?? '—'}
                                 </span>
+                                {player.position && (
+                                  <span className="rounded bg-slate-950/70 px-1 py-0.5 text-[8px] font-bold leading-none text-emerald-100 shadow-sm">
+                                    {player.position}
+                                  </span>
+                                )}
                                 <span className="max-w-[4.25rem] truncate rounded bg-slate-950/70 px-1 py-0.5 text-[9px] font-semibold leading-tight text-white shadow-sm sm:max-w-[5rem] sm:text-[10px]">
                                   {player.name}
                                 </span>
                               </li>
                             ))}
                           </ol>
+                          <div className="mt-5">
+                            <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                              {english ? 'Starting players' : 'Joueurs titulaires'}
+                            </h4>
+                            <ol className="grid gap-1.5 sm:grid-cols-2">
+                              {lineup.startingXI.map((player, index) => (
+                                <li
+                                  key={player.id ?? `${player.name}-${index}`}
+                                  className="flex min-w-0 items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-muted/50"
+                                >
+                                  <span className="inline-flex h-7 min-w-7 shrink-0 items-center justify-center rounded-md bg-muted px-1 text-xs font-bold text-foreground">
+                                    {player.number ?? '—'}
+                                  </span>
+                                  <span className="min-w-0 flex-1 break-words leading-snug text-foreground">
+                                    {player.name}
+                                  </span>
+                                  {player.position && (
+                                    <span className="shrink-0 text-xs text-muted-foreground">
+                                      {player.position}
+                                    </span>
+                                  )}
+                                </li>
+                              ))}
+                            </ol>
+                          </div>
                           <div className="mt-5">
                             <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
                               {english ? 'Substitutes' : 'Remplaçants'}

@@ -1,122 +1,276 @@
 import { NextResponse } from 'next/server';
-import type { LiveScoreMatch } from '@/types/live-scores';
+import type { ESPNMatchState, ESPNScoreboardMatch } from '@/types/live-scores';
 
-const LIVE_FIXTURES_URL = 'https://v3.football.api-sports.io/fixtures?live=all';
-const FIXTURES_URL = 'https://v3.football.api-sports.io/fixtures';
-const CACHE_SECONDS = 900;
-const FINISHED_STATUSES = new Set(['FT', 'AET', 'PEN', 'AWD', 'WO']);
+const SCOREBOARD_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/all/scoreboard';
+const SEARCH_URL = 'https://site.api.espn.com/apis/common/v3/search';
+const ESPN_SITE_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer';
+const CACHE_SECONDS = 60;
+const TEAM_SEARCH_ALIASES: Record<string, string> = {
+  rdc: 'Congo DR',
+  'dr congo': 'Congo DR',
+  'republique democratique du congo': 'Congo DR',
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-function nullableNumber(value: unknown): number | null {
-  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+function getString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-function nullableString(value: unknown): string | null {
-  return typeof value === 'string' ? value : null;
+function getNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  if (isRecord(value)) return getNumber(value.value) ?? getNumber(value.displayValue);
+  return null;
 }
 
-function parsePenaltyScore(value: unknown): { home: number | null; away: number | null } | null {
-  if (!isRecord(value) || !isRecord(value.penalty)) return null;
+function getLogo(value: unknown): string | null {
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) {
+    for (const logo of value) {
+      if (isRecord(logo)) {
+        const href = getString(logo.href) ?? getString(logo.url);
+        if (href) return href;
+      }
+    }
+  }
+  if (isRecord(value)) return getString(value.href) ?? getString(value.url);
+  return null;
+}
+
+function getTeam(value: unknown): ESPNScoreboardMatch['homeTeam'] | null {
+  if (!isRecord(value) || !isRecord(value.team)) return null;
+  const team = value.team;
+  const name = getString(team.displayName) ?? getString(team.name);
+  if (!name) return null;
+
+  const id = getNumber(team.id) ?? getNumber(value.id);
   return {
-    home: nullableNumber(value.penalty.home),
-    away: nullableNumber(value.penalty.away),
+    id,
+    name,
+    logo: getLogo(team.logo) ?? getLogo(team.logos),
+    score: getNumber(value.score),
   };
 }
 
-function parseMatch(value: unknown): LiveScoreMatch {
-  if (
-    !isRecord(value) ||
-    !isRecord(value.fixture) ||
-    typeof value.fixture.id !== 'number' ||
-    !isRecord(value.fixture.status) ||
-    !isRecord(value.league) ||
-    typeof value.league.id !== 'number' ||
-    typeof value.league.name !== 'string' ||
-    !isRecord(value.teams) ||
-    !isRecord(value.teams.home) ||
-    typeof value.teams.home.name !== 'string' ||
-    !isRecord(value.teams.away) ||
-    typeof value.teams.away.name !== 'string' ||
-    !isRecord(value.goals)
-  ) {
-    throw new Error('API-SPORTS returned an invalid live fixture.');
-  }
-
+function parseClock(displayClock: string | null): { elapsed: number | null; extra: number | null } {
+  if (!displayClock) return { elapsed: null, extra: null };
+  const match = /(\d+)(?:\s*['′]?\s*\+\s*(\d+))?/.exec(displayClock);
+  if (!match) return { elapsed: null, extra: null };
   return {
-    fixture: {
-      id: value.fixture.id,
-      date: nullableString(value.fixture.date),
-      venue: isRecord(value.fixture.venue) ? nullableString(value.fixture.venue.name) : null,
-      status: {
-        elapsed: nullableNumber(value.fixture.status.elapsed),
-        extra: nullableNumber(value.fixture.status.extra),
-        short: nullableString(value.fixture.status.short),
-        long: nullableString(value.fixture.status.long),
-      },
-    },
-    league: {
-      id: value.league.id,
-      season: nullableNumber(value.league.season),
-      name: value.league.name,
-      logo: nullableString(value.league.logo),
-      country: nullableString(value.league.country),
-      round: nullableString(value.league.round),
-    },
-    teams: {
-      home: {
-        id: nullableNumber(value.teams.home.id),
-        name: value.teams.home.name,
-        logo: nullableString(value.teams.home.logo),
-      },
-      away: {
-        id: nullableNumber(value.teams.away.id),
-        name: value.teams.away.name,
-        logo: nullableString(value.teams.away.logo),
-      },
-    },
-    goals: {
-      home: nullableNumber(value.goals.home),
-      away: nullableNumber(value.goals.away),
-    },
-    score: {
-      penalty: parsePenaltyScore(value.score),
-    },
+    elapsed: Number(match[1]),
+    extra: match[2] ? Number(match[2]) : null,
   };
 }
 
-function hasApiErrors(value: unknown): boolean {
-  if (Array.isArray(value)) return value.length > 0;
-  if (isRecord(value)) return Object.keys(value).length > 0;
-  return Boolean(value);
+function getLeagueDetails(
+  event: Record<string, unknown>,
+  competition: Record<string, unknown>,
+): { id: number | null; name: string; round: string | null; logo: string | null } {
+  const note = getString(competition.altGameNote);
+  const noteParts = note?.split(',').map((part) => part.trim()).filter(Boolean) ?? [];
+  const notes = Array.isArray(competition.notes) ? competition.notes : [];
+  const firstNote = notes.find(isRecord);
+  const competitionInfo = isRecord(competition.league) ? competition.league : null;
+  const eventLeague = isRecord(event.league) ? event.league : null;
+  const name =
+    (competitionInfo && getString(competitionInfo.name)) ??
+    (eventLeague && getString(eventLeague.name)) ??
+    (firstNote && getString(firstNote.headline)) ??
+    noteParts[0] ??
+    'Football';
+  const groupName = isRecord(competition.group) ? getString(competition.group.name) : null;
+  const uid = getString(event.uid) ?? getString(competition.uid) ?? '';
+  const leagueId = /~l:(\d+)/.exec(uid);
+  return {
+    id: leagueId ? Number(leagueId[1]) : null,
+    name,
+    round: groupName ?? (noteParts.length > 1 ? noteParts.slice(1).join(', ') : null),
+    logo:
+      (competitionInfo && (getLogo(competitionInfo.logo) ?? getLogo(competitionInfo.logos))) ??
+      (eventLeague && (getLogo(eventLeague.logo) ?? getLogo(eventLeague.logos))) ??
+      getLogo(competition.logos),
+  };
 }
 
-function getCompetitionPriority(match: LiveScoreMatch): number {
-  const competition = `${match.league.name} ${match.league.country ?? ''}`;
+function parseScoreboardEvent(value: unknown): ESPNScoreboardMatch | null {
+  if (!isRecord(value)) return null;
+  const id = getNumber(value.id);
+  const competitions = Array.isArray(value.competitions) ? value.competitions : [];
+  const competition = competitions.find(isRecord);
+  if (id === null || !Number.isSafeInteger(id) || !competition) return null;
 
-  if (
-    match.league.country === 'World' ||
-    /\b(caf|afcon|africa|african|world cup|fifa world|international)\b|coupe d['’]afrique/i.test(
-      competition,
-    )
-  ) {
-    return 0;
-  }
+  const competitors = Array.isArray(competition.competitors)
+    ? competition.competitors.filter(isRecord)
+    : [];
+  const homeSource =
+    competitors.find((competitor) => competitor.homeAway === 'home') ?? competitors[0];
+  const awaySource =
+    competitors.find((competitor) => competitor.homeAway === 'away') ?? competitors[1];
+  if (!homeSource || !awaySource) return null;
 
-  if (
-    /\b(premier league|la liga|bundesliga|serie a|ligue 1|champions league|europa league|eredivisie|primeira liga)\b/i.test(
-      competition,
-    )
-  ) {
-    return 1;
-  }
+  const homeTeam = getTeam(homeSource);
+  const awayTeam = getTeam(awaySource);
+  if (!homeTeam || !awayTeam) return null;
 
-  return 2;
+  const eventStatus = isRecord(value.status) ? value.status : null;
+  const competitionStatus = isRecord(competition.status) ? competition.status : eventStatus;
+  const statusType =
+    competitionStatus && isRecord(competitionStatus.type) ? competitionStatus.type : null;
+  const rawState = statusType ? getString(statusType.state) : null;
+  const state: ESPNMatchState =
+    rawState === 'in' || rawState === 'post' || rawState === 'pre'
+      ? rawState
+      : statusType?.completed === true
+        ? 'post'
+        : 'pre';
+  const displayClock = competitionStatus
+    ? getString(competitionStatus.displayClock)
+    : null;
+  const clock = state === 'pre' ? { elapsed: null, extra: null } : parseClock(displayClock);
+  const league = getLeagueDetails(value, competition);
+  const season = isRecord(value.season) ? getNumber(value.season.year) : null;
+
+  return {
+    id,
+    date: getString(value.date) ?? (competitionStatus ? getString(competitionStatus.date) : null),
+    venue: isRecord(competition.venue)
+      ? getString(competition.venue.fullName) ?? getString(competition.venue.displayName)
+      : isRecord(value.venue)
+        ? getString(value.venue.displayName)
+        : null,
+    league: { ...league, season },
+    status: {
+      state,
+      displayClock,
+      shortDetail: statusType ? getString(statusType.shortDetail) : null,
+      detail: statusType
+        ? getString(statusType.detail) ?? getString(statusType.description)
+        : null,
+      elapsed: clock.elapsed,
+      extra: clock.extra,
+    },
+    homeTeam,
+    awayTeam,
+  };
 }
 
-function getKinshasaDate(): string {
+function getCompetitionPriority(match: ESPNScoreboardMatch): number {
+  const league = match.league.name.toLowerCase();
+  if (/\b(caf|can|afcon|africa|african cup)\b/.test(league)) return 0;
+  if (/\b(world cup|international|fifa|uefa nations|euro)\b/.test(league)) return 1;
+  if (/\b(champions league|premier league|la liga|bundesliga|serie a|ligue 1|europa league)\b/.test(league)) {
+    return 2;
+  }
+  return 3;
+}
+
+function normalizeSearch(value: string): string {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+}
+
+async function getTeamHistory(
+  query: string,
+): Promise<{ matches: ESPNScoreboardMatch[]; teamName: string } | null> {
+  const normalizedQuery = normalizeSearch(query);
+  const searchTerm = TEAM_SEARCH_ALIASES[normalizedQuery] ?? query;
+  const searchUrl = new URL(SEARCH_URL);
+  searchUrl.searchParams.set('query', searchTerm);
+  searchUrl.searchParams.set('limit', '20');
+
+  const searchResponse = await fetch(searchUrl, {
+    cache: 'force-cache',
+    next: { revalidate: CACHE_SECONDS },
+    signal: AbortSignal.timeout(15_000),
+    headers: { Accept: 'application/json' },
+  });
+  if (!searchResponse.ok) {
+    throw new Error(`ESPN team search responded with HTTP ${searchResponse.status}.`);
+  }
+  const searchPayload: unknown = await searchResponse.json();
+  if (!isRecord(searchPayload) || !Array.isArray(searchPayload.items)) {
+    throw new Error('ESPN returned an invalid team search response.');
+  }
+
+  const candidates = searchPayload.items.filter(
+    (item): item is Record<string, unknown> =>
+      isRecord(item) && item.type === 'team' && item.sport === 'soccer',
+  );
+  const normalizedSearchTerm = normalizeSearch(searchTerm);
+  const selectedTeam = candidates.find((candidate) => {
+    const name = getString(candidate.displayName) ?? getString(candidate.name);
+    if (!name) return false;
+    const normalizedName = normalizeSearch(name);
+    return normalizedName.includes(normalizedSearchTerm) || normalizedSearchTerm.includes(normalizedName);
+  });
+  if (!selectedTeam) return null;
+
+  const teamId = getNumber(selectedTeam.id);
+  const teamName = getString(selectedTeam.displayName) ?? getString(selectedTeam.name);
+  if (teamId === null || !Number.isSafeInteger(teamId) || !teamName) return null;
+
+  const leagueSlug =
+    getString(selectedTeam.defaultLeagueSlug) ?? getString(selectedTeam.league);
+  const scheduleUrls = new Set([
+    `${ESPN_SITE_URL}/all/teams/${teamId}/schedule`,
+  ]);
+  if (leagueSlug && /^[a-z0-9._-]+$/i.test(leagueSlug)) {
+    scheduleUrls.add(`${ESPN_SITE_URL}/${leagueSlug}/teams/${teamId}/schedule`);
+  }
+
+  const scheduleResults = await Promise.allSettled(
+    Array.from(scheduleUrls, async (url) => {
+      const response = await fetch(url, {
+        cache: 'force-cache',
+        next: { revalidate: CACHE_SECONDS },
+        signal: AbortSignal.timeout(15_000),
+        headers: { Accept: 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error(`ESPN team schedule responded with HTTP ${response.status}.`);
+      }
+      const payload: unknown = await response.json();
+      if (!isRecord(payload) || !Array.isArray(payload.events)) {
+        throw new Error('ESPN returned an invalid team schedule response.');
+      }
+      return payload.events;
+    }),
+  );
+
+  const matchById = new Map<number, ESPNScoreboardMatch>();
+  let successfulSchedules = 0;
+  for (const result of scheduleResults) {
+    if (result.status === 'rejected') {
+      console.warn('An ESPN team schedule could not be loaded:', result.reason);
+      continue;
+    }
+    successfulSchedules += 1;
+    for (const event of result.value) {
+      const match = parseScoreboardEvent(event);
+      if (
+        match &&
+        match.status.state === 'post' &&
+        (match.homeTeam.id === teamId || match.awayTeam.id === teamId)
+      ) {
+        matchById.set(match.id, match);
+      }
+    }
+  }
+  if (successfulSchedules === 0) {
+    throw new Error('No ESPN team schedule could be loaded.');
+  }
+
+  const matches = Array.from(matchById.values())
+    .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
+  return { matches, teamName };
+}
+
+function getKinshasaDate(daysAgo: number): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Africa/Kinshasa',
     year: 'numeric',
@@ -124,74 +278,97 @@ function getKinshasaDate(): string {
     day: '2-digit',
   }).formatToParts(new Date());
   const dateParts = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
-  return `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
+  const date = new Date(
+    Date.UTC(Number(dateParts.year), Number(dateParts.month) - 1, Number(dateParts.day) - daysAgo),
+  );
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${date.getUTCFullYear()}${month}${day}`;
 }
 
 export async function GET(request: Request) {
-  const finishedOnly = new URL(request.url).searchParams.get('view') === 'finished';
-  const apiKey = process.env.APISPORTS_KEY;
-  if (!apiKey) {
+  const searchParams = new URL(request.url).searchParams;
+  const finishedOnly = searchParams.get('view') === 'finished';
+  const teamQuery = finishedOnly ? searchParams.get('team')?.trim() ?? '' : '';
+  const daysAgoParam = searchParams.get('daysAgo') ?? '0';
+  const daysAgo = Number(daysAgoParam);
+  if (finishedOnly && ![0, 1, 2].includes(daysAgo)) {
     return NextResponse.json(
-      { error: 'APISPORTS_KEY is not configured.' },
-      { status: 503, headers: { 'Cache-Control': 'no-store' } },
+      { error: 'daysAgo must be 0, 1, or 2.' },
+      { status: 400, headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
+  if (teamQuery.length > 80) {
+    return NextResponse.json(
+      { error: 'Team search must be 80 characters or fewer.' },
+      { status: 400, headers: { 'Cache-Control': 'no-store' } },
     );
   }
 
+  const url = new URL(SCOREBOARD_URL);
+  if (finishedOnly) url.searchParams.set('dates', getKinshasaDate(daysAgo));
+
   try {
-    const url = finishedOnly
-      ? `${FIXTURES_URL}?date=${getKinshasaDate()}&timezone=Africa%2FKinshasa`
-      : LIVE_FIXTURES_URL;
+    if (teamQuery.length >= 3) {
+      const teamHistory = await getTeamHistory(teamQuery);
+      if (teamHistory) {
+        return NextResponse.json(
+          teamHistory,
+          {
+            headers: {
+              'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+            },
+          },
+        );
+      }
+    }
+
     const response = await fetch(url, {
       cache: 'force-cache',
-      headers: { 'x-apisports-key': apiKey },
       next: { revalidate: CACHE_SECONDS },
       signal: AbortSignal.timeout(15_000),
+      headers: { Accept: 'application/json' },
     });
-
     if (!response.ok) {
-      throw new Error(`API-SPORTS responded with HTTP ${response.status}.`);
+      throw new Error(`ESPN scoreboard responded with HTTP ${response.status}.`);
     }
 
     const payload: unknown = await response.json();
-    if (!isRecord(payload) || !Array.isArray(payload.response)) {
-      throw new Error('API-SPORTS returned an invalid live fixtures response.');
-    }
-    if (hasApiErrors(payload.errors)) {
-      const errorFields = isRecord(payload.errors) ? Object.keys(payload.errors) : [];
-      if (errorFields.includes('requests')) {
-        throw new Error('API-SPORTS daily request quota exceeded.');
-      }
-      const errorCategories = errorFields.length > 0 ? ` (${errorFields.join(', ')})` : '';
-      throw new Error(`API-SPORTS returned API errors${errorCategories}.`);
+    if (!isRecord(payload) || !Array.isArray(payload.events)) {
+      throw new Error('ESPN returned an invalid scoreboard response.');
     }
 
-    const matches = payload.response
-      .map(parseMatch)
-      .filter((match) => !finishedOnly || FINISHED_STATUSES.has(match.fixture.status.short ?? ''))
-      .sort((a, b) => getCompetitionPriority(a) - getCompetitionPriority(b));
+    const events = payload.events
+      .map(parseScoreboardEvent)
+      .filter((match): match is ESPNScoreboardMatch => match !== null);
+    const ignoredCount = payload.events.length - events.length;
+    if (ignoredCount > 0) {
+      console.warn(`Ignored ${ignoredCount} ESPN scoreboard events with incomplete data.`);
+    }
+
+    const matches = events
+      .filter((match) =>
+        finishedOnly ? match.status.state === 'post' : match.status.state !== 'post',
+      )
+      .sort(
+        (a, b) =>
+          getCompetitionPriority(a) - getCompetitionPriority(b) ||
+          (a.date ?? '').localeCompare(b.date ?? ''),
+      );
 
     return NextResponse.json(
       { matches },
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=900',
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
         },
       },
     );
   } catch (error) {
-    const diagnostic =
-      error instanceof Error ? error.message : 'Unknown API-SPORTS request failure.';
-    const rateLimit = diagnostic === 'API-SPORTS daily request quota exceeded.';
-    console.error('Live scores request failed:', diagnostic);
+    console.error('ESPN scoreboard request failed:', error);
     return NextResponse.json(
-      {
-        code: rateLimit ? 'RATE_LIMIT' : 'UPSTREAM_ERROR',
-        error: rateLimit
-          ? 'Le quota quotidien de requêtes API-SPORTS est atteint.'
-          : 'Les scores sont temporairement indisponibles.',
-        ...(process.env.NODE_ENV === 'development' ? { diagnostic } : {}),
-      },
-      { status: rateLimit ? 429 : 502, headers: { 'Cache-Control': 'no-store' } },
+      { error: 'Les scores sont temporairement indisponibles.' },
+      { status: 502, headers: { 'Cache-Control': 'no-store' } },
     );
   }
 }

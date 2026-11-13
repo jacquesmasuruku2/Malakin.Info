@@ -1,3 +1,38 @@
+export type ESPNMatchState = 'in' | 'post' | 'pre';
+
+export type ESPNScoreboardMatch = {
+  id: number;
+  date: string | null;
+  venue: string | null;
+  league: {
+    id: number | null;
+    season: number | null;
+    name: string;
+    logo: string | null;
+    round: string | null;
+  };
+  status: {
+    state: ESPNMatchState;
+    displayClock: string | null;
+    shortDetail: string | null;
+    detail: string | null;
+    elapsed: number | null;
+    extra: number | null;
+  };
+  homeTeam: {
+    id: number | null;
+    name: string;
+    logo: string | null;
+    score: number | null;
+  };
+  awayTeam: {
+    id: number | null;
+    name: string;
+    logo: string | null;
+    score: number | null;
+  };
+};
+
 export type LiveScoreMatch = {
   fixture: {
     id: number;
@@ -40,9 +75,13 @@ export type LiveScoreMatch = {
       away: number | null;
     } | null;
   };
+  state: ESPNMatchState;
+  displayClock: string | null;
 };
 
 export type LiveMatchEvent = {
+  id: string;
+  displayMinute: string;
   time: {
     elapsed: number;
     extra: number | null;
@@ -63,12 +102,20 @@ export type LiveMatchEvent = {
   comments: string | null;
 };
 
+export type MatchStatistic = {
+  name: string;
+  label: string;
+  home: string | null;
+  away: string | null;
+};
+
 export type MatchLineupPlayer = {
   id: number | null;
   name: string;
   number: number | null;
   position: string | null;
   grid: string | null;
+  formationPlace: number | null;
 };
 
 export type MatchLineup = {
@@ -109,6 +156,7 @@ export type MatchStandings = {
 
 export type MatchDetailsData = {
   events: LiveMatchEvent[];
+  statistics: MatchStatistic[];
   lineups: MatchLineup[];
   standings: MatchStandings | null;
   unavailable: {

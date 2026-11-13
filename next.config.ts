@@ -49,6 +49,12 @@ const nextConfig: NextConfig = {
         pathname: '/football/**',
       },
       {
+        protocol: 'https',
+        hostname: 'a.espncdn.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
         protocol: 'http',
         hostname: 'localhost',
         port: '',
