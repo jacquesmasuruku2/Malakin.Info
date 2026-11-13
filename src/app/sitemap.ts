@@ -52,8 +52,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     staticPaths.map((path) => ({
       url: `${SITE_URL}/${locale}${path}`,
       lastModified: currentDate,
-      changeFrequency: path === '' || path === '/actualites' ? 'daily' : 'weekly',
-      priority: path === '' ? 1 : 0.7,
+      changeFrequency:
+        path === '/matches-en-direct'
+          ? 'hourly'
+          : path === '' || path === '/actualites'
+            ? 'daily'
+            : 'weekly',
+      priority: path === '' ? 1 : path === '/matches-en-direct' ? 0.9 : 0.7,
+      ...(path === '/matches-en-direct' && {
+        alternates: {
+          languages: {
+            'fr-FR': `${SITE_URL}/fr${path}`,
+            'en-US': `${SITE_URL}/en${path}`,
+          },
+        },
+      }),
     }))
   )
 

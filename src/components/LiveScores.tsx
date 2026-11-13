@@ -1454,6 +1454,11 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                       ? `Completed matches ${finishedDateLabel}`
                       : `Matches terminés ${finishedDateLabel}`}
             </h1>
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+              {english
+                ? 'Follow live football scores, upcoming fixtures and recent match results on MalakInfo.'
+                : 'Suivez les scores de football en direct, les matches à venir et les résultats récents sur MalakInfo.'}
+            </p>
           </div>
           <div className="flex max-w-full items-center gap-2 text-xs text-muted-foreground">
             <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />

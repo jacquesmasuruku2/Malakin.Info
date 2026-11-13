@@ -13,10 +13,12 @@ export async function generateMetadata({
   return getLocalizedPageMetadata(
     locale,
     '/matches-en-direct',
-    english ? 'Live and completed football matches' : 'Matches en direct et terminés',
     english
-      ? 'Follow live football scores, completed matches and match highlights on MalakInfo.'
-      : 'Suivez les scores en direct, les matches terminés et leurs temps forts sur MalakInfo.',
+      ? 'Live football scores and match results'
+      : 'Football en direct : scores et résultats',
+    english
+      ? 'Follow live football scores, upcoming fixtures, recent results and match highlights on MalakInfo.'
+      : 'Suivez les scores de football en direct, les matches à venir, les résultats récents et leurs temps forts sur MalakInfo.',
   );
 }
 
