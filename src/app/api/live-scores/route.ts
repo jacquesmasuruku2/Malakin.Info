@@ -121,17 +121,21 @@ function parseScoreboardEvent(value: unknown): ESPNScoreboardMatch | null {
   const eventStatus = isRecord(value.status) ? value.status : null;
   const competitionStatus = isRecord(competition.status) ? competition.status : eventStatus;
   const statusType =
-    competitionStatus && isRecord(competitionStatus.type) ? competitionStatus.type : null;
+    competitionStatus && isRecord(competitionStatus.type)
+      ? competitionStatus.type
+      : eventStatus && isRecord(eventStatus.type)
+        ? eventStatus.type
+        : null;
   const rawState = statusType ? getString(statusType.state) : null;
-  const state: ESPNMatchState =
+  const state: ESPNMatchState | null =
     rawState === 'in' || rawState === 'post' || rawState === 'pre'
       ? rawState
       : statusType?.completed === true
         ? 'post'
-        : 'pre';
-  const displayClock = competitionStatus
-    ? getString(competitionStatus.displayClock)
-    : null;
+        : null;
+  if (!state) return null;
+  const displayClock =
+    getString(competitionStatus?.displayClock) ?? getString(eventStatus?.displayClock);
   const clock = state === 'pre' ? { elapsed: null, extra: null } : parseClock(displayClock);
   const league = getLeagueDetails(value, competition);
   const season = isRecord(value.season) ? getNumber(value.season.year) : null;
@@ -288,7 +292,15 @@ function getKinshasaDate(daysAgo: number): string {
 
 export async function GET(request: Request) {
   const searchParams = new URL(request.url).searchParams;
-  const finishedOnly = searchParams.get('view') === 'finished';
+  const view = searchParams.get('view') ?? 'live';
+  if (!['live', 'upcoming', 'finished'].includes(view)) {
+    return NextResponse.json(
+      { error: 'view must be live, upcoming, or finished.' },
+      { status: 400, headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
+  const finishedOnly = view === 'finished';
+  const upcomingOnly = view === 'upcoming';
   const teamQuery = finishedOnly ? searchParams.get('team')?.trim() ?? '' : '';
   const daysAgoParam = searchParams.get('daysAgo') ?? '0';
   const daysAgo = Number(daysAgoParam);
@@ -348,7 +360,11 @@ export async function GET(request: Request) {
 
     const matches = events
       .filter((match) =>
-        finishedOnly ? match.status.state === 'post' : match.status.state !== 'post',
+        finishedOnly
+          ? match.status.state === 'post'
+          : upcomingOnly
+            ? match.status.state === 'pre'
+            : match.status.state === 'in',
       )
       .sort(
         (a, b) =>

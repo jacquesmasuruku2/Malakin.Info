@@ -17,6 +17,9 @@ import {
   X,
 } from 'lucide-react';
 import Image from 'next/image';
+import { authFetch } from '@/lib/client-auth';
+import { enableFootballMatchNotifications } from '@/lib/match-notification-client';
+import { useAccountUser } from '@/lib/use-account-user';
 import type {
   ESPNScoreboardMatch,
   LiveMatchEvent,
@@ -36,7 +39,12 @@ type LiveScoresProps = {
 const REFRESH_INTERVAL_MS = 60_000;
 const FAVORITES_STORAGE_KEY = 'malakinfo-live-match-favorites';
 const favoriteSubscribers = new Set<() => void>();
-type ScoresView = 'live' | 'finished';
+type ScoresView = 'live' | 'upcoming' | 'finished';
+type FollowedFootballTeam = {
+  espnTeamId: string;
+  name: string;
+  logo: string | null;
+};
 const TEAM_SEARCH_ALIASES: Record<string, string[]> = {
   allemagne: ['germany'],
   angleterre: ['england'],
@@ -103,6 +111,15 @@ function isNullableNumber(value: unknown): value is number | null {
 
 function isNullableString(value: unknown): value is string | null {
   return value === null || typeof value === 'string';
+}
+
+function isFollowedFootballTeam(value: unknown): value is FollowedFootballTeam {
+  return (
+    isRecord(value) &&
+    typeof value.espnTeamId === 'string' &&
+    typeof value.name === 'string' &&
+    isNullableString(value.logo)
+  );
 }
 
 function isESPNScoreboardMatch(value: unknown): value is ESPNScoreboardMatch {
@@ -191,6 +208,27 @@ function toLiveScoreMatch(match: ESPNScoreboardMatch): LiveScoreMatch {
   };
 }
 
+function getKickoffLabel(date: string | null, english: boolean): string {
+  const kickoff = date ? new Date(date) : null;
+  if (!kickoff || !Number.isFinite(kickoff.getTime())) {
+    return english ? 'Time unavailable' : 'Heure indisponible';
+  }
+
+  const formatted = new Intl.DateTimeFormat(english ? 'en-GB' : 'fr-FR', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Africa/Kinshasa',
+  }).format(kickoff);
+  return english ? `${formatted} (Kinshasa time)` : `${formatted} (heure de Kinshasa)`;
+}
+
+function getLiveMinute(match: LiveScoreMatch): string | null {
+  if (match.state !== 'in') return null;
+  const { elapsed, extra } = match.fixture.status;
+  if (elapsed === null) return match.displayClock;
+  return `${elapsed}${extra !== null && extra > 0 ? `+${extra}` : ''}′`;
+}
+
 function isLiveMatchEvent(value: unknown): value is LiveMatchEvent {
   return (
     isRecord(value) &&
@@ -223,6 +261,8 @@ function isMatchLineupPlayer(value: unknown): value is MatchLineupPlayer {
     isNullableString(value.grid) &&
     isNullableNumber(value.formationPlace) &&
     isNullableNumber(value.age) &&
+    typeof value.isOnField === 'boolean' &&
+    typeof value.substituted === 'boolean' &&
     (value.club === null ||
       (isRecord(value.club) &&
         isNullableNumber(value.club.id) &&
@@ -608,8 +648,9 @@ function getEventCommentary(
             : english
               ? `${scoringTeam} reduce the deficit to ${score}.`
               : `${scoringTeam} réduit l’écart (${score}).`;
-      return [description, context]
+      return [description, context, sourceComment]
         .filter((value): value is string => Boolean(value))
+        .filter((value, index, values) => values.indexOf(value) === index)
         .join(' ') || null;
     }
     const detailComment = sourceComment &&
@@ -746,8 +787,23 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
     standings: false,
   });
   const [activeDetailsTab, setActiveDetailsTab] = useState<'events' | 'lineups' | 'standings'>('events');
+  const [lineupPlayerDisplayMode, setLineupPlayerDisplayMode] =
+    useState<LineupPlayerDisplayMode>('name');
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const [eventsError, setEventsError] = useState(false);
+  const [savedFollowedTeams, setSavedFollowedTeams] = useState<FollowedFootballTeam[]>([]);
+  const [followedTeamsOwnerId, setFollowedTeamsOwnerId] = useState<string | null>(null);
+  const [followedTeamsLoadedForUserId, setFollowedTeamsLoadedForUserId] = useState<string | null>(null);
+  const [teamFavoriteActionId, setTeamFavoriteActionId] = useState<string | null>(null);
+  const [teamFavoriteError, setTeamFavoriteError] = useState<string | null>(null);
+  const currentUserId = user?.id ? String(user.id) : null;
+  const followedTeams =
+    currentUserId && followedTeamsOwnerId === currentUserId ? savedFollowedTeams : [];
+  const followedTeamsLoading = Boolean(
+    accountReady &&
+      currentUserId &&
+      followedTeamsLoadedForUserId !== currentUserId,
+  );
   useEffect(() => {
     const nextSearchQuery = searchQuery.trim();
     const timeoutId = window.setTimeout(
@@ -768,6 +824,53 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
     getFavoritesSnapshot,
     getServerFavoritesSnapshot,
   );
+  useEffect(() => {
+    if (!accountReady || !currentUserId) return;
+
+    const controller = new AbortController();
+
+    async function loadFollowedTeams() {
+      try {
+        const response = await authFetch('/api/user/match-teams', {
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          throw new Error(
+            response.status === 401
+              ? 'Reconnectez-vous pour synchroniser vos équipes favorites.'
+              : 'Impossible de charger les équipes suivies.',
+          );
+        }
+
+        const payload: unknown = await response.json();
+        if (
+          !isRecord(payload) ||
+          !Array.isArray(payload.teams) ||
+          !payload.teams.every(isFollowedFootballTeam)
+        ) {
+          throw new Error('La réponse des équipes suivies est invalide.');
+        }
+        if (!controller.signal.aborted) {
+          setSavedFollowedTeams(payload.teams);
+          setFollowedTeamsOwnerId(currentUserId);
+        }
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error('Unable to load football team favorites:', error);
+        setTeamFavoriteError(
+          error instanceof Error
+            ? error.message
+            : 'Impossible de charger les équipes suivies.',
+        );
+      } finally {
+        if (!controller.signal.aborted) setFollowedTeamsLoadedForUserId(currentUserId);
+      }
+    }
+
+    void loadFollowedTeams();
+    return () => controller.abort();
+  }, [accountReady, currentUserId]);
+
   const favoriteIds = useMemo(() => parseFavoriteIds(favoritesSnapshot), [favoritesSnapshot]);
   const competitions = useMemo(
     () => Array.from(new Set(matches.map((match) => match.league.name))).sort((a, b) => a.localeCompare(b)),
@@ -848,10 +951,9 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
           searchParams.set('daysAgo', String(finishedDaysAgo));
           if (teamHistoryQuery) searchParams.set('team', teamHistoryQuery);
         }
+        if (view === 'upcoming') searchParams.set('view', 'upcoming');
         const endpoint =
-          view === 'finished'
-            ? `/api/live-scores?${searchParams.toString()}`
-            : '/api/live-scores';
+          view === 'live' ? '/api/live-scores' : `/api/live-scores?${searchParams.toString()}`;
         const response = await fetch(endpoint, { cache: 'no-store' });
         if (!response.ok) {
           throw new Error(`Scores API responded with HTTP ${response.status}.`);
@@ -989,6 +1091,68 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
     favoriteSubscribers.forEach((subscriber) => subscriber());
   }
 
+  async function toggleTeamFavorite(team: {
+    id: number | null;
+    name: string;
+    logo: string | null;
+  }) {
+    if (!user?.id || team.id === null) return;
+
+    const espnTeamId = String(team.id);
+    const isFollowed = followedTeams.some((item) => item.espnTeamId === espnTeamId);
+    setTeamFavoriteActionId(espnTeamId);
+    setTeamFavoriteError(null);
+
+    try {
+      if (!isFollowed) await enableFootballMatchNotifications();
+
+      const response = await authFetch(
+        isFollowed
+          ? `/api/user/match-teams?teamId=${encodeURIComponent(espnTeamId)}`
+          : '/api/user/match-teams',
+        {
+          method: isFollowed ? 'DELETE' : 'POST',
+          ...(isFollowed
+            ? {}
+            : {
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  espnTeamId,
+                  name: team.name,
+                  logo: team.logo,
+                }),
+              }),
+        },
+      );
+      if (!response.ok) {
+        const body: unknown = await response.json().catch(() => null);
+        const message =
+          isRecord(body) && typeof body.error === 'string'
+            ? body.error
+            : 'Impossible de mettre à jour cette équipe favorite.';
+        throw new Error(message);
+      }
+
+      setSavedFollowedTeams((current) =>
+        isFollowed
+          ? current.filter((item) => item.espnTeamId !== espnTeamId)
+          : [{ espnTeamId, name: team.name, logo: team.logo }, ...current],
+      );
+      setFollowedTeamsOwnerId(String(user.id));
+    } catch (error) {
+      console.error('Unable to update a followed football team:', error);
+      setTeamFavoriteError(
+        error instanceof Error
+          ? error.message
+          : english
+            ? 'Could not update this favorite team.'
+            : 'Impossible de mettre à jour cette équipe favorite.',
+      );
+    } finally {
+      setTeamFavoriteActionId(null);
+    }
+  }
+
   return (
     <section
       aria-labelledby="live-scores-title"
@@ -1009,13 +1173,17 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                 ? english
                   ? 'Live matches'
                   : 'Matches en direct'
-                : teamHistoryName
+                : view === 'upcoming'
                   ? english
-                    ? `Last five matches: ${teamHistoryName}`
-                    : `5 derniers matches de ${teamHistoryName}`
-                : english
-                  ? `Completed matches ${finishedDateLabel}`
-                  : `Matches terminés ${finishedDateLabel}`}
+                    ? 'Upcoming matches'
+                    : 'Matches à venir'
+                  : teamHistoryName
+                    ? english
+                      ? `Last five matches: ${teamHistoryName}`
+                      : `5 derniers matches de ${teamHistoryName}`
+                    : english
+                      ? `Completed matches ${finishedDateLabel}`
+                      : `Matches terminés ${finishedDateLabel}`}
             </h1>
           </div>
           <div className="flex max-w-full items-center gap-2 text-xs text-muted-foreground">
@@ -1034,7 +1202,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
           </div>
         </div>
 
-        <div className="mb-6 inline-flex rounded-xl border border-border bg-background p-1" role="group" aria-label={english ? 'Choose matches view' : 'Choisir les matches à afficher'}>
+        <div className="mb-6 inline-flex max-w-full flex-wrap rounded-xl border border-border bg-background p-1" role="group" aria-label={english ? 'Choose matches view' : 'Choisir les matches à afficher'}>
           <button
             type="button"
             aria-pressed={view === 'live'}
@@ -1049,6 +1217,18 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
           </button>
           <button
             type="button"
+            aria-pressed={view === 'upcoming'}
+            onClick={() => changeView('upcoming')}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+              view === 'upcoming'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+            }`}
+          >
+            {english ? 'Upcoming' : 'À venir'}
+          </button>
+          <button
+            type="button"
             aria-pressed={view === 'finished'}
             onClick={() => changeView('finished')}
             className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
@@ -1060,6 +1240,14 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
             {english ? 'Finished' : 'Terminés'}
           </button>
         </div>
+
+        {accountReady && user?.id && (
+          <p className="mb-4 text-sm text-muted-foreground">
+            {english
+              ? 'Follow a team with its star to receive a Push reminder about 30 minutes before kickoff. Browser notification permission is required.'
+              : 'Ajoutez une équipe avec son étoile pour recevoir un rappel Push environ 30 minutes avant le coup d’envoi. L’autorisation des notifications du navigateur est requise.'}
+          </p>
+        )}
 
         <div className="mb-6 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <label className="relative min-w-0 flex-1">
@@ -1139,7 +1327,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
         {isLoading ? (
           <>
             <p role="status" className="sr-only">
-              {english ? 'Loading live matches' : 'Chargement des matches en direct'}
+              {english ? 'Loading matches' : 'Chargement des matches'}
             </p>
             <ul aria-hidden="true" className="grid min-w-0 gap-4 md:grid-cols-2">
               {[0, 1, 2, 3].map((item) => (
@@ -1161,9 +1349,19 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
         ) : visibleMatches.length > 0 ? (
           <>
             <ul className="grid min-w-0 gap-4 md:grid-cols-2">
-              {matchesToRender.map((match) => (
+              {matchesToRender.map((match) => {
+                const kickoffLabel = getKickoffLabel(match.fixture.date, english);
+                const liveMinute = getLiveMinute(match);
+                const homeIsFollowed = followedTeams.some(
+                  (team) => team.espnTeamId === String(match.teams.home.id),
+                );
+                const awayIsFollowed = followedTeams.some(
+                  (team) => team.espnTeamId === String(match.teams.away.id),
+                );
+
+                return (
                 <li key={match.fixture.id} className="min-w-0">
-                  <div className="relative min-w-0">
+                    <article className="relative min-w-0 overflow-hidden rounded-xl border border-border bg-white shadow-sm dark:bg-card">
                     <button
                       type="button"
                       onClick={() => openMatchDetails(match.fixture.id)}
@@ -1172,7 +1370,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                           ? `View events for ${match.teams.home.name} versus ${match.teams.away.name}`
                           : `Afficher les temps forts de ${match.teams.home.name} contre ${match.teams.away.name}`
                       }
-                      className="group w-full min-w-0 cursor-pointer rounded-xl border border-border bg-white p-5 text-left shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:bg-card sm:p-6"
+                      className="group w-full min-w-0 cursor-pointer p-5 text-left transition-colors hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary sm:p-6"
                     >
                     <div className="mb-4 flex items-center justify-between gap-3 pl-10">
                       <div className="flex min-w-0 items-center gap-2.5">
@@ -1198,28 +1396,28 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                       </div>
                       <span
                         className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${
-                          view === 'live' && match.state === 'in'
+                          match.state === 'in'
                             ? 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300'
-                            : view === 'live'
+                            : match.state === 'pre'
                               ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
                               : 'bg-muted text-muted-foreground'
                         }`}
                       >
-                        {view === 'live' && match.state === 'in' ? (
+                        {match.state === 'in' ? (
                           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
                         ) : (
-                          view === 'live' ? (
+                          match.state === 'pre' ? (
                             <Clock3 className="h-3 w-3" aria-hidden="true" />
                           ) : (
                             <Trophy className="h-3 w-3" aria-hidden="true" />
                           )
                         )}
-                        {view === 'live'
-                          ? match.state === 'in'
+                        {match.state === 'in'
+                          ? english
+                            ? 'LIVE'
+                            : 'DIRECT'
+                          : match.state === 'pre'
                             ? english
-                              ? 'LIVE'
-                              : 'DIRECT'
-                            : english
                               ? 'UPCOMING'
                               : 'À VENIR'
                           : match.fixture.status.short === 'AET'
@@ -1279,27 +1477,80 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                       </div>
                     </div>
 
-                    {match.state === 'pre' && match.displayClock ? (
-                      <p className="mt-4 flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground">
-                        <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
-                        {match.displayClock}
-                      </p>
-                    ) : match.fixture.status.elapsed !== null && (
-                      <p className="mt-4 flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground">
-                        <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
-                        {match.fixture.status.elapsed}
-                        {match.fixture.status.extra !== null && match.fixture.status.extra > 0
-                          ? `+${match.fixture.status.extra}`
-                          : ''}
-                        &apos;
-                      </p>
-                    )}
+                    <p className="mt-4 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-center text-xs font-medium text-muted-foreground">
+                      <Clock3 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                      <span>
+                        {english ? 'Kick-off:' : 'Coup d’envoi :'} {kickoffLabel}
+                      </span>
+                      {liveMinute && (
+                        <span className="font-bold text-red-600 dark:text-red-400">
+                          · {english ? 'Minute' : 'Minute'} {liveMinute}
+                        </span>
+                      )}
+                    </p>
                     {view === 'finished' && (
                       <p className="mt-4 border-t border-border pt-3 text-center text-sm font-medium text-muted-foreground">
                         {getFinishedSummary(match, english)}
                       </p>
                     )}
                     </button>
+                    {accountReady && user?.id && (
+                      <div className="grid grid-cols-2 gap-2 border-t border-border bg-background/70 p-2">
+                        {[
+                          { team: match.teams.home, isFollowed: homeIsFollowed },
+                          { team: match.teams.away, isFollowed: awayIsFollowed },
+                        ].map(({ team, isFollowed }) => (
+                          <button
+                            key={team.id ?? team.name}
+                            type="button"
+                            disabled={
+                              followedTeamsLoading ||
+                              team.id === null ||
+                              teamFavoriteActionId !== null
+                            }
+                            aria-pressed={isFollowed}
+                            aria-busy={teamFavoriteActionId === String(team.id)}
+                            aria-label={
+                              isFollowed
+                                ? english
+                                  ? `Stop following ${team.name} and its match reminders`
+                                  : `Ne plus suivre ${team.name} ni ses rappels de match`
+                                : english
+                                  ? `Follow ${team.name} and get match reminders`
+                                  : `Suivre ${team.name} et recevoir les rappels de match`
+                            }
+                            title={
+                              isFollowed
+                                ? english
+                                  ? `Stop following ${team.name}`
+                                  : `Ne plus suivre ${team.name}`
+                                : english
+                                  ? `Follow ${team.name}`
+                                  : `Suivre ${team.name}`
+                            }
+                            onClick={() => void toggleTeamFavorite(team)}
+                            className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 ${
+                              isFollowed
+                                ? 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300'
+                                : 'border-border bg-card text-muted-foreground hover:text-foreground'
+                            }`}
+                          >
+                            <Star
+                              className={`h-3.5 w-3.5 shrink-0 ${isFollowed ? 'fill-current' : ''}`}
+                              aria-hidden="true"
+                            />
+                            <span className="min-w-0 truncate">
+                              {team.name}
+                              {isFollowed
+                                ? english
+                                  ? ' · Following'
+                                  : ' · Suivie'
+                                : ''}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <button
                       type="button"
                       onClick={() => toggleFavorite(match.fixture.id)}
@@ -1325,10 +1576,16 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                         aria-hidden="true"
                       />
                     </button>
-                  </div>
+                    </article>
                 </li>
-              ))}
+                );
+            })}
             </ul>
+            {teamFavoriteError && user?.id && (
+                <p role="status" className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
+                  {teamFavoriteError}
+                </p>
+            )}
             {teamHistoryName && matchesToRender.length < visibleMatches.length && (
               <div className="mt-5 flex justify-center">
                 <button
@@ -1379,9 +1636,13 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
               ? english
                 ? 'No matches are currently in progress.'
                 : "Aucun match n'est en cours actuellement."
-              : english
-                ? 'No completed matches today.'
-                : "Aucun match terminé aujourd'hui."}
+              : view === 'upcoming'
+                ? english
+                  ? 'No upcoming matches.'
+                  : 'Aucun match à venir pour le moment.'
+                : english
+                  ? 'No completed matches today.'
+                  : "Aucun match terminé aujourd'hui."}
           </p>
         )}
       </div>
@@ -1731,7 +1992,11 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                         : 'text-muted-foreground'
                               }`}
                             >
-                              {kind === 'yellow-card' || kind === 'red-card' ? (
+                              {kind === 'goal' ? (
+                                <span role="img" aria-label={english ? 'Football' : 'Ballon'}>
+                                  ⚽
+                                </span>
+                              ) : kind === 'yellow-card' || kind === 'red-card' ? (
                                 <span
                                   className={`h-4 w-3 rounded-sm ${
                                     kind === 'red-card' ? 'bg-red-600' : 'bg-amber-400'
@@ -1974,8 +2239,8 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                 key={player.id ?? `${player.name}-${index}`}
                                 className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 text-center"
                                 style={{ top: `${top}%`, left: `${left}%` }}
-                                aria-label={`${player.number !== null ? `#${player.number} ` : ''}${player.name}${player.position ? `, ${player.position}` : ''}${lineupPlayerDisplayMode === 'name' ? '' : `, ${getLineupPlayerDisplayLabel(player, lineupPlayerDisplayMode, english)}`}`}
-                                title={`${player.name}${player.position ? ` — ${player.position}` : ''}${lineupPlayerDisplayMode === 'name' ? '' : ` — ${getLineupPlayerDisplayLabel(player, lineupPlayerDisplayMode, english)}`}`}
+                                aria-label={`${player.number !== null ? `#${player.number} ` : ''}${player.name}${player.position ? `, ${player.position}` : ''}${lineupPlayerDisplayMode === 'name' ? '' : `, ${getLineupPlayerDisplayLabel(player, lineupPlayerDisplayMode, english)}`}${player.substituted ? (english ? ', substituted off' : ', remplacé') : ''}`}
+                                title={`${player.name}${player.position ? ` — ${player.position}` : ''}${lineupPlayerDisplayMode === 'name' ? '' : ` — ${getLineupPlayerDisplayLabel(player, lineupPlayerDisplayMode, english)}`}${player.substituted ? (english ? ' — Substituted off' : ' — Remplacé') : ''}`}
                               >
                                 <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-950/85 text-[11px] font-extrabold text-white shadow-md sm:h-8 sm:w-8 sm:text-xs">
                                   {player.number ?? '—'}
@@ -1986,11 +2251,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                   </span>
                                 )}
                                 <span
-                                  className={`max-w-[5rem] rounded bg-slate-950/70 px-1 py-0.5 text-[9px] font-semibold leading-tight text-white shadow-sm sm:max-w-[6rem] sm:text-[10px] ${
-                                    lineupPlayerDisplayMode === 'club'
-                                      ? 'inline-flex items-center gap-1'
-                                      : 'truncate'
-                                  }`}
+                                  className="inline-flex max-w-[5rem] items-center gap-1 rounded bg-slate-950/70 px-1 py-0.5 text-[9px] font-semibold leading-tight text-white shadow-sm sm:max-w-[6rem] sm:text-[10px]"
                                 >
                                   {lineupPlayerDisplayMode === 'club' && player.club?.logo && (
                                     <Image
@@ -2008,6 +2269,11 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                       english,
                                     )}
                                   </span>
+                                  {player.substituted && (
+                                    <span className="shrink-0 font-bold text-amber-300" aria-hidden="true">
+                                      ↔
+                                    </span>
+                                  )}
                                 </span>
                               </li>
                             ))}
@@ -2047,6 +2313,15 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                       )}
                                     </span>
                                   </span>
+                                  {player.substituted && (
+                                    <span
+                                      className="shrink-0 text-xs font-bold text-amber-600 dark:text-amber-400"
+                                      title={english ? 'Substituted off' : 'A été remplacé'}
+                                      aria-label={english ? 'Substituted off' : 'A été remplacé'}
+                                    >
+                                      ↔
+                                    </span>
+                                  )}
                                   {player.position && (
                                     <span className="shrink-0 text-xs text-muted-foreground">
                                       {player.position}
@@ -2065,16 +2340,45 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                 {lineup.substitutes.map((player, index) => (
                                   <li
                                     key={player.id ?? `${player.name}-${index}`}
-                                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-muted/50"
+                                    className="flex min-w-0 items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-muted/50"
                                   >
                                     <span className="inline-flex h-7 min-w-7 shrink-0 items-center justify-center rounded-md bg-muted px-1 text-xs font-bold text-foreground">
                                       {player.number ?? '—'}
                                     </span>
-                                    <span className="min-w-0 flex-1 truncate text-foreground">
-                                      {player.name}
+                                    <span
+                                      className="inline-flex min-w-0 flex-1 items-center gap-1.5 text-foreground"
+                                      title={player.name}
+                                      aria-label={`${player.name}${lineupPlayerDisplayMode === 'name' ? '' : `, ${getLineupPlayerDisplayLabel(player, lineupPlayerDisplayMode, english)}`}`}
+                                    >
+                                      {lineupPlayerDisplayMode === 'club' && player.club?.logo && (
+                                        <Image
+                                          src={player.club.logo}
+                                          alt=""
+                                          width={18}
+                                          height={18}
+                                          className="h-[18px] w-[18px] shrink-0 object-contain"
+                                        />
+                                      )}
+                                      <span className="min-w-0 truncate">
+                                        {getLineupPlayerDisplayLabel(
+                                          player,
+                                          lineupPlayerDisplayMode,
+                                          english,
+                                        )}
+                                      </span>
                                     </span>
+                                    {player.isOnField && (
+                                      <span className="shrink-0 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
+                                        {english ? 'On field' : 'Sur le terrain'}
+                                      </span>
+                                    )}
+                                    {player.substituted && (
+                                      <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
+                                        {english ? 'Substituted' : 'Remplacé'}
+                                      </span>
+                                    )}
                                     {player.position && (
-                                      <span className="text-xs text-muted-foreground">
+                                      <span className="shrink-0 text-xs text-muted-foreground">
                                         {player.position}
                                       </span>
                                     )}

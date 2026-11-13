@@ -6,6 +6,28 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+self.addEventListener('push', (event) => {
+  let payload = {};
+  try {
+    const data = event.data?.json();
+    if (data && typeof data === 'object') payload = data;
+  } catch (error) {
+    console.error('Unable to parse a Web Push notification:', error);
+  }
+
+  const title = typeof payload.title === 'string' ? payload.title : 'MalakInfo';
+  const options = {
+    body: typeof payload.body === 'string' ? payload.body : '',
+    icon: typeof payload.icon === 'string' ? payload.icon : '/images/logo.png',
+    badge: '/images/logo.png',
+    tag: typeof payload.tag === 'string' ? payload.tag : 'malakinfo-notification',
+    renotify: true,
+    data: { url: typeof payload.url === 'string' ? payload.url : '/' },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const targetUrl = event.notification?.data?.url || '/';

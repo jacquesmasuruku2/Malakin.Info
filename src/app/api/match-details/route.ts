@@ -19,7 +19,6 @@ type PlayerRosterInfo = {
   number: number | null;
   age: number | null;
   clubId: number | null;
-  clubLeagueSlug: string | null;
   clubName: string | null;
   clubLogo: string | null;
 };
@@ -70,19 +69,6 @@ function getReferenceId(value: unknown, entity: 'teams' | 'leagues'): number | n
     ? new RegExp(`/${entity}/(\\d+)(?:[/?#]|$)`).exec(reference)
     : null;
   return match ? getNumber(match[1]) : null;
-}
-
-function getLeagueSlug(value: unknown): string | null {
-  if (!isRecord(value)) return null;
-  const slug = getString(value.slug);
-  if (slug && LEAGUE_SLUG_PATTERN.test(slug)) return slug;
-
-  const reference = getString(value.$ref);
-  const match = reference ? /\/leagues\/([^/?#]+)/.exec(reference) : null;
-  const referenceSlug = match?.[1] ?? null;
-  return referenceSlug && LEAGUE_SLUG_PATTERN.test(referenceSlug)
-    ? referenceSlug
-    : null;
 }
 
 function parseTeamProfile(value: unknown): TeamProfile | null {
@@ -151,6 +137,30 @@ async function fetchLeagueTeamRoster(
   }
 }
 
+async function fetchTeamProfileById(teamId: number): Promise<TeamProfile | null> {
+  if (!Number.isSafeInteger(teamId) || teamId <= 0) return null;
+
+  try {
+    const response = await fetch(`${ROSTER_URL}/all/teams/${teamId}`, {
+      cache: 'force-cache',
+      next: { revalidate: ROSTER_CACHE_SECONDS },
+      signal: AbortSignal.timeout(5_000),
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error(`ESPN team profile responded with HTTP ${response.status}.`);
+    }
+
+    const payload: unknown = await response.json();
+    const profile = isRecord(payload) ? parseTeamProfile(payload.team) : null;
+    if (!profile) throw new Error('ESPN returned an invalid team profile.');
+    return profile;
+  } catch (error) {
+    console.error(`Unable to load ESPN club profile for team ${teamId}:`, error);
+    return null;
+  }
+}
+
 function parsePlayerRosterInfo(value: unknown): PlayerRosterInfo | null {
   if (!isRecord(value)) return null;
   const id = getNumber(value.id);
@@ -162,7 +172,6 @@ function parsePlayerRosterInfo(value: unknown): PlayerRosterInfo | null {
     number: getNumber(value.jersey) ?? getNumber(value.number),
     age: getPlayerAge(value),
     clubId: getReferenceId(value.defaultTeam, 'teams'),
-    clubLeagueSlug: getLeagueSlug(value.defaultLeague),
     clubName: defaultTeam
       ? getString(defaultTeam.displayName) ?? getString(defaultTeam.name)
       : null,
@@ -197,17 +206,17 @@ function getEventType(value: Record<string, unknown>): string {
   const typeInfo = isRecord(value.type) ? value.type : {};
   const type = (getString(typeInfo.type) ?? getString(typeInfo.text) ?? '').toLowerCase();
   const text = (getString(value.text) ?? '').toLowerCase();
-  if (
-    type.includes('goal') ||
-    type.includes('penalty') ||
-    text.includes('penalty missed') ||
-    value.scoringPlay === true
-  ) {
-    return 'goal';
-  }
   if (type.includes('substitution') || type.includes('sub')) return 'subst';
   if (type.includes('card') || text.includes('yellow card') || text.includes('red card')) {
     return 'card';
+  }
+  if (
+    type.includes('goal') ||
+    value.scoringPlay === true ||
+    text.includes('penalty missed') ||
+    /^(?:goal(?:[!:\s]|$)|own goal\b|penalty (?:missed|scored|converted)\b)/i.test(text)
+  ) {
+    return 'goal';
   }
   return type || 'other';
 }
@@ -224,7 +233,14 @@ function parseKeyEvent(value: unknown, index: number): LiveMatchEvent | null {
   const athletes = (participants.length > 0 ? participants : athletesInvolved).map(getAthlete);
   const substitution = type === 'subst';
   const player = substitution ? athletes[1] : athletes[0];
-  const assist = substitution ? athletes[0] : athletes[1];
+  const parsedAssist = text
+    ? /\bAssisted by\s+(.+?)(?:\s+following\b|[.!?]\s*$|$)/i.exec(text)?.[1]
+        ?.replace(/\s*\([^)]*\)\s*$/, '')
+        .trim() ?? null
+    : null;
+  const assist = substitution
+    ? athletes[0]
+    : athletes[1] ?? { id: null, name: parsedAssist };
   const eventId = getString(value.id) ?? String(index);
   const team = isRecord(value.team)
     ? getString(value.team.displayName) ?? getString(value.team.name)
@@ -243,7 +259,7 @@ function parseKeyEvent(value: unknown, index: number): LiveMatchEvent | null {
         ? typeText || (text?.toLowerCase().includes('red card') ? 'Red Card' : 'Yellow Card')
         : type === 'subst'
           ? 'Substitution'
-          : typeText || text;
+          : typeText || null;
 
   return {
     id: eventId,
@@ -264,11 +280,11 @@ function parseCommentary(value: unknown, index: number): LiveMatchEvent | null {
   const text = getString(value.text);
   if (!text) return null;
   const normalized = text.toLowerCase();
-  const type = normalized.includes('goal')
+  const type = /^(?:own goal|goal(?:[!:\s]|$))/.test(normalized)
     ? 'goal'
-    : normalized.includes('red card') || normalized.includes('yellow card')
+    : /\b(?:red|yellow) card\b/.test(normalized)
       ? 'card'
-      : normalized.includes('substitution')
+      : /\bsubstitution\b|\breplaces\b/.test(normalized)
         ? 'subst'
         : 'other';
 
@@ -288,16 +304,37 @@ function parseCommentary(value: unknown, index: number): LiveMatchEvent | null {
 function parseEvents(payload: Record<string, unknown>): LiveMatchEvent[] {
   const keyEvents = Array.isArray(payload.keyEvents) ? payload.keyEvents : [];
   const commentary = Array.isArray(payload.commentary) ? payload.commentary : [];
-  const source = keyEvents.length > 0 ? keyEvents : commentary;
-  const events = source
-    .map((event, index) =>
-      keyEvents.length > 0
-        ? parseKeyEvent(event, index)
-        : parseCommentary(event, index),
-    )
-    .filter((event): event is LiveMatchEvent => event !== null);
+  const eventsById = new Map<string, LiveMatchEvent>();
 
-  return events.sort(
+  keyEvents.forEach((value, index) => {
+    const event = parseKeyEvent(value, index);
+    if (event) eventsById.set(event.id, event);
+  });
+
+  commentary.forEach((value, index) => {
+    if (!isRecord(value)) return;
+    const play = isRecord(value.play) ? value.play : null;
+    if (play) {
+      const event = parseKeyEvent(play, index);
+      if (!event) return;
+      const id = getString(play.id) ?? `commentary-${getString(value.sequence) ?? index}`;
+      const existing = eventsById.get(id);
+      const comments = getString(value.text) ?? event.comments;
+      eventsById.set(id, {
+        ...(existing ?? event),
+        id,
+        comments,
+      });
+      return;
+    }
+
+    if (keyEvents.length === 0) {
+      const event = parseCommentary(value, index);
+      if (event) eventsById.set(event.id, event);
+    }
+  });
+
+  return Array.from(eventsById.values()).sort(
     (a, b) =>
       a.time.elapsed - b.time.elapsed ||
       (a.time.extra ?? 0) - (b.time.extra ?? 0),
@@ -380,6 +417,8 @@ function parseLineupPlayer(value: unknown): MatchLineupPlayer | null {
     grid: null,
     formationPlace: formationPlace !== null && formationPlace > 0 ? formationPlace : null,
     age: null,
+    isOnField: false,
+    substituted: false,
     club: null,
   };
 }
@@ -414,8 +453,12 @@ function applySubstitutions(
     }
 
     const hasPlayers = (lineup: MatchLineup) =>
-      lineup.startingXI.some((player) => matchesPlayer(player, event.player)) &&
-      lineup.substitutes.some((player) => matchesPlayer(player, event.assist));
+      [...lineup.startingXI, ...lineup.substitutes].some(
+        (player) => player.isOnField && matchesPlayer(player, event.player),
+      ) &&
+      lineup.substitutes.some(
+        (player) => !player.isOnField && matchesPlayer(player, event.assist),
+      );
     const teamName = event.team.name ? normalizePlayerName(event.team.name) : null;
     const lineup =
       updatedLineups.find(
@@ -425,17 +468,28 @@ function applySubstitutions(
       ) ?? updatedLineups.find(hasPlayers);
     if (!lineup) continue;
 
-    const outgoingIndex = lineup.startingXI.findIndex((player) =>
-      matchesPlayer(player, event.player),
+    const outgoingStartingIndex = lineup.startingXI.findIndex(
+      (player) => player.isOnField && matchesPlayer(player, event.player),
+    );
+    const outgoingSubstituteIndex = lineup.substitutes.findIndex(
+      (player) => player.isOnField && matchesPlayer(player, event.player),
     );
     const incomingIndex = lineup.substitutes.findIndex((player) =>
-      matchesPlayer(player, event.assist),
+      !player.isOnField && matchesPlayer(player, event.assist),
     );
-    if (outgoingIndex < 0 || incomingIndex < 0) continue;
+    if (
+      (outgoingStartingIndex < 0 && outgoingSubstituteIndex < 0) ||
+      incomingIndex < 0
+    ) {
+      continue;
+    }
 
-    const outgoing = lineup.startingXI[outgoingIndex];
+    const outgoing =
+      outgoingStartingIndex >= 0
+        ? lineup.startingXI[outgoingStartingIndex]
+        : lineup.substitutes[outgoingSubstituteIndex];
     const incoming = lineup.substitutes[incomingIndex];
-    const replacement: MatchLineupPlayer = {
+    const activeReplacement: MatchLineupPlayer = {
       ...incoming,
       position:
         incoming.position && incoming.position.toUpperCase() !== 'SUB'
@@ -446,11 +500,25 @@ function applySubstitutions(
         incoming.formationPlace !== null && incoming.formationPlace > 0
           ? incoming.formationPlace
           : outgoing.formationPlace,
+      isOnField: true,
     };
     const startingXI = lineup.startingXI.slice();
-    startingXI[outgoingIndex] = replacement;
+    if (outgoingStartingIndex >= 0) {
+      startingXI[outgoingStartingIndex] = {
+        ...outgoing,
+        isOnField: false,
+        substituted: true,
+      };
+    }
     const substitutes = lineup.substitutes.slice();
-    substitutes[incomingIndex] = outgoing;
+    if (outgoingSubstituteIndex >= 0) {
+      substitutes[outgoingSubstituteIndex] = {
+        ...outgoing,
+        isOnField: false,
+        substituted: true,
+      };
+    }
+    substitutes[incomingIndex] = activeReplacement;
 
     updatedLineups = updatedLineups.map((candidate) =>
       candidate === lineup ? { ...candidate, startingXI, substitutes } : candidate,
@@ -474,7 +542,10 @@ function parseLineups(value: unknown): MatchLineup[] {
     const rosterPlayers = teamRoster.roster.flatMap((entry) => {
       if (!isRecord(entry)) return [];
       const player = parseLineupPlayer(entry);
-      return player ? [{ player, starter: entry.starter === true }] : [];
+      const starter = entry.starter === true;
+      return player
+        ? [{ player: { ...player, isOnField: starter }, starter }]
+        : [];
     });
     const startingXI = rosterPlayers
       .filter((entry) => entry.starter)
@@ -532,45 +603,31 @@ async function enrichLineups(
         : null,
     };
   });
-  const clubRosterRequests = new Map<string, { leagueSlug: string; teamId: number }>();
+  const clubProfileRequests = new Map<number, number>();
 
   activeLineups.forEach((lineup, index) => {
-    for (const player of lineup.startingXI) {
+    for (const player of [...lineup.startingXI, ...lineup.substitutes]) {
       if (player.id === null) continue;
       const profile = playerProfiles[index].profiles.get(player.id);
       if (
         profile?.clubId !== null &&
         profile?.clubId !== undefined &&
-        profile.clubId !== lineup.team.id &&
-        profile.clubLeagueSlug
+        profile.clubId !== lineup.team.id
       ) {
-        const key = `${profile.clubLeagueSlug}:${profile.clubId}`;
-        clubRosterRequests.set(key, {
-          leagueSlug: profile.clubLeagueSlug,
-          teamId: profile.clubId,
-        });
+        clubProfileRequests.set(profile.clubId, profile.clubId);
       }
     }
   });
 
-  const clubProfiles = new Map<string, TeamProfile>();
-  const clubRosterEntries = Array.from(clubRosterRequests.entries());
-  const clubRosterBatchSize = 8;
-  for (let index = 0; index < clubRosterEntries.length; index += clubRosterBatchSize) {
-    const batch = clubRosterEntries.slice(index, index + clubRosterBatchSize);
-    const results = await Promise.all(
-      batch.map(async ([key, request]) => {
-        const roster = await fetchLeagueTeamRoster(
-          request.leagueSlug,
-          request.teamId,
-          `club ${request.teamId}`,
-        );
-        return [key, roster ? parseTeamProfile(roster.team) : null] as const;
-      }),
-    );
-    for (const [key, profile] of results) {
-      if (profile) clubProfiles.set(key, profile);
-    }
+  const clubProfiles = new Map<number, TeamProfile>();
+  const clubProfileResults = await Promise.all(
+    Array.from(clubProfileRequests.values()).map(async (teamId) => [
+      teamId,
+      await fetchTeamProfileById(teamId),
+    ] as const),
+  );
+  for (const [teamId, profile] of clubProfileResults) {
+    if (profile) clubProfiles.set(teamId, profile);
   }
 
   return activeLineups.map((lineup, index) => {
@@ -591,10 +648,9 @@ async function enrichLineups(
       if (showClub && profile) {
         if (profile.clubId !== null && profile.clubId === lineup.team.id) {
           club = matchTeamProfile;
-        } else if (profile.clubId !== null && profile.clubLeagueSlug) {
-          const clubKey = `${profile.clubLeagueSlug}:${profile.clubId}`;
+        } else if (profile.clubId !== null) {
           club =
-            clubProfiles.get(clubKey) ??
+            clubProfiles.get(profile.clubId) ??
             (profile.clubName
               ? {
                   id: profile.clubId,
@@ -624,7 +680,7 @@ async function enrichLineups(
     return {
       ...lineup,
       startingXI: lineup.startingXI.map((player) => enrichPlayer(player, true)),
-      substitutes: lineup.substitutes.map((player) => enrichPlayer(player, false)),
+      substitutes: lineup.substitutes.map((player) => enrichPlayer(player, true)),
     };
   });
 }
