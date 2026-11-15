@@ -144,7 +144,7 @@ CRON_SECRET=...
 
 Les rappels de matches utilisent les notifications Push Web. Générez une paire VAPID avec `npx web-push generate-vapid-keys` et configurez les deux clés dans les variables du projet (seule la clé publique porte le préfixe `NEXT_PUBLIC_`). `CRON_SECRET` doit être une valeur aléatoire longue, identique dans l’environnement de production.
 
-Le cron `/api/cron/match-reminders` recherche les matches ESPN toutes les cinq minutes et envoie un rappel environ 30 minutes avant le coup d’envoi. La configuration Vercel correspondante est dans `vercel.json`. Les cron jobs toutes les cinq minutes exigent un plan Vercel Pro ou supérieur ; sur un autre hébergeur, planifiez un appel GET à cette route avec `Authorization: Bearer <CRON_SECRET>` toutes les cinq minutes.
+Le cron `/api/cron/match-reminders` recherche les matches ESPN toutes les cinq minutes et envoie un rappel environ 30 minutes avant le coup d’envoi. Pour le déployer avec Cloudflare Workers Builds, définissez **Root directory** sur `cloudflare/match-reminders`, laissez **Build command** vide et utilisez `npm run deploy` comme **Deploy command**. Cela évite de lancer le build Next.js du site à la racine. Le Worker utilise le Cron Trigger `*/5 * * * *`. Configurez `CRON_SECRET` comme variable de production dans Vercel et comme secret Worker dans Cloudflare, avec la même valeur. Après avoir vérifié l’exécution du Worker, retirez le cron Vercel quotidien de `vercel.json` pour éviter les doubles appels. Les exécutions restent soumises aux limites d’utilisation des Vercel Functions.
 
 Pour que les médias audio/vidéo du WordEditor soient envoyés directement depuis le navigateur, configurez une politique CORS dans les paramètres du bucket R2 :
 
