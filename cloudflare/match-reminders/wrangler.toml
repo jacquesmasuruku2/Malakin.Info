@@ -2,8 +2,5 @@ name = "malakinfo-match-reminders"
 main = "src/index.js"
 compatibility_date = "2026-11-14"
 
-[triggers]
-crons = ["*/5 * * * *"]
-
 [vars]
 CRON_TARGET_URL = "https://malakinfo.com/api/cron/match-reminders"
