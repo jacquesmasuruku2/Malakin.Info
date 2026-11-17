@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signIn } from 'next-auth/react';
@@ -30,13 +30,21 @@ interface CommentsSectionProps {
 }
 
 const commentReactionOptions = [
-  { type: 'like', emoji: '👍' },
-  { type: 'love', emoji: '♥️' },
-  { type: 'haha', emoji: '😂' },
-  { type: 'wow', emoji: '😮' },
-  { type: 'sad', emoji: '😢' },
-  { type: 'angry', emoji: '😡' },
+  { type: 'like', emoji: '👍', particles: ['👏', '✨', '🎉'], celebration: ['👍', '👏', '🎉', '👏'] },
+  { type: 'love', emoji: '♥️', particles: ['🌸', '♡', '💐'], celebration: ['❤️', '🌸', '💕', '💐'] },
+  { type: 'haha', emoji: '😂', particles: ['🤣', '😂', '✨'], celebration: ['😂', '🤣', '😆', '🤭'] },
+  { type: 'wow', emoji: '😮', particles: ['✦', '✨', '🌟'], celebration: ['😮', '✨', '🌟', '🤩'] },
+  { type: 'sad', emoji: '😢', particles: ['💧', '💧', '💙'], celebration: ['😢', '💧', '🥺', '💙'] },
+  { type: 'angry', emoji: '😡', particles: ['💢', '🔥', '💢'], celebration: ['😡', '🔥', '💢', '😤'] },
 ];
+
+const reactionCelebrationParticles = Array.from({ length: 28 }, (_, index) => ({
+  id: index,
+  left: `${(index * 47 + 4) % 94}%`,
+  delay: `${(index * 83) % 750}ms`,
+  duration: `${2600 + ((index * 137) % 1200)}ms`,
+  size: `${1.2 + ((index * 17) % 15) / 10}rem`,
+}));
 
 export default function CommentsSection({ articleId, locale }: CommentsSectionProps) {
   const { user, ready } = useAccountUser();
@@ -52,6 +60,11 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   const [replyText, setReplyText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [animatingReaction, setAnimatingReaction] = useState<{
+    commentId: string;
+    type: string;
+    nonce: number;
+  } | null>(null);
 
   const t = {
     comments: locale === 'fr' ? 'Commentaires' : 'Comments',
@@ -75,6 +88,21 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
     () => comments.reduce((acc, comment) => acc + 1 + (comment.replies?.length ?? 0), 0),
     [comments]
   );
+  const isCelebratingReaction = animatingReaction !== null;
+  const celebrationOption = commentReactionOptions.find(
+    (option) => option.type === animatingReaction?.type
+  );
+
+  useEffect(() => {
+    if (!animatingReaction) return;
+
+    const nonce = animatingReaction.nonce;
+    const timeout = window.setTimeout(() => {
+      setAnimatingReaction((current) => current?.nonce === nonce ? null : current);
+    }, 4500);
+
+    return () => window.clearTimeout(timeout);
+  }, [animatingReaction]);
 
   useEffect(() => {
     let cancelled = false;
@@ -229,6 +257,12 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
       return;
     }
 
+    setAnimatingReaction((current) => ({
+      commentId,
+      type,
+      nonce: (current?.nonce ?? 0) + 1,
+    }));
+
     try {
       const response = await authFetch('/api/comments/reactions', {
         method: 'POST',
@@ -315,7 +349,31 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
                       : 'hover:bg-muted'
                   }`}
                 >
-                  <span>{option.emoji}</span>
+                  <span className="relative inline-flex">
+                    <span
+                      key={`emoji-${animatingReaction?.commentId === comment.id && animatingReaction.type === option.type
+                        ? animatingReaction.nonce
+                        : 'idle'}`}
+                      className={`inline-flex ${animatingReaction?.commentId === comment.id && animatingReaction.type === option.type
+                        ? `comment-reaction-emoji comment-reaction-${option.type}`
+                        : ''}`}
+                    >
+                      {option.emoji}
+                    </span>
+                    {animatingReaction?.commentId === comment.id && animatingReaction.type === option.type && (
+                      <span
+                        key={`particles-${animatingReaction.nonce}`}
+                        className={`comment-reaction-particles comment-reaction-particles-${option.type}`}
+                        aria-hidden="true"
+                      >
+                        {option.particles.map((particle, index) => (
+                          <span key={`${particle}-${index}`} className={`comment-reaction-particle particle-${index + 1}`}>
+                            {particle}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                  </span>
                   {count > 0 && <span className="text-xs font-bold text-foreground">{count}</span>}
                 </button>
               );
@@ -490,6 +548,30 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
             <div key={comment.id} className="mx-auto max-w-[1180px] px-1 sm:px-2">
               {renderComment(comment)}
             </div>
+          ))}
+        </div>
+      )}
+
+      {isCelebratingReaction && celebrationOption && (
+        <div
+          className={`comment-reaction-celebration comment-reaction-celebration-${celebrationOption.type}`}
+          aria-hidden="true"
+        >
+          {reactionCelebrationParticles.map((particle) => (
+            <span
+              key={`${animatingReaction.nonce}-${particle.id}`}
+              className="comment-reaction-floater"
+              style={{
+                left: particle.left,
+                animationDelay: particle.delay,
+                animationDuration: particle.duration,
+                fontSize: particle.size,
+              } satisfies CSSProperties}
+            >
+              <span className={`comment-reaction-floater-glyph comment-reaction-floater-glyph-${celebrationOption.type}`}>
+                {celebrationOption.celebration[particle.id % celebrationOption.celebration.length]}
+              </span>
+            </span>
           ))}
         </div>
       )}

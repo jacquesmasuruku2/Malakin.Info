@@ -1141,6 +1141,258 @@ html.dark .article-body a[href*="/tag/"]:hover :is(span, strong, b, em, i, u) {
   }
 }
 
+.comment-reaction-emoji {
+  transform-origin: center;
+  animation-duration: 720ms;
+  animation-timing-function: cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+
+.comment-reaction-like {
+  animation-name: comment-reaction-pop;
+}
+
+.comment-reaction-love {
+  animation-name: comment-reaction-heart;
+}
+
+.comment-reaction-haha {
+  animation-name: comment-reaction-laugh;
+}
+
+.comment-reaction-wow {
+  animation-name: comment-reaction-wow;
+}
+
+.comment-reaction-sad {
+  animation-name: comment-reaction-sad;
+}
+
+.comment-reaction-angry {
+  animation-name: comment-reaction-angry;
+}
+
+.comment-reaction-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.comment-reaction-particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 0.7rem;
+  line-height: 1;
+  animation: comment-reaction-particle-float 850ms ease-out both;
+}
+
+.particle-1 {
+  --particle-x: -13px;
+  --particle-y: -15px;
+  animation-delay: 20ms;
+}
+
+.particle-2 {
+  --particle-x: 1px;
+  --particle-y: -22px;
+  animation-delay: 80ms;
+}
+
+.particle-3 {
+  --particle-x: 14px;
+  --particle-y: -13px;
+  animation-delay: 45ms;
+}
+
+.comment-reaction-particles-love .comment-reaction-particle {
+  color: #ee5d8b;
+  font-size: 0.8rem;
+}
+
+.comment-reaction-particles-sad .comment-reaction-particle {
+  color: #55a9e8;
+}
+
+.comment-reaction-particles-angry .comment-reaction-particle {
+  color: #f27b48;
+}
+
+@keyframes comment-reaction-pop {
+  0%, 100% { transform: scale(1); }
+  35% { transform: scale(1.45) rotate(-8deg); }
+  65% { transform: scale(0.92) rotate(5deg); }
+}
+
+@keyframes comment-reaction-heart {
+  0%, 100% { transform: scale(1); }
+  28% { transform: scale(1.38); }
+  48% { transform: scale(0.94); }
+  68% { transform: scale(1.16); }
+}
+
+@keyframes comment-reaction-laugh {
+  0%, 100% { transform: rotate(0) scale(1); }
+  25% { transform: rotate(-12deg) scale(1.18); }
+  50% { transform: rotate(10deg) scale(1.18); }
+  75% { transform: rotate(-6deg) scale(1.08); }
+}
+
+@keyframes comment-reaction-wow {
+  0%, 100% { transform: scale(1); }
+  40% { transform: scale(1.38); }
+  65% { transform: scale(0.9); }
+}
+
+@keyframes comment-reaction-sad {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  30% { transform: translateY(-4px) rotate(-8deg); }
+  65% { transform: translateY(2px) rotate(5deg); }
+}
+
+@keyframes comment-reaction-angry {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  20%, 60% { transform: translateX(-3px) rotate(-8deg); }
+  40%, 80% { transform: translateX(3px) rotate(8deg); }
+}
+
+@keyframes comment-reaction-particle-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35);
+  }
+  25% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--particle-x)), calc(-50% + var(--particle-y))) scale(1.1);
+  }
+}
+
+.comment-reaction-celebration {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.comment-reaction-floater {
+  position: absolute;
+  bottom: -12vh;
+  display: block;
+  opacity: 0;
+  filter: drop-shadow(0 3px 8px rgb(0 0 0 / 14%));
+  animation-name: comment-reaction-float;
+  animation-timing-function: cubic-bezier(0.2, 0.65, 0.3, 1);
+  animation-fill-mode: both;
+  will-change: transform, opacity;
+}
+
+.comment-reaction-floater:nth-child(even) {
+  animation-name: comment-reaction-float-drift;
+}
+
+.comment-reaction-floater-glyph {
+  display: block;
+  animation-duration: 720ms;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.comment-reaction-floater-glyph-like {
+  animation-name: comment-reaction-applaud;
+}
+
+.comment-reaction-floater-glyph-love {
+  animation-name: comment-reaction-heartbeat;
+}
+
+.comment-reaction-floater-glyph-haha {
+  animation-name: comment-reaction-laughing;
+}
+
+.comment-reaction-floater-glyph-wow {
+  animation-name: comment-reaction-amazed;
+}
+
+.comment-reaction-floater-glyph-sad {
+  animation-name: comment-reaction-sway;
+}
+
+.comment-reaction-floater-glyph-angry {
+  animation-name: comment-reaction-wobble;
+}
+
+@keyframes comment-reaction-float {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(-12deg) scale(0.7);
+  }
+  12% { opacity: 0.92; }
+  50% { transform: translate3d(10px, -55vh, 0) rotate(10deg) scale(1); }
+  88% { opacity: 0.8; }
+  100% {
+    opacity: 0;
+    transform: translate3d(-8px, -120vh, 0) rotate(-8deg) scale(1.12);
+  }
+}
+
+@keyframes comment-reaction-float-drift {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(12deg) scale(0.7);
+  }
+  12% { opacity: 0.92; }
+  50% { transform: translate3d(-12px, -55vh, 0) rotate(-10deg) scale(1); }
+  88% { opacity: 0.8; }
+  100% {
+    opacity: 0;
+    transform: translate3d(8px, -120vh, 0) rotate(8deg) scale(1.12);
+  }
+}
+
+@keyframes comment-reaction-applaud {
+  0%, 100% { transform: translateY(0) rotate(-8deg) scale(0.94); }
+  50% { transform: translateY(-5px) rotate(8deg) scale(1.12); }
+}
+
+@keyframes comment-reaction-heartbeat {
+  0%, 100% { transform: scale(0.9); }
+  35% { transform: scale(1.2); }
+  60% { transform: scale(0.98); }
+}
+
+@keyframes comment-reaction-laughing {
+  0%, 100% { transform: rotate(-10deg) scale(0.96); }
+  50% { transform: rotate(10deg) scale(1.08); }
+}
+
+@keyframes comment-reaction-amazed {
+  0%, 100% { transform: rotate(-8deg) scale(0.94); }
+  50% { transform: rotate(8deg) scale(1.12); }
+}
+
+@keyframes comment-reaction-sway {
+  0%, 100% { transform: translateX(-3px) rotate(-6deg); }
+  50% { transform: translateX(3px) rotate(6deg); }
+}
+
+@keyframes comment-reaction-wobble {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(-3px) rotate(-8deg); }
+  75% { transform: translateX(3px) rotate(8deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comment-reaction-emoji,
+  .comment-reaction-particle,
+  .comment-reaction-floater,
+  .comment-reaction-floater-glyph {
+    animation: none !important;
+  }
+}
+
 .article-body a.article-inline-tag,
 .article-body a[href*="/tag/"] {
   color: inherit !important;
