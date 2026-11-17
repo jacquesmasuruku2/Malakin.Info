@@ -8,7 +8,7 @@ const CURRENCY = (process.env.STRIPE_DONATION_CURRENCY || 'xof').toLowerCase();
 
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY is not configured');
-  return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2026-07-29.dahlia' });
+  return new Stripe(process.env.STRIPE_SECRET_KEY);
 }
 
 function getBaseUrl(request: NextRequest) {
