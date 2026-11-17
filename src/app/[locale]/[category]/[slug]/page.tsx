@@ -115,7 +115,7 @@ export default async function ArticlePage({
         },
       },
       orderBy: {
-        position: 'asc',
+        sortOrder: 'asc',
       },
     } as any)) || [];
 
@@ -142,7 +142,7 @@ export default async function ArticlePage({
         },
       },
       orderBy: {
-        position: 'asc',
+        sortOrder: 'asc',
       },
       take: 2,
     } as any)) || [];
