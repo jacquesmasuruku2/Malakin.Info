@@ -2,31 +2,38 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { MessageSquare, Calendar, ExternalLink, User, Pencil, Save, X } from 'lucide-react';
+import { MessageSquare, Calendar, ExternalLink, User, Pencil, Save, X, Trash2 } from 'lucide-react';
 import { authFetch } from '@/lib/client-auth';
 import { useAccountUser } from '@/lib/use-account-user';
+
+interface UserComment {
+  id: string;
+  content: string;
+  createdAt: string;
+  article?: {
+    title?: string;
+    slug?: string;
+  } | null;
+}
 
 export default function CommentsPage() {
   const { user: currentUser, ready } = useAccountUser();
   const { locale } = useParams<{ locale: string }>();
-  const [comments, setComments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [comments, setComments] = useState<UserComment[]>([]);
+  const [loading, setLoading] = useState(false);
   const [unauthorized, setUnauthorized] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
+  const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
 
   const userKey = currentUser?.id ?? currentUser?.email ?? null;
 
   useEffect(() => {
     if (!ready) return;
 
-    if (!userKey) {
-      setUnauthorized(true);
-      setComments([]);
-      setLoading(false);
-      return;
-    }
+    if (!userKey) return;
 
     const fetchComments = async () => {
       try {
@@ -58,7 +65,7 @@ export default function CommentsPage() {
     fetchComments();
   }, [ready, userKey]);
 
-  const handleEdit = (comment: any) => {
+  const handleEdit = (comment: UserComment) => {
     setEditingCommentId(comment.id);
     setEditingContent(comment.content);
   };
@@ -92,6 +99,35 @@ export default function CommentsPage() {
       alert('Une erreur est survenue lors de la modification du commentaire.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async (commentId: string) => {
+    try {
+      setDeletingCommentId(commentId);
+      const response = await authFetch('/api/user/comments', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ commentId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Impossible de supprimer le commentaire');
+      }
+
+      setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+      if (editingCommentId === commentId) {
+        setEditingCommentId(null);
+        setEditingContent('');
+      }
+      setDeleteConfirmationId(null);
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      alert('Une erreur est survenue lors de la suppression du commentaire.');
+    } finally {
+      setDeletingCommentId(null);
     }
   };
 
@@ -141,7 +177,7 @@ export default function CommentsPage() {
             <MessageSquare className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">Aucun commentaire</h2>
             <p className="text-muted-foreground mb-4">
-              Vous n'avez pas encore laissé de commentaire sur les articles.
+              Vous n&apos;avez pas encore laissé de commentaire sur les articles.
             </p>
           </div>
         ) : (
@@ -170,6 +206,15 @@ export default function CommentsPage() {
                     >
                       <Pencil className="h-3.5 w-3.5" />
                       Modifier
+                    </button>
+                    <button
+                      type="button"
+                      disabled={deletingCommentId === comment.id}
+                      onClick={() => setDeleteConfirmationId(comment.id)}
+                      className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {deletingCommentId === comment.id ? 'Suppression...' : 'Supprimer'}
                     </button>
                     <a
                       href={`/${locale}/${comment.article?.slug}`}
@@ -221,6 +266,51 @@ export default function CommentsPage() {
           </div>
         )}
       </div>
+
+      {deleteConfirmationId && (
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-comment-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && deletingCommentId === null) {
+              setDeleteConfirmationId(null);
+            }
+          }}
+        >
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+              <Trash2 className="h-6 w-6" />
+            </div>
+            <h2 id="delete-comment-title" className="text-xl font-bold text-foreground">
+              Supprimer ce commentaire ?
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Cette action est définitive. Le commentaire et ses réponses seront supprimés.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                disabled={deletingCommentId !== null}
+                onClick={() => setDeleteConfirmationId(null)}
+                className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-60"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                disabled={deletingCommentId !== null}
+                onClick={() => handleDelete(deleteConfirmationId)}
+                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Trash2 className="h-4 w-4" />
+                {deletingCommentId ? 'Suppression...' : 'Oui, supprimer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

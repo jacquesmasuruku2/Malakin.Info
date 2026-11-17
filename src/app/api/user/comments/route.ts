@@ -72,3 +72,43 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const currentUser = await resolveCurrentUser(request);
+
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const commentId = typeof body.commentId === 'string' ? body.commentId : '';
+
+    if (!commentId) {
+      return NextResponse.json({ error: 'Comment ID is required' }, { status: 400 });
+    }
+
+    const comment = await prisma.comment.findFirst({
+      where: {
+        id: commentId,
+        userId: currentUser.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!comment) {
+      return NextResponse.json({ error: 'Comment not found' }, { status: 404 });
+    }
+
+    await prisma.comment.delete({
+      where: { id: comment.id },
+    });
+
+    return NextResponse.json({ deleted: true });
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

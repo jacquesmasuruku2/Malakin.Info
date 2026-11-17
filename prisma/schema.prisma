@@ -8,15 +8,15 @@ datasource db {
 }
 
 model Category {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   title         String
-  slug          String   @unique
+  slug          String    @unique
   description   String?
   color         String?
   icon          String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  defaultLocale String   @default("fr")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  defaultLocale String    @default("fr")
   articles      Article[]
   media         Media[]
 }
@@ -52,38 +52,38 @@ model Author {
 }
 
 model Article {
-  id                String             @id @default(cuid())
-  title             String
-  slug              String             @unique
-  excerpt           String
-  content           Json
-  categoryId        String
-  authorId          String?
-  publishedAt       DateTime
-  mainImageUrl      String?
-  externalLink      String?
-  mainImageAlt      String?
-  additionalImages  Json?              @default("[]")
-  additionalImageDescriptions Json?    @default("[]")
-  readTime          String?
-  featured          Boolean            @default(false)
-  isPremium         Boolean            @default(false)
-  premiumPrice      Decimal?           @db.Decimal(10, 2)
-  views             BigInt             @default(0)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  translationSourceUpdatedAt DateTime   @default(now())
-  defaultLocale     String             @default("fr")
-  author            Author?            @relation(fields: [authorId], references: [id])
-  category          Category           @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  translations      ArticleTranslation[]
-  translationJobs   TranslationJob[]
-  comments          Comment[]
-  likes             Like[]
-  favorites         UserFavorite[]
-  sponsoredArticles SponsoredArticle[]
-  articlePurchases  ArticlePurchase[]
-  articleTags       ArticleTag[]
+  id                          String               @id @default(cuid())
+  title                       String
+  slug                        String               @unique
+  excerpt                     String
+  content                     Json
+  categoryId                  String
+  authorId                    String?
+  publishedAt                 DateTime
+  mainImageUrl                String?
+  externalLink                String?
+  mainImageAlt                String?
+  additionalImages            Json?                @default("[]")
+  additionalImageDescriptions Json?                @default("[]")
+  readTime                    String?
+  featured                    Boolean              @default(false)
+  isPremium                   Boolean              @default(false)
+  premiumPrice                Decimal?             @db.Decimal(10, 2)
+  views                       BigInt               @default(0)
+  createdAt                   DateTime             @default(now())
+  updatedAt                   DateTime             @updatedAt
+  translationSourceUpdatedAt  DateTime             @default(now())
+  defaultLocale               String               @default("fr")
+  author                      Author?              @relation(fields: [authorId], references: [id])
+  category                    Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  translations                ArticleTranslation[]
+  translationJobs             TranslationJob[]
+  comments                    Comment[]
+  likes                       Like[]
+  favorites                   UserFavorite[]
+  sponsoredArticles           SponsoredArticle[]
+  articlePurchases            ArticlePurchase[]
+  articleTags                 ArticleTag[]
 
   @@index([categoryId])
   @@index([authorId])
@@ -128,7 +128,7 @@ model SponsoredArticle {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  article       Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  article Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   @@index([articleId])
   @@index([isActive])
@@ -136,21 +136,21 @@ model SponsoredArticle {
 }
 
 model ArticleTranslation {
-  id              String   @id @default(cuid())
-  articleId       String
-  locale          String
-  title           String
-  excerpt         String
-  content         Json
-  mainImageAlt    String?
+  id                          String    @id @default(cuid())
+  articleId                   String
+  locale                      String
+  title                       String
+  excerpt                     String
+  content                     Json
+  mainImageAlt                String?
   additionalImageDescriptions Json?
-  seoTitle        String?
-  seoDescription  String?
-  status          String   @default("published")
-  sourceUpdatedAt DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  article         Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  seoTitle                    String?
+  seoDescription              String?
+  status                      String    @default("published")
+  sourceUpdatedAt             DateTime?
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+  article                     Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   @@unique([articleId, locale])
   @@index([articleId])
@@ -159,48 +159,49 @@ model ArticleTranslation {
 }
 
 model TranslationJob {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   articleId       String
   locale          String
-  status          String   @default("queued")
-  attempts        Int      @default(0)
+  status          String    @default("queued")
+  attempts        Int       @default(0)
   lastError       String?
   sourceUpdatedAt DateTime?
-  queuedAt        DateTime @default(now())
+  queuedAt        DateTime  @default(now())
   startedAt       DateTime?
   finishedAt      DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  article         Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  article         Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   @@unique([articleId, locale])
   @@index([status, queuedAt])
 }
 
 model User {
-  id            String          @id @default(cuid())
-  email         String          @unique
-  name          String
-  passwordHash  String
-  role          String          @default("reader")
-  avatarUrl     String?
-  bio           String?
-  isActive      Boolean         @default(true)
-  emailVerified Boolean         @default(false)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  lastLoginAt   DateTime?
-  comments      Comment[]
-  likes         Like[]
-  favorites     UserFavorite[]
-  donations     Donation[]
-  preferences   UserPreference?
-  sessions      Session[]
-  articlePurchases ArticlePurchase[]
-  subscriptions Subscription[]
-  jobApplications JobApplication[]
-  followedFootballTeams FollowedFootballTeam[]
-  webPushSubscriptions WebPushSubscription[]
+  id                      String                  @id @default(cuid())
+  email                   String                  @unique
+  name                    String
+  passwordHash            String
+  role                    String                  @default("reader")
+  avatarUrl               String?
+  bio                     String?
+  isActive                Boolean                 @default(true)
+  emailVerified           Boolean                 @default(false)
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+  lastLoginAt             DateTime?
+  comments                Comment[]
+  commentReactions        CommentReaction[]
+  likes                   Like[]
+  favorites               UserFavorite[]
+  donations               Donation[]
+  preferences             UserPreference?
+  sessions                Session[]
+  articlePurchases        ArticlePurchase[]
+  subscriptions           Subscription[]
+  jobApplications         JobApplication[]
+  followedFootballTeams   FollowedFootballTeam[]
+  webPushSubscriptions    WebPushSubscription[]
   matchReminderDeliveries MatchReminderDelivery[]
 
   @@index([email])
@@ -217,22 +218,37 @@ model Session {
 }
 
 model Comment {
-  id        String   @id @default(cuid())
+  id        String            @id @default(cuid())
   articleId String
   userId    String
   parentId  String?
   content   String
-  status    String   @default("pending")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent    Comment? @relation("CommentToComment", fields: [parentId], references: [id], onDelete: Cascade)
-  replies   Comment[] @relation("CommentToComment")
+  status    String            @default("pending")
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  article   Article           @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    Comment?          @relation("CommentToComment", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[]         @relation("CommentToComment")
+  reactions CommentReaction[]
 
   @@index([articleId])
   @@index([userId])
   @@index([status])
+}
+
+model CommentReaction {
+  id        String   @id @default(cuid())
+  commentId String
+  userId    String
+  type      String
+  createdAt DateTime @default(now())
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
+  @@index([commentId])
+  @@index([userId])
 }
 
 model Like {
@@ -298,22 +314,22 @@ model Media {
 }
 
 model Donation {
-  id            String   @id @default(cuid())
-  userId        String?
-  donorName     String?
-  donorEmail    String?
-  amount        Decimal  @db.Decimal(10, 2)
-  currency      String   @default("EUR")
-  type          String
-  status        String   @default("pending")
-  message       String?
-  isAnonymous   Boolean  @default(false)
-  paymentMethod String?
-  stripeSessionId String? @unique
-  transactionId String?  @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id              String   @id @default(cuid())
+  userId          String?
+  donorName       String?
+  donorEmail      String?
+  amount          Decimal  @db.Decimal(10, 2)
+  currency        String   @default("EUR")
+  type            String
+  status          String   @default("pending")
+  message         String?
+  isAnonymous     Boolean  @default(false)
+  paymentMethod   String?
+  stripeSessionId String?  @unique
+  transactionId   String?  @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([status])
   @@index([createdAt(sort: Desc)])
@@ -334,16 +350,16 @@ model UserFavorite {
 }
 
 model ArticlePurchase {
-  id          String   @id @default(cuid())
-  userId      String
-  articleId   String
-  amount      Decimal  @db.Decimal(10, 2)
-  currency    String   @default("USD")
-  status      String   @default("completed")
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  articleId String
+  amount    Decimal  @db.Decimal(10, 2)
+  currency  String   @default("USD")
+  status    String   @default("completed")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([articleId])
@@ -352,15 +368,15 @@ model ArticlePurchase {
 }
 
 model Subscription {
-  id          String   @id @default(cuid())
-  userId      String
-  amount      Decimal  @db.Decimal(10, 2)
-  currency    String   @default("USD")
-  status      String   @default("active")
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  amount    Decimal  @db.Decimal(10, 2)
+  currency  String   @default("USD")
+  status    String   @default("active")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
@@ -368,15 +384,15 @@ model Subscription {
 }
 
 model UserPreference {
-  id               String   @id @default(cuid())
-  userId           String   @unique
-  locale           String   @default("fr")
-  theme            String   @default("light")
-  emailNewsletter  Boolean  @default(false)
-  emailDigest      Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  locale          String   @default("fr")
+  theme           String   @default("light")
+  emailNewsletter Boolean  @default(false)
+  emailDigest     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -407,14 +423,14 @@ model WebPushSubscription {
 }
 
 model MatchReminderDelivery {
-  id         String    @id @default(cuid())
-  userId     String
+  id          String    @id @default(cuid())
+  userId      String
   espnEventId String
-  kickoffAt  DateTime
-  claimedAt  DateTime?
-  sentAt     DateTime?
-  createdAt  DateTime  @default(now())
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kickoffAt   DateTime
+  claimedAt   DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, espnEventId])
   @@index([kickoffAt])
@@ -466,17 +482,17 @@ model JobOffer {
   slug         String           @unique
   description  String
   requirements String?
-  details     Json? @default("{}")
-  imageUrl    String?
-  location    String?
-  type        String
-  salary      String?
-  companyId   String?
-  publishedAt DateTime
-  deadline    DateTime?
-  featured    Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  details      Json?            @default("{}")
+  imageUrl     String?
+  location     String?
+  type         String
+  salary       String?
+  companyId    String?
+  publishedAt  DateTime
+  deadline     DateTime?
+  featured     Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
   applications JobApplication[]
 
   @@index([type])
@@ -486,7 +502,7 @@ model JobOffer {
 }
 
 model JobApplication {
-  id           String    @id @default(cuid())
+  id           String                  @id @default(cuid())
   jobOfferId   String
   userId       String?
   name         String
@@ -494,13 +510,13 @@ model JobApplication {
   phone        String?
   coverLetter  String?
   resumeUrl    String?
-  status       String    @default("pending")
+  status       String                  @default("pending")
   adminMessage String?
   respondedAt  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  jobOffer     JobOffer  @relation(fields: [jobOfferId], references: [id], onDelete: Cascade)
-  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+  jobOffer     JobOffer                @relation(fields: [jobOfferId], references: [id], onDelete: Cascade)
+  user         User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
   messages     JobApplicationMessage[]
 
   @@index([jobOfferId])
@@ -524,26 +540,26 @@ model JobApplicationMessage {
 }
 
 model BlogPost {
-  id                        String                      @id @default(cuid())
-  title                     String
-  slug                      String                      @unique
-  excerpt                   String
-  content                   Json
-  type                      String
-  authorId                  String?
-  publishedAt               DateTime
-  mainImageUrl              String?
-  mainImageAlt              String?
-  readTime                  String?
-  featured                  Boolean                     @default(false)
-  views                     BigInt                      @default(0)
-  createdAt                 DateTime                    @default(now())
-  updatedAt                 DateTime                    @updatedAt
-  defaultLocale             String                      @default("fr")
-  translationSourceUpdatedAt DateTime                    @default(now())
-  author                    Author?                     @relation(fields: [authorId], references: [id])
-  translations              BlogPostTranslation[]
-  translationJobs           BlogPostTranslationJob[]
+  id                         String                   @id @default(cuid())
+  title                      String
+  slug                       String                   @unique
+  excerpt                    String
+  content                    Json
+  type                       String
+  authorId                   String?
+  publishedAt                DateTime
+  mainImageUrl               String?
+  mainImageAlt               String?
+  readTime                   String?
+  featured                   Boolean                  @default(false)
+  views                      BigInt                   @default(0)
+  createdAt                  DateTime                 @default(now())
+  updatedAt                  DateTime                 @updatedAt
+  defaultLocale              String                   @default("fr")
+  translationSourceUpdatedAt DateTime                 @default(now())
+  author                     Author?                  @relation(fields: [authorId], references: [id])
+  translations               BlogPostTranslation[]
+  translationJobs            BlogPostTranslationJob[]
 
   @@index([type])
   @@index([publishedAt(sort: Desc)])
@@ -551,7 +567,7 @@ model BlogPost {
 }
 
 model BlogPostTranslation {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   blogPostId      String
   locale          String
   title           String
@@ -560,11 +576,11 @@ model BlogPostTranslation {
   mainImageAlt    String?
   seoTitle        String?
   seoDescription  String?
-  status          String   @default("draft")
+  status          String    @default("draft")
   sourceUpdatedAt DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  blogPost        BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  blogPost        BlogPost  @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
 
   @@unique([blogPostId, locale])
   @@index([blogPostId])
@@ -573,40 +589,40 @@ model BlogPostTranslation {
 }
 
 model BlogPostTranslationJob {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   blogPostId      String
   locale          String
-  status          String   @default("queued")
-  attempts        Int      @default(0)
+  status          String    @default("queued")
+  attempts        Int       @default(0)
   lastError       String?
   sourceUpdatedAt DateTime?
-  queuedAt        DateTime @default(now())
+  queuedAt        DateTime  @default(now())
   startedAt       DateTime?
   finishedAt      DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  blogPost        BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  blogPost        BlogPost  @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
 
   @@unique([blogPostId, locale])
   @@index([status, queuedAt])
 }
 
 model LiveEvent {
-  id          String       @id @default(cuid())
+  id          String     @id @default(cuid())
   title       String
-  slug        String       @unique
+  slug        String     @unique
   description String?
   thumbnail   String?
   streamUrl   String?
   youtubeUrl  String?
-  streamType  StreamType   @default(VIDEO)
-  status      LiveStatus   @default(SCHEDULED)
+  streamType  StreamType @default(VIDEO)
+  status      LiveStatus @default(SCHEDULED)
   startTime   DateTime
   endTime     DateTime?
-  viewerCount Int          @default(0)
-  isFeatured  Boolean      @default(false)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  viewerCount Int        @default(0)
+  isFeatured  Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   categoryId  String?
 
   @@index([status])
@@ -624,15 +640,15 @@ model LiveViewerSession {
 }
 
 model RadioStation {
-  id          String        @id @default(cuid())
+  id          String         @id @default(cuid())
   name        String
   streamUrl   String
   logoUrl     String?
   description String?
-  showLabel   Boolean  @default(true)
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  showLabel   Boolean        @default(true)
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   programs    RadioProgram[]
 }
 

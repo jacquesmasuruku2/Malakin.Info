@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { ThumbsUp, MessageCircle, MessagesSquare, Send, User as UserIcon } from 'lucide-react';
+import { ThumbsUp, MessageCircle, MessagesSquare, Send } from 'lucide-react';
 import { authFetch } from '@/lib/client-auth';
 import { useAccountUser } from '@/lib/use-account-user';
 
@@ -12,6 +12,10 @@ interface Comment {
   id: string;
   content: string;
   createdAt: string;
+  reactions?: Array<{
+    type: string;
+    userId: string;
+  }>;
   user: {
     id: string;
     name: string;
@@ -24,6 +28,15 @@ interface CommentsSectionProps {
   articleId: string;
   locale: string;
 }
+
+const commentReactionOptions = [
+  { type: 'like', emoji: '👍' },
+  { type: 'love', emoji: '♥️' },
+  { type: 'haha', emoji: '😂' },
+  { type: 'wow', emoji: '😮' },
+  { type: 'sad', emoji: '😢' },
+  { type: 'angry', emoji: '😡' },
+];
 
 export default function CommentsSection({ articleId, locale }: CommentsSectionProps) {
   const { user, ready } = useAccountUser();
@@ -39,7 +52,6 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   const [replyText, setReplyText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeCommentIndex, setActiveCommentIndex] = useState(0);
 
   const t = {
     comments: locale === 'fr' ? 'Commentaires' : 'Comments',
@@ -65,51 +77,41 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   );
 
   useEffect(() => {
-    fetchComments();
+    let cancelled = false;
+    fetch(`/api/comments?articleId=${articleId}`)
+      .then(async (response) => {
+        if (response.ok) {
+          const data = await response.json();
+          if (!cancelled) setComments(data);
+        }
+      })
+      .catch((error) => console.error('Error fetching comments:', error))
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [articleId]);
 
   useEffect(() => {
     if (!ready) return;
-    fetchLikeStatus();
+    let cancelled = false;
+    authFetch(`/api/likes?articleId=${articleId}`)
+      .then(async (response) => {
+        if (response.ok) {
+          const data = await response.json();
+          if (!cancelled) {
+            setIsLiked(data.isLiked);
+            setLikeCount(data.likeCount);
+          }
+        }
+      })
+      .catch((error) => console.error('Error fetching like status:', error));
+    return () => {
+      cancelled = true;
+    };
   }, [articleId, ready, isAuthenticated]);
-
-  useEffect(() => {
-    if (comments.length <= 1) return;
-
-    const interval = setInterval(() => {
-      setActiveCommentIndex((current) => (current + 1) % comments.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [comments.length]);
-
-  const fetchComments = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/comments?articleId=${articleId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setComments(data);
-      }
-    } catch (error) {
-      console.error('Error fetching comments:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchLikeStatus = async () => {
-    try {
-      const response = await authFetch(`/api/likes?articleId=${articleId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setIsLiked(data.isLiked);
-        setLikeCount(data.likeCount);
-      }
-    } catch (error) {
-      console.error('Error fetching like status:', error);
-    }
-  };
 
   const handleLike = async () => {
     if (!isAuthenticated) {
@@ -221,77 +223,107 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
     }
   };
 
+  const handleCommentReaction = async (commentId: string, type: string) => {
+    if (!isAuthenticated) {
+      setError(t.loginToComment);
+      return;
+    }
+
+    try {
+      const response = await authFetch('/api/comments/reactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commentId, type }),
+      });
+
+      if (response.status === 401) {
+        setError(t.loginToComment);
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        const updateComment = (comment: Comment): Comment => ({
+          ...comment,
+          reactions: comment.id === commentId ? data.reactions : comment.reactions,
+          replies: comment.replies?.map(updateComment),
+        });
+        setComments((current) => current.map(updateComment));
+      }
+    } catch (error) {
+      console.error('Error updating comment reaction:', error);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const localeStr = locale === 'fr' ? 'fr-FR' : 'en-US';
     return new Intl.DateTimeFormat(localeStr, {
       year: 'numeric',
-      month: 'short',
+      month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
   };
 
-  const renderCommentCard = (comment: Comment) => (
-    <div className="w-full">
-      <p className="text-[1.45rem] font-black tracking-[-0.04em] text-foreground leading-none" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
-        {comment.user.name} :
-      </p>
-      <p className="mt-2 text-[1rem] font-normal text-foreground/80 leading-none" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
-        {formatDate(comment.createdAt)}
-      </p>
-
-      <div className="relative mt-4">
-        <div className="absolute left-4 top-0 h-3.5 w-3.5 -translate-y-1/2 rotate-45 border-l-[2px] border-t-[2px] border-[#d52e96] bg-muted" />
-        <div className="overflow-hidden rounded-[12px] border border-border bg-muted px-5 py-4 sm:px-6">
-          <p className="text-[1.02rem] leading-[1.7] text-foreground whitespace-pre-line" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
-            {comment.content}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-
   const renderComment = (comment: Comment, isReply = false) => (
     <div
       key={comment.id}
-      className={`${isReply ? 'ml-6 sm:ml-10 mt-4' : 'mb-6'}`}
+      className={`${isReply ? 'ml-10 sm:ml-[92px] mt-5' : 'mb-8'}`}
     >
-      <div className="flex gap-3">
-        <div className="flex-shrink-0">
-          {comment.user.avatarUrl ? (
-            <img
-              src={comment.user.avatarUrl}
-              alt={comment.user.name}
-              className="w-11 h-11 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-11 h-11 rounded-full bg-primary/15 flex items-center justify-center">
-              <UserIcon className="w-5 h-5 text-primary" />
-            </div>
-          )}
-        </div>
-        <div className="flex-1">
-          <div className="bg-muted/70 border border-border rounded-3xl p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-              <div>
-                <p className="text-sm font-semibold text-foreground truncate">{comment.user.name}</p>
-                <p className="text-xs text-muted-foreground">{formatDate(comment.createdAt)}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setReplyingTo((current) => (current === comment.id ? null : comment.id))}
-                className="text-xs text-primary hover:text-primary/90 font-medium"
-              >
-                {t.reply}
-              </button>
-            </div>
-            <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{comment.content}</p>
+      <div className="w-full">
+        <p className="text-[1.45rem] font-black tracking-[-0.04em] text-foreground leading-none" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+          {comment.user.name} :
+        </p>
+        <p className="mt-2 text-[1rem] font-normal text-foreground/80 leading-none" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+          {formatDate(comment.createdAt)}
+        </p>
+
+        <div className="relative mt-4 max-w-[820px]">
+          <div className="absolute left-4 top-0 h-3.5 w-3.5 -translate-y-1/2 rotate-45 border-l-[2px] border-t-[2px] border-[#d52e96] bg-muted" />
+          <div className="overflow-hidden rounded-[12px] border border-border bg-muted px-5 py-4 sm:px-6">
+            <p className="text-[1.02rem] leading-[1.7] text-foreground whitespace-pre-line" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+              {comment.content}
+            </p>
+          </div>
+
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setReplyingTo((current) => (current === comment.id ? null : comment.id))}
+              className="rounded-lg px-2 py-1 text-sm font-bold text-foreground transition hover:bg-muted hover:text-primary"
+            >
+              {t.reply}
+            </button>
+            <span className="mx-1 text-border">·</span>
+            {commentReactionOptions.map((option) => {
+              const count = comment.reactions?.filter((reaction) => reaction.type === option.type).length ?? 0;
+              const isSelected = comment.reactions?.some(
+                (reaction) => reaction.type === option.type && reaction.userId === user?.id
+              );
+              return (
+                <button
+                  key={option.type}
+                  type="button"
+                  onClick={() => handleCommentReaction(comment.id, option.type)}
+                  aria-pressed={isSelected}
+                  title={option.type}
+                  className={`inline-flex h-8 min-w-8 items-center justify-center gap-1 rounded-full px-1.5 text-base transition ${
+                    isSelected
+                      ? 'bg-primary/10 shadow-sm ring-1 ring-primary/30'
+                      : 'hover:bg-muted'
+                  }`}
+                >
+                  <span>{option.emoji}</span>
+                  {count > 0 && <span className="text-xs font-bold text-foreground">{count}</span>}
+                </button>
+              );
+            })}
           </div>
 
           {replyingTo === comment.id && (
-            <div className="mt-3 rounded-3xl border border-border bg-background p-4">
+            <div className="mt-3 max-w-[820px] rounded-[12px] border border-border bg-background p-4">
               <textarea
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
@@ -324,7 +356,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
       </div>
 
       {comment.replies && comment.replies.length > 0 && (
-        <div className="mt-4 space-y-4">
+        <div className="mt-5 space-y-5">
           {comment.replies.map((reply) => renderComment(reply, true))}
         </div>
       )}
@@ -335,8 +367,10 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
     <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 border-t border-border" data-comments-section>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <p className="text-sm text-muted-foreground">{commentTotal} {t.comments}</p>
-          <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">{t.comments}</h2>
+          <h2 className="flex items-baseline gap-3 border-b-2 border-[#b8a1ff] pb-3 pr-4 font-heading text-2xl sm:text-3xl font-normal text-foreground">
+            <span>{t.comments} :</span>
+            <span className="font-bold text-[#0aa84f]">{commentTotal}</span>
+          </h2>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -454,7 +488,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
         <div className="space-y-8 py-2">
           {comments.map((comment) => (
             <div key={comment.id} className="mx-auto max-w-[1180px] px-1 sm:px-2">
-              {renderCommentCard(comment)}
+              {renderComment(comment)}
             </div>
           ))}
         </div>

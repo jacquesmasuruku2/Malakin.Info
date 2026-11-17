@@ -39,6 +39,12 @@ export async function POST(request: NextRequest) {
             avatarUrl: true,
           },
         },
+        reactions: {
+          select: {
+            type: true,
+            userId: true,
+          },
+        },
       },
     });
 
@@ -83,6 +89,12 @@ export async function GET(request: NextRequest) {
             avatarUrl: true,
           },
         },
+        reactions: {
+          select: {
+            type: true,
+            userId: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -101,6 +113,12 @@ export async function GET(request: NextRequest) {
             id: true,
             name: true,
             avatarUrl: true,
+          },
+        },
+        reactions: {
+          select: {
+            type: true,
+            userId: true,
           },
         },
       },
