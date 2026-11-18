@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   Activity,
-  ArrowLeftRight,
+  ArrowDown,
+  ArrowUp,
   ChevronDown,
   CircleAlert,
   CircleDot,
@@ -12,6 +13,7 @@ import {
   Pin,
   RefreshCw,
   Search,
+  Share2,
   Star,
   Trophy,
   X,
@@ -34,9 +36,16 @@ import type {
 
 type LiveScoresProps = {
   locale?: string;
+  initialMatchId?: number;
+  initialDetailsTab?: 'events' | 'statistics' | 'lineups' | 'standings';
+  initialMatchLabel?: string;
+  initialMatchKey?: string;
 };
 
+type MatchDetailsTab = 'events' | 'statistics' | 'lineups' | 'standings';
+
 const REFRESH_INTERVAL_MS = 60_000;
+const MATCH_DETAILS_REFRESH_INTERVAL_MS = 30_000;
 const FAVORITES_STORAGE_KEY = 'malakinfo-live-match-favorites';
 const favoriteSubscribers = new Set<() => void>();
 type ScoresView = 'live' | 'upcoming' | 'finished';
@@ -45,6 +54,49 @@ type FollowedFootballTeam = {
   name: string;
   logo: string | null;
 };
+function createMatchShareKey(
+  match: LiveScoreMatch | undefined,
+  fixtureId: number,
+  initialMatchKey?: string,
+) {
+  const teams = match
+    ? `${match.teams.home.name}-vs-${match.teams.away.name}`
+    : initialMatchKey
+        ?.replace(/[-_]\d+$/, '')
+        .replace(/[-_]+$/, '');
+  if (!teams || /^\d+$/.test(teams)) return String(fixtureId);
+  const slug = teams
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  return slug ? `${slug}-${fixtureId}` : String(fixtureId);
+}
+
+function getMatchDetailsPath(
+  locale: string,
+  match: LiveScoreMatch | undefined,
+  fixtureId: number,
+  tab: Exclude<MatchDetailsTab, 'events'>,
+  initialMatchKey?: string,
+) {
+  const key = createMatchShareKey(match, fixtureId, initialMatchKey);
+  const section =
+    tab === 'lineups'
+      ? locale === 'en'
+        ? 'lineups'
+        : 'composition'
+      : tab === 'statistics'
+        ? locale === 'en'
+          ? 'statistics'
+          : 'statistiques'
+        : locale === 'en'
+          ? 'standings'
+          : 'classement';
+  return `/${locale}/matches-en-direct/${key}/${section}`;
+}
+
 const TEAM_SEARCH_ALIASES: Record<string, string[]> = {
   allemagne: ['germany'],
   angleterre: ['england'],
@@ -668,21 +720,173 @@ function PlayerGoalContributionMarkers({
   );
 }
 
-type MatchEventKind = 'goal' | 'missed-penalty' | 'yellow-card' | 'red-card' | 'substitution' | 'other';
+type MatchEventKind =
+  | 'goal'
+  | 'missed-penalty'
+  | 'penalty-attempt'
+  | 'penalty-awarded'
+  | 'yellow-card'
+  | 'red-card'
+  | 'substitution'
+  | 'foul'
+  | 'offside'
+  | 'corner-awarded'
+  | 'shot-on-target'
+  | 'shot-blocked'
+  | 'shot-off-target'
+  | 'shot-hit-woodwork'
+  | 'handball'
+  | 'start-delay'
+  | 'end-delay'
+  | 'start-2nd-half'
+  | 'end-regular-time'
+  | 'retired'
+  | 'break'
+  | 'cooling-break'
+  | 'var'
+  | 'other';
+
+const EVENT_KIND_BY_TYPE = new Map<string, MatchEventKind>([
+  ['foul', 'foul'],
+  ['offside', 'offside'],
+  ['corner-awarded', 'corner-awarded'],
+  ['shot-on-target', 'shot-on-target'],
+  ['shot-blocked', 'shot-blocked'],
+  ['shot-off-target', 'shot-off-target'],
+  ['shot-hit-woodwork', 'shot-hit-woodwork'],
+  ['handball', 'handball'],
+  ['start-delay', 'start-delay'],
+  ['end-delay', 'end-delay'],
+  ['start-2nd-half', 'start-2nd-half'],
+  ['end-regular-time', 'end-regular-time'],
+  ['retired', 'retired'],
+]);
 
 function getMatchEventKind(event: LiveMatchEvent): MatchEventKind {
   const type = event.type.toLowerCase();
   const detail = event.detail?.toLowerCase() ?? '';
+  const commentary = `${detail} ${event.comments?.toLowerCase() ?? ''}`;
 
-  if (type === 'goal' && detail.includes('missed penalty')) return 'missed-penalty';
+  if (/\b(?:missed penalty|penalty missed)\b/.test(commentary)) return 'missed-penalty';
   if (type === 'goal') return 'goal';
+  if (
+    type === 'penalty-attempt' ||
+    (/\bpenalt(?:y|ies)\b/.test(commentary) &&
+      /\b(?:saved|attempted|taken)\b/.test(commentary))
+  ) {
+    return 'penalty-attempt';
+  }
+  if (
+    type === 'penalty-awarded' ||
+    (/\bpenalt(?:y|ies)\b/.test(commentary) &&
+      (/\b(?:awarded|given|won|for)\b/.test(commentary) ||
+        (type === 'var' && /\bpenalty\b/.test(commentary))))
+  ) {
+    return 'penalty-awarded';
+  }
+  if (type === 'cooling-break' || /\b(?:cooling|hydration|water)\s+break\b/.test(commentary)) {
+    return 'cooling-break';
+  }
+  if (
+    type === 'break' ||
+    /\b(?:half[\s-]?time|full[\s-]?time|first half|second half|end of period|break|pause|intermission)\b/.test(
+      commentary,
+    )
+  ) {
+    return 'break';
+  }
+  if (
+    type === 'var' ||
+    /\b(?:var|video review|video assistant referee)\b/.test(commentary)
+  ) {
+    return 'var';
+  }
   if (type === 'card') {
-    return detail.includes('red') || detail.includes('second yellow')
+    return /\b(?:red card|second yellow)\b/.test(commentary)
       ? 'red-card'
       : 'yellow-card';
   }
   if (type === 'subst' || type === 'substitution') return 'substitution';
-  return 'other';
+  return EVENT_KIND_BY_TYPE.get(type) ?? 'other';
+}
+
+function getMatchEventTitle(
+  kind: MatchEventKind,
+  detail: string | null,
+  eventType: string,
+  commentary: string | null,
+  english: boolean,
+): string {
+  const description = `${detail ?? ''} ${commentary ?? ''}`.toLowerCase();
+  if (kind === 'goal') return english ? 'Goal' : 'But';
+  if (kind === 'missed-penalty') return english ? 'Penalty missed' : 'Penalty manqué';
+  if (kind === 'penalty-attempt') {
+    return /\bsaved\b/.test(description)
+      ? english
+        ? 'Penalty saved'
+        : 'Penalty arrêté'
+      : english
+        ? 'Penalty attempt'
+        : 'Tir au but';
+  }
+  if (kind === 'penalty-awarded') return english ? 'Penalty awarded' : 'Penalty obtenu';
+  if (kind === 'yellow-card') return english ? 'Yellow card' : 'Carton jaune';
+  if (kind === 'red-card') return english ? 'Red card' : 'Carton rouge';
+  if (kind === 'substitution') return english ? 'Substitution' : 'Remplacement';
+  if (kind === 'cooling-break') return english ? 'Cooling break' : 'Pause fraîcheur';
+  if (kind === 'var') return english ? 'VAR review' : 'Vérification VAR';
+
+  const localizedLabels: Partial<Record<MatchEventKind, { en: string; fr: string }>> = {
+    foul: { en: 'Foul', fr: 'Faute' },
+    offside: { en: 'Offside', fr: 'Hors-jeu' },
+    'corner-awarded': { en: 'Corner', fr: 'Corner' },
+    'shot-on-target': { en: 'Shot on target', fr: 'Tir cadré' },
+    'shot-blocked': { en: 'Shot blocked', fr: 'Tir bloqué' },
+    'shot-off-target': { en: 'Shot off target', fr: 'Tir non cadré' },
+    'shot-hit-woodwork': { en: 'Shot hits the post', fr: 'Tir sur le poteau' },
+    handball: { en: 'Handball', fr: 'Main' },
+    'start-delay': { en: 'Match delayed', fr: 'Match interrompu' },
+    'end-delay': { en: 'Play resumes', fr: 'Reprise du match' },
+    'start-2nd-half': { en: 'Second half begins', fr: 'Début de la seconde période' },
+    'end-regular-time': { en: 'Full-time', fr: 'Fin du temps réglementaire' },
+    retired: { en: 'Player leaves injured', fr: 'Sortie sur blessure' },
+  };
+  if (kind === 'break') {
+    if (/\bkickoff\b/.test(description)) {
+      return english ? 'Kick-off' : 'Coup d’envoi';
+    }
+    if (/\b(?:second half begins|start of the second half)\b/.test(description)) {
+      return english ? 'Second half begins' : 'Début de la seconde période';
+    }
+    if (/\b(?:first half begins|start of the first half)\b/.test(description)) {
+      return english ? 'First half begins' : 'Début de la première période';
+    }
+    if (/\b(?:half[\s-]?time|first half ends)\b/.test(description)) {
+      return english ? 'Half-time' : 'Mi-temps';
+    }
+    if (/\b(?:full[\s-]?time|second half ends|end of match)\b/.test(description)) {
+      return english ? 'Full-time' : 'Fin du match';
+    }
+    return detail ?? (english ? 'Match break' : 'Pause du match');
+  }
+  return localizedLabels[kind]?.[english ? 'en' : 'fr'] ??
+    detail ??
+    (eventType === 'other'
+      ? english
+        ? 'Match update'
+        : 'Information du match'
+      : eventType.replace(/[-_]+/g, ' '));
+}
+
+function getEventTeamSide(
+  eventTeamName: string | null,
+  match: LiveScoreMatch | undefined,
+): 'home' | 'away' | null {
+  if (!eventTeamName || !match) return null;
+  const normalizedEventTeam = normalizeSearch(eventTeamName);
+  if (normalizedEventTeam === normalizeSearch(match.teams.home.name)) return 'home';
+  if (normalizedEventTeam === normalizeSearch(match.teams.away.name)) return 'away';
+  return null;
 }
 
 function getGoalDetail(detail: string | null, english: boolean): string | null {
@@ -946,11 +1150,16 @@ function getMatchCommentaries(
   events: LiveMatchEvent[],
   match: LiveScoreMatch | undefined,
   english: boolean,
-): Array<string | null> {
+): {
+  commentaries: Array<string | null>;
+  goalScores: Map<string, string>;
+} {
   let homeGoals = 0;
   let awayGoals = 0;
+  const commentaries: Array<string | null> = [];
+  const goalScores = new Map<string, string>();
 
-  return events.map((event) => {
+  events.forEach((event) => {
     const kind = getMatchEventKind(event);
     let scoreAfterGoal:
       | {
@@ -968,9 +1177,9 @@ function getMatchCommentaries(
       match &&
       !event.detail?.toLowerCase().includes('missed penalty')
     ) {
-      const scoringHome = event.team.name === match.teams.home.name;
-      const scoringAway = event.team.name === match.teams.away.name;
-      if (scoringHome || scoringAway) {
+      const teamSide = getEventTeamSide(event.team.name, match);
+      if (teamSide !== null) {
+        const scoringHome = teamSide === 'home';
         const previousHome = homeGoals;
         const previousAway = awayGoals;
         if (scoringHome) homeGoals += 1;
@@ -983,14 +1192,174 @@ function getMatchCommentaries(
           previousHome,
           previousAway,
         };
+        goalScores.set(event.id, `${homeGoals}–${awayGoals}`);
       }
     }
 
-    return getEventCommentary(event, kind, english, scoreAfterGoal);
+    commentaries.push(getEventCommentary(event, kind, english, scoreAfterGoal));
   });
+
+  return { commentaries, goalScores };
 }
 
-export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
+function MatchStatisticsPanel({
+  statistics,
+  homeTeamLogo,
+  awayTeamLogo,
+  homeTeamName,
+  awayTeamName,
+  english,
+}: {
+  statistics: MatchStatistic[];
+  homeTeamLogo: string | null;
+  awayTeamLogo: string | null;
+  homeTeamName: string | null;
+  awayTeamName: string | null;
+  english: boolean;
+}) {
+  if (statistics.length === 0) {
+    return (
+      <p role="status" className="rounded-xl border border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
+        {english
+          ? 'Detailed statistics are not available for this match yet.'
+          : 'Les statistiques détaillées ne sont pas disponibles pour ce match.'}
+      </p>
+    );
+  }
+
+  const labels: Record<string, { en: string; fr: string }> = {
+    possessionPct: { en: 'Possession', fr: 'Possession' },
+    totalShots: { en: 'Shots', fr: 'Tirs' },
+    shotsOnTarget: { en: 'Shots on target', fr: 'Tirs cadrés' },
+    blockedShots: { en: 'Shots blocked', fr: 'Tirs bloqués' },
+    wonCorners: { en: 'Corners', fr: 'Corners' },
+    totalPasses: { en: 'Passes', fr: 'Passes' },
+    accuratePasses: { en: 'Successful passes', fr: 'Passes réussies' },
+    accurateCrosses: { en: 'Accurate crosses', fr: 'Centres réussis' },
+    totalCrosses: { en: 'Crosses', fr: 'Centres' },
+    totalLongBalls: { en: 'Long balls', fr: 'Longs ballons' },
+    accurateLongBalls: { en: 'Accurate long balls', fr: 'Longs ballons réussis' },
+    passPct: { en: 'Pass accuracy', fr: 'Passes réussies (%)' },
+    passPercentage: { en: 'Pass accuracy', fr: 'Passes réussies (%)' },
+    passingAccuracy: { en: 'Pass accuracy', fr: 'Passes réussies (%)' },
+    shotPct: { en: 'Shots on target (%)', fr: 'Tirs cadrés (%)' },
+    crossPct: { en: 'Cross accuracy', fr: 'Centres réussis (%)' },
+    longballPct: { en: 'Long-ball accuracy', fr: 'Longs ballons réussis (%)' },
+    tackles: { en: 'Tackles', fr: 'Tacles' },
+    totalTackles: { en: 'Tackles', fr: 'Tacles' },
+    effectiveTackles: { en: 'Successful tackles', fr: 'Tacles réussis' },
+    tacklePct: { en: 'Tackles won (%)', fr: 'Tacles réussis (%)' },
+    offsides: { en: 'Offsides', fr: 'Hors-jeu' },
+    foulsCommitted: { en: 'Fouls', fr: 'Fautes' },
+    yellowCards: { en: 'Yellow cards', fr: 'Cartons jaunes' },
+    redCards: { en: 'Red cards', fr: 'Cartons rouges' },
+    saves: { en: 'Saves', fr: 'Arrêts' },
+    penaltyKickGoals: { en: 'Penalty goals', fr: 'Penalties marqués' },
+    penaltyKickShots: { en: 'Penalties taken', fr: 'Penalties tentés' },
+    clearances: { en: 'Clearances', fr: 'Dégagements' },
+    totalClearance: { en: 'Clearances', fr: 'Dégagements' },
+    effectiveClearance: { en: 'Effective clearances', fr: 'Dégagements réussis' },
+    interceptions: { en: 'Interceptions', fr: 'Interceptions' },
+  };
+  const lowerIsBetter = new Set([
+    'offsides',
+    'foulsCommitted',
+    'yellowCards',
+    'redCards',
+  ]);
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-border px-3 py-3 sm:px-5">
+        <div className="flex min-w-0 items-center justify-start">
+          {homeTeamLogo && (
+            <Image
+              src={homeTeamLogo}
+              alt={homeTeamName ?? (english ? 'Home team' : 'Équipe à domicile')}
+              width={28}
+              height={28}
+              className="h-7 w-7 object-contain"
+            />
+          )}
+        </div>
+        <h3 className="text-center text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground sm:text-xs">
+          {english ? 'Team statistics' : 'Statistiques de l’équipe'}
+        </h3>
+        <div className="flex min-w-0 items-center justify-end">
+          {awayTeamLogo && (
+            <Image
+              src={awayTeamLogo}
+              alt={awayTeamName ?? (english ? 'Away team' : 'Équipe visiteuse')}
+              width={28}
+              height={28}
+              className="h-7 w-7 object-contain"
+            />
+          )}
+        </div>
+      </div>
+      <dl className="divide-y divide-border/70 px-2 sm:px-4">
+        {statistics.map((stat) => {
+          const homeValue = Number.parseFloat(stat.home ?? '');
+          const awayValue = Number.parseFloat(stat.away ?? '');
+          const comparable = Number.isFinite(homeValue) && Number.isFinite(awayValue);
+          const lowerIsBetterMetric = lowerIsBetter.has(stat.name);
+          const homeHasAdvantage =
+            comparable &&
+            (lowerIsBetterMetric ? homeValue < awayValue : homeValue > awayValue);
+          const awayHasAdvantage =
+            comparable &&
+            (lowerIsBetterMetric ? awayValue < homeValue : awayValue > homeValue);
+          const label = labels[stat.name]?.[english ? 'en' : 'fr'] ?? stat.label;
+
+          return (
+            <div
+              key={stat.name}
+              className="grid grid-cols-[minmax(42px,1fr)_minmax(96px,1.5fr)_minmax(42px,1fr)] items-center gap-2 py-3 text-sm"
+            >
+              <dd className="justify-self-start">
+                <span
+                  className={`inline-flex min-w-9 justify-center rounded-full px-2 py-1 font-bold tabular-nums ${
+                    homeHasAdvantage
+                      ? lowerIsBetterMetric
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-blue-600 text-white'
+                      : 'text-foreground'
+                  }`}
+                >
+                  {stat.home ?? '—'}
+                </span>
+              </dd>
+              <dt className="text-center text-xs font-semibold leading-tight text-muted-foreground sm:text-sm">
+                {label}
+              </dt>
+              <dd className="justify-self-end">
+                <span
+                  className={`inline-flex min-w-9 justify-center rounded-full px-2 py-1 font-bold tabular-nums ${
+                    awayHasAdvantage
+                      ? lowerIsBetterMetric
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-blue-600 text-white'
+                      : 'text-foreground'
+                  }`}
+                >
+                  {stat.away ?? '—'}
+                </span>
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+    </section>
+  );
+}
+
+export default function LiveScores({
+  locale = 'fr',
+  initialMatchId,
+  initialDetailsTab = 'events',
+  initialMatchLabel,
+  initialMatchKey,
+}: LiveScoresProps) {
   const english = locale === 'en';
   const { user, ready: accountReady } = useAccountUser();
   const [view, setView] = useState<ScoresView>('live');
@@ -1005,7 +1374,9 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
-  const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(null);
+  const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(
+    initialMatchId ?? null,
+  );
   const [events, setEvents] = useState<LiveMatchEvent[]>([]);
   const [statistics, setStatistics] = useState<MatchStatistic[]>([]);
   const [lineups, setLineups] = useState<MatchLineup[]>([]);
@@ -1014,7 +1385,10 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
     lineups: false,
     standings: false,
   });
-  const [activeDetailsTab, setActiveDetailsTab] = useState<'events' | 'lineups' | 'standings'>('events');
+  const [activeDetailsTab, setActiveDetailsTab] = useState<
+    MatchDetailsTab
+  >(initialDetailsTab);
+  const [shareMessage, setShareMessage] = useState<string | null>(null);
   const [lineupPlayerDisplayMode, setLineupPlayerDisplayMode] =
     useState<LineupPlayerDisplayMode>('name');
   const [selectedPitchClub, setSelectedPitchClub] = useState<{
@@ -1152,12 +1526,33 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
   }, [favoriteIds, favoritesOnly, matches, searchQuery, selectedCompetition, teamHistoryName]);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const selectedMatch = matches.find((match) => match.fixture.id === selectedFixtureId);
-  const preMatchLineups =
-    selectedMatch?.state === 'pre'
-      ? lineups.filter((lineup) => lineup.startingXI.length >= 11)
-      : [];
-  const lineupsToDisplay = selectedMatch?.state === 'pre' ? preMatchLineups : lineups;
-  const eventCommentaries = getMatchCommentaries(events, selectedMatch, english);
+  const homeLineup = selectedMatch
+    ? lineups.find(
+        (lineup) =>
+          normalizeSearch(lineup.team.name) ===
+          normalizeSearch(selectedMatch.teams.home.name),
+      )
+    : lineups[0];
+  const awayLineup = selectedMatch
+    ? lineups.find(
+        (lineup) =>
+          normalizeSearch(lineup.team.name) ===
+          normalizeSearch(selectedMatch.teams.away.name),
+      )
+    : lineups[1];
+  const homeTeamLogo =
+    selectedMatch?.teams.home.logo ?? homeLineup?.team.logo ?? null;
+  const awayTeamLogo =
+    selectedMatch?.teams.away.logo ?? awayLineup?.team.logo ?? null;
+  const isSelectedPreMatch =
+    selectedMatch?.state === 'pre' ||
+    (selectedMatch === undefined && initialMatchId === selectedFixtureId);
+  const preMatchLineups = isSelectedPreMatch
+    ? lineups.filter((lineup) => lineup.startingXI.length >= 11)
+    : [];
+  const lineupsToDisplay = isSelectedPreMatch ? preMatchLineups : lineups;
+  const { commentaries: eventCommentaries, goalScores: eventGoalScores } =
+    getMatchCommentaries(events, selectedMatch, english);
   const goalEvents = useMemo(
     () => events.filter((event) => getMatchEventKind(event) === 'goal'),
     [events],
@@ -1319,12 +1714,50 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
     }
 
     void loadMatchDetails();
-    const intervalId = window.setInterval(loadMatchDetails, REFRESH_INTERVAL_MS);
+    const intervalId = window.setInterval(
+      loadMatchDetails,
+      MATCH_DETAILS_REFRESH_INTERVAL_MS,
+    );
 
     return () => {
       controller.abort();
       window.clearInterval(intervalId);
     };
+  }, [selectedFixtureId]);
+
+  useEffect(() => {
+    function syncDetailsFromHistory() {
+      const path = window.location.pathname;
+      const detailsRoute = path.match(
+        /\/matches-en-direct\/([^/]+)\/(composition|lineups|classement|standings|statistiques|statistics)\/?$/,
+      );
+
+      if (detailsRoute) {
+        const [, matchKey, section] = detailsRoute;
+        const tab: MatchDetailsTab =
+          section === 'composition' || section === 'lineups'
+            ? 'lineups'
+            : section === 'statistiques' || section === 'statistics'
+              ? 'statistics'
+              : 'standings';
+        setActiveDetailsTab(tab);
+        const idMatch = /(?:^|[-_])(\d+)$/.exec(matchKey);
+        const fixtureId = idMatch ? Number(idMatch[1]) : Number(matchKey);
+        if (Number.isSafeInteger(fixtureId) && fixtureId > 0) {
+          if (selectedFixtureId !== fixtureId) setIsDetailsLoading(true);
+          setSelectedFixtureId(fixtureId);
+        }
+      } else if (/\/matches-en-direct\/?$/.test(path)) {
+        setActiveDetailsTab('events');
+      } else {
+        setSelectedFixtureId(null);
+      }
+
+      setShareMessage(null);
+    }
+
+    window.addEventListener('popstate', syncDetailsFromHistory);
+    return () => window.removeEventListener('popstate', syncDetailsFromHistory);
   }, [selectedFixtureId]);
 
   function openMatchDetails(fixtureId: number) {
@@ -1335,9 +1768,86 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
     setDetailsUnavailable({ lineups: false, standings: false });
     setEventsError(false);
     setActiveDetailsTab('events');
+    setShareMessage(null);
     setSelectedPitchClub(null);
     setIsDetailsLoading(true);
     setSelectedFixtureId(fixtureId);
+  }
+
+  function selectDetailsTab(tab: MatchDetailsTab) {
+    setActiveDetailsTab(tab);
+    setShareMessage(null);
+    if (selectedFixtureId === null) return;
+
+    const path =
+      tab === 'events'
+        ? `/${locale}/matches-en-direct`
+        : getMatchDetailsPath(
+            locale,
+            selectedMatch,
+            selectedFixtureId,
+            tab,
+            initialMatchKey,
+          );
+    if (window.location.pathname !== path) {
+      window.history.pushState(null, '', path);
+    }
+  }
+
+  function closeMatchDetails() {
+    setSelectedFixtureId(null);
+    setShareMessage(null);
+    if (/\/matches-en-direct\/[^/]+\/(composition|lineups|classement|standings|statistiques|statistics)\/?$/.test(window.location.pathname)) {
+      window.history.replaceState(null, '', `/${locale}/matches-en-direct`);
+    }
+  }
+
+  async function shareSelectedDetails() {
+    if (selectedFixtureId === null || activeDetailsTab === 'events') return;
+    const shareUrl = new URL(
+      getMatchDetailsPath(
+        locale,
+        selectedMatch,
+        selectedFixtureId,
+        activeDetailsTab === 'lineups' ? 'lineups' : 'standings',
+        initialMatchKey,
+      ),
+      window.location.origin,
+    ).toString();
+    const title =
+      selectedMatch
+        ? `${selectedMatch.teams.home.name} – ${selectedMatch.teams.away.name}`
+        : initialMatchLabel ?? `Match ${selectedFixtureId}`;
+
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share({ title, url: shareUrl });
+        setShareMessage(
+          english ? 'Match link shared.' : 'Lien du match partagé.',
+        );
+        return;
+      }
+      await navigator.clipboard.writeText(shareUrl);
+      setShareMessage(
+        english ? 'Share link copied.' : 'Lien de partage copié.',
+      );
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+      console.error('Unable to share match details:', error);
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareMessage(
+          english ? 'Share link copied.' : 'Lien de partage copié.',
+        );
+      } catch (clipboardError) {
+        console.error('Unable to copy match share link:', clipboardError);
+        setShareMessage(
+          english
+            ? 'Unable to share this match link.'
+            : 'Impossible de partager le lien de ce match.',
+        );
+      }
+    }
   }
 
   function changeView(nextView: ScoresView) {
@@ -1937,19 +2447,19 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
           aria-labelledby="match-details-title"
           onCancel={(event) => {
             event.preventDefault();
-            setSelectedFixtureId(null);
+            closeMatchDetails();
           }}
           onKeyDown={(event) => {
             if (event.key === 'Escape') {
               event.preventDefault();
-              setSelectedFixtureId(null);
+              closeMatchDetails();
             }
           }}
           className="fixed inset-0 m-0 flex h-dvh max-h-dvh w-full max-w-full items-center justify-center overflow-hidden border-0 bg-transparent p-3 text-foreground sm:p-6"
         >
           <div
             aria-hidden="true"
-            onClick={() => setSelectedFixtureId(null)}
+            onClick={closeMatchDetails}
             className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm"
           />
           <section className="relative z-10 mx-auto flex h-[92dvh] max-h-[92dvh] w-full min-w-0 max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
@@ -1961,25 +2471,59 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                 <h2 id="match-details-title" className="text-lg font-bold text-foreground sm:text-xl">
                   {selectedMatch
                     ? `${selectedMatch.teams.home.name} – ${selectedMatch.teams.away.name}`
-                    : english
-                      ? `Match ${selectedFixtureId}`
-                      : `Match ${selectedFixtureId}`}
+                    : initialMatchLabel ?? `Match ${selectedFixtureId}`}
                 </h2>
+                {shareMessage && (
+                  <p role="status" className="mt-1 text-xs text-muted-foreground">
+                    {shareMessage}
+                  </p>
+                )}
                 {selectedMatch && (
                   <p className="mt-1 text-sm font-semibold text-muted-foreground">
                     {selectedMatch.goals.home ?? '–'} : {selectedMatch.goals.away ?? '–'}
                   </p>
                 )}
               </div>
-              <button
-                type="button"
-                autoFocus
-                onClick={() => setSelectedFixtureId(null)}
-                aria-label={english ? 'Close match details' : 'Fermer les détails du match'}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <X className="h-5 w-5" aria-hidden="true" />
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                {activeDetailsTab !== 'events' && (
+                  <button
+                    type="button"
+                    onClick={() => void shareSelectedDetails()}
+                    aria-label={
+                      english
+                        ? `Share ${
+                            activeDetailsTab === 'lineups'
+                              ? 'lineups'
+                              : activeDetailsTab === 'statistics'
+                                ? 'statistics'
+                                : 'standings'
+                          }`
+                        : `Partager ${
+                            activeDetailsTab === 'lineups'
+                              ? 'la composition'
+                              : activeDetailsTab === 'statistics'
+                                ? 'les statistiques'
+                                : 'le classement'
+                          }`
+                    }
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border px-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    <Share2 className="h-4 w-4" aria-hidden="true" />
+                    <span className="hidden sm:inline">
+                      {english ? 'Share' : 'Partager'}
+                    </span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  autoFocus
+                  onClick={closeMatchDetails}
+                  aria-label={english ? 'Close match details' : 'Fermer les détails du match'}
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <X className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </div>
             </header>
 
             <div
@@ -1989,6 +2533,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
             >
               {([
                 ['events', english ? 'Highlights' : 'Temps forts'],
+                ['statistics', english ? 'Statistics' : 'Statistiques'],
                 ['lineups', english ? 'Lineups' : 'Compositions'],
                 ['standings', english ? 'Standings' : 'Classement'],
               ] as const).map(([tab, label]) => (
@@ -1997,7 +2542,7 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                   type="button"
                   role="tab"
                   aria-selected={activeDetailsTab === tab}
-                  onClick={() => setActiveDetailsTab(tab)}
+                  onClick={() => selectDetailsTab(tab)}
                   className={`shrink-0 rounded-lg px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                     activeDetailsTab === tab
                       ? 'bg-primary text-primary-foreground'
@@ -2066,138 +2611,11 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                         </div>
                         <button
                           type="button"
-                          onClick={() => setActiveDetailsTab('lineups')}
+                          onClick={() => selectDetailsTab('lineups')}
                           className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                         >
                           {english ? 'View lineups on the pitch' : 'Voir les compositions sur le terrain'}
                         </button>
-                      </div>
-                    </section>
-                  )}
-                  {statistics.length > 0 && (
-                    <section className="mb-5 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
-                      <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                        {english ? 'Match statistics' : 'Statistiques du match'}
-                      </h3>
-                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                        {statistics.map((stat) => {
-                          const homeValue = Number.parseFloat(stat.home ?? '');
-                          const awayValue = Number.parseFloat(stat.away ?? '');
-                          const total = homeValue + awayValue;
-                          const homeWidth = Number.isFinite(total) && total > 0
-                            ? (homeValue / total) * 100
-                            : 50;
-                          const comparable = Number.isFinite(homeValue) && Number.isFinite(awayValue);
-                          const tied = comparable && homeValue === awayValue;
-                          const disciplineMetric = [
-                            'foulsCommitted',
-                            'yellowCards',
-                            'redCards',
-                          ].includes(stat.name);
-                          const homeHasAdvantage = comparable && (
-                            disciplineMetric ? homeValue < awayValue : homeValue > awayValue
-                          );
-                          const awayHasAdvantage = comparable && (
-                            disciplineMetric ? awayValue < homeValue : awayValue > homeValue
-                          );
-                          const homeValueColor = !comparable || tied
-                            ? 'text-foreground'
-                            : homeHasAdvantage
-                              ? 'text-blue-700 dark:text-blue-300'
-                              : 'text-red-700 dark:text-red-300';
-                          const awayValueColor = !comparable || tied
-                            ? 'text-foreground'
-                            : awayHasAdvantage
-                              ? 'text-blue-700 dark:text-blue-300'
-                              : 'text-red-700 dark:text-red-300';
-                          const homeBarColor = !comparable || tied
-                            ? 'bg-slate-400'
-                            : homeHasAdvantage
-                              ? 'bg-blue-600 dark:bg-blue-400'
-                              : 'bg-red-500 dark:bg-red-400';
-                          const awayBarColor = !comparable || tied
-                            ? 'bg-slate-300 dark:bg-slate-700'
-                            : awayHasAdvantage
-                              ? 'bg-blue-600 dark:bg-blue-400'
-                              : 'bg-red-500 dark:bg-red-400';
-                          const cardColor =
-                            stat.name === 'yellowCards'
-                              ? 'bg-amber-400'
-                              : stat.name === 'redCards'
-                                ? 'bg-red-600'
-                                : null;
-                          const cardCount = (value: string | null) => {
-                            const count = Number.parseInt(value ?? '', 10);
-                            return Number.isFinite(count) ? Math.min(Math.max(count, 0), 5) : 0;
-                          };
-                          const label =
-                            stat.name === 'possessionPct'
-                              ? english ? 'Possession' : 'Possession'
-                              : stat.name === 'shotsOnTarget'
-                                ? english ? 'Shots on target' : 'Tirs cadrés'
-                                : stat.name === 'totalShots'
-                                  ? english ? 'Total shots' : 'Tirs'
-                                  : stat.name === 'wonCorners'
-                                    ? english ? 'Corners' : 'Corners'
-                                    : stat.name === 'foulsCommitted'
-                                      ? english ? 'Fouls' : 'Fautes'
-                                      : stat.name === 'yellowCards'
-                                        ? english ? 'Yellow cards' : 'Cartons jaunes'
-                                        : stat.name === 'redCards'
-                                          ? english ? 'Red cards' : 'Cartons rouges'
-                                          : stat.label;
-
-                          return (
-                            <div key={stat.name} className="rounded-xl border border-border/80 bg-background/70 p-3">
-                              <div className="mb-2 flex items-center justify-between gap-2 text-sm">
-                                <span className={`flex min-w-0 items-center gap-1.5 font-bold tabular-nums ${homeValueColor}`}>
-                                  {cardColor &&
-                                    Array.from({ length: cardCount(stat.home) }, (_, index) => (
-                                      <span
-                                        key={`home-card-${index}`}
-                                        aria-hidden="true"
-                                        className={`h-3.5 w-2.5 rounded-[2px] ${cardColor}`}
-                                      />
-                                    ))}
-                                  {stat.home ?? '—'}
-                                </span>
-                                <span className="flex items-center justify-center gap-1.5 text-center text-[11px] font-semibold leading-tight text-muted-foreground sm:text-xs">
-                                  {cardColor && (
-                                    <span
-                                      aria-hidden="true"
-                                      className={`h-3.5 w-2.5 shrink-0 rounded-[2px] ${cardColor}`}
-                                    />
-                                  )}
-                                  {label}
-                                </span>
-                                <span className={`flex min-w-0 items-center justify-end gap-1 font-bold tabular-nums ${awayValueColor}`}>
-                                  {cardColor &&
-                                    Array.from({ length: cardCount(stat.away) }, (_, index) => (
-                                      <span
-                                        key={`away-card-${index}`}
-                                        aria-hidden="true"
-                                        className={`h-3.5 w-2.5 rounded-[2px] ${cardColor}`}
-                                      />
-                                    ))}
-                                  {stat.away ?? '—'}
-                                </span>
-                              </div>
-                              <div
-                                aria-hidden="true"
-                                className="flex h-2 overflow-hidden rounded-full bg-muted"
-                              >
-                                <span
-                                  className={`h-full transition-[width] duration-500 ${homeBarColor}`}
-                                  style={{ width: `${homeWidth}%` }}
-                                />
-                                <span
-                                  className={`h-full transition-[width] duration-500 ${awayBarColor}`}
-                                  style={{ width: `${100 - homeWidth}%` }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
                       </div>
                     </section>
                   )}
@@ -2241,12 +2659,43 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                         const index = events.length - reverseIndex - 1;
                         const kind = getMatchEventKind(event);
                         const detail = kind === 'goal' ? getGoalDetail(event.detail, english) : event.detail;
+                        const teamSide = getEventTeamSide(event.team.name, selectedMatch);
+                        const isAwayEvent = teamSide === 'away';
                         const Icon =
                           kind === 'substitution'
-                            ? ArrowLeftRight
-                            : kind === 'other' || kind === 'missed-penalty'
+                            ? ArrowUp
+                            : [
+                                  'break',
+                                  'cooling-break',
+                                  'start-delay',
+                                  'end-delay',
+                                  'start-2nd-half',
+                                  'end-regular-time',
+                                ].includes(kind)
+                              ? Clock3
+                              : [
+                                  'other',
+                                  'missed-penalty',
+                                  'penalty-attempt',
+                                  'penalty-awarded',
+                                  'var',
+                                  'retired',
+                                  'handball',
+                                ].includes(kind)
                               ? CircleAlert
                               : CircleDot;
+                        const commentary = eventCommentaries[index];
+                        const eventTitle = getMatchEventTitle(
+                          kind,
+                          detail,
+                          event.type,
+                          event.comments,
+                          english,
+                        );
+                        const showCommentary =
+                          commentary &&
+                          kind !== 'substitution' &&
+                          commentary.trim() !== event.detail?.trim();
                         const playerOutNumber = getJerseyNumber(
                           lineups,
                           event.player.id,
@@ -2291,8 +2740,16 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                               )}
                             </span>
 
-                            <div className="min-w-0 flex-1 rounded-xl border border-border bg-card px-4 py-3">
-                              <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <div
+                              className={`min-w-0 flex-1 rounded-xl border border-border bg-card px-4 py-3 ${
+                                kind === 'goal' ? 'border-emerald-500/30 bg-emerald-500/5' : ''
+                              }`}
+                            >
+                              <div
+                                className={`mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 ${
+                                  isAwayEvent ? 'justify-end text-right' : ''
+                                }`}
+                              >
                                 <span className="text-sm font-bold text-foreground">
                                   {event.displayMinute ||
                                     `${event.time.elapsed}${
@@ -2308,66 +2765,108 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                                 )}
                               </div>
 
-                              <p className="text-sm font-semibold text-foreground">
-                                {kind === 'missed-penalty'
-                                  ? english
-                                    ? 'Penalty missed'
-                                    : 'Penalty manqué'
-                                  : kind === 'goal'
-                                    ? english
-                                      ? 'Goal'
-                                      : 'But'
-                                    : kind === 'yellow-card'
-                                      ? english
-                                        ? 'Yellow card'
-                                        : 'Carton jaune'
-                                      : kind === 'red-card'
-                                        ? english
-                                          ? 'Red card'
-                                          : 'Carton rouge'
-                                        : kind === 'substitution'
-                                          ? english
-                                            ? 'Substitution'
-                                            : 'Remplacement'
-                                          : detail ?? event.type}
+                              <p
+                                className={`text-sm font-semibold text-foreground ${
+                                  isAwayEvent ? 'text-right' : ''
+                                }`}
+                              >
+                                {eventTitle}
                               </p>
 
+                              {kind === 'goal' && eventGoalScores.has(event.id) && (
+                                <div
+                                  className={`mt-2 flex ${
+                                    isAwayEvent ? 'justify-end' : 'justify-start'
+                                  }`}
+                                >
+                                  <span className="rounded-full bg-emerald-600/10 px-2.5 py-1 text-sm font-bold tabular-nums text-emerald-700 dark:text-emerald-400">
+                                    {english ? 'Score' : 'Score'}{' '}
+                                    {eventGoalScores.get(event.id)}
+                                  </span>
+                                </div>
+                              )}
+
                               {kind === 'substitution' ? (
-                                <div className="mt-1 space-y-0.5 text-sm text-muted-foreground">
-                                  {event.player.name && (
-                                    <p>
-                                      {english ? 'Out:' : 'Sortie :'}{' '}
-                                      {playerOutNumber !== null ? `#${playerOutNumber} ` : ''}
-                                      {event.player.name}
-                                    </p>
-                                  )}
+                                <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
                                   {event.assist.name && (
-                                    <p>
-                                      {english ? 'In:' : 'Entrée :'}{' '}
-                                      {playerInNumber !== null ? `#${playerInNumber} ` : ''}
-                                      {event.assist.name}
-                                    </p>
+                                    <div
+                                      className={`flex items-start gap-2 ${
+                                        isAwayEvent ? 'sm:flex-row-reverse sm:text-right' : ''
+                                      }`}
+                                    >
+                                      <ArrowUp
+                                        className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400"
+                                        aria-hidden="true"
+                                      />
+                                      <div>
+                                        <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
+                                          {english ? 'In' : 'Entrée'}
+                                        </p>
+                                        <p className="font-semibold text-foreground">
+                                          {playerInNumber !== null ? `#${playerInNumber} ` : ''}
+                                          {event.assist.name}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {event.player.name && (
+                                    <div
+                                      className={`flex items-start gap-2 ${
+                                        isAwayEvent ? 'sm:flex-row-reverse sm:text-right' : ''
+                                      }`}
+                                    >
+                                      <ArrowDown
+                                        className="mt-0.5 h-4 w-4 shrink-0 text-red-600 dark:text-red-400"
+                                        aria-hidden="true"
+                                      />
+                                      <div>
+                                        <p className="text-[10px] font-bold uppercase tracking-wide text-red-700 dark:text-red-400">
+                                          {english ? 'Out' : 'Sortie'}
+                                        </p>
+                                        <p className="font-semibold text-foreground">
+                                          {playerOutNumber !== null ? `#${playerOutNumber} ` : ''}
+                                          {event.player.name}
+                                        </p>
+                                      </div>
+                                    </div>
                                   )}
                                 </div>
                               ) : (
                                 event.player.name && (
-                                  <p className="mt-1 text-sm text-muted-foreground">
-                                    {event.player.name}
-                                  </p>
+                                  <div
+                                    className={`mt-2 max-w-[85%] ${
+                                      isAwayEvent
+                                        ? 'ml-auto text-right'
+                                        : teamSide === 'home'
+                                          ? 'mr-auto text-left'
+                                          : 'text-left'
+                                    }`}
+                                  >
+                                    <p className="text-base font-bold text-foreground">
+                                      {event.player.name}
+                                    </p>
+                                    {kind === 'goal' && event.team.name && (
+                                      <p className="text-xs font-medium text-muted-foreground">
+                                        {event.team.name}
+                                      </p>
+                                    )}
+                                  </div>
                                 )
                               )}
 
                               {kind === 'goal' && detail && (
-                                <p className="mt-1 text-xs font-medium text-primary">{detail}</p>
+                                <p className={`mt-1 text-xs font-medium text-primary ${isAwayEvent ? 'text-right' : ''}`}>
+                                  {detail}
+                                </p>
                               )}
                               {kind === 'goal' && event.assist.name && (
-                                <p className="mt-1 text-xs text-muted-foreground">
+                                <p className={`mt-1 text-xs text-muted-foreground ${isAwayEvent ? 'text-right' : ''}`}>
                                   {english ? 'Assist:' : 'Passe décisive :'} {event.assist.name}
                                 </p>
                               )}
-                              {eventCommentaries[index] && (
+                              {showCommentary && (
                                 <p className="mt-2 rounded-lg bg-muted/60 px-3 py-2 text-sm leading-relaxed text-foreground">
-                                  {eventCommentaries[index]}
+                                  {commentary}
                                 </p>
                               )}
                             </div>
@@ -2377,8 +2876,21 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                     </ol>
                   )}
                 </>
+              ) : activeDetailsTab === 'statistics' ? (
+                <MatchStatisticsPanel
+                  statistics={statistics}
+                  homeTeamLogo={homeTeamLogo}
+                  awayTeamLogo={awayTeamLogo}
+                  homeTeamName={
+                    selectedMatch?.teams.home.name ?? homeLineup?.team.name ?? null
+                  }
+                  awayTeamName={
+                    selectedMatch?.teams.away.name ?? awayLineup?.team.name ?? null
+                  }
+                  english={english}
+                />
               ) : activeDetailsTab === 'lineups' ? (
-                selectedMatch?.state === 'pre' && preMatchLineups.length === 0 ? (
+                isSelectedPreMatch && preMatchLineups.length === 0 ? (
                   <p role="status" className="rounded-xl border border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
                     {english
                       ? 'The complete official lineups have not been announced yet. They will appear here as soon as they are available.'
@@ -2402,10 +2914,20 @@ export default function LiveScores({ locale = 'fr' }: LiveScoresProps) {
                   </p>
                 ) : (
                   <div className="space-y-4">
+                    {isSelectedPreMatch && preMatchLineups.length > 0 && (
+                      <p
+                        role="status"
+                        className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm font-semibold text-foreground"
+                      >
+                        {english
+                          ? 'Official lineups are published and available before kick-off.'
+                          : 'Les compositions officielles sont publiées et consultables avant le coup d’envoi.'}
+                      </p>
+                    )}
                     <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
                       {english
-                        ? 'Lineups and substitutions use ESPN match data and refresh every 60 seconds. ESPN does not provide live player-tracking coordinates.'
-                        : 'Les compositions et remplacements suivent les données ESPN et sont actualisés toutes les 60 secondes. ESPN ne fournit pas les coordonnées de déplacement des joueurs en direct.'}
+                        ? 'Lineups and substitutions use ESPN match data and refresh every 30 seconds. ESPN does not provide live player-tracking coordinates.'
+                        : 'Les compositions et remplacements suivent les données ESPN et sont actualisés toutes les 30 secondes. ESPN ne fournit pas les coordonnées de déplacement des joueurs en direct.'}
                     </p>
                     <div className="space-y-2">
                       <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

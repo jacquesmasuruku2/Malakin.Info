@@ -223,7 +223,13 @@ export function isMarketSnapshot(value: unknown): value is MarketSnapshot {
     Number.isNaN(Date.parse(value.generatedAt)) ||
     !('assets' in value) ||
     !Array.isArray(value.assets) ||
-    value.assets.length !== MARKET_ASSETS.length ||
+    !value.assets.some(
+      (quote: unknown) =>
+        typeof quote === 'object' &&
+        quote !== null &&
+        'type' in quote &&
+        quote.type === 'crypto',
+    ) ||
     !('exchangeRates' in value) ||
     typeof value.exchangeRates !== 'object' ||
     value.exchangeRates === null

@@ -9,7 +9,7 @@ import type {
 } from '@/types/live-scores';
 
 const SUMMARY_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/all/summary';
-const CACHE_SECONDS = 60;
+const CACHE_SECONDS = 30;
 const ROSTER_CACHE_SECONDS = 86_400;
 const ROSTER_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer';
 const LEAGUE_SLUG_PATTERN = /^[a-z0-9._-]{1,80}$/i;
@@ -243,7 +243,9 @@ function getAthlete(value: unknown): { id: number | null; name: string | null } 
 function getEventType(value: Record<string, unknown>): string {
   const typeInfo = isRecord(value.type) ? value.type : {};
   const type = (getString(typeInfo.type) ?? getString(typeInfo.text) ?? '').toLowerCase();
+  const typeText = (getString(typeInfo.text) ?? '').toLowerCase();
   const text = (getString(value.text) ?? '').toLowerCase();
+  const eventDescription = `${type} ${typeText} ${text}`;
   if (type.includes('substitution') || type.includes('sub')) return 'subst';
   if (type.includes('card') || text.includes('yellow card') || text.includes('red card')) {
     return 'card';
@@ -251,10 +253,36 @@ function getEventType(value: Record<string, unknown>): string {
   if (
     type.includes('goal') ||
     value.scoringPlay === true ||
-    text.includes('penalty missed') ||
-    /^(?:goal(?:[!:\s]|$)|own goal\b|penalty (?:missed|scored|converted)\b)/i.test(text)
+    /(?:penalt(?:y|ies)\s+missed|missed\s+penalt(?:y|ies)|^goal(?:[!:\s]|$)|^own goal\b|^penalt(?:y|ies) (?:scored|converted)\b)/i.test(
+      text,
+    )
   ) {
     return 'goal';
+  }
+  if (/\bpenalt(?:y|ies)\b.*\b(?:saved|attempted|taken)\b/.test(eventDescription)) {
+    return 'penalty-attempt';
+  }
+  if (
+    /\bpenalt(?:y|ies)\b.*\b(?:awarded|given|won|for)\b/.test(eventDescription) ||
+    /\b(?:wins?|won|awarded)\s+(?:a\s+)?penalt(?:y|ies)\b/.test(eventDescription) ||
+    type.includes('penalty')
+  ) {
+    return 'penalty-awarded';
+  }
+  if (type.includes('var') || /\b(?:var|video review|video assistant referee)\b/.test(eventDescription)) {
+    return 'var';
+  }
+  if (type === 'start-2nd-half') return 'start-2nd-half';
+  if (type === 'end-regular-time') return 'end-regular-time';
+  if (/\b(?:cooling|hydration|water)\s+break\b/.test(eventDescription)) {
+    return 'cooling-break';
+  }
+  if (
+    /\b(?:half[\s-]?time|full[\s-]?time|first half|second half|end of period|break|pause|intermission)\b/.test(
+      eventDescription,
+    )
+  ) {
+    return 'break';
   }
   return type || 'other';
 }
@@ -318,13 +346,31 @@ function parseCommentary(value: unknown, index: number): LiveMatchEvent | null {
   const text = getString(value.text);
   if (!text) return null;
   const normalized = text.toLowerCase();
-  const type = /^(?:own goal|goal(?:[!:\s]|$))/.test(normalized)
+  const isGoal =
+    /(?:penalt(?:y|ies)\s+missed|missed\s+penalt(?:y|ies)|penalt(?:y|ies)\s+(?:scored|converted))\b/.test(normalized) ||
+    /^(?:own goal|goal(?:[!:\s]|$))/.test(normalized);
+  const isPenaltyAwarded =
+    /\bpenalt(?:y|ies)\b.*\b(?:awarded|given|won|for)\b/.test(normalized) ||
+    /\b(?:wins?|won|awarded)\s+(?:a\s+)?penalt(?:y|ies)\b/.test(normalized);
+  const isPenaltyAttempt =
+    /\bpenalt(?:y|ies)\b.*\b(?:saved|attempted|taken)\b/.test(normalized);
+  const type = isGoal
     ? 'goal'
-    : /\b(?:red|yellow) card\b/.test(normalized)
-      ? 'card'
-      : /\bsubstitution\b|\breplaces\b/.test(normalized)
-        ? 'subst'
-        : 'other';
+    : isPenaltyAttempt
+      ? 'penalty-attempt'
+      : isPenaltyAwarded
+      ? 'penalty-awarded'
+      : /\b(?:red|yellow) card\b/.test(normalized)
+        ? 'card'
+        : /\bsubstitution\b|\breplaces\b/.test(normalized)
+          ? 'subst'
+          : /\b(?:var|video review|video assistant referee)\b/.test(normalized)
+            ? 'var'
+            : /\b(?:cooling|hydration|water)\s+break\b/.test(normalized)
+              ? 'cooling-break'
+              : /\b(?:half[\s-]?time|full[\s-]?time|first half|second half|end of period|break|pause|intermission)\b/.test(normalized)
+                ? 'break'
+                : 'other';
 
   return {
     id: `commentary-${getString(value.sequence) ?? index}`,
@@ -366,10 +412,31 @@ function parseEvents(payload: Record<string, unknown>): LiveMatchEvent[] {
       return;
     }
 
-    if (keyEvents.length === 0) {
-      const event = parseCommentary(value, index);
-      if (event) eventsById.set(event.id, event);
+    const event = parseCommentary(value, index);
+    if (!event) return;
+    const duplicate = Array.from(eventsById.values()).find((existing) => {
+      if (
+        existing.time.elapsed !== event.time.elapsed ||
+        existing.time.extra !== event.time.extra ||
+        existing.type !== event.type
+      ) {
+        return false;
+      }
+      if (event.type !== 'other') return true;
+      const commentary = event.comments?.toLowerCase();
+      return Boolean(
+        commentary &&
+          (existing.comments?.toLowerCase() === commentary ||
+            existing.detail?.toLowerCase() === commentary),
+      );
+    });
+    if (duplicate) {
+      if (!duplicate.comments && event.comments) {
+        eventsById.set(duplicate.id, { ...duplicate, comments: event.comments });
+      }
+      return;
     }
+    eventsById.set(event.id, event);
   });
 
   return Array.from(eventsById.values()).sort(
@@ -384,22 +451,56 @@ function parseStatistics(value: unknown): MatchStatistic[] {
     return [];
   }
 
-  const statsBySide = new Map<'home' | 'away', Map<string, { label: string; value: string }>>();
+  const statsBySide = new Map<
+    'home' | 'away',
+    Map<string, { label: string; value: string; numericValue: number | null }>
+  >();
+  const percentageMetrics = new Set([
+    'passPct',
+    'passPercentage',
+    'passingAccuracy',
+    'shotPct',
+    'crossPct',
+    'longballPct',
+    'tacklePct',
+  ]);
   for (const teamBox of value.boxscore.teams) {
     if (!isRecord(teamBox) || (teamBox.homeAway !== 'home' && teamBox.homeAway !== 'away')) {
       continue;
     }
     const side = teamBox.homeAway;
-    const teamStats = new Map<string, { label: string; value: string }>();
+    const teamStats = new Map<
+      string,
+      { label: string; value: string; numericValue: number | null }
+    >();
     if (Array.isArray(teamBox.statistics)) {
       for (const stat of teamBox.statistics) {
         if (!isRecord(stat)) continue;
         const name = getString(stat.name);
-        const displayValue = getString(stat.displayValue);
+        const numericValue = getNumber(stat.value);
+        const displayValue =
+          getString(stat.displayValue) ??
+          (numericValue === null ? null : String(numericValue));
         if (name && displayValue) {
+          const parsedDisplayValue = Number.parseFloat(displayValue.replace(/,/g, ''));
+          let formattedValue = displayValue;
+          if (
+            !displayValue.includes('%') &&
+            Number.isFinite(parsedDisplayValue) &&
+            (percentageMetrics.has(name) || name === 'possessionPct')
+          ) {
+            const percentage =
+              percentageMetrics.has(name) && Math.abs(parsedDisplayValue) <= 1
+                ? parsedDisplayValue * 100
+                : parsedDisplayValue;
+            formattedValue = `${Math.round(percentage * 10) / 10}%`;
+          }
           teamStats.set(name, {
             label: getString(stat.label) ?? name,
-            value: displayValue,
+            value: formattedValue,
+            numericValue:
+              numericValue ??
+              (Number.isFinite(parsedDisplayValue) ? parsedDisplayValue : null),
           });
         }
       }
@@ -407,17 +508,57 @@ function parseStatistics(value: unknown): MatchStatistic[] {
     statsBySide.set(side, teamStats);
   }
 
-  const metricNames = [
+  const passPercentageNames = ['passPct', 'passPercentage', 'passingAccuracy'];
+  for (const teamStats of statsBySide.values()) {
+    if (passPercentageNames.some((name) => teamStats.has(name))) continue;
+    const totalPasses = teamStats.get('totalPasses')?.numericValue;
+    const accuratePasses = teamStats.get('accuratePasses')?.numericValue;
+    if (
+      totalPasses === undefined ||
+      totalPasses === null ||
+      accuratePasses === undefined ||
+      accuratePasses === null ||
+      totalPasses <= 0 ||
+      accuratePasses < 0
+    ) {
+      continue;
+    }
+    const percentage = Math.round((accuratePasses / totalPasses) * 100);
+    teamStats.set('passPct', {
+      label: 'Pass accuracy',
+      value: `${percentage}%`,
+      numericValue: percentage,
+    });
+  }
+
+  const preferredMetricNames = [
     'possessionPct',
-    'shotsOnTarget',
     'totalShots',
+    'shotsOnTarget',
+    'blockedShots',
     'wonCorners',
+    'totalPasses',
+    'accuratePasses',
+    'passPct',
+    'tackles',
+    'totalTackles',
+    'effectiveTackles',
+    'tacklePct',
+    'offsides',
     'foulsCommitted',
     'yellowCards',
     'redCards',
   ];
+  const metricNames = new Set<string>();
+  for (const teamStats of statsBySide.values()) {
+    for (const name of teamStats.keys()) metricNames.add(name);
+  }
+  const orderedMetricNames = [
+    ...preferredMetricNames.filter((name) => metricNames.has(name)),
+    ...Array.from(metricNames).filter((name) => !preferredMetricNames.includes(name)),
+  ];
 
-  return metricNames.flatMap((name) => {
+  return orderedMetricNames.flatMap((name) => {
     const home = statsBySide.get('home')?.get(name);
     const away = statsBySide.get('away')?.get(name);
     if (!home && !away) return [];
@@ -876,7 +1017,7 @@ export async function GET(request: Request) {
       },
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=15',
         },
       },
     );

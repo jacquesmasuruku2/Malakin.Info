@@ -10,9 +10,10 @@ const COINGECKO_URL =
   'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,cardano,solana,binancecoin,ripple,dogecoin,chainlink,avalanche-2,tron,polkadot,litecoin,shiba-inu,bitcoin-cash,stellar&price_change_percentage=24h';
 const GOLD_API_URL = 'https://api.gold-api.com/price/XAU';
 const EXCHANGE_RATES_URL = 'https://open.er-api.com/v6/latest/USD';
+const EXCHANGE_RATES_FALLBACK_URL = 'https://api.exchangerate-api.com/v4/latest/USD';
 const MARKET_CACHE_SECONDS = 2;
 const EXCHANGE_RATE_CACHE_SECONDS = 21_600;
-const COINGECKO_TIMEOUT_MS = 2_000;
+const COINGECKO_TIMEOUT_MS = 5_000;
 
 type CoinGeckoMarketRow = {
   id: string;
@@ -127,58 +128,137 @@ function parseBinanceRows(value: unknown): BinanceTickerRow[] {
 function createCryptoQuote(
   asset: (typeof MARKET_ASSETS)[number],
   row: CoinGeckoMarketRow | undefined,
-  binanceRow: BinanceTickerRow,
-): MarketQuote {
+  binanceRow: BinanceTickerRow | undefined,
+): MarketQuote | null {
+  const priceUsd = row?.current_price ?? binanceRow?.lastPrice;
+  if (priceUsd === undefined) return null;
+
   return {
     ...asset,
     // USDT is the live Binance quote fallback when CoinGecko is unavailable.
-    priceUsd: row?.current_price ?? binanceRow.lastPrice,
-    priceUsdt: binanceRow.lastPrice,
-    change24h: row?.price_change_percentage_24h ?? binanceRow.priceChangePercent,
-    change24hUsdt: binanceRow.priceChangePercent,
+    priceUsd,
+    priceUsdt: binanceRow?.lastPrice ?? null,
+    change24h: row?.price_change_percentage_24h ?? binanceRow?.priceChangePercent ?? null,
+    change24hUsdt: binanceRow?.priceChangePercent ?? null,
     marketCapUsd: row?.market_cap ?? null,
-    volume24hUsd: row?.total_volume ?? binanceRow.quoteVolume,
-    high24hUsd: row?.high_24h ?? binanceRow.highPrice,
-    low24hUsd: row?.low_24h ?? binanceRow.lowPrice,
-    high24hUsdt: binanceRow.highPrice,
-    low24hUsdt: binanceRow.lowPrice,
-    volume24hUsdt: binanceRow.quoteVolume,
-    sourceUpdatedAt: row?.last_updated ?? new Date(binanceRow.closeTime).toISOString(),
-    sourceUpdatedAtUsdt: new Date(binanceRow.closeTime).toISOString(),
+    volume24hUsd: row?.total_volume ?? binanceRow?.quoteVolume ?? null,
+    high24hUsd: row?.high_24h ?? binanceRow?.highPrice ?? null,
+    low24hUsd: row?.low_24h ?? binanceRow?.lowPrice ?? null,
+    high24hUsdt: binanceRow?.highPrice ?? null,
+    low24hUsdt: binanceRow?.lowPrice ?? null,
+    volume24hUsdt: binanceRow?.quoteVolume ?? null,
+    sourceUpdatedAt:
+      row?.last_updated ??
+      (binanceRow ? new Date(binanceRow.closeTime).toISOString() : null),
+    sourceUpdatedAtUsdt: binanceRow ? new Date(binanceRow.closeTime).toISOString() : null,
   };
+}
+
+async function getOptionalJson(
+  result: PromiseSettledResult<Response>,
+  source: string,
+): Promise<unknown | null> {
+  if (result.status === 'rejected') {
+    console.warn(`${source} request failed:`, result.reason);
+    return null;
+  }
+  if (!result.value.ok) {
+    console.warn(`${source} responded with HTTP ${result.value.status}.`);
+    return null;
+  }
+  try {
+    return await result.value.json();
+  } catch (error) {
+    console.warn(`${source} returned invalid JSON:`, error);
+    return null;
+  }
+}
+
+async function fetchOptionalJson(
+  url: string,
+  source: string,
+  revalidate: number,
+): Promise<unknown | null> {
+  try {
+    const response = await fetch(url, {
+      next: { revalidate },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) {
+      console.warn(`${source} responded with HTTP ${response.status}.`);
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.warn(`${source} request failed:`, error);
+    return null;
+  }
 }
 
 async function getOptionalCoinGeckoRows(
   result: PromiseSettledResult<Response>,
 ): Promise<CoinGeckoMarketRow[] | null> {
-  if (result.status === 'rejected') {
-    console.warn('CoinGecko market metadata is unavailable:', result.reason);
-    return null;
-  }
-  if (!result.value.ok) {
-    console.warn(`CoinGecko responded with HTTP ${result.value.status}; using Binance quotes.`);
-    return null;
-  }
+  const data = await getOptionalJson(result, 'CoinGecko market metadata');
+  if (data === null) return null;
 
   try {
-    return parseCoinGeckoRows(await result.value.json());
+    return parseCoinGeckoRows(data);
   } catch (error) {
     console.warn('CoinGecko returned invalid market metadata; using Binance quotes:', error);
     return null;
   }
 }
 
-function getRequiredResponse(
+function parseExchangeRates(value: unknown): Record<MarketCurrencyCode, number> {
+  const isPrimaryResponse =
+    isRecord(value) && value.result === 'success' && value.base_code === 'USD';
+  const isFallbackResponse = isRecord(value) && value.base === 'USD';
+  if (
+    !isRecord(value) ||
+    (!isPrimaryResponse && !isFallbackResponse) ||
+    !isRecord(value.rates)
+  ) {
+    throw new Error('Exchange rate API returned invalid rates.');
+  }
+
+  const rates = value.rates;
+  return Object.fromEntries(
+    MARKET_CURRENCIES.map((currency) => {
+      const rate = finiteNumber(rates[currency.code]);
+      if (rate === null || rate <= 0) {
+        throw new Error(`Exchange rate API did not return ${currency.code}.`);
+      }
+      return [currency.code, rate];
+    }),
+  ) as Record<MarketCurrencyCode, number>;
+}
+
+async function getExchangeRates(
   result: PromiseSettledResult<Response>,
-  source: string,
-): Response {
-  if (result.status === 'rejected') {
-    throw new Error(`${source} request failed: ${String(result.reason)}`);
+): Promise<Record<MarketCurrencyCode, number>> {
+  const primaryData = await getOptionalJson(result, 'Exchange rate API');
+  if (primaryData !== null) {
+    try {
+      return parseExchangeRates(primaryData);
+    } catch (error) {
+      console.warn('Exchange rate API returned invalid rates; trying fallback:', error);
+    }
   }
-  if (!result.value.ok) {
-    throw new Error(`${source} responded with HTTP ${result.value.status}.`);
+
+  const fallbackData = await fetchOptionalJson(
+    EXCHANGE_RATES_FALLBACK_URL,
+    'Exchange rate fallback API',
+    EXCHANGE_RATE_CACHE_SECONDS,
+  );
+  if (fallbackData !== null) {
+    try {
+      return parseExchangeRates(fallbackData);
+    } catch (error) {
+      console.error('Exchange rate fallback API returned invalid rates:', error);
+    }
   }
-  return result.value;
+
+  throw new Error('All exchange rate providers are unavailable.');
 }
 
 export async function getMarketSnapshot(): Promise<MarketSnapshot> {
@@ -213,84 +293,70 @@ export async function getMarketSnapshot(): Promise<MarketSnapshot> {
     ]);
 
     const cryptoRows = await getOptionalCoinGeckoRows(cryptoResult);
-    const goldResponse = getRequiredResponse(goldResult, 'Gold API');
-    const exchangeRatesResponse = getRequiredResponse(exchangeRatesResult, 'Exchange rate API');
-    const binanceResponse = getRequiredResponse(binanceResult, 'Binance');
 
-    const [goldData, exchangeRatesData, binanceData]: [unknown, unknown, unknown] =
-      await Promise.all([
-        goldResponse.json(),
-        exchangeRatesResponse.json(),
-        binanceResponse.json(),
-      ]);
+    const [goldData, exchangeRates, binanceData] = await Promise.all([
+      getOptionalJson(goldResult, 'Gold API'),
+      getExchangeRates(exchangeRatesResult),
+      getOptionalJson(binanceResult, 'Binance market data'),
+    ]);
     const cryptoById = new Map((cryptoRows ?? []).map((row) => [row.id, row]));
-    const binanceRows = parseBinanceRows(binanceData);
+    let binanceRows: BinanceTickerRow[] = [];
+    if (binanceData !== null) {
+      try {
+        binanceRows = parseBinanceRows(binanceData);
+      } catch (error) {
+        console.warn('Binance returned invalid market data; using CoinGecko quotes:', error);
+      }
+    }
     const binanceBySymbol = new Map(binanceRows.map((row) => [row.symbol, row]));
     const goldPrice = isRecord(goldData) ? finiteNumber(goldData.price) : null;
 
-    if (
-      !isRecord(goldData) ||
-      goldPrice === null ||
-      goldData.symbol !== 'XAU'
-    ) {
-      throw new Error('Gold API returned an invalid market quote.');
-    }
-    if (
-      !isRecord(exchangeRatesData) ||
-      exchangeRatesData.result !== 'success' ||
-      exchangeRatesData.base_code !== 'USD' ||
-      !isRecord(exchangeRatesData.rates)
-    ) {
-      throw new Error('Exchange rate API returned invalid rates.');
-    }
-
-    const rates = exchangeRatesData.rates;
-    const exchangeRates = Object.fromEntries(
-      MARKET_CURRENCIES.map((currency) => {
-        const rate = finiteNumber(rates[currency.code]);
-        if (rate === null || rate <= 0) {
-          throw new Error(`Exchange rate API did not return ${currency.code}.`);
-        }
-        return [currency.code, rate];
-      }),
-    ) as Record<MarketCurrencyCode, number>;
-
     const goldAsset = MARKET_ASSETS.find((asset) => asset.id === 'gold');
-    if (!goldAsset) {
-      throw new Error('The gold market asset is not configured.');
+    const goldQuote: MarketQuote | null =
+      goldAsset && isRecord(goldData) && goldPrice !== null && goldData.symbol === 'XAU'
+        ? {
+            ...goldAsset,
+            priceUsd: goldPrice,
+            priceUsdt: null,
+            change24h: null,
+            change24hUsdt: null,
+            marketCapUsd: null,
+            volume24hUsd: null,
+            high24hUsd: null,
+            low24hUsd: null,
+            high24hUsdt: null,
+            low24hUsdt: null,
+            volume24hUsdt: null,
+            sourceUpdatedAt:
+              typeof goldData.updatedAt === 'string' &&
+              !Number.isNaN(Date.parse(goldData.updatedAt))
+                ? goldData.updatedAt
+                : null,
+            sourceUpdatedAtUsdt: null,
+          }
+        : null;
+    if (!goldQuote) {
+      console.warn('Gold API returned invalid or unavailable market data; omitting gold quote.');
     }
 
-    const goldQuote: MarketQuote = {
-      ...goldAsset,
-      priceUsd: goldPrice,
-      priceUsdt: null,
-      change24h: null,
-      change24hUsdt: null,
-      marketCapUsd: null,
-      volume24hUsd: null,
-      high24hUsd: null,
-      low24hUsd: null,
-      high24hUsdt: null,
-      low24hUsdt: null,
-      volume24hUsdt: null,
-      sourceUpdatedAt:
-        typeof goldData.updatedAt === 'string' && !Number.isNaN(Date.parse(goldData.updatedAt))
-          ? goldData.updatedAt
-          : null,
-      sourceUpdatedAtUsdt: null,
-    };
-
-    const cryptoQuotes = MARKET_ASSETS.filter((asset) => asset.type === 'crypto').map((asset) => {
-      const row = cryptoById.get(asset.id);
-      const binanceRow = binanceBySymbol.get(`${asset.symbol}USDT`);
-      if (!binanceRow) {
-        throw new Error(`Binance did not return a quote for ${asset.symbol}USDT.`);
+    const cryptoQuotes = MARKET_ASSETS.filter((asset) => asset.type === 'crypto').flatMap((asset) => {
+      const quote = createCryptoQuote(
+        asset,
+        cryptoById.get(asset.id),
+        binanceBySymbol.get(`${asset.symbol}USDT`),
+      );
+      if (!quote) {
+        console.warn(`No market provider returned a quote for ${asset.symbol}; omitting it.`);
+        return [];
       }
-      return createCryptoQuote(asset, row, binanceRow);
+      return [quote];
     });
+    if (cryptoQuotes.length === 0) {
+      throw new Error('No crypto market provider returned usable quotes.');
+    }
 
     return {
-      assets: [goldQuote, ...cryptoQuotes],
+      assets: [...(goldQuote ? [goldQuote] : []), ...cryptoQuotes],
       exchangeRates,
       generatedAt: new Date().toISOString(),
     };
