@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { ThumbsUp, MessageCircle, MessagesSquare, Send } from 'lucide-react';
+import { ThumbsUp, MessageSquareText, MessagesSquare, Send } from 'lucide-react';
 import { authFetch } from '@/lib/client-auth';
 import { useAccountUser } from '@/lib/use-account-user';
 
@@ -457,7 +457,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
             className="inline-flex items-center gap-2.5 rounded-xl border border-primary/20 bg-primary/[0.06] px-4 py-2.5 text-sm font-semibold text-primary transition hover:border-primary/40 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-background text-primary shadow-sm">
-              <MessagesSquare className="h-[18px] w-[18px]" strokeWidth={1.8} />
+              <MessageSquareText className="h-[18px] w-[18px]" strokeWidth={1.8} />
             </span>
             {t.writeComment}
           </button>
@@ -539,7 +539,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
         </div>
       ) : comments.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <MessageSquareText className="w-12 h-12 mx-auto mb-4 opacity-50" strokeWidth={1.8} />
           <p>{t.noComments}</p>
         </div>
       ) : (
