@@ -12,15 +12,19 @@ import {
   type SuggestedArticle,
 } from '@/lib/followed-categories';
 import { copies, pickCopy } from '@/lib/copy';
+import { useConsentNotificationDelay } from '@/hooks/useConsentNotificationDelay';
 
 export default function FollowedCategoryNotifier() {
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'fr';
+  const notificationsReady = useConsentNotificationDelay();
   const [suggestion, setSuggestion] = useState<SuggestedArticle | null>(null);
   const [categoryTitle, setCategoryTitle] = useState('');
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    if (!notificationsReady) return;
+
     let cancelled = false;
 
     const run = async () => {
@@ -47,7 +51,7 @@ export default function FollowedCategoryNotifier() {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [locale, pathname]);
+  }, [locale, notificationsReady, pathname]);
 
   if (!visible || !suggestion) return null;
 

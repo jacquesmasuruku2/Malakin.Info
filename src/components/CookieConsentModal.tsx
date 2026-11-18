@@ -1,16 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Mail, X } from 'lucide-react';
+import { ChevronDown, Mail, X } from 'lucide-react';
 import {
   CONSENT_CATEGORIES,
   CONSENT_PREFERENCES_KEY,
+  CONSENT_SAVED_AT_KEY,
   CONSENT_STORAGE_KEY,
   CONSENT_UPDATED_EVENT,
   DEFAULT_CONSENT_PREFERENCES,
   readConsentPreferences,
 } from '@/lib/consent';
 import { subscribeToNewsletter } from '@/lib/newsletter-client';
+import { useConsentNotificationDelay } from '@/hooks/useConsentNotificationDelay';
 
 const STORAGE_KEY = CONSENT_STORAGE_KEY;
 const PREFERENCES_KEY = CONSENT_PREFERENCES_KEY;
@@ -193,6 +195,8 @@ function CookiePreferencesModal({
   onRejectAll: () => void;
   onClose: () => void;
 }) {
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+
   return (
     <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-4">
       <div
@@ -241,9 +245,30 @@ function CookiePreferencesModal({
                 <p className="text-sm font-semibold leading-snug text-[#081c3d] sm:text-base">
                   {category.label}
                 </p>
+                <button
+                  type="button"
+                  aria-expanded={expandedCategory === category.key}
+                  aria-controls={`cookie-category-description-${category.key}`}
+                  className="mt-2 inline-flex min-h-9 items-center gap-2 text-sm font-semibold text-[#0b3b8b] underline decoration-[#d4af37] underline-offset-4 hover:text-[#081c3d]"
+                  onClick={() => setExpandedCategory((current) => current === category.key ? null : category.key)}
+                >
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${expandedCategory === category.key ? 'rotate-180' : ''}`}
+                    aria-hidden
+                  />
+                  {expandedCategory === category.key ? 'Masquer l’explication' : 'Comprendre ce choix'}
+                </button>
+                {expandedCategory === category.key && (
+                  <p
+                    id={`cookie-category-description-${category.key}`}
+                    className="mt-2 rounded-md border-l-2 border-[#d4af37] bg-[#f7f3eb] px-3 py-2.5 text-sm leading-6 text-[#53606b]"
+                  >
+                    {category.description}
+                  </p>
+                )}
                 {category.required ? (
                   <span className="mt-3 inline-flex rounded-md border border-[#d4af37] bg-[#fff8dc] px-4 py-2 text-sm font-semibold text-[#081c3d]">
-                    Requis
+                    Toujours actif — nécessaire
                   </span>
                 ) : (
                   <div className="mt-3 grid grid-cols-2 gap-2">
@@ -299,6 +324,7 @@ function CookiePreferencesModal({
 }
 
 export default function CookieConsentModal() {
+  const notificationsReady = useConsentNotificationDelay();
   const [isVisible, setIsVisible] = useState(false);
   const [hasConsent, setHasConsent] = useState(false);
   const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
@@ -323,6 +349,11 @@ export default function CookieConsentModal() {
     if (!consent) {
       const timer = window.setTimeout(() => setIsVisible(true), COOKIE_CONSENT_DELAY_MS);
       return () => window.clearTimeout(timer);
+    }
+
+    if (!window.localStorage.getItem(CONSENT_SAVED_AT_KEY)) {
+      window.localStorage.setItem(CONSENT_SAVED_AT_KEY, String(Date.now()));
+      window.dispatchEvent(new Event(CONSENT_UPDATED_EVENT));
     }
 
     const timer = window.setTimeout(() => setHasConsent(true), 0);
@@ -354,11 +385,11 @@ export default function CookieConsentModal() {
   };
 
   useEffect(() => {
-    if (!hasConsent || isVisible || isPreferencesOpen || isNewsletterPromptOpen) return;
+    if (!hasConsent || !notificationsReady || isVisible || isPreferencesOpen || isNewsletterPromptOpen) return;
     if (hasNewsletterPromptSettled()) return;
 
     const openNewsletterPrompt = () => {
-      if (isVisible || isPreferencesOpen || isNewsletterPromptOpen) return;
+      if (!notificationsReady || isVisible || isPreferencesOpen || isNewsletterPromptOpen) return;
       if (hasNewsletterPromptSettled()) return;
 
       settleNewsletterPrompt();
@@ -373,7 +404,7 @@ export default function CookieConsentModal() {
 
     document.addEventListener('mouseout', handleMouseOut);
     return () => document.removeEventListener('mouseout', handleMouseOut);
-  }, [hasConsent, isVisible, isPreferencesOpen, isNewsletterPromptOpen]);
+  }, [hasConsent, notificationsReady, isVisible, isPreferencesOpen, isNewsletterPromptOpen]);
 
   useEffect(() => {
     if (!isPreferencesOpen && !isNewsletterPromptOpen) return;
@@ -410,6 +441,9 @@ export default function CookieConsentModal() {
     };
     window.localStorage.setItem(STORAGE_KEY, 'configured');
     window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(next));
+    if (close) {
+      window.localStorage.setItem(CONSENT_SAVED_AT_KEY, String(Date.now()));
+    }
     window.dispatchEvent(new Event(CONSENT_UPDATED_EVENT));
     setHasConsent(true);
     setPreferences(next);

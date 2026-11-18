@@ -19,6 +19,7 @@ import {
   showBrowserPublicationNotification,
   type PublicationNotice,
 } from '@/lib/publication-notifications';
+import { useConsentNotificationDelay } from '@/hooks/useConsentNotificationDelay';
 
 type Mode = 'prompt' | 'publication' | null;
 
@@ -27,6 +28,7 @@ export default function PublicationNotifier() {
   const router = useRouter();
   const locale = pathname.split('/')[1] || 'fr';
   const isFrench = locale === 'fr';
+  const notificationsReady = useConsentNotificationDelay();
 
   const [mode, setMode] = useState<Mode>(null);
   const [item, setItem] = useState<PublicationNotice | null>(null);
@@ -34,6 +36,8 @@ export default function PublicationNotifier() {
   const [enabling, setEnabling] = useState(false);
 
   useEffect(() => {
+    if (!notificationsReady) return;
+
     let cancelled = false;
 
     const boot = async () => {
@@ -88,7 +92,7 @@ export default function PublicationNotifier() {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [locale, router]);
+  }, [locale, notificationsReady, router]);
 
   const close = () => setMode(null);
 
