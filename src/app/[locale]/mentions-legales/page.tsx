@@ -4,7 +4,7 @@ import { getLocalizedPageMetadata } from '@/lib/page-metadata';
 import { SITE_URL } from '@/lib/site-legal';
 import {
   HOSTING_PROVIDER,
-  LEGAL_UPDATED_AT,
+  LEGAL_POLICIES_UPDATED_AT,
   PUBLICATION_DIRECTOR,
   SITE_ADDRESS,
   SITE_EMAIL,
@@ -109,8 +109,10 @@ export default async function LegalNoticesPage({
             <ul className="list-disc pl-6 text-muted-foreground space-y-2 mt-3">
               <li>Des alertes sur le site et, avec votre accord, des notifications du navigateur pour signaler les nouvelles publications</li>
               <li>Un espace compte permettant de gérer votre profil</li>
+              <li>Une newsletter à laquelle vous pouvez vous inscrire librement</li>
               <li>Une rubrique emploi avec offres, candidatures et échanges avec le recruteur</li>
               <li>Des services multimédias (radio, contenus culturels et autres rubriques éditoriales)</li>
+              <li>Une protection anti-robot Google reCAPTCHA sur les formulaires de contact, de compte et d’abonnement à la newsletter</li>
             </ul>
             <p className="text-muted-foreground mt-4">
               L’usage de ces fonctionnalités est détaillé dans les{' '}
@@ -123,10 +125,10 @@ export default async function LegalNoticesPage({
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Données personnelles et cookies</h2>
             <p className="text-muted-foreground">
-              Tant que vous n’avez pas personnalisé vos choix, les cookies non essentiels (audience, publicité, personnalisation) sont acceptés par défaut. Pour les modifier : cliquez sur le bouton cookie en bas à gauche de n’importe quelle page, choisissez Refuser ou Accepter pour chaque catégorie (ou Refuser tout / Accepter tout), puis cliquez sur Enregistrer.
+              Les cookies non essentiels (audience, publicité, personnalisation) restent désactivés tant que vous n’avez pas accepté les catégories correspondantes. Pour modifier vos choix : cliquez sur le bouton cookie en bas à gauche de n’importe quelle page, choisissez Refuser ou Accepter pour chaque catégorie (ou Refuser tout / Accepter tout), puis cliquez sur Enregistrer.
             </p>
             <p className="text-muted-foreground mt-4">
-              Le site peut également utiliser des notifications (interface et/ou navigateur) pour vous informer des nouvelles publications, uniquement avec votre permission lorsque le navigateur le demande. Le traitement des données et la procédure complète sont décrits dans la{' '}
+              Google reCAPTCHA protège les formulaires de contact, de compte et d’abonnement à la newsletter contre les soumissions automatisées et peut traiter des données techniques pour cette vérification. Les notifications navigateur nécessitent votre permission ; certaines alertes éditoriales et invitations à la newsletter peuvent apparaître au plus tôt trois minutes après l’enregistrement de votre choix de cookies. Le traitement des données et les choix disponibles sont décrits dans la{' '}
               <Link href={`/${locale}/politique-confidentialite`} className="text-primary hover:underline">politique de confidentialité</Link>
               {' '}et la{' '}
               <Link href={`/${locale}/cookies`} className="text-primary hover:underline">politique de cookies</Link>.
@@ -135,7 +137,7 @@ export default async function LegalNoticesPage({
 
           <section className="border-t border-border pt-6">
             <p className="text-sm text-muted-foreground">
-              Date de dernière mise à jour : {LEGAL_UPDATED_AT}
+              Date de dernière mise à jour : {LEGAL_POLICIES_UPDATED_AT}
             </p>
           </section>
         </div>

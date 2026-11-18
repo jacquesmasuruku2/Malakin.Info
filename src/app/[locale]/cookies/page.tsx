@@ -5,7 +5,9 @@ import {
   ABOUTADS_OPTOUT_URL,
   GOOGLE_ADS_SETTINGS_URL,
   GOOGLE_PARTNER_DATA_URL,
-  LEGAL_UPDATED_AT,
+  GOOGLE_PRIVACY_POLICY_URL,
+  GOOGLE_RECAPTCHA_INFO_URL,
+  LEGAL_POLICIES_UPDATED_AT,
   SITE_EMAIL,
 } from '@/lib/site-legal';
 
@@ -67,7 +69,7 @@ export default function CookiesPolicyPage() {
                 Cliquez sur <strong className="font-semibold text-foreground">Enregistrer</strong> pour appliquer et mémoriser vos choix. Ils sont pris en compte immédiatement (audience, publicité, etc.).
               </li>
               <li>
-                Lors de votre première visite, une bannière peut aussi apparaître. Elle propose les mêmes actions : accepter tous les cookies, tout refuser, ou ouvrir les paramètres. Fermer cette bannière sans personnaliser conserve l’acceptation par défaut.
+                Lors de votre première visite, une bannière peut aussi apparaître. Elle propose les mêmes actions : accepter tous les cookies, tout refuser, ou ouvrir les paramètres. Fermer cette bannière sans accepter de catégorie laisse les cookies non essentiels désactivés.
               </li>
             </ol>
             <p className="text-muted-foreground mt-4">
@@ -78,19 +80,33 @@ export default function CookiesPolicyPage() {
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Bannière de consentement</h2>
             <p className="text-muted-foreground">
-              MalakInfo peut afficher une bannière de consentement lors de votre première visite. Tant que vous n’avez pas personnalisé vos réglages, les cookies analytiques et publicitaires sont activés par défaut. Si vous refusez une catégorie ou cliquez sur « Refuser tout », ce refus est enregistré et appliqué à la place du réglage par défaut.
+              MalakInfo peut afficher une bannière de consentement lors de votre première visite. Les cookies analytiques et publicitaires restent désactivés tant que vous n’avez pas accepté les catégories correspondantes. Si vous refusez une catégorie ou cliquez sur « Refuser tout », ce choix est enregistré et appliqué.
             </p>
           </section>
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Notifications et stockage local</h2>
             <p className="text-muted-foreground">
-              Indépendamment des cookies, MalakInfo peut utiliser le stockage local du navigateur et, avec votre permission, l’API de notifications ainsi qu’un service worker pour vous alerter des nouvelles publications. Ces mécanismes ne déposent pas de cookies publicitaires ; l’activation des notifications système nécessite votre accord explicite et peut être révoquée dans les paramètres du navigateur.
+              Indépendamment des cookies, MalakInfo peut utiliser le stockage local du navigateur pour mémoriser vos préférences et la date de leur enregistrement. Certaines alertes éditoriales et invitations à la newsletter peuvent apparaître au plus tôt trois minutes après l’enregistrement de votre choix. Avec votre permission, l’API de notifications et un service worker peuvent également vous signaler de nouvelles publications. Vous pouvez révoquer cette permission dans les paramètres de votre navigateur.
             </p>
           </section>
 
           <section>
-            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Tableau des cookies</h2>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Protection des formulaires par Google reCAPTCHA</h2>
+            <p className="text-muted-foreground">
+              Les formulaires de contact, de connexion, d’inscription et d’abonnement à la newsletter chargent Google reCAPTCHA v2 afin de repérer les soumissions automatisées et de limiter les abus. Google indique que reCAPTCHA dépose le cookie de sécurité <code>_GRECAPTCHA</code> pour son analyse de risque. Des données techniques ou d’interaction, comme l’adresse IP et des informations sur le navigateur ou l’appareil, peuvent être traitées par Google lorsque le widget est utilisé. Ce cookie sert à la sécurité des formulaires et ne relève pas des catégories facultatives d’analyse ou de publicité.
+            </p>
+            <p className="text-muted-foreground mt-3">
+              Consultez la{' '}
+              <a href={GOOGLE_PRIVACY_POLICY_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">règle de confidentialité de Google</a>
+              {' '}et la{' '}
+              <a href={GOOGLE_RECAPTCHA_INFO_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">FAQ reCAPTCHA</a>
+              {' '}pour plus d’informations sur ce service.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Tableau des cookies et stockages utilisés</h2>
             <div className="overflow-x-auto">
               <table className="min-w-full border border-border">
                 <thead>
@@ -110,7 +126,7 @@ export default function CookiesPolicyPage() {
                     <td className="border border-border px-4 py-2 text-muted-foreground">Mesure d’audience</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Analytique</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">24 heures à 2 ans</td>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">Accepté par défaut, sauf refus</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Désactivé avant acceptation de la catégorie</td>
                   </tr>
                   <tr>
                     <td className="border border-border px-4 py-2 text-muted-foreground">IDE, NID</td>
@@ -118,23 +134,39 @@ export default function CookiesPolicyPage() {
                     <td className="border border-border px-4 py-2 text-muted-foreground">Publicité, y compris personnalisée</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Publicitaire</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">6 mois à 1 an</td>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">Accepté par défaut, sauf refus</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Désactivé avant acceptation de la catégorie</td>
                   </tr>
                   <tr>
                     <td className="border border-border px-4 py-2 text-muted-foreground">malakinfo_cookie_consent</td>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">MalakInfo</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">MalakInfo (stockage local)</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Mémoriser que vos choix ont été personnalisés</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Nécessaire</td>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">12 mois</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Jusqu’à suppression du stockage local</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Non</td>
                   </tr>
                   <tr>
                     <td className="border border-border px-4 py-2 text-muted-foreground">malakinfo_cookie_preferences</td>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">MalakInfo</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">MalakInfo (stockage local)</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Mémoriser vos catégories de cookies acceptées ou refusées</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Nécessaire</td>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">12 mois</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Jusqu’à suppression du stockage local</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Non</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">malakinfo_cookie_consent_saved_at</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">MalakInfo (stockage local)</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Mémoriser la date du choix de consentement pour différer certaines alertes de trois minutes</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Fonctionnement</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Jusqu’à suppression du stockage local</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Non</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">_GRECAPTCHA</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Google reCAPTCHA</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Analyse de risque et protection anti-robot des formulaires</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Sécurité nécessaire</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Selon Google</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Non, utilisé pour la sécurité</td>
                   </tr>
                   <tr>
                     <td className="border border-border px-4 py-2 text-muted-foreground">next-auth.session-token</td>
@@ -177,7 +209,7 @@ export default function CookiesPolicyPage() {
 
           <section className="border-t border-border pt-6">
             <p className="text-sm text-muted-foreground">
-              Date de dernière mise à jour : {LEGAL_UPDATED_AT}
+              Date de dernière mise à jour : {LEGAL_POLICIES_UPDATED_AT}
             </p>
           </section>
         </div>

@@ -6,6 +6,7 @@ export const SITE_PHONE = '+243 998 258 441';
 export const SITE_ADDRESS = 'Kinshasa, République Démocratique du Congo';
 export const PUBLICATION_DIRECTOR = 'Ezekiel Matumona';
 export const LEGAL_UPDATED_AT = '17 septembre 2026';
+export const LEGAL_POLICIES_UPDATED_AT = '18 novembre 2026';
 
 /** Alias de marque pour SEO / JSON-LD (recherches « Malaki », « Malaki Info », etc.). */
 export const BRAND_ALIASES = [
@@ -26,4 +27,7 @@ export const HOSTING_PROVIDER = {
 
 export const GOOGLE_ADS_SETTINGS_URL = 'https://www.google.com/settings/ads';
 export const GOOGLE_PARTNER_DATA_URL = 'https://policies.google.com/technologies/partner-sites';
+export const GOOGLE_PRIVACY_POLICY_URL = 'https://policies.google.com/privacy?hl=fr';
+export const GOOGLE_TERMS_URL = 'https://policies.google.com/terms?hl=fr';
+export const GOOGLE_RECAPTCHA_INFO_URL = 'https://developers.google.com/recaptcha/docs/faq';
 export const ABOUTADS_OPTOUT_URL = 'https://www.aboutads.info/choices/';

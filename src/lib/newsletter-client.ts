@@ -7,6 +7,7 @@ const defaultInterests = ['actualites', 'economie', 'culture', 'sport', 'tech'];
 
 export async function subscribeToNewsletter(
   email: string,
+  recaptchaToken: string,
   interests: string[] = defaultInterests,
 ): Promise<NewsletterSubscribeResult> {
   const response = await fetch('/api/newsletter', {
@@ -16,6 +17,7 @@ export async function subscribeToNewsletter(
       email,
       consent: true,
       interests,
+      recaptchaToken,
     }),
   });
 

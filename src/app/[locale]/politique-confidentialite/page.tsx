@@ -6,8 +6,11 @@ import {
   ABOUTADS_OPTOUT_URL,
   GOOGLE_ADS_SETTINGS_URL,
   GOOGLE_PARTNER_DATA_URL,
+  GOOGLE_PRIVACY_POLICY_URL,
+  GOOGLE_RECAPTCHA_INFO_URL,
+  GOOGLE_TERMS_URL,
   HOSTING_PROVIDER,
-  LEGAL_UPDATED_AT,
+  LEGAL_POLICIES_UPDATED_AT,
   PUBLICATION_DIRECTOR,
   SITE_ADDRESS,
   SITE_EMAIL,
@@ -78,6 +81,7 @@ export default async function PrivacyPolicyPage({
               <li>Pages visitées et temps passé</li>
               <li>Site de provenance</li>
               <li>Identifiants de cookies, balises web et identifiants similaires</li>
+              <li>Informations techniques et interactions analysées par Google reCAPTCHA lors de l’utilisation d’un formulaire protégé (contact, compte ou newsletter)</li>
             </ul>
 
             <h3 className="font-heading text-xl font-semibold text-foreground mb-3 mt-6">Données personnelles volontaires</h3>
@@ -86,6 +90,7 @@ export default async function PrivacyPolicyPage({
               <li>Nom et prénom (formulaire de contact, compte)</li>
               <li>Adresse email</li>
               <li>Contenu des messages, commentaires et candidatures</li>
+              <li>Adresse e-mail, nom facultatif et thèmes choisis lors d’une inscription à la newsletter</li>
               <li>Données liées aux candidatures d’emploi (profil, messages échangés avec le recruteur via votre espace compte)</li>
               <li>Préférences de notifications stockées localement sur votre appareil (activation ou refus des alertes de publication)</li>
             </ul>
@@ -101,7 +106,8 @@ export default async function PrivacyPolicyPage({
               <li>Informer des nouvelles publications via des alertes sur le site et, si vous l’autorisez, des notifications du navigateur</li>
               <li>Gérer les offres d’emploi, les candidatures et les échanges avec les recruteurs</li>
               <li>Mesurer l’audience et la performance des contenus</li>
-              <li>Afficher des publicités, y compris des publicités personnalisées (acceptées par défaut tant que vous n’avez pas personnalisé vos choix)</li>
+              <li>Afficher des publicités, y compris personnalisées, uniquement si vous avez accepté la catégorie correspondante</li>
+              <li>Protéger les formulaires de contact, de connexion, d’inscription et d’abonnement à la newsletter contre les envois automatisés et les abus</li>
               <li>Assurer la sécurité du site</li>
             </ul>
           </section>
@@ -112,7 +118,7 @@ export default async function PrivacyPolicyPage({
               {SITE_NAME} peut afficher une carte d’information sur le site lorsqu’une nouvelle publication est disponible. Avec votre accord explicite (permission du navigateur), nous pouvons aussi vous envoyer des notifications système pour signaler ces nouveautés.
             </p>
             <p className="text-muted-foreground mt-4">
-              Ces notifications reposent sur les API du navigateur et, le cas échéant, un service worker enregistré sur votre appareil. Elles ne sont activées qu’après votre consentement. Vous pouvez les refuser ou les désactiver à tout moment via les paramètres de votre navigateur ou de votre appareil. Aucune donnée de notification n’est vendue à des tiers.
+              Ces notifications reposent sur les API du navigateur et, le cas échéant, un service worker enregistré sur votre appareil. Elles ne sont activées qu’après votre consentement. Certaines alertes éditoriales et invitations à la newsletter peuvent apparaître au plus tôt trois minutes après l’enregistrement de votre choix de cookies. Vous pouvez refuser ou désactiver les notifications système à tout moment via les paramètres de votre navigateur ou de votre appareil. Aucune donnée de notification n’est vendue à des tiers.
             </p>
           </section>
 
@@ -126,7 +132,7 @@ export default async function PrivacyPolicyPage({
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Base légale</h2>
             <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-              <li>Votre consentement (newsletter ; notifications navigateur ; cookies analytiques et publicitaires, acceptés par défaut jusqu’à personnalisation ou refus)</li>
+              <li>Votre consentement (inscription à la newsletter, notifications du navigateur et cookies analytiques ou publicitaires après acceptation de leurs catégories)</li>
               <li>L’exécution d’un contrat (compte utilisateur, candidatures à une offre d’emploi, dons, partenariats)</li>
               <li>Le respect d’une obligation légale</li>
               <li>Notre intérêt légitime (sécurité, amélioration du service, journalisme, information sur les nouvelles publications via l’interface du site)</li>
@@ -139,7 +145,9 @@ export default async function PrivacyPolicyPage({
             <ul className="list-disc pl-6 text-muted-foreground space-y-2">
               <li>L’équipe éditoriale et technique de {SITE_NAME}</li>
               <li>{HOSTING_PROVIDER.name} pour l’hébergement du site</li>
-              <li>Google (Analytics, Tag Manager, AdSense) par défaut, sauf si vous refusez les cookies concernés</li>
+              <li>Google reCAPTCHA, lorsqu’un formulaire protégé (contact, compte ou newsletter) est affiché ou envoyé, pour l’analyse de risque et la vérification anti-robot</li>
+              <li>Google (Analytics, Tag Manager, AdSense) uniquement après acceptation des catégories de cookies correspondantes</li>
+              <li>Telegram, pour transmettre à l’équipe une notification d’inscription à la newsletter contenant l’adresse e-mail de l’abonné</li>
               <li>Nos prestataires d’email, dans la limite nécessaire à l’envoi des messages</li>
             </ul>
             <p className="text-muted-foreground">Nous ne vendons pas vos données personnelles.</p>
@@ -148,7 +156,7 @@ export default async function PrivacyPolicyPage({
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Publicité et Google AdSense</h2>
             <p className="text-muted-foreground">
-              Des prestataires tiers, y compris Google, utilisent des cookies pour diffuser des annonces en fonction des visites antérieures de l’utilisateur sur ce site ou sur d’autres sites. Ces cookies publicitaires sont acceptés par défaut tant que vous n’avez pas personnalisé vos choix.
+              Des prestataires tiers, y compris Google, peuvent utiliser des cookies pour diffuser des annonces en fonction des visites antérieures de l’utilisateur sur ce site ou sur d’autres sites. Ces cookies ne sont activés qu’après acceptation de la catégorie publicitaire dans vos préférences.
             </p>
             <p className="text-muted-foreground">
               L’utilisation de cookies publicitaires par Google permet à Google et à ses partenaires de diffuser des annonces aux utilisateurs en fonction de leur visite sur nos sites et/ou d’autres sites sur Internet.
@@ -177,15 +185,27 @@ export default async function PrivacyPolicyPage({
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Services tiers</h2>
             <h3 className="font-heading text-xl font-semibold text-foreground mb-3">Google Analytics</h3>
             <p className="text-muted-foreground">
-              Google Analytics nous aide à comprendre l’usage du site. Ces cookies sont acceptés par défaut tant que vous n’avez pas personnalisé vos choix. Si vous les refusez, ils ne sont plus déposés.
+              Google Analytics nous aide à comprendre l’usage du site. Il n’est chargé qu’après acceptation d’une catégorie de mesure d’audience. Si vous refusez ces catégories, le script Analytics n’est pas chargé.
             </p>
             <h3 className="font-heading text-xl font-semibold text-foreground mb-3 mt-6">Google Tag Manager</h3>
             <p className="text-muted-foreground">
-              Google Tag Manager nous permet de gérer les balises de suivi. Les balises non essentielles suivent le même réglage par défaut, jusqu’à ce que vous les refusiez.
+              Google Tag Manager nous permet de gérer les balises de suivi. Il n’est chargé qu’après acceptation d’une catégorie de mesure d’audience.
             </p>
             <h3 className="font-heading text-xl font-semibold text-foreground mb-3 mt-6">Google AdSense</h3>
             <p className="text-muted-foreground">
-              Google AdSense peut placer et lire des cookies, utiliser des balises web ou des adresses IP pour diffuser des publicités sur ce site. Cette publicité est activée par défaut tant que vous n’avez pas personnalisé vos choix.
+              Google AdSense peut placer et lire des cookies, utiliser des balises web ou des adresses IP pour diffuser des publicités sur ce site. Les scripts publicitaires sont chargés après acceptation de la catégorie publicitaire.
+            </p>
+            <h3 className="font-heading text-xl font-semibold text-foreground mb-3 mt-6">Google reCAPTCHA</h3>
+            <p className="text-muted-foreground">
+              Les formulaires de contact, de connexion, d’inscription et d’abonnement à la newsletter utilisent Google reCAPTCHA v2 afin de détecter les soumissions automatisées et de limiter les abus. Lorsque le widget est chargé, Google peut traiter des informations techniques et d’interaction, telles que l’adresse IP, des données relatives au navigateur ou à l’appareil et le cookie de sécurité <code>_GRECAPTCHA</code>, pour produire une analyse de risque. Le jeton généré est vérifié côté serveur auprès de Google. Cette protection est utilisée pour la sécurité des formulaires, indépendamment des cookies analytiques et publicitaires facultatifs.
+            </p>
+            <p className="text-muted-foreground">
+              Pour en savoir plus, consultez la{' '}
+              <a href={GOOGLE_PRIVACY_POLICY_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">règle de confidentialité de Google</a>
+              , ses{' '}
+              <a href={GOOGLE_TERMS_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">conditions d’utilisation</a>
+              {' '}et la{' '}
+              <a href={GOOGLE_RECAPTCHA_INFO_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">FAQ reCAPTCHA</a>.
             </p>
           </section>
 
@@ -209,12 +229,15 @@ export default async function PrivacyPolicyPage({
             <p className="text-muted-foreground mt-4">
               Pour exercer ces droits, écrivez à {SITE_EMAIL}.
             </p>
+            <p className="text-muted-foreground mt-4">
+              Pour demander votre désabonnement de la newsletter, vous pouvez également écrire à {SITE_EMAIL}.
+            </p>
           </section>
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Cookies</h2>
             <p className="text-muted-foreground">
-              Tant que vous n’avez pas personnalisé vos choix, les cookies non essentiels (audience, publicité, personnalisation) sont <strong className="font-semibold text-foreground">acceptés par défaut</strong> et appliqués. Les cookies strictement nécessaires au fonctionnement du site restent toujours actifs.
+              Tant que vous n’avez pas accepté une catégorie, les cookies non essentiels (audience, publicité, personnalisation) restent <strong className="font-semibold text-foreground">désactivés</strong>. Les cookies strictement nécessaires au fonctionnement du site, dont le cookie de sécurité utilisé par reCAPTCHA lorsqu’un formulaire protégé est chargé, peuvent rester actifs.
             </p>
             <p className="text-muted-foreground mt-4">
               Pour modifier ce réglage par défaut :
@@ -225,7 +248,7 @@ export default async function PrivacyPolicyPage({
               <li>Cliquez sur <strong className="font-semibold text-foreground">Enregistrer</strong>. Vos choix remplacent immédiatement le réglage par défaut.</li>
             </ol>
             <p className="text-muted-foreground mt-4">
-              Lors de votre première visite, une bannière peut aussi proposer d’accepter tous les cookies, de tout refuser ou d’ouvrir les paramètres. Fermer cette bannière sans personnaliser conserve l’acceptation par défaut.
+              Lors de votre première visite, une bannière peut aussi proposer d’accepter tous les cookies, de tout refuser ou d’ouvrir les paramètres. Fermer cette bannière sans accepter une catégorie laisse les cookies non essentiels désactivés.
             </p>
             <p className="text-muted-foreground mt-4">
               Le détail des cookies, des durées et des prestataires figure sur la page{' '}
@@ -238,7 +261,7 @@ export default async function PrivacyPolicyPage({
 
           <section className="border-t border-border pt-6">
             <p className="text-sm text-muted-foreground">
-              Date de dernière mise à jour : {LEGAL_UPDATED_AT}
+              Date de dernière mise à jour : {LEGAL_POLICIES_UPDATED_AT}
             </p>
           </section>
         </div>

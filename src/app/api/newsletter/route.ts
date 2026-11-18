@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { sendTelegramMessage } from '@/lib/telegram';
 import { sendWelcomeEmail } from '@/lib/email';
+import { verifyRecaptchaToken } from '@/lib/recaptcha';
 
 function cors(response: NextResponse) {
   response.headers.set('Access-Control-Allow-Origin', '*');
@@ -31,7 +32,7 @@ export async function OPTIONS() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email, name, interests, consent } = body;
+    const { email, name, interests, consent, recaptchaToken } = body;
 
     if (!email || typeof email !== 'string' || !email.includes('@')) {
       return cors(NextResponse.json({ error: 'Email invalide' }, { status: 400 }));
@@ -41,6 +42,28 @@ export async function POST(request: Request) {
       return cors(
         NextResponse.json({ error: "Le consentement est requis pour s'abonner" }, { status: 400 }),
       );
+    }
+
+    if (typeof recaptchaToken !== 'string' || !recaptchaToken.trim()) {
+      return cors(
+        NextResponse.json(
+          { error: 'La vérification reCAPTCHA est requise.', code: 'captcha_required' },
+          { status: 400 },
+        ),
+      );
+    }
+
+    const recaptchaResult = await verifyRecaptchaToken(recaptchaToken);
+    if (recaptchaResult !== 'success') {
+      const status = recaptchaResult === 'not_configured' ? 503 : recaptchaResult === 'unavailable' ? 502 : 400;
+      const code = `captcha_${recaptchaResult}`;
+      const error =
+        recaptchaResult === 'not_configured'
+          ? 'La vérification reCAPTCHA n’est pas configurée.'
+          : recaptchaResult === 'unavailable'
+            ? 'La vérification reCAPTCHA est temporairement indisponible.'
+            : 'La vérification reCAPTCHA a échoué. Veuillez réessayer.';
+      return cors(NextResponse.json({ error, code }, { status }));
     }
 
     const validatedInterests = Array.isArray(interests)

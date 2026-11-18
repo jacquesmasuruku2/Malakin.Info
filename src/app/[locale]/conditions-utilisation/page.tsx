@@ -2,7 +2,12 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { getLocalizedPageMetadata } from '@/lib/page-metadata';
 import { SITE_URL } from '@/lib/site-legal';
-import { LEGAL_UPDATED_AT, SITE_EMAIL } from '@/lib/site-legal';
+import {
+  GOOGLE_PRIVACY_POLICY_URL,
+  GOOGLE_TERMS_URL,
+  LEGAL_POLICIES_UPDATED_AT,
+  SITE_EMAIL,
+} from '@/lib/site-legal';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -82,7 +87,20 @@ export default async function TermsOfUsePage({
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Notifications</h2>
             <p className="text-muted-foreground">
-              Le site peut vous informer des nouvelles publications au moyen d’une alerte affichée dans l’interface. Si vous l’autorisez explicitement, votre navigateur pourra également afficher des notifications système. Vous pouvez refuser ou désactiver ces notifications à tout moment via les paramètres de votre navigateur ou de votre appareil.
+              Le site peut vous informer des nouvelles publications au moyen d’une alerte affichée dans l’interface. Certaines alertes et invitations à la newsletter peuvent apparaître au plus tôt trois minutes après l’enregistrement de votre choix de cookies. Si vous l’autorisez explicitement, votre navigateur pourra également afficher des notifications système. Vous pouvez refuser ou désactiver ces notifications à tout moment via les paramètres de votre navigateur ou de votre appareil.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Newsletter et protection des formulaires</h2>
+            <p className="text-muted-foreground">
+              L’inscription à la newsletter est facultative et nécessite votre accord explicite. Pour demander votre désabonnement à tout moment, écrivez à {SITE_EMAIL}.
+            </p>
+            <p className="text-muted-foreground mt-4">
+              Les formulaires de contact, de connexion, d’inscription et d’abonnement à la newsletter sont protégés par Google reCAPTCHA afin de limiter les envois automatisés et les abus. Cette vérification peut traiter des informations techniques et d’interaction, notamment via le cookie <code>_GRECAPTCHA</code>. En utilisant ces formulaires, vous interagissez avec le service Google, régi par sa{' '}
+              <a href={GOOGLE_PRIVACY_POLICY_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">règle de confidentialité</a>
+              {' '}et ses{' '}
+              <a href={GOOGLE_TERMS_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">conditions d’utilisation</a>.
             </p>
           </section>
 
@@ -137,7 +155,7 @@ export default async function TermsOfUsePage({
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Protection des données personnelles</h2>
             <p className="text-muted-foreground">
-              La collecte et le traitement de vos données personnelles sont régis par notre politique de confidentialité. Tant que vous n’avez pas personnalisé vos choix, les cookies non essentiels sont acceptés par défaut. Pour les modifier, cliquez sur le bouton cookie en bas à gauche, enregistrez vos préférences, puis consultez la{' '}
+              La collecte et le traitement de vos données personnelles sont régis par notre politique de confidentialité. Les cookies non essentiels restent désactivés tant que vous n’avez pas accepté les catégories correspondantes. Pour modifier vos choix, cliquez sur le bouton cookie en bas à gauche, enregistrez vos préférences, puis consultez la{' '}
               <Link href={`/${locale}/politique-confidentialite`} className="text-primary hover:underline">Politique de confidentialité</Link>
               {' '}et la{' '}
               <Link href={`/${locale}/cookies`} className="text-primary hover:underline">Politique de cookies</Link>.
@@ -184,7 +202,7 @@ export default async function TermsOfUsePage({
 
           <section className="border-t border-border pt-6">
             <p className="text-sm text-muted-foreground">
-              Date de dernière mise à jour : {LEGAL_UPDATED_AT}
+              Date de dernière mise à jour : {LEGAL_POLICIES_UPDATED_AT}
             </p>
           </section>
         </div>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronDown, Mail, X } from 'lucide-react';
+import RecaptchaWidget from '@/components/RecaptchaWidget';
 import {
   CONSENT_CATEGORIES,
   CONSENT_PREFERENCES_KEY,
@@ -333,6 +334,8 @@ export default function CookieConsentModal() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isNewsletterSubmitting, setIsNewsletterSubmitting] = useState(false);
+  const [newsletterRecaptchaToken, setNewsletterRecaptchaToken] = useState<string | null>(null);
+  const [newsletterRecaptchaResetKey, setNewsletterRecaptchaResetKey] = useState(0);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   useEffect(() => {
@@ -455,11 +458,27 @@ export default function CookieConsentModal() {
 
   const handleNewsletterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsNewsletterSubmitting(true);
     setNewsletterStatus(null);
 
+    if (!process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
+      setNewsletterStatus({
+        type: 'error',
+        text: 'La vérification anti-robot n’est pas configurée. Veuillez réessayer plus tard.',
+      });
+      return;
+    }
+
+    if (!newsletterRecaptchaToken) {
+      setNewsletterStatus({
+        type: 'error',
+        text: 'Veuillez confirmer que vous n’êtes pas un robot.',
+      });
+      return;
+    }
+
+    setIsNewsletterSubmitting(true);
     try {
-      const result = await subscribeToNewsletter(newsletterEmail.trim());
+      const result = await subscribeToNewsletter(newsletterEmail.trim(), newsletterRecaptchaToken);
 
       if (result.status === 'already_subscribed') {
         setNewsletterStatus({
@@ -492,6 +511,8 @@ export default function CookieConsentModal() {
       });
     } finally {
       setIsNewsletterSubmitting(false);
+      setNewsletterRecaptchaToken(null);
+      setNewsletterRecaptchaResetKey((current) => current + 1);
     }
   };
 
@@ -688,7 +709,20 @@ export default function CookieConsentModal() {
 
                     <form onSubmit={handleNewsletterSubmit} className="newsletter-stagger mt-4 space-y-2 sm:mt-6 sm:space-y-3">
                       <input type="email" value={newsletterEmail} onChange={(event) => setNewsletterEmail(event.target.value)} placeholder="Votre adresse e-mail" required className="newsletter-input w-full border border-white/20 bg-white px-3 py-2 text-xs text-[#081c3d] outline-none placeholder:text-slate-400 focus:border-[#d4af37] sm:px-4 sm:py-3 sm:text-sm" />
-                      <button type="submit" disabled={isNewsletterSubmitting} className="newsletter-submit w-full bg-[#d4af37] px-3 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-[#081c3d] transition hover:bg-[#e4c65c] disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-3 sm:text-sm sm:tracking-[0.12em]">
+                      {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? (
+                        <div className="max-w-full overflow-x-auto py-1">
+                          <RecaptchaWidget
+                            siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+                            resetKey={newsletterRecaptchaResetKey}
+                            onChange={(token) => setNewsletterRecaptchaToken(token)}
+                          />
+                        </div>
+                      ) : (
+                        <p role="status" className="text-xs text-red-200">
+                          La vérification anti-robot n’est pas configurée. Veuillez réessayer plus tard.
+                        </p>
+                      )}
+                      <button type="submit" disabled={isNewsletterSubmitting || !newsletterRecaptchaToken || !process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY} className="newsletter-submit w-full bg-[#d4af37] px-3 py-2.5 text-xs font-bold uppercase tracking-[0.08em] text-[#081c3d] transition hover:bg-[#e4c65c] disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-3 sm:text-sm sm:tracking-[0.12em]">
                         {isNewsletterSubmitting ? 'Inscription...' : 'Recevoir la newsletter'}
                       </button>
                       <button

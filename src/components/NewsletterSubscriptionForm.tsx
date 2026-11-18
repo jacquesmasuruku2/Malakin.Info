@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Check, Send } from 'lucide-react';
+import RecaptchaWidget from '@/components/RecaptchaWidget';
 import { subscribeToNewsletter } from '@/lib/newsletter-client';
 import { t } from '@/lib/copy';
 
@@ -57,6 +58,8 @@ export default function NewsletterSubscriptionForm({ locale }: { locale: string 
   const [hasConsent, setHasConsent] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const [recaptchaResetKey, setRecaptchaResetKey] = useState(0);
 
   const toggleInterest = (interest: string) => {
     setSelectedInterests((current) =>
@@ -69,10 +72,28 @@ export default function NewsletterSubscriptionForm({ locale }: { locale: string 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setStatus(null);
+    if (!process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
+      setStatus({
+        type: 'error',
+        text: isEnglish
+          ? 'Bot protection is not configured. Please try again later.'
+          : 'La vérification anti-robot n’est pas configurée. Veuillez réessayer plus tard.',
+      });
+      return;
+    }
+    if (!recaptchaToken) {
+      setStatus({
+        type: 'error',
+        text: isEnglish
+          ? 'Please confirm that you are not a robot.'
+          : 'Veuillez confirmer que vous n’êtes pas un robot.',
+      });
+      return;
+    }
     setIsSubmitting(true);
 
     try {
-      const result = await subscribeToNewsletter(email.trim(), selectedInterests);
+      const result = await subscribeToNewsletter(email.trim(), recaptchaToken, selectedInterests);
 
       if (result.status === 'already_subscribed') {
         setStatus({ type: 'error', text: t(locale, 'newsletterAlreadySubscribed') });
@@ -89,6 +110,8 @@ export default function NewsletterSubscriptionForm({ locale }: { locale: string 
       setStatus({ type: 'error', text: t(locale, 'newsletterError') });
     } finally {
       setIsSubmitting(false);
+      setRecaptchaToken(null);
+      setRecaptchaResetKey((current) => current + 1);
     }
   };
 
@@ -170,9 +193,24 @@ export default function NewsletterSubscriptionForm({ locale }: { locale: string 
               : 'J’accepte de recevoir la newsletter MalakInfo par e-mail. Je peux me désabonner à tout moment.'}
           </span>
         </label>
+        {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? (
+          <div className="mt-5">
+            <RecaptchaWidget
+              siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+              resetKey={recaptchaResetKey}
+              onChange={(token) => setRecaptchaToken(token)}
+            />
+          </div>
+        ) : (
+          <p role="status" className="mt-4 text-sm text-red-700">
+            {isEnglish
+              ? 'Bot protection is not configured. Please try again later.'
+              : 'La vérification anti-robot n’est pas configurée. Veuillez réessayer plus tard.'}
+          </p>
+        )}
         <button
           type="submit"
-          disabled={isSubmitting || !hasConsent}
+          disabled={isSubmitting || !hasConsent || !recaptchaToken || !process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
           className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-[#0b3b8b] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#081c3d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b3b8b] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
         >
           <Send className="h-4 w-4" aria-hidden="true" />
