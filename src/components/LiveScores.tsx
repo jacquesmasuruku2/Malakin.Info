@@ -19,6 +19,7 @@ import {
   X,
 } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { authFetch } from '@/lib/client-auth';
 import { enableFootballMatchNotifications } from '@/lib/match-notification-client';
 import { useAccountUser } from '@/lib/use-account-user';
@@ -95,6 +96,28 @@ function getMatchDetailsPath(
           ? 'standings'
           : 'classement';
   return `/${locale}/matches-en-direct/${key}/${section}`;
+}
+
+function getTeamSeasonPath(
+  locale: string,
+  team: MatchStandingEntry['team'],
+  standings: MatchStandings,
+  matchSeason: number | null,
+): string | null {
+  if (team.id === null) return null;
+  const slug = team.name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  const section = locale === 'en' ? 'teams' : 'equipes';
+  const params = new URLSearchParams();
+  if (standings.leagueSlug) params.set('league', standings.leagueSlug);
+  const season = matchSeason ?? standings.season;
+  if (season !== null) params.set('season', String(season));
+  const query = params.toString();
+  return `/${locale}/matches-en-direct/${section}/${slug}-${team.id}${query ? `?${query}` : ''}`;
 }
 
 const TEAM_SEARCH_ALIASES: Record<string, string[]> = {
@@ -389,6 +412,7 @@ function isMatchStandingEntry(value: unknown): value is MatchStandingEntry {
     typeof value.goalsDiff === 'number' &&
     isNullableNumber(value.played) &&
     isNullableString(value.form) &&
+    isNullableNumber(value.rankMovement) &&
     isNullableString(value.description)
   );
 }
@@ -397,6 +421,8 @@ function isMatchStandings(value: unknown): value is MatchStandings {
   return (
     isRecord(value) &&
     typeof value.league === 'string' &&
+    isNullableString(value.leagueSlug) &&
+    isNullableNumber(value.season) &&
     Array.isArray(value.groups) &&
     value.groups.every(
       (group) =>
@@ -3442,6 +3468,26 @@ export default function LiveScores({
                                 entry.team.id !== null &&
                                 (entry.team.id === selectedMatch?.teams.home.id ||
                                   entry.team.id === selectedMatch?.teams.away.id);
+                              const teamHref = getTeamSeasonPath(
+                                locale,
+                                entry.team,
+                                standings,
+                                selectedMatch?.league.season ?? null,
+                              );
+                              const teamContent = (
+                                <span className="flex items-center gap-2">
+                                  {entry.team.logo && (
+                                    <Image
+                                      src={entry.team.logo}
+                                      alt=""
+                                      width={20}
+                                      height={20}
+                                      className="h-5 w-5 object-contain"
+                                    />
+                                  )}
+                                  <span className="text-foreground">{entry.team.name}</span>
+                                </span>
+                              );
                               return (
                                 <tr
                                   key={entry.team.id ?? `${groupIndex}-${entry.rank}-${entry.team.name}`}
@@ -3449,18 +3495,17 @@ export default function LiveScores({
                                 >
                                   <td className="px-3 py-2 text-muted-foreground">{entry.rank}</td>
                                   <td className="px-3 py-2">
-                                    <span className="flex items-center gap-2">
-                                      {entry.team.logo && (
-                                        <Image
-                                          src={entry.team.logo}
-                                          alt=""
-                                          width={20}
-                                          height={20}
-                                          className="h-5 w-5 object-contain"
-                                        />
-                                      )}
-                                      <span className="text-foreground">{entry.team.name}</span>
-                                    </span>
+                                    {teamHref ? (
+                                      <Link
+                                        href={teamHref}
+                                        prefetch={false}
+                                        className="inline-flex rounded-sm hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                                      >
+                                        {teamContent}
+                                      </Link>
+                                    ) : (
+                                      teamContent
+                                    )}
                                   </td>
                                   <td className="px-3 py-2 text-center text-muted-foreground">
                                     {entry.played ?? '—'}
@@ -3472,7 +3517,33 @@ export default function LiveScores({
                                     {entry.points}
                                   </td>
                                   <td className="px-3 py-2 text-muted-foreground">
-                                    {entry.form ?? '—'}
+                                    {entry.rankMovement !== null && entry.rankMovement !== 0 ? (
+                                      <span
+                                        aria-label={
+                                          entry.rankMovement > 0
+                                            ? english
+                                              ? `Up ${entry.rankMovement} ${entry.rankMovement === 1 ? 'place' : 'places'}`
+                                              : `Remonte de ${entry.rankMovement} ${entry.rankMovement === 1 ? 'place' : 'places'}`
+                                            : english
+                                              ? `Down ${Math.abs(entry.rankMovement)} ${Math.abs(entry.rankMovement) === 1 ? 'place' : 'places'}`
+                                              : `Recule de ${Math.abs(entry.rankMovement)} ${Math.abs(entry.rankMovement) === 1 ? 'place' : 'places'}`
+                                        }
+                                        className={`inline-flex items-center gap-1 font-semibold ${
+                                          entry.rankMovement > 0
+                                            ? 'text-emerald-600 dark:text-emerald-400'
+                                            : 'text-red-600 dark:text-red-400'
+                                        }`}
+                                      >
+                                        {entry.rankMovement > 0 ? (
+                                          <ArrowUp aria-hidden="true" className="h-4 w-4" />
+                                        ) : (
+                                          <ArrowDown aria-hidden="true" className="h-4 w-4" />
+                                        )}
+                                        {Math.abs(entry.rankMovement)}
+                                      </span>
+                                    ) : (
+                                      entry.form ?? '—'
+                                    )}
                                   </td>
                                 </tr>
                               );

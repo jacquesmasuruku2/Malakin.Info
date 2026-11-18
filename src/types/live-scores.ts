@@ -154,6 +154,7 @@ export type MatchStandingEntry = {
   goalsDiff: number;
   played: number | null;
   form: string | null;
+  rankMovement: number | null;
   description: string | null;
 };
 
@@ -164,6 +165,8 @@ export type MatchStandingGroup = {
 
 export type MatchStandings = {
   league: string;
+  leagueSlug: string | null;
+  season: number | null;
   groups: MatchStandingGroup[];
 };
 

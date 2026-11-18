@@ -11,6 +11,7 @@ import type {
 const SUMMARY_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/all/summary';
 const CACHE_SECONDS = 30;
 const ROSTER_CACHE_SECONDS = 86_400;
+const RANK_HISTORY_CACHE_SECONDS = 3_600;
 const ROSTER_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer';
 const LEAGUE_SLUG_PATTERN = /^[a-z0-9._-]{1,80}$/i;
 
@@ -29,6 +30,14 @@ type TeamProfile = {
   logo: string | null;
   league: string | null;
   countryCode: string | null;
+};
+
+type CompletedLeagueMatch = {
+  date: string;
+  homeTeamId: number;
+  awayTeamId: number;
+  homeScore: number;
+  awayScore: number;
 };
 
 const LEAGUE_COUNTRY_CODES: Record<string, string> = {
@@ -932,7 +941,7 @@ function parseStandingEntry(value: unknown): MatchStandingEntry | null {
   return {
     rank,
     team: {
-      id: getNumber(team?.id) ?? getNumber(value.id),
+      id: (team ? getReferenceId(team, 'teams') : null) ?? getNumber(value.id),
       name: teamName,
       logo: getLogo(team?.logo) ?? getLogo(value.logo),
     },
@@ -940,11 +949,144 @@ function parseStandingEntry(value: unknown): MatchStandingEntry | null {
     goalsDiff,
     played: getStandingStat(value, 'gamesPlayed'),
     form: null,
+    rankMovement: null,
     description: null,
   };
 }
 
-function parseStandings(value: unknown): MatchStandings | null {
+function parseScoreboardMatch(value: unknown, season: number): CompletedLeagueMatch | null {
+  if (!isRecord(value) || !isRecord(value.season) || getNumber(value.season.year) !== season) {
+    return null;
+  }
+  const date = getString(value.date);
+  if (!date) return null;
+  const competitions = Array.isArray(value.competitions) ? value.competitions : [];
+  const competition = competitions.find(isRecord);
+  if (!competition) return null;
+  const status = isRecord(competition.status) ? competition.status : null;
+  const statusType = status && isRecord(status.type) ? status.type : null;
+  if (statusType?.state !== 'post') return null;
+
+  const competitors = Array.isArray(competition.competitors)
+    ? competition.competitors.filter(isRecord)
+    : [];
+  const home = competitors.find((competitor) => competitor.homeAway === 'home');
+  const away = competitors.find((competitor) => competitor.homeAway === 'away');
+  if (!home || !away) return null;
+  const homeTeam = isRecord(home.team) ? home.team : null;
+  const awayTeam = isRecord(away.team) ? away.team : null;
+  const homeTeamId = homeTeam ? getNumber(homeTeam.id) : null;
+  const awayTeamId = awayTeam ? getNumber(awayTeam.id) : null;
+  const homeScore = getNumber(home.score);
+  const awayScore = getNumber(away.score);
+  if (
+    homeTeamId === null ||
+    awayTeamId === null ||
+    homeScore === null ||
+    awayScore === null
+  ) {
+    return null;
+  }
+  return { date, homeTeamId, awayTeamId, homeScore, awayScore };
+}
+
+function getLatestRoundMatches(events: unknown[], season: number): CompletedLeagueMatch[] {
+  const matches = events
+    .map((event) => parseScoreboardMatch(event, season))
+    .filter((match): match is CompletedLeagueMatch => match !== null)
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const latestDate = matches[0] ? Date.parse(matches[0].date) : Number.NaN;
+  if (!Number.isFinite(latestDate)) return [];
+  const roundWindowMs = 3 * 24 * 60 * 60 * 1000;
+  return matches.filter((match) => {
+    const date = Date.parse(match.date);
+    return Number.isFinite(date) && latestDate - date <= roundWindowMs;
+  });
+}
+
+async function fetchLatestRoundMatches(
+  leagueSlug: string,
+  season: number,
+): Promise<CompletedLeagueMatch[]> {
+  const eventLists = await Promise.all(
+    [season, season + 1].map(async (year) => {
+      const url = new URL(`${ROSTER_URL}/${encodeURIComponent(leagueSlug)}/scoreboard`);
+      url.searchParams.set('dates', String(year));
+      url.searchParams.set('limit', '1000');
+      const response = await fetch(url, {
+        cache: 'force-cache',
+        next: { revalidate: RANK_HISTORY_CACHE_SECONDS },
+        signal: AbortSignal.timeout(10_000),
+        headers: { Accept: 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error(`ESPN scoreboard responded with HTTP ${response.status}.`);
+      }
+      const payload: unknown = await response.json();
+      if (!isRecord(payload) || !Array.isArray(payload.events)) {
+        throw new Error('ESPN returned an invalid scoreboard response.');
+      }
+      return payload.events;
+    }),
+  );
+  return getLatestRoundMatches(eventLists.flat(), season);
+}
+
+function getPreviousRanks(
+  entries: MatchStandingEntry[],
+  matches: CompletedLeagueMatch[],
+): Map<number, number> {
+  const changes = new Map<number, { points: number; goalsDiff: number }>();
+  const addChange = (teamId: number, points: number, goalsDiff: number) => {
+    const previous = changes.get(teamId) ?? { points: 0, goalsDiff: 0 };
+    previous.points += points;
+    previous.goalsDiff += goalsDiff;
+    changes.set(teamId, previous);
+  };
+
+  for (const match of matches) {
+    const goalDifference = match.homeScore - match.awayScore;
+    addChange(
+      match.homeTeamId,
+      match.homeScore > match.awayScore ? 3 : match.homeScore === match.awayScore ? 1 : 0,
+      goalDifference,
+    );
+    addChange(
+      match.awayTeamId,
+      match.awayScore > match.homeScore ? 3 : match.awayScore === match.homeScore ? 1 : 0,
+      -goalDifference,
+    );
+  }
+
+  return new Map(
+    entries
+      .flatMap((entry) => {
+        const id = entry.team.id;
+        if (id === null) return [];
+        const change = changes.get(id);
+        return [{
+          id,
+          rank: entry.rank,
+          points: entry.points - (change?.points ?? 0),
+          goalsDiff: entry.goalsDiff - (change?.goalsDiff ?? 0),
+        }];
+      })
+      .sort(
+        (a, b) =>
+          b.points - a.points ||
+          b.goalsDiff - a.goalsDiff ||
+          a.rank - b.rank,
+      )
+      .map((entry, index) => [entry.id, index + 1]),
+  );
+}
+
+function parseStandings(
+  value: unknown,
+  leagueSlug: string | null,
+  season: number | null,
+  latestRoundMatches: CompletedLeagueMatch[] = [],
+): MatchStandings | null {
   if (!isRecord(value) || !Array.isArray(value.groups)) {
     return null;
   }
@@ -952,9 +1094,18 @@ function parseStandings(value: unknown): MatchStandings | null {
     if (!isRecord(group) || !isRecord(group.standings) || !Array.isArray(group.standings.entries)) {
       return [];
     }
-    const entries = group.standings.entries
+    const parsedEntries = group.standings.entries
       .map(parseStandingEntry)
       .filter((entry): entry is MatchStandingEntry => entry !== null);
+    const previousRanks = getPreviousRanks(parsedEntries, latestRoundMatches);
+    const entries = parsedEntries.map((entry) => {
+      const previousRank =
+        entry.team.id === null ? undefined : previousRanks.get(entry.team.id);
+      return {
+        ...entry,
+        rankMovement: previousRank === undefined ? null : previousRank - entry.rank,
+      };
+    });
     if (entries.length === 0) return [];
     return [{
       name: getString(group.header) ?? getString(group.conferenceHeader) ?? `Group ${index + 1}`,
@@ -966,6 +1117,8 @@ function parseStandings(value: unknown): MatchStandings | null {
   const header = getString(value.header) ?? 'Classement';
   return {
     league: header.replace(/\s+standings$/i, ''),
+    leagueSlug,
+    season,
     groups,
   };
 }
@@ -1001,8 +1154,30 @@ export async function GET(request: Request) {
     const leagueSlug =
       getString(league?.slug) ??
       (isRecord(payload.league) ? getString(payload.league.slug) : null);
+    const seasonInfo =
+      header && isRecord(header.season)
+        ? header.season
+        : isRecord(payload.season)
+          ? payload.season
+          : null;
+    const season = seasonInfo ? getNumber(seasonInfo.year) : null;
     const lineups = await enrichLineups(parseLineups(payload.rosters), events, leagueSlug);
-    const standings = parseStandings(payload.standings);
+    let standings = parseStandings(payload.standings, leagueSlug, season);
+    if (standings && leagueSlug && season !== null) {
+      try {
+        const latestRoundMatches = await fetchLatestRoundMatches(leagueSlug, season);
+        if (latestRoundMatches.length > 0) {
+          standings = parseStandings(
+            payload.standings,
+            leagueSlug,
+            season,
+            latestRoundMatches,
+          );
+        }
+      } catch (error) {
+        console.warn(`Unable to calculate standings movement for ESPN event ${eventId}:`, error);
+      }
+    }
 
     return NextResponse.json(
       {
