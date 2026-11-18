@@ -6,6 +6,7 @@ import { signIn } from 'next-auth/react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { localeFromPathname } from '@/lib/copy';
+import RecaptchaWidget from '@/components/RecaptchaWidget';
 
 export default function InscriptionPage() {
   const pathname = usePathname();
@@ -24,10 +25,17 @@ export default function InscriptionPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const [recaptchaResetKey, setRecaptchaResetKey] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!recaptchaToken) {
+      setError('Veuillez cocher la case reCAPTCHA.');
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError('Les mots de passe ne correspondent pas');
@@ -51,8 +59,10 @@ export default function InscriptionPage() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
+          recaptchaToken,
         }),
       });
+      resetRecaptcha();
 
       const data = await response.json();
 
@@ -62,6 +72,7 @@ export default function InscriptionPage() {
         setError(data.error || 'Une erreur est survenue');
       }
     } catch (error) {
+      resetRecaptcha();
       setError('Une erreur est survenue. Veuillez réessayer.');
     } finally {
       setLoading(false);
@@ -83,6 +94,11 @@ export default function InscriptionPage() {
       ...formData,
       [e.target.id]: e.target.value,
     });
+  };
+
+  const resetRecaptcha = () => {
+    setRecaptchaToken(null);
+    setRecaptchaResetKey((current) => current + 1);
   };
 
   return (
@@ -235,6 +251,18 @@ export default function InscriptionPage() {
               </div>
             </div>
 
+            {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? (
+              <RecaptchaWidget
+                siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+                resetKey={recaptchaResetKey}
+                onChange={setRecaptchaToken}
+              />
+            ) : (
+              <p role="status" className="text-sm text-red-700">
+                La vérification reCAPTCHA n&apos;est pas configurée.
+              </p>
+            )}
+
             <div className="flex items-start gap-2 text-left">
               <input
                 type="checkbox"
@@ -257,7 +285,7 @@ export default function InscriptionPage() {
             <div className="pt-1 text-left">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !recaptchaToken || !process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
                 className="flex items-center gap-2 rounded-md bg-primary px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span>{loading ? 'Inscription...' : "S'inscrire"}</span>

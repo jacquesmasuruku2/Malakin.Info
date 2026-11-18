@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { verifyRecaptchaToken } from '@/lib/recaptcha';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, name } = body;
+    const { email, password, name, recaptchaToken } = body;
 
     if (!email || !password || !name) {
       return NextResponse.json(
@@ -29,6 +30,16 @@ export async function POST(request: NextRequest) {
         { error: 'Password must be at least 6 characters' },
         { status: 400 }
       );
+    }
+
+    if (typeof recaptchaToken !== 'string' || !recaptchaToken.trim()) {
+      return NextResponse.json({ error: 'A reCAPTCHA token is required.' }, { status: 400 });
+    }
+
+    const recaptchaResult = await verifyRecaptchaToken(recaptchaToken);
+    if (recaptchaResult !== 'success') {
+      const status = recaptchaResult === 'not_configured' ? 503 : recaptchaResult === 'unavailable' ? 502 : 400;
+      return NextResponse.json({ error: `reCAPTCHA verification ${recaptchaResult}.` }, { status });
     }
 
     // Check if user already exists

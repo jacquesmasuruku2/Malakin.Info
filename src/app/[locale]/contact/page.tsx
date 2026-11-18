@@ -2,10 +2,11 @@
 
 import { useState, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import { Send, CheckCircle, AlertCircle, Mail, Phone, MapPin, MessageSquareText } from 'lucide-react';
+import { CheckCircle, AlertCircle, Mail, Phone, MapPin } from 'lucide-react';
 import { getLocaleFromPathname } from '@/lib/i18n';
 import { pickCopy } from '@/lib/copy';
 import { SITE_ADDRESS, SITE_EMAIL, SITE_PHONE } from '@/lib/site-legal';
+import RecaptchaWidget from '@/components/RecaptchaWidget';
 
 function FacebookIcon() {
   return (
@@ -70,52 +71,63 @@ export default function ContactPage() {
   const pathname = usePathname();
   const locale = getLocaleFromPathname(pathname);
 
-  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [recaptchaResetKey, setRecaptchaResetKey] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [captchaError, setCaptchaError] = useState('');
 
   const copy = {
-    headline: pickCopy(locale, { fr: 'Écrivez-nous', en: 'Write to us', es: 'Escríbenos', sw: 'Tuandikie', ln: 'Kokoma biso', rw: 'Dwandikire' }),
-    lead: pickCopy(locale, { fr: 'Une question, une précision, une idée de reportage : la rédaction vous lit.', en: 'A question, a clarification, a story idea — the newsroom is listening.', es: 'Una pregunta, una precisión, una idea de reportaje: la redacción te lee.', sw: 'Swali, ufafanuzi, au wazo la ripoti — wahariri wanasikiliza.', ln: 'Motuna, clarité, idée ya reportage : rédaction ezali koyoka yo.', rw: 'Ikibazo, ubusobanuro, cyangwa igitekerezo cy’inkuru — abanyamakuru barakumva.' }),
-    cta: pickCopy(locale, { fr: 'Envoyer un message', en: 'Send a message', es: 'Enviar un mensaje', sw: 'Tuma ujumbe', ln: 'Tinda message', rw: 'Ohereza ubutumwa' }),
+    headline: pickCopy(locale, { fr: 'Contactez-nous', en: 'Contact us', es: 'Contáctanos', sw: 'Wasiliana nasi', ln: 'Solola na biso', rw: 'Twandikire' }),
+    lead: pickCopy(locale, { fr: 'Nous ne pouvons pas vous aider si vous ne nous dites pas ce qui se passe !', en: "We can't help if you don't tell us what's going on!", es: 'No podemos ayudarte si no nos cuentas qué ocurre.', sw: 'Hatuwezi kukusaidia usipotuambia kinachoendelea.', ln: 'Tokoki kosalisa yo te soki oyebisi biso te likambo nini ezali.', rw: 'Ntidushobora kugufasha utatubwiye ikibazo ufite.' }),
     name: pickCopy(locale, { fr: 'Nom', en: 'Name', es: 'Nombre', sw: 'Jina', ln: 'Nkombo', rw: 'Izina' }),
     email: 'Email',
-    subject: pickCopy(locale, { fr: 'Sujet', en: 'Subject', es: 'Asunto', sw: 'Mada', ln: 'Sujet', rw: 'Ingingo' }),
-    message: 'Message',
+    message: pickCopy(locale, { fr: 'Message', en: 'Message', es: 'Mensaje', sw: 'Ujumbe', ln: 'Message', rw: 'Ubutumwa' }),
     send: pickCopy(locale, { fr: 'Envoyer', en: 'Send', es: 'Enviar', sw: 'Tuma', ln: 'Tinda', rw: 'Ohereza' }),
     sending: pickCopy(locale, { fr: 'Envoi…', en: 'Sending…', es: 'Enviando…', sw: 'Inatuma…', ln: 'Kozala kotinda…', rw: 'Birimo koherezwa…' }),
     success: pickCopy(locale, { fr: 'Message bien reçu. Nous vous répondons dès que possible.', en: 'Message received. We will reply as soon as we can.', es: 'Mensaje recibido. Te responderemos lo antes posible.', sw: 'Ujumbe umepokelewa. Tutajibu haraka iwezekanavyo.', ln: 'Message ezwami. Tokoyanola yo noki.', rw: 'Ubutumwa bwakiriwe. Tuzagusubiza vuba bishoboka.' }),
     errorFallback: pickCopy(locale, { fr: "Une erreur est survenue lors de l'envoi.", en: 'Something went wrong while sending.', es: 'Ocurrió un error al enviar.', sw: 'Hitilafu imetokea wakati wa kutuma.', ln: 'Erreur ezali na ntango ya kotinda.', rw: 'Habaye ikosa mu kohereza.' }),
+    captchaRequired: pickCopy(locale, { fr: 'Veuillez confirmer que vous n’êtes pas un robot.', en: 'Please confirm that you are not a robot.', es: 'Confirma que no eres un robot.', sw: 'Thibitisha kuwa wewe si roboti.', ln: 'Kondima ete ozali robot te.', rw: 'Emeza ko utari robot.' }),
+    captchaUnavailable: pickCopy(locale, { fr: 'La vérification anti-robot n’est pas configurée. Veuillez réessayer plus tard.', en: 'Bot protection is not configured. Please try again later.', es: 'La protección anti-bots no está configurada. Inténtalo más tarde.', sw: 'Ulinzi wa roboti haujawekwa. Jaribu tena baadaye.', ln: 'Protection ya ba robot ebongisami te. Meká lisusu na nsima.', rw: 'Kurinda robots ntibirashyirwaho. Ongera ugerageze nyuma.' }),
     reach: pickCopy(locale, { fr: 'Autrement', en: 'Other ways', es: 'Otras vías', sw: 'Njia zingine', ln: 'Ndenge mosusu', rw: 'Ubundi buryo' }),
-    hours: pickCopy(locale, { fr: 'Lun–Ven, 8h–18h', en: 'Mon–Fri, 8am–6pm', es: 'Lun–Vie, 8h–18h', sw: 'Jumatatu–Ijumaa, 8–18', ln: 'Lundi–Vendredi, 8h–18h', rw: 'Kuwa–Kuwa, 8h–18h' }),
     follow: pickCopy(locale, { fr: 'Sur les réseaux', en: 'On social', es: 'En redes', sw: 'Mitandaoni', ln: 'Na ba réseaux', rw: 'Ku mbuga nkoranyambaga' }),
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!captchaToken) {
+      setCaptchaError(copy.captchaRequired);
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitStatus('idle');
     setErrorMessage('');
+    setCaptchaError('');
 
     try {
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, recaptchaToken: captchaToken }),
       });
 
       if (response.ok) {
         setSubmitStatus('success');
-        setFormData({ name: '', email: '', subject: '', message: '' });
+        setFormData({ name: '', email: '', message: '' });
+        resetRecaptcha();
       } else {
         const error = await response.json();
         setSubmitStatus('error');
-        setErrorMessage(error.error || copy.errorFallback);
+        setErrorMessage(error.error?.includes('not configured') ? copy.captchaUnavailable : error.error || copy.errorFallback);
+        resetRecaptcha();
       }
     } catch {
       setSubmitStatus('error');
       setErrorMessage(copy.errorFallback);
+      resetRecaptcha();
     } finally {
       setIsSubmitting(false);
     }
@@ -125,113 +137,109 @@ export default function ContactPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const resetRecaptcha = () => {
+    setCaptchaToken(null);
+    setRecaptchaResetKey((current) => current + 1);
+    setCaptchaError('');
+  };
+
+  const handleCaptchaChange = (token: string | null) => {
+    setCaptchaToken(token);
+    if (token) setCaptchaError('');
+  };
+
   const fieldClass =
-    'w-full rounded-xl border border-border bg-white px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/80 shadow-sm transition-all duration-200 focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10';
+    'w-full rounded-none border border-[#d7d7d7] bg-[#f5f5f5] px-3 py-3 text-sm text-[#222] placeholder:text-[#7b7b7b] transition-colors focus:border-[#b82424] focus:outline-none focus:ring-2 focus:ring-[#b82424]/20';
 
   const phoneHref = `tel:${SITE_PHONE.replace(/\s/g, '')}`;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] text-foreground">
-      <section className="border-b border-border bg-[#081c3d] text-white">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
-            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#d4af37]">MalakInfo</p>
-            <h1 className="font-heading text-4xl font-black tracking-[-0.04em] sm:text-5xl">{copy.headline}</h1>
-            <p className="mt-4 max-w-xl text-base leading-7 text-blue-50/85">{copy.lead}</p>
-          </div>
+    <div className="min-h-screen bg-[#303030] text-white">
+      <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div className="mb-5">
+          <p className="mb-1 text-xs font-bold uppercase tracking-wide text-white/75">MalakInfo</p>
+          <h1 className="font-heading text-3xl font-bold uppercase">{copy.headline}</h1>
+          <p className="mt-2 text-sm font-semibold text-white/90">{copy.lead}</p>
         </div>
-      </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid gap-8 md:grid-cols-[minmax(0,2fr)_minmax(220px,1fr)]">
+          <div>
+            <form onSubmit={handleSubmit} className="space-y-2.5">
               {submitStatus === 'success' && (
-                <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                <div className="flex items-start gap-3 border border-emerald-400/40 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-100">
                   <CheckCircle className="mt-0.5 h-5 w-5 shrink-0" />
                   <p>{copy.success}</p>
                 </div>
               )}
 
               {submitStatus === 'error' && (
-                <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="flex items-start gap-3 border border-red-400/40 bg-red-950/40 px-4 py-3 text-sm text-red-100">
                   <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
                   <p>{errorMessage}</p>
                 </div>
               )}
 
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="name" className="mb-2 block text-sm font-semibold text-foreground">
-                    {copy.name}
-                  </label>
-                  <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} className={fieldClass} autoComplete="name" required />
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="mb-2 block text-sm font-semibold text-foreground">
-                    {copy.email}
-                  </label>
-                  <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} className={fieldClass} autoComplete="email" required />
-                </div>
-              </div>
-
               <div>
-                <label htmlFor="subject" className="mb-2 block text-sm font-semibold text-foreground">
-                  {copy.subject}
-                </label>
-                <input type="text" id="subject" name="subject" value={formData.subject} onChange={handleChange} className={fieldClass} />
+                <label htmlFor="name" className="sr-only">{copy.name}</label>
+                <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} className={fieldClass} placeholder={copy.name} autoComplete="name" required />
+              </div>
+              <div>
+                <label htmlFor="email" className="sr-only">{copy.email}</label>
+                <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} className={fieldClass} placeholder={copy.email} autoComplete="email" required />
+              </div>
+              <div>
+                <label htmlFor="message" className="sr-only">{copy.message}</label>
+                <textarea id="message" name="message" value={formData.message} onChange={handleChange} rows={5} className={`${fieldClass} resize-y`} placeholder={copy.message} required />
               </div>
 
-              <div>
-                <label htmlFor="message" className="mb-2 block text-sm font-semibold text-foreground">
-                  {copy.message}
-                </label>
-                <textarea id="message" name="message" value={formData.message} onChange={handleChange} rows={6} className={`${fieldClass} resize-none`} required />
-              </div>
+              {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? (
+                <div className="inline-block border border-[#1e1e1e] bg-[#262626] p-2">
+                  <RecaptchaWidget
+                    siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+                    resetKey={recaptchaResetKey}
+                    onChange={handleCaptchaChange}
+                  />
+                </div>
+              ) : (
+                <div role="status" className="max-w-sm border border-amber-300/40 bg-amber-950/40 px-3 py-2 text-sm text-amber-100">
+                  {copy.captchaUnavailable}
+                </div>
+              )}
+              {captchaError && <p role="alert" className="text-sm text-red-300">{captchaError}</p>}
 
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#0B3B8B] px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#092d67] disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={isSubmitting || !captchaToken || !process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+                className="inline-flex items-center rounded-sm bg-[#c62828] px-5 py-2.5 text-xs font-bold uppercase text-white transition-colors hover:bg-[#a91f1f] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <Send className="h-4 w-4" />
                 {isSubmitting ? copy.sending : copy.send}
               </button>
             </form>
           </div>
 
-          <aside className="rounded-2xl border border-border bg-[#081c3d] p-6 text-white shadow-sm sm:p-8">
-            <div className="mb-8 flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#d4af37] text-[#081c3d]">
-                <MessageSquareText className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#d4af37]">MalakInfo</p>
-                <h2 className="mt-1 text-xl font-bold">{copy.reach}</h2>
+          <aside className="pt-1">
+            <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-white/80">{copy.reach}</h2>
+
+            <div className="space-y-3 text-sm font-semibold">
+              <a href={`mailto:${SITE_EMAIL}`} className="flex items-start gap-3 text-white transition-colors hover:text-white/70">
+                <Mail className="mt-0.5 h-4 w-4 shrink-0" />
+                <span className="break-all">{SITE_EMAIL}</span>
+              </a>
+
+              <a href={phoneHref} className="flex items-start gap-3 text-white transition-colors hover:text-white/70">
+                <Phone className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{SITE_PHONE}</span>
+              </a>
+
+              <div className="flex items-start gap-3 text-white">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{SITE_ADDRESS}</span>
               </div>
             </div>
 
-            <div className="space-y-5 text-sm">
-              <a href={`mailto:${SITE_EMAIL}`} className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 transition-colors hover:bg-white/10">
-                <Mail className="mt-0.5 h-4 w-4 text-[#d4af37]" />
-                <span className="break-all text-white/90">{SITE_EMAIL}</span>
-              </a>
-
-              <a href={phoneHref} className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3 transition-colors hover:bg-white/10">
-                <Phone className="mt-0.5 h-4 w-4 text-[#d4af37]" />
-                <span className="text-white/90">{SITE_PHONE}</span>
-              </a>
-
-              <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
-                <MapPin className="mt-0.5 h-4 w-4 text-[#d4af37]" />
-                <span className="text-white/90">{SITE_ADDRESS}</span>
-              </div>
-            </div>
-
-            <div className="mt-8 border-t border-white/10 pt-6">
-              <p className="mb-4 text-xs font-bold uppercase tracking-[0.16em] text-[#d4af37]">{copy.follow}</p>
-              <div className="flex flex-wrap items-center gap-3">
+            <div className="mt-6">
+              <p className="mb-3 text-xs font-bold uppercase tracking-wide text-white/80">{copy.follow}</p>
+              <div className="flex flex-wrap items-center gap-2">
                 {SOCIAL_LINKS.map((link) => (
                   <a
                     key={link.href}
@@ -240,7 +248,7 @@ export default function ContactPage() {
                     rel="noopener noreferrer"
                     aria-label={link.label}
                     title={link.label}
-                    className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-colors hover:border-[#d4af37] hover:text-[#d4af37] ${link.className ?? ''}`}
+                    className={`inline-flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10 ${link.className ?? ''}`}
                     style={link.color ? { color: link.color } : undefined}
                   >
                     {link.icon}
