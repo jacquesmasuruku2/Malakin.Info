@@ -158,21 +158,21 @@ export default function ContactPage() {
   };
 
   const fieldClass =
-    'w-full rounded-none border border-[#d7d7d7] bg-[#f5f5f5] px-3 py-3 text-sm text-[#222] placeholder:text-[#7b7b7b] transition-colors focus:border-[#b82424] focus:outline-none focus:ring-2 focus:ring-[#b82424]/20';
+    'w-full rounded-none border border-[#081c3d] bg-white px-3 py-3 text-sm text-[#081c3d] placeholder:text-slate-400 transition-colors focus:border-[#d4af37] focus:outline-none focus:ring-2 focus:ring-[#d4af37]/30';
 
   const phoneHref = `tel:${SITE_PHONE.replace(/\s/g, '')}`;
 
   return (
-    <div className="min-h-screen bg-[#303030] text-white">
+    <div className="min-h-screen bg-white text-[#081c3d]">
       <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-        <div className="mb-5">
-          <p className="mb-1 text-xs font-bold uppercase tracking-wide text-white/75">MalakInfo</p>
-          <h1 className="font-heading text-3xl font-bold uppercase">{copy.headline}</h1>
-          <p className="mt-2 text-sm font-semibold text-white/90">{copy.lead}</p>
+        <div className="mb-5 border-l-4 border-[#081c3d] bg-white px-4 py-4 text-[#081c3d] sm:px-6">
+          <p className="mb-1 text-xs font-bold uppercase tracking-wide text-[#0b3b8b]">MalakInfo</p>
+          <h1 className="font-heading text-3xl font-bold uppercase text-[#081c3d]">{copy.headline}</h1>
+          <p className="mt-2 text-sm font-semibold text-[#081c3d]">{copy.lead}</p>
         </div>
 
         <div className="grid gap-8 md:grid-cols-[minmax(0,2fr)_minmax(220px,1fr)]">
-          <div>
+          <div className="bg-white p-4 sm:p-6">
             <form onSubmit={handleSubmit} className="space-y-2.5">
               {submitStatus === 'success' && (
                 <div className="flex items-start gap-3 border border-emerald-400/40 bg-emerald-950/40 px-4 py-3 text-sm text-emerald-100">
@@ -205,14 +205,14 @@ export default function ContactPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting || !captchaToken || !process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
-                  className="inline-flex items-center rounded-sm bg-[#c62828] px-5 py-2.5 text-xs font-bold uppercase text-white transition-colors hover:bg-[#a91f1f] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center rounded-sm bg-[#d4af37] px-5 py-2.5 text-xs font-bold uppercase text-[#081c3d] transition-colors hover:bg-[#e4c65c] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isSubmitting ? copy.sending : copy.send}
                 </button>
               </div>
 
               {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? (
-                <div className="block w-fit border border-[#1e1e1e] bg-[#262626] p-2">
+                <div className="block w-fit border border-slate-200 bg-white p-2">
                   <RecaptchaWidget
                     siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
                     resetKey={recaptchaResetKey}
@@ -224,32 +224,32 @@ export default function ContactPage() {
                   {copy.captchaUnavailable}
                 </div>
               )}
-              {captchaError && <p role="alert" className="text-sm text-red-300">{captchaError}</p>}
+              {captchaError && <p role="alert" className="text-sm text-red-700">{captchaError}</p>}
             </form>
           </div>
 
-          <aside className="pt-1">
-            <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-white/80">{copy.reach}</h2>
+          <aside className="border-l-4 border-[#081c3d] bg-white p-4 text-[#081c3d] sm:p-6">
+            <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-[#081c3d]">{copy.reach}</h2>
 
             <div className="space-y-3 text-sm font-semibold">
-              <a href={`mailto:${SITE_EMAIL}`} className="flex items-start gap-3 text-white transition-colors hover:text-white/70">
+              <a href={`mailto:${SITE_EMAIL}`} className="flex items-start gap-3 text-[#081c3d] transition-colors hover:text-[#0b3b8b]">
                 <Mail className="mt-0.5 h-4 w-4 shrink-0" />
                 <span className="break-all">{SITE_EMAIL}</span>
               </a>
 
-              <a href={phoneHref} className="flex items-start gap-3 text-white transition-colors hover:text-white/70">
+              <a href={phoneHref} className="flex items-start gap-3 text-[#081c3d] transition-colors hover:text-[#0b3b8b]">
                 <Phone className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{SITE_PHONE}</span>
               </a>
 
-              <div className="flex items-start gap-3 text-white">
+              <div className="flex items-start gap-3 text-[#081c3d]">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{SITE_ADDRESS}</span>
               </div>
             </div>
 
             <div className="mt-6">
-              <p className="mb-3 text-xs font-bold uppercase tracking-wide text-white/80">{copy.follow}</p>
+              <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#081c3d]">{copy.follow}</p>
               <div className="flex flex-wrap items-center gap-2">
                 {SOCIAL_LINKS.map((link) => (
                   <a
@@ -259,7 +259,7 @@ export default function ContactPage() {
                     rel="noopener noreferrer"
                     aria-label={link.label}
                     title={link.label}
-                    className={`inline-flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10 ${link.className ?? ''}`}
+                    className={`inline-flex h-10 w-10 items-center justify-center rounded-full text-[#081c3d] transition-colors hover:bg-[#081c3d]/5 ${link.className ?? ''}`}
                     style={link.color ? { color: link.color } : undefined}
                   >
                     {link.icon}
