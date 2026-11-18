@@ -100,11 +100,13 @@ export default async function ActualitesPage({
   const requestedYear = Number.parseInt(resolvedSearchParams.year || '', 10);
   const selectedYear = isValidArchiveYear(requestedYear) ? requestedYear : null;
   const pageSize = 12;
-  const publishedWhere = selectedYear ? { publishedAt: yearRange(selectedYear) } : undefined;
+  const articleWhere = selectedYear
+    ? { featured: true, publishedAt: yearRange(selectedYear) }
+    : { featured: true };
 
   const [articlesResult, totalArticlesResult, actualitesCategory, archiveYears] = await Promise.all([
     withRetry(() => prisma.article.findMany({
-      where: publishedWhere,
+      where: articleWhere,
       include: {
         category: true,
         author: true,
@@ -115,11 +117,11 @@ export default async function ActualitesPage({
       skip: (currentPage - 1) * pageSize,
       take: pageSize,
     } as any)),
-    withRetry(() => prisma.article.count({ where: publishedWhere })),
+    withRetry(() => prisma.article.count({ where: articleWhere })),
     withRetry(() => prisma.category.findUnique({
       where: { slug: 'actualites' }
     })),
-    getArchiveYears(),
+    getArchiveYears(true),
   ]);
 
   const articles = await applyArticleLocales(articlesResult || [], locale);

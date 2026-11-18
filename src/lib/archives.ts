@@ -12,13 +12,20 @@ export function isValidArchiveYear(year: number) {
   return Number.isInteger(year) && year >= 1990 && year <= 2100;
 }
 
-export async function getArchiveYears(): Promise<number[]> {
+export async function getArchiveYears(featuredOnly = false): Promise<number[]> {
   const rows = await withRetry(() =>
-    prisma.$queryRaw<{ year: number }[]>`
-      SELECT DISTINCT EXTRACT(YEAR FROM "publishedAt")::int AS year
-      FROM "Article"
-      ORDER BY year DESC
-    `
+    featuredOnly
+      ? prisma.$queryRaw<{ year: number }[]>`
+          SELECT DISTINCT EXTRACT(YEAR FROM "publishedAt")::int AS year
+          FROM "Article"
+          WHERE "featured" = true
+          ORDER BY year DESC
+        `
+      : prisma.$queryRaw<{ year: number }[]>`
+          SELECT DISTINCT EXTRACT(YEAR FROM "publishedAt")::int AS year
+          FROM "Article"
+          ORDER BY year DESC
+        `
   );
 
   if (rows && rows.length > 0) {
@@ -27,6 +34,7 @@ export async function getArchiveYears(): Promise<number[]> {
 
   const dates = await withRetry(() =>
     prisma.article.findMany({
+      where: featuredOnly ? { featured: true } : undefined,
       select: { publishedAt: true },
     })
   );
