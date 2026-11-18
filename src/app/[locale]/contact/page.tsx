@@ -192,16 +192,18 @@ export default function ContactPage() {
                 <textarea id="message" name="message" value={formData.message} onChange={handleChange} rows={5} className={`${fieldClass} resize-y`} placeholder={copy.message} required />
               </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting || !captchaToken || !process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
-                className="inline-flex items-center rounded-sm bg-[#c62828] px-5 py-2.5 text-xs font-bold uppercase text-white transition-colors hover:bg-[#a91f1f] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isSubmitting ? copy.sending : copy.send}
-              </button>
+              <div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !captchaToken || !process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+                  className="inline-flex items-center rounded-sm bg-[#c62828] px-5 py-2.5 text-xs font-bold uppercase text-white transition-colors hover:bg-[#a91f1f] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSubmitting ? copy.sending : copy.send}
+                </button>
+              </div>
 
               {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? (
-                <div className="inline-block border border-[#1e1e1e] bg-[#262626] p-2">
+                <div className="block w-fit border border-[#1e1e1e] bg-[#262626] p-2">
                   <RecaptchaWidget
                     siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
                     resetKey={recaptchaResetKey}
