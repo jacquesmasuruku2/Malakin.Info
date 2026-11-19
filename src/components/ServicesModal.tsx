@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Briefcase, Home, Search, TrendingUp, X } from 'lucide-react';
+import { Briefcase, Home, Search, TrendingUp, Trophy, X } from 'lucide-react';
 import { FaFacebookF, FaInstagram, FaXTwitter } from 'react-icons/fa6';
 import { useServicesModal } from '@/contexts/ServicesModalContext';
 import { useState, useEffect } from 'react';
@@ -110,7 +110,6 @@ export default function ServicesModal() {
     { name: t.religion, href: `/${locale}/religion` },
     { name: t.culture, href: `/${locale}/culture` },
     { name: t.sport, href: `/${locale}/sport` },
-    { name: locale === 'en' ? 'Live matches' : 'Matches en direct', href: `/${locale}/matches-en-direct` },
     { name: t.scienceTech, href: `/${locale}/science-tech` },
     { name: t.practicalInfo, href: `/${locale}/infos-pratiques` },
     { name: t.partnerships, href: `/${locale}/partenaires` },
@@ -167,14 +166,24 @@ export default function ServicesModal() {
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <Link
-            href={`/${locale}`}
-            onClick={closeServices}
-            className="flex min-h-[58px] items-center gap-3 border-b border-border px-5 text-base font-black uppercase text-foreground transition-colors hover:bg-muted"
-          >
-            <Home className="h-6 w-6 shrink-0" aria-hidden="true" />
-            {t.home}
-          </Link>
+          <div className="grid grid-cols-2 border-b border-border">
+            <Link
+              href={`/${locale}`}
+              onClick={closeServices}
+              className="flex min-h-[58px] items-center justify-center gap-2 border-r border-border px-3 text-sm font-black uppercase text-foreground transition-colors hover:bg-muted"
+            >
+              <Home className="h-5 w-5 shrink-0" aria-hidden="true" />
+              {t.home}
+            </Link>
+            <Link
+              href={`/${locale}/matches-en-direct`}
+              onClick={closeServices}
+              className="flex min-h-[58px] items-center justify-center gap-2 bg-primary px-3 text-sm font-black uppercase text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              <Trophy className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <span>{locale === 'en' ? 'Live matches' : 'Match en direct'}</span>
+            </Link>
+          </div>
 
           <section aria-labelledby="mobile-news-heading" className="border-b border-border px-5 py-4">
             <h2 id="mobile-news-heading" className="mb-3 text-base font-black uppercase tracking-[0.12em] text-foreground">

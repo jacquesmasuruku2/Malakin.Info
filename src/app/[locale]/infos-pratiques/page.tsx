@@ -65,7 +65,7 @@ export default async function InfosPratiquesPage({
         </div>
       </section>
 
-      <section className="bg-[#0b3b8b]">
+      <section className="hidden bg-[#0b3b8b] md:block">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-4 py-8 text-center sm:px-6 lg:px-8">
           <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/80">Radio</p>
           <h2 className="font-heading text-2xl font-black text-white sm:text-3xl">
