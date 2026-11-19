@@ -358,6 +358,102 @@ export default function MarketDashboard({ locale, selectedSlug }: MarketDashboar
           </div>
         )}
 
+        <section className="mb-10 rounded-3xl border border-border bg-card p-5 shadow-sm sm:mb-12 sm:p-6">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0b3b8b]/[0.08] text-[#0b3b8b] dark:bg-[#4f8ef7]/10 dark:text-[#8db7ff]">
+              <Calculator className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0b3b8b] dark:text-[#8db7ff]">
+                {isFrench ? 'Conversion rapide' : 'Quick conversion'}
+              </p>
+              <h2 className="mt-1 font-heading text-xl font-bold text-foreground">
+                {isFrench ? 'Calculatrice crypto' : 'Crypto calculator'}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {isFrench
+                  ? 'Estimez la valeur d’une quantité de crypto dans la devise de votre choix.'
+                  : 'Estimate the value of a crypto amount in your preferred currency.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            <label className="block min-w-0 text-xs font-semibold text-muted-foreground">
+              {isFrench ? 'Cryptomonnaie' : 'Cryptocurrency'}
+              <select
+                value={calculatorAssetId}
+                onChange={(event) => {
+                  const asset = MARKET_CRYPTO_ASSETS.find(
+                    (option) => option.id === event.currentTarget.value,
+                  );
+                  if (asset) setCalculatorAssetId(asset.id);
+                }}
+                className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                {MARKET_CRYPTO_ASSETS.map((asset) => (
+                  <option key={asset.id} value={asset.id}>
+                    {asset.symbol} · {getAssetName(asset, locale)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block min-w-0 text-xs font-semibold text-muted-foreground">
+              {isFrench ? 'Quantité' : 'Amount'}
+              <input
+                type="number"
+                min="0"
+                step="any"
+                inputMode="decimal"
+                value={calculatorAmount}
+                onChange={(event) => setCalculatorAmount(event.currentTarget.value)}
+                aria-invalid={calculatorQuantity !== null && !validCalculatorQuantity}
+                className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              />
+            </label>
+            <label className="block min-w-0 text-xs font-semibold text-muted-foreground">
+              {isFrench ? 'Devise' : 'Currency'}
+              <select
+                value={calculatorCurrency}
+                onChange={(event) => {
+                  if (isMarketCurrencyCode(event.currentTarget.value)) {
+                    setCalculatorCurrency(event.currentTarget.value);
+                  }
+                }}
+                className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                {MARKET_CURRENCIES.map((option) => (
+                  <option key={option.code} value={option.code}>
+                    {isFrench ? option.shortLabel : option.shortLabelEn}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="mt-5 flex flex-col gap-3 rounded-2xl bg-[#0b3b8b]/[0.05] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground">
+                {isFrench ? 'Valeur estimée' : 'Estimated value'}
+              </p>
+              <p aria-live="polite" className="mt-1 text-2xl font-bold tabular-nums text-foreground">
+                {calculatorTotal ?? '—'}
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {calculatorUnitPrice
+                ? `1 ${calculatorAsset.symbol} = ${calculatorUnitPrice}`
+                : loading
+                  ? isFrench
+                    ? 'Chargement du cours…'
+                    : 'Loading price…'
+                  : isFrench
+                    ? 'Cours indisponible'
+                    : 'Price unavailable'}
+            </p>
+          </div>
+        </section>
+
         <section
           aria-label={isFrench ? 'Marché sélectionné' : 'Selected market'}
           className="relative overflow-hidden rounded-3xl bg-[#081c3d] p-5 text-white shadow-[0_24px_70px_rgba(8,28,61,0.18)] sm:p-8 lg:p-10"
@@ -606,102 +702,6 @@ export default function MarketDashboard({ locale, selectedSlug }: MarketDashboar
               {isFrench ? 'Aucun actif ne correspond à cette recherche.' : 'No assets match this search.'}
             </p>
           )}
-        </section>
-
-        <section className="mt-10 rounded-3xl border border-border bg-card p-5 shadow-sm sm:mt-12 sm:p-6">
-          <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0b3b8b]/[0.08] text-[#0b3b8b] dark:bg-[#4f8ef7]/10 dark:text-[#8db7ff]">
-              <Calculator className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0b3b8b] dark:text-[#8db7ff]">
-                {isFrench ? 'Conversion rapide' : 'Quick conversion'}
-              </p>
-              <h2 className="mt-1 font-heading text-xl font-bold text-foreground">
-                {isFrench ? 'Calculatrice crypto' : 'Crypto calculator'}
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {isFrench
-                  ? 'Estimez la valeur d’une quantité de crypto dans la devise de votre choix.'
-                  : 'Estimate the value of a crypto amount in your preferred currency.'}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-5 grid gap-4 sm:grid-cols-3">
-            <label className="block min-w-0 text-xs font-semibold text-muted-foreground">
-              {isFrench ? 'Cryptomonnaie' : 'Cryptocurrency'}
-              <select
-                value={calculatorAssetId}
-                onChange={(event) => {
-                  const asset = MARKET_CRYPTO_ASSETS.find(
-                    (option) => option.id === event.currentTarget.value,
-                  );
-                  if (asset) setCalculatorAssetId(asset.id);
-                }}
-                className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                {MARKET_CRYPTO_ASSETS.map((asset) => (
-                  <option key={asset.id} value={asset.id}>
-                    {asset.symbol} · {getAssetName(asset, locale)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block min-w-0 text-xs font-semibold text-muted-foreground">
-              {isFrench ? 'Quantité' : 'Amount'}
-              <input
-                type="number"
-                min="0"
-                step="any"
-                inputMode="decimal"
-                value={calculatorAmount}
-                onChange={(event) => setCalculatorAmount(event.currentTarget.value)}
-                aria-invalid={calculatorQuantity !== null && !validCalculatorQuantity}
-                className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              />
-            </label>
-            <label className="block min-w-0 text-xs font-semibold text-muted-foreground">
-              {isFrench ? 'Devise' : 'Currency'}
-              <select
-                value={calculatorCurrency}
-                onChange={(event) => {
-                  if (isMarketCurrencyCode(event.currentTarget.value)) {
-                    setCalculatorCurrency(event.currentTarget.value);
-                  }
-                }}
-                className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                {MARKET_CURRENCIES.map((option) => (
-                  <option key={option.code} value={option.code}>
-                    {isFrench ? option.shortLabel : option.shortLabelEn}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <div className="mt-5 flex flex-col gap-3 rounded-2xl bg-[#0b3b8b]/[0.05] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground">
-                {isFrench ? 'Valeur estimée' : 'Estimated value'}
-              </p>
-              <p aria-live="polite" className="mt-1 text-2xl font-bold tabular-nums text-foreground">
-                {calculatorTotal ?? '—'}
-              </p>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {calculatorUnitPrice
-                ? `1 ${calculatorAsset.symbol} = ${calculatorUnitPrice}`
-                : loading
-                  ? isFrench
-                    ? 'Chargement du cours…'
-                    : 'Loading price…'
-                  : isFrench
-                    ? 'Cours indisponible'
-                    : 'Price unavailable'}
-            </p>
-          </div>
         </section>
 
         <section className="mt-10 overflow-hidden rounded-3xl border border-border bg-card shadow-sm sm:mt-12">
