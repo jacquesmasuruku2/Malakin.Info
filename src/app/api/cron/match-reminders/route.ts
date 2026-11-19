@@ -150,9 +150,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
   }
 
-  const vapidPublicKey = process.env.NEXT_PUBLIC_WEB_PUSH_VAPID_PUBLIC_KEY;
-  const vapidPrivateKey = process.env.WEB_PUSH_VAPID_PRIVATE_KEY;
-  const vapidSubject = process.env.WEB_PUSH_SUBJECT;
+  const vapidPublicKey =
+    process.env.NEXT_PUBLIC_WEB_PUSH_VAPID_PUBLIC_KEY ??
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const vapidPrivateKey =
+    process.env.WEB_PUSH_VAPID_PRIVATE_KEY ?? process.env.VAPID_PRIVATE_KEY;
+  const vapidSubject = process.env.WEB_PUSH_SUBJECT ?? process.env.VAPID_SUBJECT;
   if (!vapidPublicKey || !vapidPrivateKey || !vapidSubject) {
     return NextResponse.json({ error: 'Web Push VAPID settings are incomplete.' }, { status: 503 });
   }

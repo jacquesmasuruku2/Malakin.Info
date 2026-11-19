@@ -13,10 +13,11 @@ function parseTeam(value: unknown) {
   if (!/^\d{1,20}$/.test(espnTeamId) || !name || name.length > 120) return null;
 
   let logo: string | null = null;
-  if (value.logo !== null && value.logo !== undefined) {
-    if (typeof value.logo !== 'string' || value.logo.length > 2048) return null;
+  const logoValue = typeof value.logo === 'string' ? value.logo.trim() : value.logo;
+  if (logoValue !== null && logoValue !== undefined && logoValue !== '') {
+    if (typeof logoValue !== 'string' || logoValue.length > 2048) return null;
     try {
-      const logoUrl = new URL(value.logo);
+      const logoUrl = new URL(logoValue);
       if (logoUrl.protocol !== 'https:') return null;
       logo = logoUrl.toString();
     } catch {

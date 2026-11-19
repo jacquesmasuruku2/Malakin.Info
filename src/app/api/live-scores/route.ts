@@ -36,7 +36,7 @@ function getNumber(value: unknown): number | null {
 }
 
 function getLogo(value: unknown): string | null {
-  if (typeof value === 'string') return value;
+  if (typeof value === 'string') return getString(value);
   if (Array.isArray(value)) {
     for (const logo of value) {
       if (isRecord(logo)) {

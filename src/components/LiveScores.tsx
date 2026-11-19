@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Activity,
   ArrowDown,
@@ -1484,6 +1485,8 @@ export default function LiveScores({
 }: LiveScoresProps) {
   const english = locale === 'en';
   const { user, ready: accountReady } = useAccountUser();
+  const pathname = usePathname();
+  const router = useRouter();
   const [view, setView] = useState<ScoresView>('live');
   const [hasLiveMatches, setHasLiveMatches] = useState(false);
   const [finishedDateFilter, setFinishedDateFilter] = useState<FinishedDateFilter>(0);
@@ -1538,6 +1541,7 @@ export default function LiveScores({
   const [followedTeamsLoadedForUserId, setFollowedTeamsLoadedForUserId] = useState<string | null>(null);
   const [teamFavoriteActionId, setTeamFavoriteActionId] = useState<string | null>(null);
   const [teamFavoriteError, setTeamFavoriteError] = useState<string | null>(null);
+  const [teamFavoriteNotice, setTeamFavoriteNotice] = useState<string | null>(null);
   const currentUserId = user?.id ? String(user.id) : null;
   const followedTeams =
     currentUserId && followedTeamsOwnerId === currentUserId ? savedFollowedTeams : [];
@@ -2242,10 +2246,20 @@ export default function LiveScores({
     const isFollowed = followedTeams.some((item) => item.espnTeamId === espnTeamId);
     setTeamFavoriteActionId(espnTeamId);
     setTeamFavoriteError(null);
+    setTeamFavoriteNotice(null);
+    const notificationSetup = isFollowed
+      ? null
+      : enableFootballMatchNotifications().then(
+          () => null,
+          (error: unknown) =>
+            error instanceof Error
+              ? error.message
+              : english
+                ? 'Push reminders could not be enabled.'
+                : 'Les rappels Push n’ont pas pu être activés.',
+        );
 
     try {
-      if (!isFollowed) await enableFootballMatchNotifications();
-
       const response = await authFetch(
         isFollowed
           ? `/api/user/match-teams?teamId=${encodeURIComponent(espnTeamId)}`
@@ -2279,6 +2293,20 @@ export default function LiveScores({
           : [{ espnTeamId, name: team.name, logo: team.logo }, ...current],
       );
       setFollowedTeamsOwnerId(String(user.id));
+      if (notificationSetup) {
+        const notificationError = await notificationSetup;
+        if (notificationError) {
+          console.warn(
+            'The team was followed, but match reminders could not be enabled:',
+            notificationError,
+          );
+          setTeamFavoriteNotice(
+            english
+              ? `${team.name} is followed, but match reminders could not be enabled: ${notificationError}`
+              : `${team.name} est suivie, mais les rappels de matches n’ont pas pu être activés : ${notificationError}`,
+          );
+        }
+      }
     } catch (error) {
       console.error('Unable to update a followed football team:', error);
       setTeamFavoriteError(
@@ -2291,6 +2319,23 @@ export default function LiveScores({
     } finally {
       setTeamFavoriteActionId(null);
     }
+  }
+
+  function handleTeamFavoriteClick(team: {
+    id: number | null;
+    name: string;
+    logo: string | null;
+  }) {
+    if (!accountReady) return;
+    if (!user?.id) {
+      const currentPath = pathname || `/${locale || 'fr'}/matches-en-direct`;
+      router.push(
+        `/${locale || 'fr'}/compte/connexion?redirect=${encodeURIComponent(currentPath)}`,
+      );
+      return;
+    }
+
+    void toggleTeamFavorite(team);
   }
 
   return (
@@ -2624,6 +2669,23 @@ export default function LiveScores({
           </button>
         </div>
 
+        {teamFavoriteNotice && (
+          <p
+            role="status"
+            className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200"
+          >
+            {teamFavoriteNotice}
+          </p>
+        )}
+        {teamFavoriteError && user?.id && (
+          <p
+            role="alert"
+            className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200"
+          >
+            {teamFavoriteError}
+          </p>
+        )}
+
         {view === 'upcoming' && selectedCompetition === 'all' && (
           <p className="-mt-3 mb-6 text-sm text-muted-foreground">
             {english
@@ -2812,63 +2874,74 @@ export default function LiveScores({
                       </p>
                     )}
                     </button>
-                    {accountReady && user?.id && (
-                      <div className="grid grid-cols-2 gap-2 border-t border-border bg-background/70 p-2">
-                        {[
-                          { team: match.teams.home, isFollowed: homeIsFollowed },
-                          { team: match.teams.away, isFollowed: awayIsFollowed },
-                        ].map(({ team, isFollowed }) => (
-                          <button
-                            key={team.id ?? team.name}
-                            type="button"
-                            disabled={
-                              followedTeamsLoading ||
-                              team.id === null ||
-                              teamFavoriteActionId !== null
-                            }
-                            aria-pressed={isFollowed}
-                            aria-busy={teamFavoriteActionId === String(team.id)}
-                            aria-label={
-                              isFollowed
+                    <div className="grid grid-cols-2 gap-2 border-t border-border bg-background/70 p-2">
+                      {[
+                        { team: match.teams.home, isFollowed: homeIsFollowed },
+                        { team: match.teams.away, isFollowed: awayIsFollowed },
+                      ].map(({ team, isFollowed }) => (
+                        <button
+                          key={team.id ?? team.name}
+                          type="button"
+                          disabled={
+                            !accountReady ||
+                            (Boolean(user?.id) && followedTeamsLoading) ||
+                            team.id === null ||
+                            teamFavoriteActionId !== null
+                          }
+                          aria-pressed={isFollowed}
+                          aria-busy={teamFavoriteActionId === String(team.id)}
+                          aria-label={
+                            !user?.id
+                              ? english
+                                ? `Sign in to follow ${team.name}`
+                                : `Connectez-vous pour suivre ${team.name}`
+                              : isFollowed
                                 ? english
                                   ? `Stop following ${team.name} and its match reminders`
                                   : `Ne plus suivre ${team.name} ni ses rappels de match`
                                 : english
                                   ? `Follow ${team.name} and get match reminders`
                                   : `Suivre ${team.name} et recevoir les rappels de match`
-                            }
-                            title={
-                              isFollowed
+                          }
+                          title={
+                            !user?.id
+                              ? english
+                                ? 'Sign in to follow this team'
+                                : 'Connectez-vous pour suivre cette équipe'
+                              : isFollowed
                                 ? english
                                   ? `Stop following ${team.name}`
                                   : `Ne plus suivre ${team.name}`
                                 : english
                                   ? `Follow ${team.name}`
                                   : `Suivre ${team.name}`
-                            }
-                            onClick={() => void toggleTeamFavorite(team)}
-                            className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 ${
-                              isFollowed
-                                ? 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300'
-                                : 'border-border bg-card text-muted-foreground hover:text-foreground'
-                            }`}
-                          >
-                            <Star
-                              className={`h-3.5 w-3.5 shrink-0 ${isFollowed ? 'fill-current' : ''}`}
-                              aria-hidden="true"
-                            />
-                            <span className="min-w-0 truncate">
-                              {team.name}
-                              {isFollowed
+                          }
+                          onClick={() => handleTeamFavoriteClick(team)}
+                          className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 ${
+                            isFollowed
+                              ? 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300'
+                              : 'border-amber-200 bg-amber-50/50 text-amber-700 hover:bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-300'
+                          }`}
+                        >
+                          <Star
+                            className={`h-4 w-4 shrink-0 ${isFollowed ? 'fill-current' : ''}`}
+                            aria-hidden="true"
+                          />
+                          <span className="min-w-0 truncate">
+                            {team.name}
+                            {!user?.id
+                              ? english
+                                ? ' · Sign in'
+                                : ' · Connexion'
+                              : isFollowed
                                 ? english
                                   ? ' · Following'
                                   : ' · Suivie'
                                 : ''}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                     <button
                       type="button"
                       onClick={() => toggleFavorite(match.fixture.id)}
@@ -2899,11 +2972,6 @@ export default function LiveScores({
                 );
             })}
             </ul>
-            {teamFavoriteError && user?.id && (
-                <p role="status" className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
-                  {teamFavoriteError}
-                </p>
-            )}
             {matchesToRender.length < visibleMatches.length && (
               <div className="mt-5 flex justify-center">
                 <button

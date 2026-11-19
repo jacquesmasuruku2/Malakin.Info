@@ -138,10 +138,8 @@ export default function Footer({ partners = [] }: { partners?: FooterPartner[] }
   ];
 
   const networkLinks = [
-    { label: t.malakinRadioAfrica, href: `/${locale}/diffusion-en-direct` },
     { label: t.focusEco, href: `/${locale}/medias` },
     { label: t.youthTribune, href: `/${locale}/medias/live` },
-    { label: t.malakinDocu, href: `/${locale}/medias` },
     { label: t.mediaObservatory, href: `/${locale}/nous-soutenir` },
     { label: t.partnerships, href: `/${locale}/partenariats` },
   ];

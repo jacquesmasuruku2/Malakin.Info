@@ -9,8 +9,30 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const currentDate = new Date()
   const locales = ['fr', 'en'] as const
+  const rotationStartsAt = new Date('2026-11-19T13:09:11.000Z').getTime()
+  const rotationElapsed = currentDate.getTime() - rotationStartsAt >= 48 * 60 * 60 * 1000
 
-  const staticPaths = [
+  const prioritizedPaths = rotationElapsed
+    ? [
+        '/actualites',
+        '/science-tech/intelligence-artificielle',
+        '/science-tech',
+        '/securite',
+        '/education-et-enseignement',
+        '/matches-en-direct',
+        '/marches',
+      ]
+    : [
+        '/actualites',
+        '/economie',
+        '/politique',
+        '/securite',
+        '/sante',
+        '/matches-en-direct',
+        '/marches',
+      ]
+
+  const allStaticPaths = [
     '',
     '/actualites',
     '/politique',
@@ -24,7 +46,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/matches-en-direct',
     '/religion',
     '/science-tech',
+    '/science-tech/intelligence-artificielle',
     '/emploi',
+    '/education-et-enseignement',
     '/contact',
     '/a-propos',
     '/mission',
@@ -48,6 +72,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/archives',
   ]
 
+  // Keep every public URL discoverable; the 48-hour schedule only changes ordering and emphasis.
+  const staticPaths = [
+    ...prioritizedPaths,
+    ...allStaticPaths.filter((path) => !prioritizedPaths.includes(path)),
+  ]
+
   const staticPages: MetadataRoute.Sitemap = locales.flatMap((locale) =>
     staticPaths.map((path) => ({
       url: `${SITE_URL}/${locale}${path}`,
@@ -55,18 +85,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency:
         path === '/matches-en-direct'
           ? 'hourly'
-          : path === '' || path === '/actualites'
+          : path === '' || path === '/actualites' || prioritizedPaths.includes(path)
             ? 'daily'
             : 'weekly',
-      priority: path === '' ? 1 : path === '/matches-en-direct' ? 0.9 : 0.7,
-      ...(path === '/matches-en-direct' && {
-        alternates: {
-          languages: {
-            'fr-FR': `${SITE_URL}/fr${path}`,
-            'en-US': `${SITE_URL}/en${path}`,
-          },
+      priority:
+        path === ''
+          ? 1
+          : path === '/actualites' || path === '/matches-en-direct'
+            ? 0.9
+            : prioritizedPaths.includes(path)
+              ? 0.8
+              : 0.7,
+      alternates: {
+        languages: {
+          'fr-FR': `${SITE_URL}/fr${path}`,
+          'en-US': `${SITE_URL}/en${path}`,
         },
-      }),
+      },
     }))
   )
 

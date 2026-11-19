@@ -1,6 +1,8 @@
 import { authFetch } from '@/lib/client-auth';
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_WEB_PUSH_VAPID_PUBLIC_KEY;
+const VAPID_PUBLIC_KEY =
+  process.env.NEXT_PUBLIC_WEB_PUSH_VAPID_PUBLIC_KEY ??
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
 function decodeVapidPublicKey(value: string): ArrayBuffer {
   const padding = '='.repeat((4 - (value.length % 4)) % 4);
