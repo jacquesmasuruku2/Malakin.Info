@@ -304,9 +304,16 @@ export async function GET(request: Request) {
   const teamQuery = finishedOnly ? searchParams.get('team')?.trim() ?? '' : '';
   const daysAgoParam = searchParams.get('daysAgo') ?? '0';
   const daysAgo = Number(daysAgoParam);
-  if (finishedOnly && ![0, 1, 2].includes(daysAgo)) {
+  const rangeDaysParam = searchParams.get('rangeDays');
+  const rangeDays = rangeDaysParam === null ? null : Number(rangeDaysParam);
+  if (
+    finishedOnly &&
+    (rangeDays !== null
+      ? ![7, 30].includes(rangeDays)
+      : ![0, 1, 2].includes(daysAgo))
+  ) {
     return NextResponse.json(
-      { error: 'daysAgo must be 0, 1, or 2.' },
+      { error: 'Finished matches support daysAgo 0, 1, or 2, or rangeDays 7 or 30.' },
       { status: 400, headers: { 'Cache-Control': 'no-store' } },
     );
   }
@@ -317,8 +324,23 @@ export async function GET(request: Request) {
     );
   }
 
-  const url = new URL(SCOREBOARD_URL);
-  if (finishedOnly) url.searchParams.set('dates', getKinshasaDate(daysAgo));
+  const scoreboardUrls: URL[] = [];
+  if (finishedOnly) {
+    if (rangeDays !== null) {
+      for (let daysBack = rangeDays - 1; daysBack >= 0; daysBack -= 1) {
+        const dailyUrl = new URL(SCOREBOARD_URL);
+        dailyUrl.searchParams.set('dates', getKinshasaDate(daysBack));
+        dailyUrl.searchParams.set('limit', '1000');
+        scoreboardUrls.push(dailyUrl);
+      }
+    } else {
+      const dailyUrl = new URL(SCOREBOARD_URL);
+      dailyUrl.searchParams.set('dates', getKinshasaDate(daysAgo));
+      scoreboardUrls.push(dailyUrl);
+    }
+  } else {
+    scoreboardUrls.push(new URL(SCOREBOARD_URL));
+  }
 
   try {
     if (teamQuery.length >= 3) {
@@ -335,25 +357,30 @@ export async function GET(request: Request) {
       }
     }
 
-    const response = await fetch(url, {
-      cache: 'force-cache',
-      next: { revalidate: CACHE_SECONDS },
-      signal: AbortSignal.timeout(15_000),
-      headers: { Accept: 'application/json' },
-    });
-    if (!response.ok) {
-      throw new Error(`ESPN scoreboard responded with HTTP ${response.status}.`);
-    }
+    const eventLists = await Promise.all(
+      scoreboardUrls.map(async (url) => {
+        const response = await fetch(url, {
+          cache: 'force-cache',
+          next: { revalidate: CACHE_SECONDS },
+          signal: AbortSignal.timeout(15_000),
+          headers: { Accept: 'application/json' },
+        });
+        if (!response.ok) {
+          throw new Error(`ESPN scoreboard responded with HTTP ${response.status}.`);
+        }
 
-    const payload: unknown = await response.json();
-    if (!isRecord(payload) || !Array.isArray(payload.events)) {
-      throw new Error('ESPN returned an invalid scoreboard response.');
-    }
-
-    const events = payload.events
+        const payload: unknown = await response.json();
+        if (!isRecord(payload) || !Array.isArray(payload.events)) {
+          throw new Error('ESPN returned an invalid scoreboard response.');
+        }
+        return payload.events;
+      }),
+    );
+    const rawEvents = eventLists.flat();
+    const events = rawEvents
       .map(parseScoreboardEvent)
       .filter((match): match is ESPNScoreboardMatch => match !== null);
-    const ignoredCount = payload.events.length - events.length;
+    const ignoredCount = rawEvents.length - events.length;
     if (ignoredCount > 0) {
       console.warn(`Ignored ${ignoredCount} ESPN scoreboard events with incomplete data.`);
     }
@@ -369,7 +396,9 @@ export async function GET(request: Request) {
       .sort(
         (a, b) =>
           getCompetitionPriority(a) - getCompetitionPriority(b) ||
-          (a.date ?? '').localeCompare(b.date ?? ''),
+          (finishedOnly
+            ? (b.date ?? '').localeCompare(a.date ?? '')
+            : (a.date ?? '').localeCompare(b.date ?? '')),
       );
 
     return NextResponse.json(

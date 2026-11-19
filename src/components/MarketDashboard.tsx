@@ -1,11 +1,13 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import {
   ArrowDownRight,
   ArrowUpRight,
   BarChart3,
+  Calculator,
   Clock3,
   Search,
   ShieldAlert,
@@ -15,6 +17,8 @@ import {
   MARKET_ASSETS,
   MARKET_CURRENCIES,
   type MarketAsset,
+  type MarketAssetId,
+  type MarketCurrencyCode,
   isMarketQuoteFresh,
   isMarketCurrencyCode,
   type MarketQuote,
@@ -27,6 +31,8 @@ import {
   formatMarketPrice,
   formatMarketTime,
 } from '@/lib/market-format';
+
+const MARKET_CRYPTO_ASSETS = MARKET_ASSETS.filter((asset) => asset.type === 'crypto');
 
 type MarketDashboardProps = {
   locale: string;
@@ -95,6 +101,7 @@ function MarketCard({
   exchangeRates: Record<string, number>;
 }) {
   const isFrench = locale === 'fr';
+  const [logoLoadFailed, setLogoLoadFailed] = useState(false);
   const isDown = quote?.change24h !== null && quote?.change24h !== undefined && quote.change24h < 0;
 
   return (
@@ -107,9 +114,22 @@ function MarketCard({
     >
       <div className="mb-4 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0b3b8b]/[0.08] text-[10px] font-black text-[#0b3b8b] dark:bg-[#4f8ef7]/10 dark:text-[#8db7ff]">
-            {asset.symbol}
-          </span>
+          {asset.type === 'crypto' && quote?.logoUrl && !logoLoadFailed ? (
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-border/50 dark:bg-card">
+              <Image
+                src={quote.logoUrl}
+                alt=""
+                width={40}
+                height={40}
+                className="h-full w-full object-contain p-1"
+                onError={() => setLogoLoadFailed(true)}
+              />
+            </span>
+          ) : (
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0b3b8b]/[0.08] text-[10px] font-black text-[#0b3b8b] dark:bg-[#4f8ef7]/10 dark:text-[#8db7ff]">
+              {asset.symbol}
+            </span>
+          )}
           <span className="min-w-0">
             <span className="block truncate text-sm font-bold text-foreground">
               {getAssetName(asset, locale)}
@@ -155,6 +175,9 @@ export default function MarketDashboard({ locale, selectedSlug }: MarketDashboar
   const isFrench = locale === 'fr';
   const [assetSearch, setAssetSearch] = useState('');
   const [showAllAssets, setShowAllAssets] = useState(false);
+  const [calculatorAssetId, setCalculatorAssetId] = useState<MarketAssetId>('bitcoin');
+  const [calculatorAmount, setCalculatorAmount] = useState('1');
+  const [calculatorCurrency, setCalculatorCurrency] = useState<MarketCurrencyCode>('USD');
   const selectedAsset =
     MARKET_ASSETS.find((asset) => asset.slug === selectedSlug) ?? MARKET_ASSETS[1];
   const { currency, setCurrency, snapshot, liveQuotes, usdtUsdRate, feedStatus, loading, error } =
@@ -210,6 +233,35 @@ export default function MarketDashboard({ locale, selectedSlug }: MarketDashboar
         currency,
       )
     : null;
+  const calculatorAsset =
+    MARKET_CRYPTO_ASSETS.find((asset) => asset.id === calculatorAssetId) ?? MARKET_ASSETS[1];
+  const calculatorQuote = quoteById.get(calculatorAsset.id);
+  const calculatorQuantity =
+    calculatorAmount.trim() === '' ? null : Number(calculatorAmount);
+  const validCalculatorQuantity =
+    calculatorQuantity !== null &&
+    Number.isFinite(calculatorQuantity) &&
+    calculatorQuantity >= 0;
+  const calculatorUnitPrice =
+    calculatorQuote && exchangeRates
+      ? formatMarketPrice(
+          convertMarketValue(calculatorQuote.priceUsd, exchangeRates, calculatorCurrency),
+          locale,
+          calculatorCurrency,
+        )
+      : null;
+  const calculatorTotal =
+    validCalculatorQuantity && calculatorQuote && exchangeRates
+      ? formatMarketPrice(
+          convertMarketValue(
+            calculatorQuantity * calculatorQuote.priceUsd,
+            exchangeRates,
+            calculatorCurrency,
+          ),
+          locale,
+          calculatorCurrency,
+        )
+      : null;
   const sourceBinanceUrl = `https://www.binance.com/en/trade/${selectedAsset.symbol}_USDT`;
   const sourceCoinGeckoUrl = `https://www.coingecko.com/en/coins/${selectedAsset.id}`;
   const matchingAssets = MARKET_ASSETS.filter((asset) =>
@@ -554,6 +606,102 @@ export default function MarketDashboard({ locale, selectedSlug }: MarketDashboar
               {isFrench ? 'Aucun actif ne correspond à cette recherche.' : 'No assets match this search.'}
             </p>
           )}
+        </section>
+
+        <section className="mt-10 rounded-3xl border border-border bg-card p-5 shadow-sm sm:mt-12 sm:p-6">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0b3b8b]/[0.08] text-[#0b3b8b] dark:bg-[#4f8ef7]/10 dark:text-[#8db7ff]">
+              <Calculator className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0b3b8b] dark:text-[#8db7ff]">
+                {isFrench ? 'Conversion rapide' : 'Quick conversion'}
+              </p>
+              <h2 className="mt-1 font-heading text-xl font-bold text-foreground">
+                {isFrench ? 'Calculatrice crypto' : 'Crypto calculator'}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {isFrench
+                  ? 'Estimez la valeur d’une quantité de crypto dans la devise de votre choix.'
+                  : 'Estimate the value of a crypto amount in your preferred currency.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            <label className="block min-w-0 text-xs font-semibold text-muted-foreground">
+              {isFrench ? 'Cryptomonnaie' : 'Cryptocurrency'}
+              <select
+                value={calculatorAssetId}
+                onChange={(event) => {
+                  const asset = MARKET_CRYPTO_ASSETS.find(
+                    (option) => option.id === event.currentTarget.value,
+                  );
+                  if (asset) setCalculatorAssetId(asset.id);
+                }}
+                className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                {MARKET_CRYPTO_ASSETS.map((asset) => (
+                  <option key={asset.id} value={asset.id}>
+                    {asset.symbol} · {getAssetName(asset, locale)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block min-w-0 text-xs font-semibold text-muted-foreground">
+              {isFrench ? 'Quantité' : 'Amount'}
+              <input
+                type="number"
+                min="0"
+                step="any"
+                inputMode="decimal"
+                value={calculatorAmount}
+                onChange={(event) => setCalculatorAmount(event.currentTarget.value)}
+                aria-invalid={calculatorQuantity !== null && !validCalculatorQuantity}
+                className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              />
+            </label>
+            <label className="block min-w-0 text-xs font-semibold text-muted-foreground">
+              {isFrench ? 'Devise' : 'Currency'}
+              <select
+                value={calculatorCurrency}
+                onChange={(event) => {
+                  if (isMarketCurrencyCode(event.currentTarget.value)) {
+                    setCalculatorCurrency(event.currentTarget.value);
+                  }
+                }}
+                className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                {MARKET_CURRENCIES.map((option) => (
+                  <option key={option.code} value={option.code}>
+                    {isFrench ? option.shortLabel : option.shortLabelEn}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="mt-5 flex flex-col gap-3 rounded-2xl bg-[#0b3b8b]/[0.05] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground">
+                {isFrench ? 'Valeur estimée' : 'Estimated value'}
+              </p>
+              <p aria-live="polite" className="mt-1 text-2xl font-bold tabular-nums text-foreground">
+                {calculatorTotal ?? '—'}
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {calculatorUnitPrice
+                ? `1 ${calculatorAsset.symbol} = ${calculatorUnitPrice}`
+                : loading
+                  ? isFrench
+                    ? 'Chargement du cours…'
+                    : 'Loading price…'
+                  : isFrench
+                    ? 'Cours indisponible'
+                    : 'Price unavailable'}
+            </p>
+          </div>
         </section>
 
         <section className="mt-10 overflow-hidden rounded-3xl border border-border bg-card shadow-sm sm:mt-12">

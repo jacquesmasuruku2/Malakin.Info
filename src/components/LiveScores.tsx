@@ -50,6 +50,7 @@ const MATCH_DETAILS_REFRESH_INTERVAL_MS = 30_000;
 const FAVORITES_STORAGE_KEY = 'malakinfo-live-match-favorites';
 const favoriteSubscribers = new Set<() => void>();
 type ScoresView = 'live' | 'upcoming' | 'finished';
+type FinishedDateFilter = 0 | 1 | 2 | 'week' | 'month';
 type FollowedFootballTeam = {
   espnTeamId: string;
   name: string;
@@ -1295,8 +1296,8 @@ function MatchStatisticsPanel({
   ]);
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-border px-3 py-3 sm:px-5">
+    <section className="mx-auto w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 border-b border-border px-3 py-3 sm:px-5">
         <div className="flex min-w-0 items-center justify-start">
           {homeTeamLogo && (
             <Image
@@ -1340,7 +1341,7 @@ function MatchStatisticsPanel({
           return (
             <div
               key={stat.name}
-              className="grid grid-cols-[minmax(42px,1fr)_minmax(96px,1.5fr)_minmax(42px,1fr)] items-center gap-2 py-3 text-sm"
+              className="grid grid-cols-[minmax(2.5rem,1fr)_minmax(0,2fr)_minmax(2.5rem,1fr)] items-center gap-2 py-3 text-sm"
             >
               <dd className="justify-self-start">
                 <span
@@ -1389,11 +1390,13 @@ export default function LiveScores({
   const english = locale === 'en';
   const { user, ready: accountReady } = useAccountUser();
   const [view, setView] = useState<ScoresView>('live');
-  const [finishedDaysAgo, setFinishedDaysAgo] = useState<0 | 1 | 2>(0);
+  const [hasLiveMatches, setHasLiveMatches] = useState(false);
+  const [finishedDateFilter, setFinishedDateFilter] = useState<FinishedDateFilter>(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [teamHistoryName, setTeamHistoryName] = useState<string | null>(null);
   const [teamHistoryVisibleCount, setTeamHistoryVisibleCount] = useState(5);
+  const [matchesVisibleCount, setMatchesVisibleCount] = useState(40);
   const [selectedCompetition, setSelectedCompetition] = useState('all');
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [matches, setMatches] = useState<LiveScoreMatch[]>([]);
@@ -1583,91 +1586,110 @@ export default function LiveScores({
     () => events.filter((event) => getMatchEventKind(event) === 'goal'),
     [events],
   );
-  const matchesToRender = teamHistoryName
-    ? visibleMatches.slice(0, teamHistoryVisibleCount)
-    : visibleMatches;
+  const matchesToRender = visibleMatches.slice(
+    0,
+    teamHistoryName ? teamHistoryVisibleCount : matchesVisibleCount,
+  );
   const finishedDateLabel =
-    finishedDaysAgo === 0
-      ? english
-        ? 'today'
-        : 'aujourd’hui'
-      : finishedDaysAgo === 1
+    typeof finishedDateFilter === 'number'
+      ? finishedDateFilter === 0
         ? english
-          ? 'yesterday'
-          : 'hier'
+          ? 'today'
+          : 'aujourd’hui'
+        : finishedDateFilter === 1
+          ? english
+            ? 'yesterday'
+            : 'hier'
+          : english
+            ? 'two days ago'
+            : 'avant-hier'
+      : finishedDateFilter === 'week'
+        ? english
+          ? 'in the last 7 days'
+          : 'des 7 derniers jours'
         : english
-          ? 'two days ago'
-          : 'avant-hier';
+          ? 'in the last 30 days'
+          : 'des 30 derniers jours';
 
   useEffect(() => {
     let isMounted = true;
 
     async function refreshScores() {
+      let changingViewOrFilter = false;
+
       try {
-        const daysToTry: (0 | 1 | 2)[] = [finishedDaysAgo];
-        if (view === 'finished' && !teamHistoryQuery) {
-          if (finishedDaysAgo < 2) {
-            daysToTry.push((finishedDaysAgo + 1) as 1 | 2);
+        const searchParams = new URLSearchParams();
+        if (view === 'finished') {
+          searchParams.set('view', 'finished');
+          if (finishedDateFilter === 'week') {
+            searchParams.set('rangeDays', '7');
+          } else if (finishedDateFilter === 'month') {
+            searchParams.set('rangeDays', '30');
+          } else {
+            searchParams.set('daysAgo', String(finishedDateFilter));
           }
-          if (finishedDaysAgo === 0) daysToTry.push(2);
+          if (teamHistoryQuery) searchParams.set('team', teamHistoryQuery);
+        }
+        if (view === 'upcoming') searchParams.set('view', 'upcoming');
+        const endpoint =
+          view === 'live' ? '/api/live-scores' : `/api/live-scores?${searchParams.toString()}`;
+        const response = await fetch(endpoint, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`Scores API responded with HTTP ${response.status}.`);
         }
 
-        let responseMatches: ESPNScoreboardMatch[] = [];
-        let responseTeamName: string | null = null;
-        let effectiveFinishedDaysAgo = finishedDaysAgo;
+        const payload: unknown = await response.json();
+        if (
+          !isRecord(payload) ||
+          !Array.isArray(payload.matches) ||
+          !payload.matches.every(isESPNScoreboardMatch)
+        ) {
+          throw new Error('Scores API returned an invalid response.');
+        }
+        if (!isMounted) return;
 
-        for (const daysAgo of daysToTry) {
-          const searchParams = new URLSearchParams();
-          if (view === 'finished') {
-            searchParams.set('view', 'finished');
-            searchParams.set('daysAgo', String(daysAgo));
-            if (teamHistoryQuery) searchParams.set('team', teamHistoryQuery);
-          }
-          if (view === 'upcoming') searchParams.set('view', 'upcoming');
-          const endpoint =
-            view === 'live' ? '/api/live-scores' : `/api/live-scores?${searchParams.toString()}`;
-          const response = await fetch(endpoint, { cache: 'no-store' });
-          if (!response.ok) {
-            throw new Error(`Scores API responded with HTTP ${response.status}.`);
-          }
-
-          const payload: unknown = await response.json();
-          if (
-            !isRecord(payload) ||
-            !Array.isArray(payload.matches) ||
-            !payload.matches.every(isESPNScoreboardMatch)
-          ) {
-            throw new Error('Scores API returned an invalid response.');
-          }
-          if (!isMounted) return;
-
-          responseMatches = payload.matches;
-          responseTeamName =
-            typeof payload.teamName === 'string' ? payload.teamName : null;
-          effectiveFinishedDaysAgo = daysAgo;
-          if (
-            view !== 'finished' ||
-            responseMatches.length > 0 ||
-            daysAgo === daysToTry[daysToTry.length - 1]
-          ) {
-            break;
-          }
+        if (view === 'live' && payload.matches.length === 0) {
+          setHasLiveMatches(false);
+          setMatches([]);
+          setTeamHistoryName(null);
+          setIsLoading(true);
+          changingViewOrFilter = true;
+          setView('upcoming');
+          return;
         }
 
-        if (isMounted) {
-          setMatches(responseMatches.map(toLiveScoreMatch));
-          setTeamHistoryName(responseTeamName);
-          if (view === 'finished' && effectiveFinishedDaysAgo !== finishedDaysAgo) {
-            setFinishedDaysAgo(effectiveFinishedDaysAgo);
-          }
+        if (
+          view === 'finished' &&
+          !teamHistoryQuery &&
+          typeof finishedDateFilter === 'number' &&
+          finishedDateFilter < 2 &&
+          payload.matches.length === 0
+        ) {
+          const nextDateFilter: 1 | 2 = finishedDateFilter === 0 ? 1 : 2;
+          changingViewOrFilter = true;
+          setMatches([]);
           setHasError(false);
-          setUpdatedAt(new Date().toISOString());
+          setIsLoading(true);
+          setUpdatedAt(null);
+          setFinishedDateFilter(nextDateFilter);
+          return;
         }
+
+        setMatches(payload.matches.map(toLiveScoreMatch));
+        setTeamHistoryName(
+          typeof payload.teamName === 'string' ? payload.teamName : null,
+        );
+        if (view === 'live') setHasLiveMatches(true);
+        setHasError(false);
+        setUpdatedAt(new Date().toISOString());
       } catch (error) {
         console.error('Unable to refresh live football scores:', error);
-        if (isMounted) setHasError(true);
+        if (isMounted) {
+          setHasError(true);
+          if (view === 'live') setHasLiveMatches(false);
+        }
       } finally {
-        if (isMounted) setIsLoading(false);
+        if (isMounted && !changingViewOrFilter) setIsLoading(false);
       }
     }
 
@@ -1678,7 +1700,46 @@ export default function LiveScores({
       isMounted = false;
       window.clearInterval(intervalId);
     };
-  }, [finishedDaysAgo, teamHistoryQuery, view]);
+  }, [finishedDateFilter, teamHistoryQuery, view]);
+
+  useEffect(() => {
+    if (view === 'live') return;
+
+    let isMounted = true;
+
+    async function checkLiveMatches() {
+      try {
+        const response = await fetch('/api/live-scores', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`Live scores API responded with HTTP ${response.status}.`);
+        }
+
+        const payload: unknown = await response.json();
+        if (
+          !isRecord(payload) ||
+          !Array.isArray(payload.matches) ||
+          !payload.matches.every(isESPNScoreboardMatch)
+        ) {
+          throw new Error('Live scores API returned an invalid response.');
+        }
+
+        if (isMounted) setHasLiveMatches(payload.matches.length > 0);
+      } catch (error) {
+        if (isMounted) {
+          console.error('Unable to check for live football matches:', error);
+          setHasLiveMatches(false);
+        }
+      }
+    }
+
+    void checkLiveMatches();
+    const intervalId = window.setInterval(checkLiveMatches, REFRESH_INTERVAL_MS);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, [view]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -1882,6 +1943,7 @@ export default function LiveScores({
     setHasError(false);
     setTeamHistoryName(null);
     setTeamHistoryVisibleCount(5);
+    setMatchesVisibleCount(40);
     setIsLoading(true);
     setUpdatedAt(null);
     setView(nextView);
@@ -2016,10 +2078,18 @@ export default function LiveScores({
           <button
             type="button"
             aria-pressed={view === 'live'}
+            disabled={!hasLiveMatches}
+            title={
+              !hasLiveMatches
+                ? english
+                  ? 'Available when a match is in progress'
+                  : 'Disponible lorsqu’au moins un match est en cours'
+                : undefined
+            }
             onClick={() => changeView('live')}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm ${
               view === 'live'
-                ? 'bg-primary text-primary-foreground'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             }`}
           >
@@ -2029,9 +2099,9 @@ export default function LiveScores({
             type="button"
             aria-pressed={view === 'upcoming'}
             onClick={() => changeView('upcoming')}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:text-sm ${
               view === 'upcoming'
-                ? 'bg-primary text-primary-foreground'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             }`}
           >
@@ -2041,9 +2111,9 @@ export default function LiveScores({
             type="button"
             aria-pressed={view === 'finished'}
             onClick={() => changeView('finished')}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:text-sm ${
               view === 'finished'
-                ? 'bg-primary text-primary-foreground'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             }`}
           >
@@ -2068,6 +2138,7 @@ export default function LiveScores({
               onChange={(event) => {
                 setTeamHistoryName(null);
                 setTeamHistoryVisibleCount(5);
+                setMatchesVisibleCount(40);
                 setSearchQuery(event.target.value);
               }}
               placeholder={english ? 'Search a team or match (e.g. France vs Spain)' : 'Rechercher une équipe ou un match (ex. France vs Espagne)'}
@@ -2082,23 +2153,35 @@ export default function LiveScores({
               </label>
               <select
                 id="live-scores-finished-day"
-                value={finishedDaysAgo}
+                value={finishedDateFilter}
                 onChange={(event) => {
                   const value = event.currentTarget.value;
-                  const daysAgo = value === '2' ? 2 : value === '1' ? 1 : 0;
+                  const filter: FinishedDateFilter =
+                    value === 'week'
+                      ? 'week'
+                      : value === 'month'
+                        ? 'month'
+                        : value === '2'
+                          ? 2
+                          : value === '1'
+                            ? 1
+                            : 0;
                   setMatches([]);
                   setHasError(false);
                   setIsLoading(true);
                   setUpdatedAt(null);
                   setSelectedCompetition('all');
-                  setFinishedDaysAgo(daysAgo);
+                  setMatchesVisibleCount(40);
+                  setFinishedDateFilter(filter);
                 }}
                 aria-label={english ? 'Filter finished matches by date' : 'Filtrer les matches terminés par date'}
                 className="h-11 w-full min-w-0 max-w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-auto"
               >
-                <option value={0}>{english ? 'Today' : 'Aujourd’hui'}</option>
-                <option value={1}>{english ? 'Yesterday' : 'Hier'}</option>
-                <option value={2}>{english ? 'Two days ago' : 'Avant-hier'}</option>
+                <option value="0">{english ? 'Today' : 'Aujourd’hui'}</option>
+                <option value="1">{english ? 'Yesterday' : 'Hier'}</option>
+                <option value="2">{english ? 'Two days ago' : 'Avant-hier'}</option>
+                <option value="week">{english ? 'Past 7 days' : '7 derniers jours'}</option>
+                <option value="month">{english ? 'Past 30 days' : '30 derniers jours'}</option>
               </select>
             </>
           )}
@@ -2185,7 +2268,7 @@ export default function LiveScores({
                       }
                       className="group w-full min-w-0 cursor-pointer p-5 text-left transition-colors hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary sm:p-6"
                     >
-                    <div className="mb-4 flex items-center justify-between gap-3 pl-10">
+                    <div className="mb-4 flex min-w-0 flex-col gap-2 pl-10 lg:flex-row lg:items-center lg:justify-between lg:gap-3">
                       <div className="flex min-w-0 items-center gap-2.5">
                         {match.league.logo && (
                           <Image
@@ -2197,30 +2280,30 @@ export default function LiveScores({
                           />
                         )}
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-foreground">
+                          <p className="break-words text-xs font-semibold leading-snug text-foreground sm:text-sm">
                             {match.league.name}
                           </p>
                           {match.league.country && (
-                            <p className="truncate text-xs text-muted-foreground">
+                            <p className="break-words text-[11px] leading-snug text-muted-foreground sm:text-xs">
                               {match.league.country}
                             </p>
                           )}
                         </div>
                       </div>
                       <span
-                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${
+                        className={`inline-flex shrink-0 items-center self-start rounded-full font-bold uppercase tracking-wide lg:self-auto ${
                           match.state === 'in'
-                            ? 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300'
+                            ? 'gap-1.5 px-2.5 py-1 text-xs bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300'
                             : match.state === 'pre'
-                              ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
-                              : 'bg-muted text-muted-foreground'
+                              ? 'gap-1 px-2 py-0.5 text-[10px] sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-xs bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
+                              : 'gap-1.5 px-2.5 py-1 text-xs bg-muted text-muted-foreground'
                         }`}
                       >
                         {match.state === 'in' ? (
                           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
                         ) : (
                           match.state === 'pre' ? (
-                            <Clock3 className="h-3 w-3" aria-hidden="true" />
+                            <Clock3 className="h-2.5 w-2.5 sm:h-3 sm:w-3" aria-hidden="true" />
                           ) : (
                             <Trophy className="h-3 w-3" aria-hidden="true" />
                           )
@@ -2406,20 +2489,30 @@ export default function LiveScores({
                   {teamFavoriteError}
                 </p>
             )}
-            {teamHistoryName && matchesToRender.length < visibleMatches.length && (
+            {matchesToRender.length < visibleMatches.length && (
               <div className="mt-5 flex justify-center">
                 <button
                   type="button"
-                  onClick={() =>
-                    setTeamHistoryVisibleCount((count) =>
-                      Math.min(count + 5, visibleMatches.length),
-                    )
-                  }
+                  onClick={() => {
+                    if (teamHistoryName) {
+                      setTeamHistoryVisibleCount((count) =>
+                        Math.min(count + 5, visibleMatches.length),
+                      );
+                    } else {
+                      setMatchesVisibleCount((count) =>
+                        Math.min(count + 40, visibleMatches.length),
+                      );
+                    }
+                  }}
                   className="inline-flex min-h-11 max-w-full items-center justify-center whitespace-normal break-words rounded-xl border border-primary px-5 py-2.5 text-center text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 >
-                  {english
-                    ? `View more past matches for ${teamHistoryName}`
-                    : `Voir plus de matches passés de ${teamHistoryName}`}
+                  {teamHistoryName
+                    ? english
+                      ? `View more past matches for ${teamHistoryName}`
+                      : `Voir plus de matches passés de ${teamHistoryName}`
+                    : english
+                      ? 'Load more matches'
+                      : 'Afficher plus de matches'}
                 </button>
               </div>
             )}
@@ -2481,20 +2574,20 @@ export default function LiveScores({
               closeMatchDetails();
             }
           }}
-          className="fixed inset-0 m-0 flex h-dvh max-h-dvh w-full max-w-full items-center justify-center overflow-hidden border-0 bg-transparent p-3 text-foreground sm:p-6"
+          className="fixed inset-0 m-0 flex h-dvh max-h-dvh w-full max-w-full items-center justify-center overflow-hidden border-0 bg-transparent p-0 text-foreground sm:p-6"
         >
           <div
             aria-hidden="true"
             onClick={closeMatchDetails}
             className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm"
           />
-          <section className="relative z-10 mx-auto flex h-[92dvh] max-h-[92dvh] w-full min-w-0 max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
-            <header className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-5 py-4 sm:px-6">
+          <section className="relative z-10 mx-auto flex h-dvh max-h-dvh w-full min-w-0 max-w-5xl flex-col overflow-hidden border border-border bg-background shadow-2xl sm:h-[92dvh] sm:max-h-[92dvh] sm:rounded-2xl">
+            <header className="flex shrink-0 items-start justify-between gap-2 border-b border-border px-3 py-3 sm:gap-4 sm:px-6 sm:py-4">
               <div className="min-w-0">
                 <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-primary">
                   {english ? 'Match details' : 'Détails du match'}
                 </p>
-                <h2 id="match-details-title" className="text-lg font-bold text-foreground sm:text-xl">
+                <h2 id="match-details-title" className="break-words text-base font-bold leading-snug text-foreground sm:text-xl">
                   {selectedMatch
                     ? `${selectedMatch.teams.home.name} – ${selectedMatch.teams.away.name}`
                     : initialMatchLabel ?? `Match ${selectedFixtureId}`}
@@ -2555,7 +2648,7 @@ export default function LiveScores({
             <div
               role="tablist"
               aria-label={english ? 'Match information' : 'Informations du match'}
-              className="flex shrink-0 gap-1 overflow-x-auto border-b border-border px-4 py-2 sm:px-6"
+              className="flex shrink-0 flex-wrap items-center gap-1 border-b border-border px-3 py-2 sm:px-6"
             >
               {([
                 ['events', english ? 'Highlights' : 'Temps forts'],
@@ -2569,10 +2662,10 @@ export default function LiveScores({
                   role="tab"
                   aria-selected={activeDetailsTab === tab}
                   onClick={() => selectDetailsTab(tab)}
-                  className={`shrink-0 rounded-lg px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                  className={`min-h-8 shrink-0 whitespace-nowrap rounded-full px-1.5 py-1 text-[10px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:px-2 sm:text-xs ${
                     activeDetailsTab === tab
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      ? 'bg-primary/10 text-primary shadow-sm ring-1 ring-inset ring-primary/25'
+                      : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
                   }`}
                 >
                   {label}
@@ -2580,7 +2673,7 @@ export default function LiveScores({
               ))}
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+            <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
               {isDetailsLoading ? (
                 <div role="status" className="flex min-h-40 flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
                   <LoaderCircle className="h-7 w-7 animate-spin text-primary" aria-hidden="true" />
@@ -2638,7 +2731,7 @@ export default function LiveScores({
                         <button
                           type="button"
                           onClick={() => selectDetailsTab('lineups')}
-                          className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                          className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:text-sm"
                         >
                           {english ? 'View lineups on the pitch' : 'Voir les compositions sur le terrain'}
                         </button>
@@ -2967,7 +3060,7 @@ export default function LiveScores({
                               ? 'Choose player information and ratings to display'
                               : 'Choisir les informations et les notes des joueurs à afficher'
                           }
-                          className="inline-flex max-w-full flex-wrap gap-1 rounded-xl border border-border bg-muted/40 p-1"
+                          className="grid w-full grid-cols-2 gap-1 rounded-xl border border-border bg-muted/40 p-1 sm:inline-flex sm:w-auto sm:flex-wrap"
                         >
                           {(['name', 'age', 'club'] as const).map((mode) => (
                             <button
@@ -2975,7 +3068,7 @@ export default function LiveScores({
                               type="button"
                               aria-pressed={lineupPlayerDisplayMode === mode}
                               onClick={() => setLineupPlayerDisplayMode(mode)}
-                              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                              className={`w-full rounded-lg px-2 py-2 text-center text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-auto sm:px-3 sm:py-1.5 ${
                                 lineupPlayerDisplayMode === mode
                                   ? 'bg-primary text-primary-foreground'
                                   : 'text-muted-foreground hover:bg-background hover:text-foreground'
@@ -2998,10 +3091,10 @@ export default function LiveScores({
                             type="button"
                             aria-pressed={showPlayerRatings}
                             onClick={() => setShowPlayerRatings((shown) => !shown)}
-                            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                                  showPlayerRatings
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                            className={`w-full rounded-lg px-2 py-2 text-center text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-auto sm:px-3 sm:py-1.5 ${
+                              showPlayerRatings
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-muted-foreground hover:bg-background hover:text-foreground'
                             }`}
                           >
                             {english ? 'Ratings /10' : 'Notes /10'}
@@ -3021,6 +3114,7 @@ export default function LiveScores({
                         </p>
                       )}
                     </div>
+                    <div className="grid gap-4 lg:grid-cols-2">
                     {lineupsToDisplay.map((lineup) => (
                       <section
                         key={lineup.team.id ?? lineup.team.name}
@@ -3426,6 +3520,7 @@ export default function LiveScores({
                         </div>
                       </section>
                     ))}
+                    </div>
                   </div>
                 )
               ) : detailsUnavailable.standings ? (
@@ -3442,7 +3537,7 @@ export default function LiveScores({
                 </p>
               ) : (
                 <div className="space-y-5">
-                  <h3 className="font-semibold text-foreground">{standings.league}</h3>
+                  <h3 className="break-words text-base font-semibold text-foreground sm:text-lg">{standings.league}</h3>
                   {standings.groups.map((group, groupIndex) => (
                     <section key={group.name ?? groupIndex} className="overflow-hidden rounded-xl border border-border">
                       {group.name && (
@@ -3450,7 +3545,123 @@ export default function LiveScores({
                           {group.name}
                         </h4>
                       )}
-                      <div className="overflow-x-auto">
+                      <div className="space-y-2 p-2 sm:hidden">
+                        {group.entries.map((entry) => {
+                          const isMatchTeam =
+                            entry.team.id !== null &&
+                            (entry.team.id === selectedMatch?.teams.home.id ||
+                              entry.team.id === selectedMatch?.teams.away.id);
+                          const teamHref = getTeamSeasonPath(
+                            locale,
+                            entry.team,
+                            standings,
+                            selectedMatch?.league.season ?? null,
+                          );
+                          const teamContent = (
+                            <span className="flex min-w-0 items-center gap-2">
+                              {entry.team.logo && (
+                                <Image
+                                  src={entry.team.logo}
+                                  alt=""
+                                  width={20}
+                                  height={20}
+                                  className="h-5 w-5 shrink-0 object-contain"
+                                />
+                              )}
+                              <span className="min-w-0 flex-1 break-words leading-tight text-foreground">
+                                {entry.team.name}
+                              </span>
+                            </span>
+                          );
+
+                          return (
+                            <article
+                              key={entry.team.id ?? `${groupIndex}-${entry.rank}-${entry.team.name}`}
+                              className={`rounded-lg border p-3 ${
+                                isMatchTeam
+                                  ? 'border-primary/30 bg-primary/5'
+                                  : 'border-border bg-card'
+                              }`}
+                            >
+                              <div className="flex min-w-0 items-center gap-2">
+                                <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-foreground">
+                                  {entry.rank}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  {teamHref ? (
+                                    <Link
+                                      href={teamHref}
+                                      prefetch={false}
+                                      className="inline-flex max-w-full rounded-sm hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                                    >
+                                      {teamContent}
+                                    </Link>
+                                  ) : (
+                                    teamContent
+                                  )}
+                                </div>
+                                <p className="shrink-0 text-sm font-bold text-foreground">
+                                  {entry.points}{' '}
+                                  <span className="text-xs font-medium text-muted-foreground">Pts</span>
+                                </p>
+                              </div>
+                              <dl className="mt-2 grid grid-cols-3 gap-1 border-t border-border/70 pt-2 text-center">
+                                <div>
+                                  <dt className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                    MJ
+                                  </dt>
+                                  <dd className="mt-0.5 text-xs font-semibold text-foreground">
+                                    {entry.played ?? '—'}
+                                  </dd>
+                                </div>
+                                <div>
+                                  <dt className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                    +/-
+                                  </dt>
+                                  <dd className="mt-0.5 text-xs font-semibold text-foreground">
+                                    {entry.goalsDiff > 0 ? `+${entry.goalsDiff}` : entry.goalsDiff}
+                                  </dd>
+                                </div>
+                                <div>
+                                  <dt className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                    {english ? 'Form' : 'Forme'}
+                                  </dt>
+                                  <dd className="mt-0.5 flex justify-center text-xs font-semibold text-foreground">
+                                    {entry.rankMovement !== null && entry.rankMovement !== 0 ? (
+                                      <span
+                                        aria-label={
+                                          entry.rankMovement > 0
+                                            ? english
+                                              ? `Up ${entry.rankMovement} ${entry.rankMovement === 1 ? 'place' : 'places'}`
+                                              : `Remonte de ${entry.rankMovement} ${entry.rankMovement === 1 ? 'place' : 'places'}`
+                                            : english
+                                              ? `Down ${Math.abs(entry.rankMovement)} ${Math.abs(entry.rankMovement) === 1 ? 'place' : 'places'}`
+                                              : `Recule de ${Math.abs(entry.rankMovement)} ${Math.abs(entry.rankMovement) === 1 ? 'place' : 'places'}`
+                                        }
+                                        className={`inline-flex items-center gap-1 ${
+                                          entry.rankMovement > 0
+                                            ? 'text-emerald-600 dark:text-emerald-400'
+                                            : 'text-red-600 dark:text-red-400'
+                                        }`}
+                                      >
+                                        {entry.rankMovement > 0 ? (
+                                          <ArrowUp aria-hidden="true" className="h-4 w-4" />
+                                        ) : (
+                                          <ArrowDown aria-hidden="true" className="h-4 w-4" />
+                                        )}
+                                        {Math.abs(entry.rankMovement)}
+                                      </span>
+                                    ) : (
+                                      entry.form ?? '—'
+                                    )}
+                                  </dd>
+                                </div>
+                              </dl>
+                            </article>
+                          );
+                        })}
+                      </div>
+                      <div className="hidden overflow-x-auto sm:block">
                         <table className="w-full min-w-[34rem] text-left text-xs">
                           <thead className="bg-muted/30 text-muted-foreground">
                             <tr>
@@ -3475,7 +3686,7 @@ export default function LiveScores({
                                 selectedMatch?.league.season ?? null,
                               );
                               const teamContent = (
-                                <span className="flex items-center gap-2">
+                                <span className="flex min-w-0 items-center gap-2">
                                   {entry.team.logo && (
                                     <Image
                                       src={entry.team.logo}
@@ -3485,7 +3696,7 @@ export default function LiveScores({
                                       className="h-5 w-5 object-contain"
                                     />
                                   )}
-                                  <span className="text-foreground">{entry.team.name}</span>
+                                  <span className="truncate text-foreground">{entry.team.name}</span>
                                 </span>
                               );
                               return (

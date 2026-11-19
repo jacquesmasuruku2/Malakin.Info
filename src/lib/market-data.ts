@@ -1,6 +1,7 @@
 import {
   MARKET_ASSETS,
   MARKET_CURRENCIES,
+  isCoinGeckoLogoUrl,
   type MarketCurrencyCode,
   type MarketQuote,
   type MarketSnapshot,
@@ -17,6 +18,7 @@ const COINGECKO_TIMEOUT_MS = 5_000;
 
 type CoinGeckoMarketRow = {
   id: string;
+  imageUrl: string | null;
   current_price: number;
   price_change_percentage_24h: number | null;
   market_cap: number | null;
@@ -71,6 +73,7 @@ function parseCoinGeckoRows(value: unknown): CoinGeckoMarketRow[] {
 
     return {
       id: row.id,
+      imageUrl: isCoinGeckoLogoUrl(row.image) ? row.image : null,
       current_price: currentPrice,
       price_change_percentage_24h: finiteNumber(row.price_change_percentage_24h),
       market_cap: finiteNumber(row.market_cap),
@@ -135,6 +138,7 @@ function createCryptoQuote(
 
   return {
     ...asset,
+    logoUrl: row?.imageUrl ?? null,
     // USDT is the live Binance quote fallback when CoinGecko is unavailable.
     priceUsd,
     priceUsdt: binanceRow?.lastPrice ?? null,
@@ -316,6 +320,7 @@ export async function getMarketSnapshot(): Promise<MarketSnapshot> {
       goldAsset && isRecord(goldData) && goldPrice !== null && goldData.symbol === 'XAU'
         ? {
             ...goldAsset,
+            logoUrl: null,
             priceUsd: goldPrice,
             priceUsdt: null,
             change24h: null,

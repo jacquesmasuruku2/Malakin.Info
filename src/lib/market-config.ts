@@ -156,6 +156,7 @@ export type MarketQuote = {
   frenchName: MarketAsset['frenchName'];
   type: MarketAsset['type'];
   chartSymbol: MarketAsset['chartSymbol'];
+  logoUrl: string | null;
   priceUsd: number;
   priceUsdt: number | null;
   change24h: number | null;
@@ -210,6 +211,21 @@ function isOptionalNumber(value: unknown): value is number | null {
   return value === null || (typeof value === 'number' && Number.isFinite(value));
 }
 
+export function isCoinGeckoLogoUrl(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === 'https:' &&
+      ['assets.coingecko.com', 'coin-images.coingecko.com'].includes(url.hostname) &&
+      url.pathname.startsWith('/coins/images/')
+    );
+  } catch {
+    return false;
+  }
+}
+
 function isCurrencyCode(value: unknown): value is MarketCurrencyCode {
   return MARKET_CURRENCIES.some((currency) => currency.code === value);
 }
@@ -260,6 +276,7 @@ export function isMarketSnapshot(value: unknown): value is MarketSnapshot {
       typeof asset.frenchName === 'string' &&
       (asset.type === 'metal' || asset.type === 'crypto') &&
       typeof asset.chartSymbol === 'string' &&
+      (asset.logoUrl === null || isCoinGeckoLogoUrl(asset.logoUrl)) &&
       typeof asset.priceUsd === 'number' &&
       Number.isFinite(asset.priceUsd) &&
       isOptionalNumber(asset.priceUsdt) &&
