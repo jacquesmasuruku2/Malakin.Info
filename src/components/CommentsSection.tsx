@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { ThumbsUp, MessageSquareText, MessagesSquare, Send } from 'lucide-react';
+import { ThumbsUp, MessageSquareText, MessagesSquare, Send, ChevronDown } from 'lucide-react';
 import { authFetch } from '@/lib/client-auth';
 import { useAccountUser } from '@/lib/use-account-user';
 
@@ -58,6 +58,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
+  const [expandedReplyThreads, setExpandedReplyThreads] = useState<Set<string>>(() => new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [animatingReaction, setAnimatingReaction] = useState<{
@@ -70,6 +71,8 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
     comments: locale === 'fr' ? 'Commentaires' : 'Comments',
     writeComment: locale === 'fr' ? 'Écrire un commentaire' : 'Write a comment',
     reply: locale === 'fr' ? 'Répondre' : 'Reply',
+    readReplies: locale === 'fr' ? 'Lire les réponses' : 'Read replies',
+    hideReplies: locale === 'fr' ? 'Masquer les réponses' : 'Hide replies',
     like: locale === 'fr' ? 'J\'aime' : 'Like',
     submit: locale === 'fr' ? 'Envoyer' : 'Submit',
     cancel: locale === 'fr' ? 'Annuler' : 'Cancel',
@@ -239,6 +242,7 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
               : comment
           )
         );
+        setExpandedReplyThreads((current) => new Set(current).add(commentId));
         setReplyText('');
         setReplyingTo(null);
       } else {
@@ -299,6 +303,18 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
+  };
+
+  const toggleReplies = (commentId: string) => {
+    setExpandedReplyThreads((current) => {
+      const next = new Set(current);
+      if (next.has(commentId)) {
+        next.delete(commentId);
+      } else {
+        next.add(commentId);
+      }
+      return next;
+    });
   };
 
   const renderComment = (comment: Comment, isReply = false) => (
@@ -414,9 +430,32 @@ export default function CommentsSection({ articleId, locale }: CommentsSectionPr
       </div>
 
       {comment.replies && comment.replies.length > 0 && (
-        <div className="mt-5 space-y-5">
-          {comment.replies.map((reply) => renderComment(reply, true))}
-        </div>
+        <>
+          <button
+            type="button"
+            onClick={() => toggleReplies(comment.id)}
+            aria-expanded={expandedReplyThreads.has(comment.id)}
+            aria-controls={`comment-replies-${comment.id}`}
+            className="mt-3 inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold text-primary transition hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          >
+            <span>{expandedReplyThreads.has(comment.id) ? t.hideReplies : t.readReplies}</span>
+            <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+              {comment.replies.length}
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${expandedReplyThreads.has(comment.id) ? 'rotate-180' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
+          <div
+            id={`comment-replies-${comment.id}`}
+            hidden={!expandedReplyThreads.has(comment.id)}
+            className="mt-5 space-y-5"
+          >
+            {expandedReplyThreads.has(comment.id) &&
+              comment.replies.map((reply) => renderComment(reply, true))}
+          </div>
+        </>
       )}
     </div>
   );
