@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 import {
   Activity,
   ArrowDown,
+  ArrowRight,
   ArrowUp,
   ChevronDown,
   CircleAlert,
@@ -119,6 +120,22 @@ function getTeamSeasonPath(
   if (season !== null) params.set('season', String(season));
   const query = params.toString();
   return `/${locale}/matches-en-direct/${section}/${slug}-${team.id}${query ? `?${query}` : ''}`;
+}
+
+function getMatchRoundLabel(round: string, english: boolean): string {
+  const normalized = round
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+  const matchday = normalized.match(
+    /(?:matchday|match day|round|week|journee|day|regular season)\s*[-:#]?\s*(\d+)/,
+  );
+  if (matchday) return `${english ? 'Matchday' : 'Journée'} ${matchday[1]}`;
+
+  const group = round.trim().match(/^group\s+(.+)$/i);
+  if (group) return `${english ? 'Group' : 'Groupe'} ${group[1]}`;
+  return round.trim();
 }
 
 const TEAM_SEARCH_ALIASES: Record<string, string[]> = {
@@ -412,6 +429,11 @@ function isMatchStandingEntry(value: unknown): value is MatchStandingEntry {
     typeof value.points === 'number' &&
     typeof value.goalsDiff === 'number' &&
     isNullableNumber(value.played) &&
+    isNullableNumber(value.wins) &&
+    isNullableNumber(value.draws) &&
+    isNullableNumber(value.losses) &&
+    isNullableNumber(value.goalsFor) &&
+    isNullableNumber(value.goalsAgainst) &&
     isNullableString(value.form) &&
     isNullableNumber(value.rankMovement) &&
     isNullableString(value.description)
@@ -3537,140 +3559,69 @@ export default function LiveScores({
                 </p>
               ) : (
                 <div className="space-y-5">
-                  <h3 className="break-words text-base font-semibold text-foreground sm:text-lg">{standings.league}</h3>
+                  <div className="flex flex-wrap items-end justify-between gap-2">
+                    <h3 className="break-words text-base font-semibold text-foreground sm:text-lg">
+                      {standings.league}
+                    </h3>
+                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                      {standings.season !== null && (
+                        <span className="rounded-full border border-border px-2 py-1">
+                          {english ? 'Season' : 'Saison'} {standings.season}
+                        </span>
+                      )}
+                      {selectedMatch?.league.round && (
+                        <span className="rounded-full border border-border px-2 py-1">
+                          {getMatchRoundLabel(selectedMatch.league.round, english)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                   {standings.groups.map((group, groupIndex) => (
-                    <section key={group.name ?? groupIndex} className="overflow-hidden rounded-xl border border-border">
+                    <section key={group.name ?? groupIndex} className="rounded-xl border border-border">
                       {group.name && (
                         <h4 className="border-b border-border bg-muted/40 px-3 py-2 text-sm font-semibold text-foreground">
                           {group.name}
                         </h4>
                       )}
-                      <div className="space-y-2 p-2 sm:hidden">
-                        {group.entries.map((entry) => {
-                          const isMatchTeam =
-                            entry.team.id !== null &&
-                            (entry.team.id === selectedMatch?.teams.home.id ||
-                              entry.team.id === selectedMatch?.teams.away.id);
-                          const teamHref = getTeamSeasonPath(
-                            locale,
-                            entry.team,
-                            standings,
-                            selectedMatch?.league.season ?? null,
-                          );
-                          const teamContent = (
-                            <span className="flex min-w-0 items-center gap-2">
-                              {entry.team.logo && (
-                                <Image
-                                  src={entry.team.logo}
-                                  alt=""
-                                  width={20}
-                                  height={20}
-                                  className="h-5 w-5 shrink-0 object-contain"
-                                />
-                              )}
-                              <span className="min-w-0 flex-1 break-words leading-tight text-foreground">
-                                {entry.team.name}
-                              </span>
-                            </span>
-                          );
-
-                          return (
-                            <article
-                              key={entry.team.id ?? `${groupIndex}-${entry.rank}-${entry.team.name}`}
-                              className={`rounded-lg border p-3 ${
-                                isMatchTeam
-                                  ? 'border-primary/30 bg-primary/5'
-                                  : 'border-border bg-card'
-                              }`}
-                            >
-                              <div className="flex min-w-0 items-center gap-2">
-                                <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-foreground">
-                                  {entry.rank}
-                                </span>
-                                <div className="min-w-0 flex-1">
-                                  {teamHref ? (
-                                    <Link
-                                      href={teamHref}
-                                      prefetch={false}
-                                      className="inline-flex max-w-full rounded-sm hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
-                                    >
-                                      {teamContent}
-                                    </Link>
-                                  ) : (
-                                    teamContent
-                                  )}
-                                </div>
-                                <p className="shrink-0 text-sm font-bold text-foreground">
-                                  {entry.points}{' '}
-                                  <span className="text-xs font-medium text-muted-foreground">Pts</span>
-                                </p>
-                              </div>
-                              <dl className="mt-2 grid grid-cols-3 gap-1 border-t border-border/70 pt-2 text-center">
-                                <div>
-                                  <dt className="text-[10px] font-semibold uppercase text-muted-foreground">
-                                    MJ
-                                  </dt>
-                                  <dd className="mt-0.5 text-xs font-semibold text-foreground">
-                                    {entry.played ?? '—'}
-                                  </dd>
-                                </div>
-                                <div>
-                                  <dt className="text-[10px] font-semibold uppercase text-muted-foreground">
-                                    +/-
-                                  </dt>
-                                  <dd className="mt-0.5 text-xs font-semibold text-foreground">
-                                    {entry.goalsDiff > 0 ? `+${entry.goalsDiff}` : entry.goalsDiff}
-                                  </dd>
-                                </div>
-                                <div>
-                                  <dt className="text-[10px] font-semibold uppercase text-muted-foreground">
-                                    {english ? 'Form' : 'Forme'}
-                                  </dt>
-                                  <dd className="mt-0.5 flex justify-center text-xs font-semibold text-foreground">
-                                    {entry.rankMovement !== null && entry.rankMovement !== 0 ? (
-                                      <span
-                                        aria-label={
-                                          entry.rankMovement > 0
-                                            ? english
-                                              ? `Up ${entry.rankMovement} ${entry.rankMovement === 1 ? 'place' : 'places'}`
-                                              : `Remonte de ${entry.rankMovement} ${entry.rankMovement === 1 ? 'place' : 'places'}`
-                                            : english
-                                              ? `Down ${Math.abs(entry.rankMovement)} ${Math.abs(entry.rankMovement) === 1 ? 'place' : 'places'}`
-                                              : `Recule de ${Math.abs(entry.rankMovement)} ${Math.abs(entry.rankMovement) === 1 ? 'place' : 'places'}`
-                                        }
-                                        className={`inline-flex items-center gap-1 ${
-                                          entry.rankMovement > 0
-                                            ? 'text-emerald-600 dark:text-emerald-400'
-                                            : 'text-red-600 dark:text-red-400'
-                                        }`}
-                                      >
-                                        {entry.rankMovement > 0 ? (
-                                          <ArrowUp aria-hidden="true" className="h-4 w-4" />
-                                        ) : (
-                                          <ArrowDown aria-hidden="true" className="h-4 w-4" />
-                                        )}
-                                        {Math.abs(entry.rankMovement)}
-                                      </span>
-                                    ) : (
-                                      entry.form ?? '—'
-                                    )}
-                                  </dd>
-                                </div>
-                              </dl>
-                            </article>
-                          );
-                        })}
-                      </div>
-                      <div className="hidden overflow-x-auto sm:block">
-                        <table className="w-full min-w-[34rem] text-left text-xs">
+                      <p className="px-3 py-2 text-[10px] text-muted-foreground sm:hidden">
+                        {english
+                          ? 'Swipe horizontally to see all standings.'
+                          : 'Faites défiler horizontalement pour voir tout le classement.'}
+                      </p>
+                      <div className="overflow-x-auto">
+                        <table className="w-full min-w-[49rem] table-fixed text-left text-xs">
                           <thead className="bg-muted/30 text-muted-foreground">
                             <tr>
-                              <th className="px-3 py-2 font-semibold">{english ? '#' : 'Rang'}</th>
-                              <th className="px-3 py-2 font-semibold">{english ? 'Team' : 'Équipe'}</th>
-                              <th className="px-3 py-2 text-center font-semibold">MJ</th>
-                              <th className="px-3 py-2 text-center font-semibold">+/-</th>
-                              <th className="px-3 py-2 text-center font-semibold">{english ? 'Pts' : 'Pts'}</th>
-                              <th className="px-3 py-2 font-semibold">{english ? 'Form' : 'Forme'}</th>
+                              <th className="sticky left-0 z-20 w-[10rem] min-w-[10rem] bg-muted px-3 py-2 font-semibold sm:w-[14rem] sm:min-w-[14rem]">
+                                {english ? 'Team' : 'Équipe'}
+                              </th>
+                              <th title={english ? 'Matches played' : 'Matchs joués'} className="px-2 py-2 text-center font-semibold">
+                                {english ? 'P' : 'MJ'}
+                              </th>
+                              <th title={english ? 'Wins' : 'Victoires'} className="px-2 py-2 text-center font-semibold">
+                                {english ? 'W' : 'V'}
+                              </th>
+                              <th title={english ? 'Draws' : 'Nuls'} className="px-2 py-2 text-center font-semibold">
+                                {english ? 'D' : 'N'}
+                              </th>
+                              <th title={english ? 'Losses' : 'Défaites'} className="px-2 py-2 text-center font-semibold">
+                                {english ? 'L' : 'D'}
+                              </th>
+                              <th title={english ? 'Goals for' : 'Buts pour'} className="px-2 py-2 text-center font-semibold">
+                                {english ? 'GF' : 'BP'}
+                              </th>
+                              <th title={english ? 'Goals against' : 'Buts contre'} className="px-2 py-2 text-center font-semibold">
+                                {english ? 'GA' : 'BC'}
+                              </th>
+                              <th title={english ? 'Goal difference' : 'Différence de buts'} className="px-2 py-2 text-center font-semibold">
+                                {english ? 'GD' : 'DB'}
+                              </th>
+                              <th title={english ? 'Points' : 'Points'} className="px-2 py-2 text-center font-semibold">
+                                Pts
+                              </th>
+                              <th className="px-3 py-2 text-center font-semibold">
+                                {english ? 'Trend' : 'Tendance'}
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-border">
@@ -3687,16 +3638,21 @@ export default function LiveScores({
                               );
                               const teamContent = (
                                 <span className="flex min-w-0 items-center gap-2">
+                                  <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-foreground">
+                                    {entry.rank}
+                                  </span>
                                   {entry.team.logo && (
                                     <Image
                                       src={entry.team.logo}
                                       alt=""
                                       width={20}
                                       height={20}
-                                      className="h-5 w-5 object-contain"
+                                      className="h-5 w-5 shrink-0 object-contain"
                                     />
                                   )}
-                                  <span className="truncate text-foreground">{entry.team.name}</span>
+                                  <span className="min-w-0 break-words leading-tight text-foreground">
+                                    {entry.team.name}
+                                  </span>
                                 </span>
                               );
                               return (
@@ -3704,13 +3660,17 @@ export default function LiveScores({
                                   key={entry.team.id ?? `${groupIndex}-${entry.rank}-${entry.team.name}`}
                                   className={isMatchTeam ? 'bg-primary/5 font-semibold' : ''}
                                 >
-                                  <td className="px-3 py-2 text-muted-foreground">{entry.rank}</td>
-                                  <td className="px-3 py-2">
+                                  <td
+                                    className={`sticky left-0 z-10 w-[10rem] min-w-[10rem] max-w-[10rem] border-r border-border/70 px-3 py-2 sm:w-[14rem] sm:min-w-[14rem] sm:max-w-[14rem] ${
+                                      isMatchTeam ? 'bg-primary/10' : 'bg-card'
+                                    }`}
+                                  >
                                     {teamHref ? (
                                       <Link
                                         href={teamHref}
                                         prefetch={false}
-                                        className="inline-flex rounded-sm hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                                        title={entry.team.name}
+                                        className="block rounded-sm hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
                                       >
                                         {teamContent}
                                       </Link>
@@ -3718,17 +3678,41 @@ export default function LiveScores({
                                       teamContent
                                     )}
                                   </td>
-                                  <td className="px-3 py-2 text-center text-muted-foreground">
+                                  <td className="px-2 py-2 text-center text-muted-foreground">
                                     {entry.played ?? '—'}
                                   </td>
-                                  <td className="px-3 py-2 text-center text-muted-foreground">
+                                  <td className="px-2 py-2 text-center text-muted-foreground">
+                                    {entry.wins ?? '—'}
+                                  </td>
+                                  <td className="px-2 py-2 text-center text-muted-foreground">
+                                    {entry.draws ?? '—'}
+                                  </td>
+                                  <td className="px-2 py-2 text-center text-muted-foreground">
+                                    {entry.losses ?? '—'}
+                                  </td>
+                                  <td className="px-2 py-2 text-center text-muted-foreground">
+                                    {entry.goalsFor ?? '—'}
+                                  </td>
+                                  <td className="px-2 py-2 text-center text-muted-foreground">
+                                    {entry.goalsAgainst ?? '—'}
+                                  </td>
+                                  <td className="px-2 py-2 text-center text-muted-foreground">
                                     {entry.goalsDiff > 0 ? `+${entry.goalsDiff}` : entry.goalsDiff}
                                   </td>
-                                  <td className="px-3 py-2 text-center font-bold text-foreground">
+                                  <td className="px-2 py-2 text-center font-bold text-foreground">
                                     {entry.points}
                                   </td>
-                                  <td className="px-3 py-2 text-muted-foreground">
-                                    {entry.rankMovement !== null && entry.rankMovement !== 0 ? (
+                                  <td className="px-3 py-2 text-center text-muted-foreground">
+                                    {entry.rankMovement === 0 ? (
+                                      <span
+                                        aria-label={
+                                          english ? 'No rank change' : 'Aucun changement de rang'
+                                        }
+                                        className="inline-flex items-center text-muted-foreground"
+                                      >
+                                        <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                                      </span>
+                                    ) : entry.rankMovement !== null ? (
                                       <span
                                         aria-label={
                                           entry.rankMovement > 0

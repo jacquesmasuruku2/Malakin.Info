@@ -919,7 +919,9 @@ async function enrichLineups(
 function getStandingStat(entry: Record<string, unknown>, statName: string): number | null {
   if (!Array.isArray(entry.stats)) return null;
   const stat = entry.stats.find(
-    (item) => isRecord(item) && (item.name === statName || item.type === statName),
+    (item) =>
+      isRecord(item) &&
+      (item.name === statName || item.type === statName || item.abbreviation === statName),
   );
   return isRecord(stat) ? getNumber(stat.value) : null;
 }
@@ -948,6 +950,11 @@ function parseStandingEntry(value: unknown): MatchStandingEntry | null {
     points,
     goalsDiff,
     played: getStandingStat(value, 'gamesPlayed'),
+    wins: getStandingStat(value, 'wins'),
+    draws: getStandingStat(value, 'ties') ?? getStandingStat(value, 'draws'),
+    losses: getStandingStat(value, 'losses'),
+    goalsFor: getStandingStat(value, 'pointsFor') ?? getStandingStat(value, 'goalsFor'),
+    goalsAgainst: getStandingStat(value, 'pointsAgainst') ?? getStandingStat(value, 'goalsAgainst'),
     form: null,
     rankMovement: null,
     description: null,

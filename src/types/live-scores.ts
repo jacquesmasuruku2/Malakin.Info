@@ -153,6 +153,11 @@ export type MatchStandingEntry = {
   points: number;
   goalsDiff: number;
   played: number | null;
+  wins: number | null;
+  draws: number | null;
+  losses: number | null;
+  goalsFor: number | null;
+  goalsAgainst: number | null;
   form: string | null;
   rankMovement: number | null;
   description: string | null;
