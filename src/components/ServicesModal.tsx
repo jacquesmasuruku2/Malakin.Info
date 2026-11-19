@@ -178,7 +178,7 @@ export default function ServicesModal() {
             <Link
               href={`/${locale}/matches-en-direct`}
               onClick={closeServices}
-              className="flex min-h-[58px] items-center justify-center gap-2 bg-primary px-3 text-sm font-black uppercase text-primary-foreground transition-colors hover:bg-primary/90"
+              className="flex min-h-[58px] items-center justify-center gap-2 px-3 text-sm font-black uppercase text-foreground transition-colors hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
             >
               <Trophy className="h-5 w-5 shrink-0" aria-hidden="true" />
               <span>{locale === 'en' ? 'Live matches' : 'Match en direct'}</span>
