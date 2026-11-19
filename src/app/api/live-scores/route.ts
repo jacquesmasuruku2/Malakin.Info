@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import type { ESPNMatchState, ESPNScoreboardMatch } from '@/types/live-scores';
+import type {
+  ESPNMatchState,
+  ESPNScoreboardMatch,
+  LiveScoreCompetitionOption,
+  SoccerContinent,
+} from '@/types/live-scores';
 
 const SCOREBOARD_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/all/scoreboard';
 const SEARCH_URL = 'https://site.api.espn.com/apis/common/v3/search';
@@ -9,6 +14,7 @@ const TEAM_SEARCH_ALIASES: Record<string, string> = {
   rdc: 'Congo DR',
   'dr congo': 'Congo DR',
   'republique democratique du congo': 'Congo DR',
+  senegal: 'Senegal',
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -88,7 +94,10 @@ function getLeagueDetails(
   const uid = getString(event.uid) ?? getString(competition.uid) ?? '';
   const leagueId = /~l:(\d+)/.exec(uid);
   return {
-    id: leagueId ? Number(leagueId[1]) : null,
+    id:
+      (competitionInfo && getNumber(competitionInfo.id)) ??
+      (eventLeague && getNumber(eventLeague.id)) ??
+      (leagueId ? Number(leagueId[1]) : null),
     name,
     round: groupName ?? (noteParts.length > 1 ? noteParts.slice(1).join(', ') : null),
     logo:
@@ -164,6 +173,99 @@ function parseScoreboardEvent(value: unknown): ESPNScoreboardMatch | null {
   };
 }
 
+function getCompetitionContinent(
+  slug: string | null,
+  name: string,
+): SoccerContinent {
+  const normalizedSlug = slug?.toLowerCase() ?? '';
+  const normalizedName = normalizeSearch(name);
+  const prefix = normalizedSlug.split('.')[0];
+
+  if (
+    prefix === 'caf' ||
+    /\b(africa|african|caf|afcon)\b/.test(normalizedName)
+  ) {
+    return 'africa';
+  }
+  if (
+    prefix === 'afc' ||
+    /\b(asia|asian|afc|japan|korea|china|india|australia)\b/.test(normalizedName)
+  ) {
+    return prefix === 'ofc' || /\b(australia|new zealand|oceania)\b/.test(normalizedName)
+      ? 'oceania'
+      : 'asia';
+  }
+  if (
+    prefix === 'conmebol' ||
+    /\b(conmebol|south america|libertadores|sudamericana|brazil|brasileir|argentina|uruguay|chile|colombia|ecuador|paraguay|peru|bolivia)\b/.test(
+      normalizedName,
+    )
+  ) {
+    return 'south-america';
+  }
+  if (
+    prefix === 'uefa' ||
+    /\b(uefa|europe|england|premier league|la liga|bundesliga|italian|serie a|ligue 1|eredivisie|fa cup|copa del rey)\b/.test(
+      normalizedName,
+    )
+  ) {
+    return 'europe';
+  }
+  if (
+    prefix === 'concacaf' ||
+    /\b(concacaf|north america|caribbean|mls|liga mx|canadian premier|usl)\b/.test(
+      normalizedName,
+    )
+  ) {
+    return 'north-america';
+  }
+  if (
+    prefix === 'ofc' ||
+    /\b(oceania|new zealand|a league)\b/.test(normalizedName)
+  ) {
+    return 'oceania';
+  }
+  if (
+    prefix === 'fifa' ||
+    prefix === 'global' ||
+    /\b(fifa|international|friendly|world cup)\b/.test(normalizedName)
+  ) {
+    return 'international';
+  }
+  return 'other';
+}
+
+function getCompetitionOption(value: unknown): LiveScoreCompetitionOption | null {
+  if (!isRecord(value)) return null;
+  const match = parseScoreboardEvent(value);
+  if (!match || match.league.id === null) return null;
+
+  const competition = Array.isArray(value.competitions)
+    ? value.competitions.find(isRecord)
+    : null;
+  const competitionLeague =
+    competition && isRecord(competition.league) ? competition.league : null;
+  const eventLeague = isRecord(value.league) ? value.league : null;
+  const league = eventLeague ?? competitionLeague;
+  const slug =
+    (league && (getString(league.slug) ?? getString(league.midsizeName))) ?? null;
+
+  return {
+    id: match.league.id,
+    name: match.league.name,
+    continent: getCompetitionContinent(slug, match.league.name),
+  };
+}
+
+function getCompetitionOptions(values: unknown[]): LiveScoreCompetitionOption[] {
+  const options = new Map<number, LiveScoreCompetitionOption>();
+  for (const value of values) {
+    const option = getCompetitionOption(value);
+    if (option) options.set(option.id, option);
+  }
+  return Array.from(options.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
 function getKinshasaMonth(offset = 0): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Africa/Kinshasa',
@@ -175,6 +277,14 @@ function getKinshasaMonth(offset = 0): string {
     Date.UTC(Number(dateParts.year), Number(dateParts.month) - 1 + offset, 1),
   );
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
+function getKinshasaYear(date: Date): number {
+  const year = new Intl.DateTimeFormat('en', {
+    timeZone: 'Africa/Kinshasa',
+    year: 'numeric',
+  }).format(date);
+  return Number(year);
 }
 
 function isUpcomingMonth(value: string): boolean {
@@ -236,39 +346,64 @@ async function getLeagueSlug(leagueId: number, leagueName: string): Promise<stri
 async function getUpcomingLeagueMatches(
   leagueId: number,
   leagueName: string,
-  month: string,
+  month: string | null,
+  rangeDays: 7 | 30 | null,
 ): Promise<ESPNScoreboardMatch[]> {
   const leagueSlug = await getLeagueSlug(leagueId, leagueName);
-  const scheduleUrl = new URL(
-    `${ESPN_SITE_URL}/${encodeURIComponent(leagueSlug)}/scoreboard`,
+  const now = new Date();
+  const endDate = rangeDays
+    ? new Date(now.getTime() + rangeDays * 24 * 60 * 60 * 1000)
+    : null;
+  const firstYear = month
+    ? Number(month.slice(0, 4))
+    : getKinshasaYear(now);
+  const years = endDate
+    ? Array.from(
+        new Set([firstYear, getKinshasaYear(endDate)]),
+      )
+    : [firstYear];
+  const eventLists = await Promise.all(
+    years.map(async (year) => {
+      const scheduleUrl = new URL(
+        `${ESPN_SITE_URL}/${encodeURIComponent(leagueSlug)}/scoreboard`,
+      );
+      scheduleUrl.searchParams.set('dates', String(year));
+      scheduleUrl.searchParams.set('limit', '1000');
+
+      const response = await fetch(scheduleUrl, {
+        cache: 'force-cache',
+        next: { revalidate: CACHE_SECONDS },
+        signal: AbortSignal.timeout(15_000),
+        headers: { Accept: 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error(`ESPN league schedule responded with HTTP ${response.status}.`);
+      }
+
+      const payload: unknown = await response.json();
+      if (!isRecord(payload) || !Array.isArray(payload.events)) {
+        throw new Error('ESPN returned an invalid league schedule response.');
+      }
+      return payload.events;
+    }),
   );
-  scheduleUrl.searchParams.set('dates', month.slice(0, 4));
-  scheduleUrl.searchParams.set('limit', '1000');
-
-  const response = await fetch(scheduleUrl, {
-    cache: 'force-cache',
-    next: { revalidate: CACHE_SECONDS },
-    signal: AbortSignal.timeout(15_000),
-    headers: { Accept: 'application/json' },
-  });
-  if (!response.ok) {
-    throw new Error(`ESPN league schedule responded with HTTP ${response.status}.`);
-  }
-
-  const payload: unknown = await response.json();
-  if (!isRecord(payload) || !Array.isArray(payload.events)) {
-    throw new Error('ESPN returned an invalid league schedule response.');
-  }
-
-  return payload.events
+  const events = eventLists.flat();
+  return events
     .map(parseScoreboardEvent)
-    .filter(
-      (match): match is ESPNScoreboardMatch =>
-        match !== null &&
-        match.status.state === 'pre' &&
-        match.league.id === leagueId &&
-        getMatchKinshasaMonth(match.date) === month,
-    )
+    .filter((match): match is ESPNScoreboardMatch => {
+      if (
+        !match ||
+        match.status.state !== 'pre' ||
+        match.league.id !== leagueId
+      ) {
+        return false;
+      }
+      if (month) return getMatchKinshasaMonth(match.date) === month;
+      if (!rangeDays || !match.date || !endDate) return false;
+
+      const kickoffTime = new Date(match.date).getTime();
+      return kickoffTime >= now.getTime() && kickoffTime <= endDate.getTime();
+    })
     .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''));
 }
 
@@ -286,9 +421,13 @@ function normalizeSearch(value: string): string {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
 }
 
-async function getTeamHistory(
+async function getTeamSchedule(
   query: string,
-): Promise<{ matches: ESPNScoreboardMatch[]; teamName: string } | null> {
+): Promise<{
+  matches: ESPNScoreboardMatch[];
+  teamName: string;
+  competitions: LiveScoreCompetitionOption[];
+} | null> {
   const normalizedQuery = normalizeSearch(query);
   const searchTerm = TEAM_SEARCH_ALIASES[normalizedQuery] ?? query;
   const searchUrl = new URL(SEARCH_URL);
@@ -355,6 +494,7 @@ async function getTeamHistory(
   );
 
   const matchById = new Map<number, ESPNScoreboardMatch>();
+  const competitionOptions = new Map<number, LiveScoreCompetitionOption>();
   let successfulSchedules = 0;
   for (const result of scheduleResults) {
     if (result.status === 'rejected') {
@@ -363,10 +503,11 @@ async function getTeamHistory(
     }
     successfulSchedules += 1;
     for (const event of result.value) {
+      const competition = getCompetitionOption(event);
+      if (competition) competitionOptions.set(competition.id, competition);
       const match = parseScoreboardEvent(event);
       if (
         match &&
-        match.status.state === 'post' &&
         (match.homeTeam.id === teamId || match.awayTeam.id === teamId)
       ) {
         matchById.set(match.id, match);
@@ -379,7 +520,59 @@ async function getTeamHistory(
 
   const matches = Array.from(matchById.values())
     .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
-  return { matches, teamName };
+  return {
+    matches,
+    teamName,
+    competitions: Array.from(competitionOptions.values()).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    ),
+  };
+}
+
+async function getTeamHistory(
+  query: string,
+): Promise<{ matches: ESPNScoreboardMatch[]; teamName: string } | null> {
+  const schedule = await getTeamSchedule(query);
+  if (!schedule) return null;
+
+  return {
+    teamName: schedule.teamName,
+    matches: schedule.matches.filter((match) => match.status.state === 'post'),
+  };
+}
+
+async function getUpcomingTeamMatches(
+  query: string,
+  month: string | null,
+  rangeDays: 7 | 30 | null,
+): Promise<{
+  matches: ESPNScoreboardMatch[];
+  teamName: string;
+  competitions: LiveScoreCompetitionOption[];
+} | null> {
+  const schedule = await getTeamSchedule(query);
+  if (!schedule) return null;
+
+  const now = new Date();
+  const endDate = rangeDays
+    ? new Date(now.getTime() + rangeDays * 24 * 60 * 60 * 1000)
+    : null;
+  const matches = schedule.matches
+    .filter((match) => {
+      if (match.status.state !== 'pre' || !match.date) return false;
+      if (month) return getMatchKinshasaMonth(match.date) === month;
+      if (!rangeDays || !endDate) return false;
+
+      const kickoffTime = new Date(match.date).getTime();
+      return kickoffTime >= now.getTime() && kickoffTime <= endDate.getTime();
+    })
+    .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''));
+
+  return {
+    matches,
+    teamName: schedule.teamName,
+    competitions: schedule.competitions,
+  };
 }
 
 function getKinshasaDate(daysAgo: number): string {
@@ -409,10 +602,15 @@ export async function GET(request: Request) {
   }
   const finishedOnly = view === 'finished';
   const upcomingOnly = view === 'upcoming';
-  const teamQuery = finishedOnly ? searchParams.get('team')?.trim() ?? '' : '';
+  const teamQuery =
+    finishedOnly || upcomingOnly ? searchParams.get('team')?.trim() ?? '' : '';
+  const upcomingTeamSearch = upcomingOnly && teamQuery.length >= 3;
   const competitionIdParam = searchParams.get('competitionId');
   const competitionName = searchParams.get('competitionName')?.trim() ?? '';
   const upcomingMonth = searchParams.get('month');
+  const upcomingRangeDaysParam = searchParams.get('rangeDays');
+  const upcomingRangeDays =
+    upcomingRangeDaysParam === null ? null : Number(upcomingRangeDaysParam);
   const daysAgoParam = searchParams.get('daysAgo') ?? '0';
   const daysAgo = Number(daysAgoParam);
   const rangeDaysParam = searchParams.get('rangeDays');
@@ -421,19 +619,39 @@ export async function GET(request: Request) {
     competitionIdParam === null ? null : Number(competitionIdParam);
   const hasUpcomingScheduleFilter =
     upcomingOnly &&
+    !upcomingTeamSearch &&
     (competitionIdParam !== null || competitionName !== '' || upcomingMonth !== null);
+  const hasUpcomingRange =
+    upcomingOnly &&
+    !upcomingTeamSearch &&
+    upcomingRangeDaysParam !== null;
+  const hasValidUpcomingTeamPeriod =
+    upcomingMonth === null
+      ? [7, 30].includes(upcomingRangeDays ?? 0)
+      : isUpcomingMonth(upcomingMonth) && upcomingRangeDaysParam === null;
+  if (upcomingTeamSearch && !hasValidUpcomingTeamPeriod) {
+    return NextResponse.json(
+      { error: 'A valid upcoming month or a 7- or 30-day range is required.' },
+      { status: 400, headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
   if (
-    hasUpcomingScheduleFilter &&
+    (hasUpcomingScheduleFilter || hasUpcomingRange) &&
     (!Number.isSafeInteger(competitionId) ||
       competitionId === null ||
       competitionId <= 0 ||
       competitionName.length === 0 ||
       competitionName.length > 80 ||
-      upcomingMonth === null ||
-      !isUpcomingMonth(upcomingMonth))
+      (upcomingMonth === null
+        ? ![7, 30].includes(upcomingRangeDays ?? 0)
+        : !isUpcomingMonth(upcomingMonth)) ||
+      (upcomingMonth !== null && upcomingRangeDaysParam !== null))
   ) {
     return NextResponse.json(
-      { error: 'A valid competition and month within the next 12 months are required.' },
+      {
+        error:
+          'A valid competition and either a month within the next 12 months or a 7- or 30-day range are required.',
+      },
       { status: 400, headers: { 'Cache-Control': 'no-store' } },
     );
   }
@@ -474,11 +692,42 @@ export async function GET(request: Request) {
   }
 
   try {
-    if (hasUpcomingScheduleFilter && competitionId !== null && upcomingMonth !== null) {
+    if (upcomingTeamSearch) {
+      const teamSchedule = await getUpcomingTeamMatches(
+        teamQuery,
+        upcomingMonth,
+        upcomingRangeDays === 7 || upcomingRangeDays === 30
+          ? upcomingRangeDays
+          : null,
+      );
+      if (!teamSchedule) {
+        return NextResponse.json(
+          { code: 'TEAM_NOT_FOUND', error: 'The requested soccer team was not found.' },
+          { status: 404, headers: { 'Cache-Control': 'no-store' } },
+        );
+      }
+      return NextResponse.json(
+        teamSchedule,
+        {
+          headers: {
+            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+          },
+        },
+      );
+    }
+
+    if (
+      (hasUpcomingScheduleFilter || hasUpcomingRange) &&
+      competitionId !== null &&
+      (upcomingMonth !== null || upcomingRangeDays !== null)
+    ) {
       const matches = await getUpcomingLeagueMatches(
         competitionId,
         competitionName,
         upcomingMonth,
+        upcomingRangeDays === 7 || upcomingRangeDays === 30
+          ? upcomingRangeDays
+          : null,
       );
       return NextResponse.json(
         { matches },
@@ -527,6 +776,7 @@ export async function GET(request: Request) {
     const events = rawEvents
       .map(parseScoreboardEvent)
       .filter((match): match is ESPNScoreboardMatch => match !== null);
+    const competitions = upcomingOnly ? getCompetitionOptions(rawEvents) : null;
     const ignoredCount = rawEvents.length - events.length;
     if (ignoredCount > 0) {
       console.warn(`Ignored ${ignoredCount} ESPN scoreboard events with incomplete data.`);
@@ -549,7 +799,7 @@ export async function GET(request: Request) {
       );
 
     return NextResponse.json(
-      { matches },
+      competitions ? { matches, competitions } : { matches },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',

@@ -1,5 +1,21 @@
 export type ESPNMatchState = 'in' | 'post' | 'pre';
 
+export type SoccerContinent =
+  | 'africa'
+  | 'asia'
+  | 'europe'
+  | 'north-america'
+  | 'south-america'
+  | 'oceania'
+  | 'international'
+  | 'other';
+
+export type LiveScoreCompetitionOption = {
+  id: number;
+  name: string;
+  continent: SoccerContinent;
+};
+
 export type ESPNScoreboardMatch = {
   id: number;
   date: string | null;

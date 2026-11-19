@@ -26,6 +26,7 @@ import { enableFootballMatchNotifications } from '@/lib/match-notification-clien
 import { useAccountUser } from '@/lib/use-account-user';
 import type {
   ESPNScoreboardMatch,
+  LiveScoreCompetitionOption,
   LiveMatchEvent,
   LiveScoreMatch,
   MatchDetailsData,
@@ -34,6 +35,7 @@ import type {
   MatchStandingEntry,
   MatchStandings,
   MatchStatistic,
+  SoccerContinent,
 } from '@/types/live-scores';
 
 type LiveScoresProps = {
@@ -205,6 +207,37 @@ function isNullableNumber(value: unknown): value is number | null {
 
 function isNullableString(value: unknown): value is string | null {
   return value === null || typeof value === 'string';
+}
+
+const SOCCER_CONTINENTS: SoccerContinent[] = [
+  'africa',
+  'asia',
+  'europe',
+  'north-america',
+  'south-america',
+  'oceania',
+  'international',
+  'other',
+];
+
+function isSoccerContinent(value: unknown): value is SoccerContinent {
+  return (
+    typeof value === 'string' &&
+    SOCCER_CONTINENTS.some((continent) => continent === value)
+  );
+}
+
+function isLiveScoreCompetitionOption(
+  value: unknown,
+): value is LiveScoreCompetitionOption {
+  return (
+    isRecord(value) &&
+    typeof value.id === 'number' &&
+    Number.isSafeInteger(value.id) &&
+    value.id > 0 &&
+    typeof value.name === 'string' &&
+    isSoccerContinent(value.continent)
+  );
 }
 
 function isFollowedFootballTeam(value: unknown): value is FollowedFootballTeam {
@@ -651,6 +684,23 @@ function getCountryDisplayName(countryCode: string | null, english: boolean): st
     new Intl.DisplayNames([english ? 'en' : 'fr'], { type: 'region' }).of(countryCode) ??
     countryCode
   );
+}
+
+function getSoccerContinentLabel(
+  continent: SoccerContinent,
+  english: boolean,
+): string {
+  const labels: Record<SoccerContinent, { en: string; fr: string }> = {
+    africa: { en: 'Africa', fr: 'Afrique' },
+    asia: { en: 'Asia', fr: 'Asie' },
+    europe: { en: 'Europe', fr: 'Europe' },
+    'north-america': { en: 'North America', fr: 'Amérique du Nord' },
+    'south-america': { en: 'South America', fr: 'Amérique du Sud' },
+    oceania: { en: 'Oceania', fr: 'Océanie' },
+    international: { en: 'International', fr: 'International' },
+    other: { en: 'Other', fr: 'Autre' },
+  };
+  return labels[continent][english ? 'en' : 'fr'];
 }
 
 function PlayerRatingBadge({
@@ -1437,22 +1487,30 @@ export default function LiveScores({
   const [view, setView] = useState<ScoresView>('live');
   const [hasLiveMatches, setHasLiveMatches] = useState(false);
   const [finishedDateFilter, setFinishedDateFilter] = useState<FinishedDateFilter>(0);
-  const [upcomingMonth, setUpcomingMonth] = useState(getKinshasaMonth);
+  const [upcomingDateFilter, setUpcomingDateFilter] = useState('7days');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [teamHistoryName, setTeamHistoryName] = useState<string | null>(null);
+  const [upcomingTeamName, setUpcomingTeamName] = useState<string | null>(null);
+  const [upcomingTeamNotFound, setUpcomingTeamNotFound] = useState(false);
   const [teamHistoryVisibleCount, setTeamHistoryVisibleCount] = useState(5);
   const [matchesVisibleCount, setMatchesVisibleCount] = useState(40);
   const [selectedCompetition, setSelectedCompetition] = useState('all');
+  const [selectedContinent, setSelectedContinent] = useState('all');
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [matches, setMatches] = useState<LiveScoreMatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(
     initialMatchId ?? null,
   );
   const [competitionNames, setCompetitionNames] = useState<Record<string, string>>({});
+  const [upcomingCompetitions, setUpcomingCompetitions] = useState<
+    LiveScoreCompetitionOption[]
+  >([]);
   const [events, setEvents] = useState<LiveMatchEvent[]>([]);
   const [statistics, setStatistics] = useState<MatchStatistic[]>([]);
   const [lineups, setLineups] = useState<MatchLineup[]>([]);
@@ -1493,7 +1551,16 @@ export default function LiveScores({
     const timeoutId = window.setTimeout(
       () => {
         setDebouncedSearchQuery(nextSearchQuery);
-        if (view === 'finished' && nextSearchQuery !== debouncedSearchQuery) {
+        const isTeamSearch = (query: string) => {
+          const normalized = normalizeSearch(query);
+          return normalized.length >= 3 && !/\s+(?:vs\.?|contre)\s+/.test(normalized);
+        };
+        if (
+          nextSearchQuery !== debouncedSearchQuery &&
+          (view === 'finished' ||
+            (view === 'upcoming' &&
+              (isTeamSearch(nextSearchQuery) || isTeamSearch(debouncedSearchQuery))))
+        ) {
           setIsLoading(true);
           setHasError(false);
         }
@@ -1502,6 +1569,10 @@ export default function LiveScores({
     );
     return () => window.clearTimeout(timeoutId);
   }, [debouncedSearchQuery, searchQuery, view]);
+
+  useEffect(() => {
+    if (isSearchOpen) searchInputRef.current?.focus();
+  }, [isSearchOpen]);
 
   const favoritesSnapshot = useSyncExternalStore(
     subscribeToFavorites,
@@ -1560,6 +1631,30 @@ export default function LiveScores({
     () => Object.entries(competitionNames).sort(([, a], [, b]) => a.localeCompare(b)),
     [competitionNames],
   );
+  const availableUpcomingContinents = useMemo(
+    () =>
+      Array.from(new Set(upcomingCompetitions.map((competition) => competition.continent))).sort(),
+    [upcomingCompetitions],
+  );
+  const visibleUpcomingCompetitions = useMemo(
+    () =>
+      upcomingCompetitions.filter(
+        (competition) =>
+          selectedContinent === 'all' ||
+          competition.continent === selectedContinent,
+      ),
+    [selectedContinent, upcomingCompetitions],
+  );
+  const upcomingCompetitionContinents = useMemo(
+    () =>
+      new Map(
+        upcomingCompetitions.map((competition) => [
+          competition.id,
+          competition.continent,
+        ]),
+      ),
+    [upcomingCompetitions],
+  );
   const upcomingMonths = useMemo(
     () =>
       Array.from({ length: UPCOMING_MONTH_COUNT }, (_, offset) =>
@@ -1571,6 +1666,10 @@ export default function LiveScores({
   const isMatchupSearch = /\s+(?:vs\.?|contre)\s+/.test(normalizedDebouncedSearch);
   const teamHistoryQuery =
     view === 'finished' && normalizedDebouncedSearch.length >= 3 && !isMatchupSearch
+      ? debouncedSearchQuery
+      : null;
+  const upcomingTeamQuery =
+    view === 'upcoming' && normalizedDebouncedSearch.length >= 3 && !isMatchupSearch
       ? debouncedSearchQuery
       : null;
   const visibleMatches = useMemo(() => {
@@ -1598,6 +1697,9 @@ export default function LiveScores({
           matchSearch &&
           (selectedCompetition === 'all' ||
             String(match.league.id) === selectedCompetition) &&
+          (view !== 'upcoming' ||
+            selectedContinent === 'all' ||
+            upcomingCompetitionContinents.get(match.league.id) === selectedContinent) &&
           (!favoritesOnly || favoriteIds.includes(match.fixture.id))
         );
       })
@@ -1607,7 +1709,17 @@ export default function LiveScores({
           : Number(favoriteIds.includes(b.fixture.id)) -
             Number(favoriteIds.includes(a.fixture.id)),
       );
-  }, [favoriteIds, favoritesOnly, matches, searchQuery, selectedCompetition, teamHistoryName]);
+  }, [
+    favoriteIds,
+    favoritesOnly,
+    matches,
+    searchQuery,
+    selectedCompetition,
+    selectedContinent,
+    teamHistoryName,
+    upcomingCompetitionContinents,
+    view,
+  ]);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const selectedMatch = matches.find((match) => match.fixture.id === selectedFixtureId);
   const homeLineup = selectedMatch
@@ -1673,7 +1785,16 @@ export default function LiveScores({
   const upcomingCompetitionName = upcomingCompetitionId
     ? competitionNames[upcomingCompetitionId] ?? null
     : null;
-  const upcomingMonthToLoad = upcomingCompetitionId ? upcomingMonth : null;
+  const upcomingMonthToLoad =
+    /^\d{4}-(0[1-9]|1[0-2])$/.test(upcomingDateFilter)
+      ? upcomingDateFilter
+      : null;
+  const upcomingRangeDaysToLoad =
+    upcomingDateFilter === '7days'
+      ? 7
+      : upcomingDateFilter === '30days'
+        ? 30
+        : null;
 
   useEffect(() => {
     let isMounted = true;
@@ -1696,20 +1817,48 @@ export default function LiveScores({
         }
         if (view === 'upcoming') {
           searchParams.set('view', 'upcoming');
-          if (
+          if (upcomingTeamQuery) {
+            searchParams.set('team', upcomingTeamQuery);
+            if (upcomingMonthToLoad) {
+              searchParams.set('month', upcomingMonthToLoad);
+            } else if (upcomingRangeDaysToLoad !== null) {
+              searchParams.set('rangeDays', String(upcomingRangeDaysToLoad));
+            }
+          } else if (
             upcomingCompetitionId &&
-            upcomingCompetitionName &&
-            upcomingMonthToLoad
+            upcomingCompetitionName
           ) {
             searchParams.set('competitionId', upcomingCompetitionId);
             searchParams.set('competitionName', upcomingCompetitionName);
-            searchParams.set('month', upcomingMonthToLoad);
+            if (upcomingMonthToLoad) {
+              searchParams.set('month', upcomingMonthToLoad);
+            } else if (upcomingRangeDaysToLoad !== null) {
+              searchParams.set('rangeDays', String(upcomingRangeDaysToLoad));
+            }
           }
         }
         const endpoint =
           view === 'live' ? '/api/live-scores' : `/api/live-scores?${searchParams.toString()}`;
         const response = await fetch(endpoint, { cache: 'no-store' });
         if (!response.ok) {
+          const errorPayload: unknown = await response.json().catch(() => null);
+          if (
+            upcomingTeamQuery &&
+            response.status === 404 &&
+            isRecord(errorPayload) &&
+            errorPayload.code === 'TEAM_NOT_FOUND'
+          ) {
+            if (isMounted) {
+              setMatches([]);
+              setUpcomingTeamName(null);
+              setUpcomingTeamNotFound(true);
+              setUpcomingCompetitions([]);
+              setSelectedContinent('all');
+              setSelectedCompetition('all');
+              setHasError(false);
+            }
+            return;
+          }
           throw new Error(`Scores API responded with HTTP ${response.status}.`);
         }
 
@@ -1717,16 +1866,26 @@ export default function LiveScores({
         if (
           !isRecord(payload) ||
           !Array.isArray(payload.matches) ||
-          !payload.matches.every(isESPNScoreboardMatch)
+          !payload.matches.every(isESPNScoreboardMatch) ||
+          (payload.competitions !== undefined &&
+            (!Array.isArray(payload.competitions) ||
+              !payload.competitions.every(isLiveScoreCompetitionOption)))
         ) {
           throw new Error('Scores API returned an invalid response.');
         }
         if (!isMounted) return;
+        const responseCompetitions =
+          Array.isArray(payload.competitions) &&
+          payload.competitions.every(isLiveScoreCompetitionOption)
+            ? payload.competitions
+            : null;
 
         if (view === 'live' && payload.matches.length === 0) {
           setHasLiveMatches(false);
           setMatches([]);
           setTeamHistoryName(null);
+          setUpcomingTeamName(null);
+          setUpcomingTeamNotFound(false);
           setIsLoading(true);
           changingViewOrFilter = true;
           setView('upcoming');
@@ -1752,6 +1911,9 @@ export default function LiveScores({
 
         const nextMatches = payload.matches.map(toLiveScoreMatch);
         setMatches(nextMatches);
+        if (view === 'upcoming' && responseCompetitions !== null) {
+          setUpcomingCompetitions(responseCompetitions);
+        }
         setCompetitionNames((current) => {
           let next = current;
           for (const match of nextMatches) {
@@ -1760,11 +1922,25 @@ export default function LiveScores({
             if (next === current) next = { ...current };
             next[id] = match.league.name;
           }
+          for (const competition of responseCompetitions ?? []) {
+            const id = String(competition.id);
+            if (next[id] === competition.name) continue;
+            if (next === current) next = { ...current };
+            next[id] = competition.name;
+          }
           return next;
         });
         setTeamHistoryName(
-          typeof payload.teamName === 'string' ? payload.teamName : null,
+          view === 'finished' && typeof payload.teamName === 'string'
+            ? payload.teamName
+            : null,
         );
+        setUpcomingTeamName(
+          view === 'upcoming' && typeof payload.teamName === 'string'
+            ? payload.teamName
+            : null,
+        );
+        setUpcomingTeamNotFound(false);
         if (view === 'live') setHasLiveMatches(true);
         setHasError(false);
         setUpdatedAt(new Date().toISOString());
@@ -1789,9 +1965,11 @@ export default function LiveScores({
   }, [
     finishedDateFilter,
     teamHistoryQuery,
+    upcomingTeamQuery,
     upcomingCompetitionId,
     upcomingCompetitionName,
     upcomingMonthToLoad,
+    upcomingRangeDaysToLoad,
     view,
   ]);
 
@@ -2035,6 +2213,8 @@ export default function LiveScores({
     setMatches([]);
     setHasError(false);
     setTeamHistoryName(null);
+    setUpcomingTeamName(null);
+    setUpcomingTeamNotFound(false);
     setTeamHistoryVisibleCount(5);
     setMatchesVisibleCount(40);
     setIsLoading(true);
@@ -2223,22 +2403,83 @@ export default function LiveScores({
         )}
 
         <div className="mb-6 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <label className="relative min-w-0 flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(event) => {
-                setTeamHistoryName(null);
-                setTeamHistoryVisibleCount(5);
-                setMatchesVisibleCount(40);
-                setSearchQuery(event.target.value);
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <button
+              type="button"
+              aria-expanded={isSearchOpen}
+              aria-label={
+                isSearchOpen
+                  ? english
+                    ? 'Close match search'
+                    : 'Fermer la recherche de matches'
+                  : english
+                    ? 'Search teams or matches'
+                    : 'Rechercher une équipe ou un match'
+              }
+              onClick={() => {
+                if (isSearchOpen) {
+                  setSearchQuery('');
+                  setDebouncedSearchQuery('');
+                  setTeamHistoryName(null);
+                  setUpcomingTeamName(null);
+                  setUpcomingTeamNotFound(false);
+                }
+                setIsSearchOpen((open) => !open);
               }}
-              placeholder={english ? 'Search a team or match (e.g. France vs Spain)' : 'Rechercher une équipe ou un match (ex. France vs Espagne)'}
-              aria-label={english ? 'Search teams or matches' : 'Rechercher une équipe ou un match'}
-              className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary"
-            />
-          </label>
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              {isSearchOpen ? (
+                <X className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <Search className="h-4 w-4" aria-hidden="true" />
+              )}
+            </button>
+            {isSearchOpen && (
+              <label className="relative min-w-0 flex-1">
+                <input
+                  ref={searchInputRef}
+                  id="live-scores-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => {
+                    const nextQuery = event.target.value;
+                    setTeamHistoryName(null);
+                    setUpcomingTeamName(null);
+                    setUpcomingTeamNotFound(false);
+                    setTeamHistoryVisibleCount(5);
+                    setMatchesVisibleCount(40);
+                    if (view === 'upcoming') {
+                      setSelectedCompetition('all');
+                      if (normalizeSearch(nextQuery).length >= 3) {
+                        setUpcomingCompetitions([]);
+                        setSelectedContinent('all');
+                      }
+                    }
+                    setSearchQuery(nextQuery);
+                  }}
+                  placeholder={
+                    view === 'upcoming'
+                      ? english
+                        ? 'Search a team (e.g. DR Congo or Senegal)'
+                        : 'Rechercher une équipe (ex. RDC ou Sénégal)'
+                      : english
+                        ? 'Search a team or match (e.g. France vs Spain)'
+                        : 'Rechercher une équipe ou un match (ex. France vs Espagne)'
+                  }
+                  aria-label={
+                    view === 'upcoming'
+                      ? english
+                        ? 'Search an upcoming team fixture'
+                        : 'Rechercher le programme à venir d’une équipe'
+                      : english
+                        ? 'Search teams or matches'
+                        : 'Rechercher une équipe ou un match'
+                  }
+                  className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary"
+                />
+              </label>
+            )}
+          </div>
           {view === 'finished' && !teamHistoryName && (
             <>
               <label className="sr-only" htmlFor="live-scores-finished-day">
@@ -2278,28 +2519,58 @@ export default function LiveScores({
               </select>
             </>
           )}
-          {view === 'upcoming' && selectedCompetition !== 'all' && (
+          {view === 'upcoming' && (
             <>
-              <label className="sr-only" htmlFor="live-scores-upcoming-month">
-                {english ? 'Choose a match month' : 'Choisir le mois des matches'}
+              <label className="sr-only" htmlFor="live-scores-upcoming-period">
+                {english ? 'Choose an upcoming date range' : 'Choisir une période de matches à venir'}
               </label>
               <select
-                id="live-scores-upcoming-month"
-                value={upcomingMonth}
+                id="live-scores-upcoming-period"
+                value={upcomingDateFilter}
+                disabled={selectedCompetition === 'all' && !isSearchOpen}
                 onChange={(event) => {
                   setMatches([]);
                   setHasError(false);
                   setIsLoading(true);
                   setUpdatedAt(null);
+                  setUpcomingTeamName(null);
+                  setUpcomingTeamNotFound(false);
                   setMatchesVisibleCount(40);
-                  setUpcomingMonth(event.currentTarget.value);
+                  setUpcomingDateFilter(event.currentTarget.value);
                 }}
-                aria-label={english ? 'Choose a match month' : 'Choisir le mois des matches'}
-                className="h-11 w-full min-w-0 max-w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-auto"
+                aria-label={english ? 'Choose an upcoming date range' : 'Choisir une période de matches à venir'}
+                className="h-11 w-full min-w-0 max-w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
               >
+                <option value="7days">{english ? 'Next 7 days' : '7 prochains jours'}</option>
+                <option value="30days">{english ? 'Next 30 days' : '30 prochains jours'}</option>
                 {upcomingMonths.map((month) => (
                   <option key={month} value={month}>
                     {formatMonthLabel(month, english)}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
+          {view === 'upcoming' && (
+            <>
+              <label className="sr-only" htmlFor="live-scores-continent">
+                {english ? 'Filter by continent' : 'Filtrer par continent'}
+              </label>
+              <select
+                id="live-scores-continent"
+                value={selectedContinent}
+                onChange={(event) => {
+                  setSelectedContinent(event.currentTarget.value);
+                  setSelectedCompetition('all');
+                  setMatchesVisibleCount(40);
+                }}
+                aria-label={english ? 'Filter by continent' : 'Filtrer par continent'}
+                className="h-11 w-full min-w-0 max-w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-auto"
+              >
+                <option value="all">{english ? 'All continents' : 'Tous les continents'}</option>
+                {availableUpcomingContinents.map((continent) => (
+                  <option key={continent} value={continent}>
+                    {getSoccerContinentLabel(continent, english)}
                   </option>
                 ))}
               </select>
@@ -2326,11 +2597,17 @@ export default function LiveScores({
             className="h-11 w-full min-w-0 max-w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-auto"
           >
             <option value="all">{english ? 'All competitions' : 'Toutes les compétitions'}</option>
-            {competitions.map(([id, name]) => (
-              <option key={id} value={id}>
-                {name}
-              </option>
-            ))}
+            {view === 'upcoming'
+              ? visibleUpcomingCompetitions.map(({ id, name }) => (
+                  <option key={id} value={String(id)}>
+                    {name}
+                  </option>
+                ))
+              : competitions.map(([id, name]) => (
+                  <option key={id} value={id}>
+                    {name}
+                  </option>
+                ))}
           </select>
           <button
             type="button"
@@ -2350,8 +2627,8 @@ export default function LiveScores({
         {view === 'upcoming' && selectedCompetition === 'all' && (
           <p className="-mt-3 mb-6 text-sm text-muted-foreground">
             {english
-              ? 'Choose a competition to browse its scheduled matches month by month.'
-              : 'Sélectionnez un championnat pour parcourir ses matches programmés mois par mois.'}
+              ? 'Choose a competition or search for a team to browse upcoming fixtures by date.'
+              : 'Choisissez un championnat ou recherchez une équipe pour consulter son programme par date.'}
           </p>
         )}
 
@@ -2688,9 +2965,17 @@ export default function LiveScores({
                 ? 'No matches are currently in progress.'
                 : "Aucun match n'est en cours actuellement."
               : view === 'upcoming'
-                ? english
-                  ? 'No upcoming matches.'
-                  : 'Aucun match à venir pour le moment.'
+                ? upcomingTeamNotFound
+                  ? english
+                    ? 'This soccer team was not found. Try its official team name.'
+                    : 'Cette équipe de football est introuvable. Essayez son nom officiel.'
+                  : upcomingTeamName
+                    ? english
+                      ? `No upcoming match is scheduled for ${upcomingTeamName} in this period.`
+                      : `Aucun match n’est programmé pour ${upcomingTeamName} sur cette période.`
+                    : english
+                      ? 'No upcoming matches.'
+                      : 'Aucun match à venir pour le moment.'
                 : english
                   ? `No completed matches ${finishedDateLabel}.`
                   : `Aucun match terminé ${finishedDateLabel}.`}
