@@ -48,6 +48,7 @@ type MatchDetailsTab = 'events' | 'statistics' | 'lineups' | 'standings';
 
 const REFRESH_INTERVAL_MS = 60_000;
 const MATCH_DETAILS_REFRESH_INTERVAL_MS = 30_000;
+const UPCOMING_MONTH_COUNT = 12;
 const FAVORITES_STORAGE_KEY = 'malakinfo-live-match-favorites';
 const favoriteSubscribers = new Set<() => void>();
 type ScoresView = 'live' | 'upcoming' | 'finished';
@@ -346,6 +347,28 @@ function hasMatchStarted(match: LiveScoreMatch): boolean {
   return !/(cancel|postpon|suspend|abandon|void)/i.test(
     `${match.fixture.status.short ?? ''} ${match.fixture.status.long ?? ''}`,
   );
+}
+
+function getKinshasaMonth(offset = 0): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Kinshasa',
+    year: 'numeric',
+    month: '2-digit',
+  }).formatToParts(new Date());
+  const dateParts = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  const date = new Date(
+    Date.UTC(Number(dateParts.year), Number(dateParts.month) - 1 + offset, 1),
+  );
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
+function formatMonthLabel(month: string, english: boolean): string {
+  const [year, monthNumber] = month.split('-').map(Number);
+  return new Intl.DateTimeFormat(english ? 'en-US' : 'fr-FR', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year, monthNumber - 1, 1)));
 }
 
 function getLiveMinute(match: LiveScoreMatch): string | null {
@@ -1414,6 +1437,7 @@ export default function LiveScores({
   const [view, setView] = useState<ScoresView>('live');
   const [hasLiveMatches, setHasLiveMatches] = useState(false);
   const [finishedDateFilter, setFinishedDateFilter] = useState<FinishedDateFilter>(0);
+  const [upcomingMonth, setUpcomingMonth] = useState(getKinshasaMonth);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [teamHistoryName, setTeamHistoryName] = useState<string | null>(null);
@@ -1428,6 +1452,7 @@ export default function LiveScores({
   const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(
     initialMatchId ?? null,
   );
+  const [competitionNames, setCompetitionNames] = useState<Record<string, string>>({});
   const [events, setEvents] = useState<LiveMatchEvent[]>([]);
   const [statistics, setStatistics] = useState<MatchStatistic[]>([]);
   const [lineups, setLineups] = useState<MatchLineup[]>([]);
@@ -1532,8 +1557,15 @@ export default function LiveScores({
 
   const favoriteIds = useMemo(() => parseFavoriteIds(favoritesSnapshot), [favoritesSnapshot]);
   const competitions = useMemo(
-    () => Array.from(new Set(matches.map((match) => match.league.name))).sort((a, b) => a.localeCompare(b)),
-    [matches],
+    () => Object.entries(competitionNames).sort(([, a], [, b]) => a.localeCompare(b)),
+    [competitionNames],
+  );
+  const upcomingMonths = useMemo(
+    () =>
+      Array.from({ length: UPCOMING_MONTH_COUNT }, (_, offset) =>
+        getKinshasaMonth(offset),
+      ),
+    [],
   );
   const normalizedDebouncedSearch = normalizeSearch(debouncedSearchQuery);
   const isMatchupSearch = /\s+(?:vs\.?|contre)\s+/.test(normalizedDebouncedSearch);
@@ -1564,7 +1596,8 @@ export default function LiveScores({
 
         return (
           matchSearch &&
-          (selectedCompetition === 'all' || match.league.name === selectedCompetition) &&
+          (selectedCompetition === 'all' ||
+            String(match.league.id) === selectedCompetition) &&
           (!favoritesOnly || favoriteIds.includes(match.fixture.id))
         );
       })
@@ -1633,6 +1666,15 @@ export default function LiveScores({
           ? 'in the last 30 days'
           : 'des 30 derniers jours';
 
+  const upcomingCompetitionId =
+    view === 'upcoming' && selectedCompetition !== 'all'
+      ? selectedCompetition
+      : null;
+  const upcomingCompetitionName = upcomingCompetitionId
+    ? competitionNames[upcomingCompetitionId] ?? null
+    : null;
+  const upcomingMonthToLoad = upcomingCompetitionId ? upcomingMonth : null;
+
   useEffect(() => {
     let isMounted = true;
 
@@ -1652,7 +1694,18 @@ export default function LiveScores({
           }
           if (teamHistoryQuery) searchParams.set('team', teamHistoryQuery);
         }
-        if (view === 'upcoming') searchParams.set('view', 'upcoming');
+        if (view === 'upcoming') {
+          searchParams.set('view', 'upcoming');
+          if (
+            upcomingCompetitionId &&
+            upcomingCompetitionName &&
+            upcomingMonthToLoad
+          ) {
+            searchParams.set('competitionId', upcomingCompetitionId);
+            searchParams.set('competitionName', upcomingCompetitionName);
+            searchParams.set('month', upcomingMonthToLoad);
+          }
+        }
         const endpoint =
           view === 'live' ? '/api/live-scores' : `/api/live-scores?${searchParams.toString()}`;
         const response = await fetch(endpoint, { cache: 'no-store' });
@@ -1697,7 +1750,18 @@ export default function LiveScores({
           return;
         }
 
-        setMatches(payload.matches.map(toLiveScoreMatch));
+        const nextMatches = payload.matches.map(toLiveScoreMatch);
+        setMatches(nextMatches);
+        setCompetitionNames((current) => {
+          let next = current;
+          for (const match of nextMatches) {
+            const id = String(match.league.id);
+            if (match.league.id <= 0 || next[id] === match.league.name) continue;
+            if (next === current) next = { ...current };
+            next[id] = match.league.name;
+          }
+          return next;
+        });
         setTeamHistoryName(
           typeof payload.teamName === 'string' ? payload.teamName : null,
         );
@@ -1722,7 +1786,14 @@ export default function LiveScores({
       isMounted = false;
       window.clearInterval(intervalId);
     };
-  }, [finishedDateFilter, teamHistoryQuery, view]);
+  }, [
+    finishedDateFilter,
+    teamHistoryQuery,
+    upcomingCompetitionId,
+    upcomingCompetitionName,
+    upcomingMonthToLoad,
+    view,
+  ]);
 
   useEffect(() => {
     if (view === 'live') return;
@@ -2207,20 +2278,57 @@ export default function LiveScores({
               </select>
             </>
           )}
+          {view === 'upcoming' && selectedCompetition !== 'all' && (
+            <>
+              <label className="sr-only" htmlFor="live-scores-upcoming-month">
+                {english ? 'Choose a match month' : 'Choisir le mois des matches'}
+              </label>
+              <select
+                id="live-scores-upcoming-month"
+                value={upcomingMonth}
+                onChange={(event) => {
+                  setMatches([]);
+                  setHasError(false);
+                  setIsLoading(true);
+                  setUpdatedAt(null);
+                  setMatchesVisibleCount(40);
+                  setUpcomingMonth(event.currentTarget.value);
+                }}
+                aria-label={english ? 'Choose a match month' : 'Choisir le mois des matches'}
+                className="h-11 w-full min-w-0 max-w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-auto"
+              >
+                {upcomingMonths.map((month) => (
+                  <option key={month} value={month}>
+                    {formatMonthLabel(month, english)}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
           <label className="sr-only" htmlFor="live-scores-competition">
             {english ? 'Filter by competition' : 'Filtrer par compétition'}
           </label>
           <select
             id="live-scores-competition"
             value={selectedCompetition}
-            onChange={(event) => setSelectedCompetition(event.target.value)}
+            onChange={(event) => {
+              const nextCompetition = event.currentTarget.value;
+              setSelectedCompetition(nextCompetition);
+              if (view === 'upcoming') {
+                setMatches([]);
+                setHasError(false);
+                setIsLoading(true);
+                setUpdatedAt(null);
+                setMatchesVisibleCount(40);
+              }
+            }}
             aria-label={english ? 'Filter by competition' : 'Filtrer par compétition'}
             className="h-11 w-full min-w-0 max-w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-auto"
           >
             <option value="all">{english ? 'All competitions' : 'Toutes les compétitions'}</option>
-            {competitions.map((competition) => (
-              <option key={competition} value={competition}>
-                {competition}
+            {competitions.map(([id, name]) => (
+              <option key={id} value={id}>
+                {name}
               </option>
             ))}
           </select>
@@ -2238,6 +2346,14 @@ export default function LiveScores({
             {english ? 'Favorites' : 'Favoris'}
           </button>
         </div>
+
+        {view === 'upcoming' && selectedCompetition === 'all' && (
+          <p className="-mt-3 mb-6 text-sm text-muted-foreground">
+            {english
+              ? 'Choose a competition to browse its scheduled matches month by month.'
+              : 'Sélectionnez un championnat pour parcourir ses matches programmés mois par mois.'}
+          </p>
+        )}
 
         {isLoading ? (
           <>

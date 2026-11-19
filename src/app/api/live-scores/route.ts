@@ -164,6 +164,114 @@ function parseScoreboardEvent(value: unknown): ESPNScoreboardMatch | null {
   };
 }
 
+function getKinshasaMonth(offset = 0): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Kinshasa',
+    year: 'numeric',
+    month: '2-digit',
+  }).formatToParts(new Date());
+  const dateParts = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  const date = new Date(
+    Date.UTC(Number(dateParts.year), Number(dateParts.month) - 1 + offset, 1),
+  );
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
+function isUpcomingMonth(value: string): boolean {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) return false;
+  return value >= getKinshasaMonth() && value <= getKinshasaMonth(11);
+}
+
+function getMatchKinshasaMonth(value: string | null): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return null;
+
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Kinshasa',
+    year: 'numeric',
+    month: '2-digit',
+  }).formatToParts(date);
+  const dateParts = Object.fromEntries(parts.map(({ type, value: part }) => [type, part]));
+  return `${dateParts.year}-${dateParts.month}`;
+}
+
+async function getLeagueSlug(leagueId: number, leagueName: string): Promise<string> {
+  const searchUrl = new URL(SEARCH_URL);
+  searchUrl.searchParams.set('query', leagueName);
+  searchUrl.searchParams.set('limit', '50');
+
+  const response = await fetch(searchUrl, {
+    cache: 'force-cache',
+    next: { revalidate: CACHE_SECONDS },
+    signal: AbortSignal.timeout(15_000),
+    headers: { Accept: 'application/json' },
+  });
+  if (!response.ok) {
+    throw new Error(`ESPN league search responded with HTTP ${response.status}.`);
+  }
+
+  const payload: unknown = await response.json();
+  if (!isRecord(payload) || !Array.isArray(payload.items)) {
+    throw new Error('ESPN returned an invalid league search response.');
+  }
+
+  const league = payload.items.find(
+    (item): item is Record<string, unknown> =>
+      isRecord(item) &&
+      item.type === 'league' &&
+      item.sport === 'soccer' &&
+      getNumber(item.id) === leagueId,
+  );
+  const slug = league
+    ? getString(league.defaultLeagueSlug) ?? getString(league.slug)
+    : null;
+  if (!slug || !/^[a-z0-9._-]{1,80}$/i.test(slug)) {
+    throw new Error(`ESPN could not resolve a schedule for league ${leagueId}.`);
+  }
+
+  return slug;
+}
+
+async function getUpcomingLeagueMatches(
+  leagueId: number,
+  leagueName: string,
+  month: string,
+): Promise<ESPNScoreboardMatch[]> {
+  const leagueSlug = await getLeagueSlug(leagueId, leagueName);
+  const scheduleUrl = new URL(
+    `${ESPN_SITE_URL}/${encodeURIComponent(leagueSlug)}/scoreboard`,
+  );
+  scheduleUrl.searchParams.set('dates', month.slice(0, 4));
+  scheduleUrl.searchParams.set('limit', '1000');
+
+  const response = await fetch(scheduleUrl, {
+    cache: 'force-cache',
+    next: { revalidate: CACHE_SECONDS },
+    signal: AbortSignal.timeout(15_000),
+    headers: { Accept: 'application/json' },
+  });
+  if (!response.ok) {
+    throw new Error(`ESPN league schedule responded with HTTP ${response.status}.`);
+  }
+
+  const payload: unknown = await response.json();
+  if (!isRecord(payload) || !Array.isArray(payload.events)) {
+    throw new Error('ESPN returned an invalid league schedule response.');
+  }
+
+  return payload.events
+    .map(parseScoreboardEvent)
+    .filter(
+      (match): match is ESPNScoreboardMatch =>
+        match !== null &&
+        match.status.state === 'pre' &&
+        match.league.id === leagueId &&
+        getMatchKinshasaMonth(match.date) === month,
+    )
+    .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''));
+}
+
 function getCompetitionPriority(match: ESPNScoreboardMatch): number {
   const league = match.league.name.toLowerCase();
   if (/\b(caf|can|afcon|africa|african cup)\b/.test(league)) return 0;
@@ -302,10 +410,33 @@ export async function GET(request: Request) {
   const finishedOnly = view === 'finished';
   const upcomingOnly = view === 'upcoming';
   const teamQuery = finishedOnly ? searchParams.get('team')?.trim() ?? '' : '';
+  const competitionIdParam = searchParams.get('competitionId');
+  const competitionName = searchParams.get('competitionName')?.trim() ?? '';
+  const upcomingMonth = searchParams.get('month');
   const daysAgoParam = searchParams.get('daysAgo') ?? '0';
   const daysAgo = Number(daysAgoParam);
   const rangeDaysParam = searchParams.get('rangeDays');
   const rangeDays = rangeDaysParam === null ? null : Number(rangeDaysParam);
+  const competitionId =
+    competitionIdParam === null ? null : Number(competitionIdParam);
+  const hasUpcomingScheduleFilter =
+    upcomingOnly &&
+    (competitionIdParam !== null || competitionName !== '' || upcomingMonth !== null);
+  if (
+    hasUpcomingScheduleFilter &&
+    (!Number.isSafeInteger(competitionId) ||
+      competitionId === null ||
+      competitionId <= 0 ||
+      competitionName.length === 0 ||
+      competitionName.length > 80 ||
+      upcomingMonth === null ||
+      !isUpcomingMonth(upcomingMonth))
+  ) {
+    return NextResponse.json(
+      { error: 'A valid competition and month within the next 12 months are required.' },
+      { status: 400, headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
   if (
     finishedOnly &&
     (rangeDays !== null
@@ -343,6 +474,22 @@ export async function GET(request: Request) {
   }
 
   try {
+    if (hasUpcomingScheduleFilter && competitionId !== null && upcomingMonth !== null) {
+      const matches = await getUpcomingLeagueMatches(
+        competitionId,
+        competitionName,
+        upcomingMonth,
+      );
+      return NextResponse.json(
+        { matches },
+        {
+          headers: {
+            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+          },
+        },
+      );
+    }
+
     if (teamQuery.length >= 3) {
       const teamHistory = await getTeamHistory(teamQuery);
       if (teamHistory) {
