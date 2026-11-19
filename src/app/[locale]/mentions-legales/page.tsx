@@ -111,7 +111,11 @@ export default async function LegalNoticesPage({
               <li>Un espace compte permettant de gérer votre profil</li>
               <li>Une newsletter à laquelle vous pouvez vous inscrire librement</li>
               <li>Une rubrique emploi avec offres, candidatures et échanges avec le recruteur</li>
-              <li>Des services multimédias (radio, contenus culturels et autres rubriques éditoriales)</li>
+              <li>Des scores, calendriers, statistiques et classements sportifs</li>
+              <li>Des informations sur les marchés, des taux de change et une calculatrice de conversion à titre indicatif</li>
+              <li>Des services multimédias, notamment la radio en direct et des contenus audio</li>
+              <li>Des articles premium, des achats à l’unité, des formules de soutien et des dons peuvent être proposés</li>
+              <li>Des espaces publicitaires peuvent être affichés sur certaines pages par Google AdSense, selon vos choix de consentement</li>
               <li>Une protection anti-robot Google reCAPTCHA sur les formulaires de contact, de compte et d’abonnement à la newsletter</li>
             </ul>
             <p className="text-muted-foreground mt-4">
@@ -132,6 +136,9 @@ export default async function LegalNoticesPage({
               <Link href={`/${locale}/politique-confidentialite`} className="text-primary hover:underline">politique de confidentialité</Link>
               {' '}et la{' '}
               <Link href={`/${locale}/cookies`} className="text-primary hover:underline">politique de cookies</Link>.
+            </p>
+            <p className="text-muted-foreground mt-4">
+              Les achats d’articles premium, les formules de soutien et les dons sont traités avec Stripe. Les informations recueillies et les modalités de conservation sont précisées dans la politique de confidentialité et dans le parcours de paiement.
             </p>
           </section>
 

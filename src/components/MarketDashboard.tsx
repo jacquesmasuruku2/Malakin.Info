@@ -178,6 +178,9 @@ export default function MarketDashboard({ locale, selectedSlug }: MarketDashboar
   const [calculatorAssetId, setCalculatorAssetId] = useState<MarketAssetId>('bitcoin');
   const [calculatorAmount, setCalculatorAmount] = useState('1');
   const [calculatorCurrency, setCalculatorCurrency] = useState<MarketCurrencyCode>('USD');
+  const [calculatorDirection, setCalculatorDirection] = useState<
+    'crypto-to-fiat' | 'fiat-to-crypto'
+  >('crypto-to-fiat');
   const selectedAsset =
     MARKET_ASSETS.find((asset) => asset.slug === selectedSlug) ?? MARKET_ASSETS[1];
   const { currency, setCurrency, snapshot, liveQuotes, usdtUsdRate, feedStatus, loading, error } =
@@ -236,31 +239,48 @@ export default function MarketDashboard({ locale, selectedSlug }: MarketDashboar
   const calculatorAsset =
     MARKET_CRYPTO_ASSETS.find((asset) => asset.id === calculatorAssetId) ?? MARKET_ASSETS[1];
   const calculatorQuote = quoteById.get(calculatorAsset.id);
-  const calculatorQuantity =
+  const calculatorInputAmount =
     calculatorAmount.trim() === '' ? null : Number(calculatorAmount);
-  const validCalculatorQuantity =
-    calculatorQuantity !== null &&
-    Number.isFinite(calculatorQuantity) &&
-    calculatorQuantity >= 0;
-  const calculatorUnitPrice =
+  const validCalculatorInput =
+    calculatorInputAmount !== null &&
+    Number.isFinite(calculatorInputAmount) &&
+    calculatorInputAmount >= 0;
+  const calculatorUnitPriceValue =
     calculatorQuote && exchangeRates
-      ? formatMarketPrice(
-          convertMarketValue(calculatorQuote.priceUsd, exchangeRates, calculatorCurrency),
-          locale,
-          calculatorCurrency,
-        )
+      ? convertMarketValue(calculatorQuote.priceUsd, exchangeRates, calculatorCurrency)
+      : null;
+  const calculatorResultValue =
+    calculatorInputAmount !== null &&
+    Number.isFinite(calculatorInputAmount) &&
+    calculatorInputAmount >= 0 &&
+    calculatorUnitPriceValue !== null &&
+    Number.isFinite(calculatorUnitPriceValue) &&
+    calculatorUnitPriceValue > 0
+      ? calculatorDirection === 'crypto-to-fiat'
+        ? calculatorInputAmount * calculatorUnitPriceValue
+        : calculatorInputAmount / calculatorUnitPriceValue
       : null;
   const calculatorTotal =
-    validCalculatorQuantity && calculatorQuote && exchangeRates
-      ? formatMarketPrice(
-          convertMarketValue(
-            calculatorQuantity * calculatorQuote.priceUsd,
-            exchangeRates,
-            calculatorCurrency,
-          ),
+    calculatorResultValue !== null && Number.isFinite(calculatorResultValue)
+      ? calculatorDirection === 'crypto-to-fiat'
+        ? formatMarketPrice(calculatorResultValue, locale, calculatorCurrency)
+        : formatMarketPairPrice(calculatorResultValue, locale, calculatorAsset.symbol)
+      : null;
+  const calculatorConversionRate =
+    calculatorUnitPriceValue !== null &&
+    Number.isFinite(calculatorUnitPriceValue) &&
+    calculatorUnitPriceValue > 0
+      ? calculatorDirection === 'crypto-to-fiat'
+        ? `1 ${calculatorAsset.symbol} = ${formatMarketPrice(
+          calculatorUnitPriceValue,
           locale,
           calculatorCurrency,
-        )
+        )}`
+        : `1 ${calculatorCurrency} = ${formatMarketPairPrice(
+          1 / calculatorUnitPriceValue,
+          locale,
+          calculatorAsset.symbol,
+        )}`
       : null;
   const sourceBinanceUrl = `https://www.binance.com/en/trade/${selectedAsset.symbol}_USDT`;
   const sourceCoinGeckoUrl = `https://www.coingecko.com/en/coins/${selectedAsset.id}`;
@@ -372,10 +392,41 @@ export default function MarketDashboard({ locale, selectedSlug }: MarketDashboar
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 {isFrench
-                  ? 'Estimez la valeur d’une quantité de crypto dans la devise de votre choix.'
-                  : 'Estimate the value of a crypto amount in your preferred currency.'}
+                  ? 'Convertissez une crypto en devise, ou une devise en crypto, au cours actuel.'
+                  : 'Convert crypto to fiat, or fiat to crypto, at the current market price.'}
               </p>
             </div>
+          </div>
+
+          <div
+            role="group"
+            aria-label={isFrench ? 'Sens de conversion' : 'Conversion direction'}
+            className="mt-5 grid grid-cols-2 gap-1 rounded-xl bg-muted/50 p-1"
+          >
+            <button
+              type="button"
+              aria-pressed={calculatorDirection === 'crypto-to-fiat'}
+              onClick={() => setCalculatorDirection('crypto-to-fiat')}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
+                calculatorDirection === 'crypto-to-fiat'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {isFrench ? 'Crypto → devise' : 'Crypto → currency'}
+            </button>
+            <button
+              type="button"
+              aria-pressed={calculatorDirection === 'fiat-to-crypto'}
+              onClick={() => setCalculatorDirection('fiat-to-crypto')}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
+                calculatorDirection === 'fiat-to-crypto'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {isFrench ? 'Devise → crypto' : 'Currency → crypto'}
+            </button>
           </div>
 
           <div className="mt-5 grid gap-4 sm:grid-cols-3">
@@ -399,7 +450,13 @@ export default function MarketDashboard({ locale, selectedSlug }: MarketDashboar
               </select>
             </label>
             <label className="block min-w-0 text-xs font-semibold text-muted-foreground">
-              {isFrench ? 'Quantité' : 'Amount'}
+              {calculatorDirection === 'crypto-to-fiat'
+                ? isFrench
+                  ? 'Montant en crypto'
+                  : 'Crypto amount'
+                : isFrench
+                  ? 'Montant en devise'
+                  : 'Currency amount'}
               <input
                 type="number"
                 min="0"
@@ -407,7 +464,7 @@ export default function MarketDashboard({ locale, selectedSlug }: MarketDashboar
                 inputMode="decimal"
                 value={calculatorAmount}
                 onChange={(event) => setCalculatorAmount(event.currentTarget.value)}
-                aria-invalid={calculatorQuantity !== null && !validCalculatorQuantity}
+                aria-invalid={calculatorInputAmount !== null && !validCalculatorInput}
                 className="mt-1.5 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
             </label>
@@ -434,15 +491,21 @@ export default function MarketDashboard({ locale, selectedSlug }: MarketDashboar
           <div className="mt-5 flex flex-col gap-3 rounded-2xl bg-[#0b3b8b]/[0.05] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
             <div>
               <p className="text-xs font-semibold text-muted-foreground">
-                {isFrench ? 'Valeur estimée' : 'Estimated value'}
+                {calculatorDirection === 'crypto-to-fiat'
+                  ? isFrench
+                    ? 'Valeur estimée'
+                    : 'Estimated value'
+                  : isFrench
+                    ? `Montant estimé en ${calculatorAsset.symbol}`
+                    : `Estimated amount in ${calculatorAsset.symbol}`}
               </p>
               <p aria-live="polite" className="mt-1 text-2xl font-bold tabular-nums text-foreground">
                 {calculatorTotal ?? '—'}
               </p>
             </div>
             <p className="text-xs text-muted-foreground">
-              {calculatorUnitPrice
-                ? `1 ${calculatorAsset.symbol} = ${calculatorUnitPrice}`
+              {calculatorConversionRate
+                ? calculatorConversionRate
                 : loading
                   ? isFrench
                     ? 'Chargement du cours…'

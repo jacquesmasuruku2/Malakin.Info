@@ -87,7 +87,7 @@ export default function CookiesPolicyPage() {
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Notifications et stockage local</h2>
             <p className="text-muted-foreground">
-              Indépendamment des cookies, MalakInfo peut utiliser le stockage local du navigateur pour mémoriser vos préférences et la date de leur enregistrement. Certaines alertes éditoriales et invitations à la newsletter peuvent apparaître au plus tôt trois minutes après l’enregistrement de votre choix. Avec votre permission, l’API de notifications et un service worker peuvent également vous signaler de nouvelles publications. Vous pouvez révoquer cette permission dans les paramètres de votre navigateur.
+              Indépendamment des cookies, MalakInfo utilise le stockage local ou de session du navigateur pour mémoriser notamment vos choix de consentement, la langue, le thème, la devise d’affichage, les catégories et matchs suivis, ainsi que l’état du lecteur radio. Certaines alertes éditoriales et invitations à la newsletter peuvent apparaître au plus tôt trois minutes après l’enregistrement de votre choix. Avec votre permission, l’API de notifications et un service worker peuvent également vous signaler de nouvelles publications. Vous pouvez supprimer ces données dans les paramètres de votre navigateur et révoquer la permission de notification au même endroit.
             </p>
           </section>
 
@@ -107,6 +107,9 @@ export default function CookiesPolicyPage() {
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Tableau des cookies et stockages utilisés</h2>
+            <p className="text-muted-foreground">
+              Les noms et durées des cookies tiers peuvent varier selon le service, la configuration et votre navigateur. Ce tableau présente les usages connus et n’est pas une liste exhaustive des cookies que les fournisseurs peuvent déposer.
+            </p>
             <div className="overflow-x-auto">
               <table className="min-w-full border border-border">
                 <thead>
@@ -121,19 +124,19 @@ export default function CookiesPolicyPage() {
                 </thead>
                 <tbody>
                   <tr>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">_ga, _gid, _gat</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Cookies Google Analytics (par exemple _ga ; noms variables)</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Google Analytics</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Mesure d’audience</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Analytique</td>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">24 heures à 2 ans</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Variable, selon la configuration de Google</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Désactivé avant acceptation de la catégorie</td>
                   </tr>
                   <tr>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">IDE, NID</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Cookies publicitaires Google (par exemple IDE ou NID selon le service)</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Google AdSense</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Publicité, y compris personnalisée</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Publicitaire</td>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">6 mois à 1 an</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Variable, selon Google et votre navigateur</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Désactivé avant acceptation de la catégorie</td>
                   </tr>
                   <tr>
@@ -169,12 +172,28 @@ export default function CookiesPolicyPage() {
                     <td className="border border-border px-4 py-2 text-muted-foreground">Non, utilisé pour la sécurité</td>
                   </tr>
                   <tr>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">next-auth.session-token</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">session_token</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">MalakInfo</td>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">Session de connexion</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Maintenir la session de connexion</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Nécessaire</td>
-                    <td className="border border-border px-4 py-2 text-muted-foreground">Session</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">7 jours après la connexion ou l’inscription</td>
                     <td className="border border-border px-4 py-2 text-muted-foreground">Non</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Autres clés de stockage local ou de session</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">MalakInfo</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Mémoriser les préférences d’interface et certaines fonctions choisies</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Fonctionnement</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Jusqu’à suppression ou expiration selon le stockage</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Non</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Cookies susceptibles d’être utilisés pendant le paiement</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Stripe</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Sécuriser et traiter le paiement sur la page de paiement Stripe</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Nécessaire au paiement</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Selon Stripe et la durée du parcours de paiement</td>
+                    <td className="border border-border px-4 py-2 text-muted-foreground">Lors d’un paiement</td>
                   </tr>
                 </tbody>
               </table>
@@ -184,7 +203,7 @@ export default function CookiesPolicyPage() {
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Publicité Google</h2>
             <p className="text-muted-foreground">
-              Google et des prestataires tiers peuvent lire ou déposer des cookies pour diffuser des annonces selon vos visites précédentes. Vous pouvez désactiver la publicité personnalisée via les{' '}
+              Lorsque vos préférences autorisent les catégories publicitaires correspondantes, Google et des prestataires tiers peuvent lire ou déposer des cookies pour diffuser et mesurer des annonces, éventuellement selon vos visites précédentes. Si ces catégories ne sont pas autorisées, les scripts AdSense ne sont pas chargés par le site. Vous pouvez modifier vos choix à tout moment avec le bouton de gestion des cookies. Vous pouvez également gérer la publicité personnalisée via les{' '}
               <a href={GOOGLE_ADS_SETTINGS_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Paramètres des annonces Google</a>
               {' '}ou{' '}
               <a href={ABOUTADS_OPTOUT_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">aboutads.info</a>.

@@ -39,20 +39,20 @@ export default async function TermsOfUsePage({
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Objet du site</h2>
             <p className="text-muted-foreground">
-              Malakinfo.com est un site d'information dédié à informer, éduquer et connecter l'Afrique à travers un journalisme indépendant, fiable et multiculturel. Le site propose des articles, des actualités, des analyses et des contenus multimédias sur divers sujets : politique, économie, culture, sport, religion, science et technologie.
+              MalakInfo est un média d’information consacré à l’Afrique et au monde. Il publie des articles, des actualités, des analyses et des contenus multimédias sur la politique, l’économie, la culture, le sport, la religion, la santé et les nouvelles technologies.
             </p>
             <p className="text-muted-foreground mt-4">
-              Il propose également des fonctionnalités complémentaires : alertes de nouvelles publications (sur le site et, avec votre accord, via les notifications du navigateur), espace compte, rubrique emploi avec candidatures et messagerie recruteur, ainsi que des services multimédias.
+              Le site propose également des scores et classements sportifs, des informations sur les marchés et une calculatrice de conversion, une radio en direct, une rubrique emploi, une newsletter et des alertes de publication. Certaines fonctions nécessitent un compte ou l’autorisation du navigateur.
             </p>
           </section>
 
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Accès au site</h2>
             <p className="text-muted-foreground">
-              L'accès à ce site est gratuit et ouvert à tous les utilisateurs. Toutefois, certaines fonctionnalités peuvent nécessiter la création d'un compte utilisateur ou l'acceptation de conditions spécifiques (par exemple pour postuler à une offre d’emploi ou suivre une candidature).
+              La consultation des contenus publics est généralement gratuite. Certaines fonctions nécessitent un compte. Des articles premium peuvent être achetés à l’unité et des formules de soutien ou des dons peuvent être proposés. Le montant, la devise et les conditions applicables sont indiqués avant le paiement.
             </p>
             <p className="text-muted-foreground">
-              Nous nous réservons le droit de restreindre l'accès à tout ou partie du site sans préavis, pour des raisons de maintenance, de mise à jour ou pour tout autre motif jugé nécessaire.
+              Les paiements sont effectués au moyen du service de paiement Stripe. Les informations de paiement sont traitées selon les modalités présentées lors du paiement et les politiques de Stripe. Nous pouvons suspendre temporairement certaines fonctions pour maintenance ou raisons techniques.
             </p>
           </section>
 
@@ -145,10 +145,22 @@ export default async function TermsOfUsePage({
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Liens externes</h2>
             <p className="text-muted-foreground">
-              Ce site peut contenir des liens vers des sites web tiers. Malakinfo.com n'exerce aucun contrôle sur ces sites et ne peut être tenu responsable de leur contenu ou de leurs pratiques en matière de confidentialité.
+              Ce site peut contenir des liens ou intégrer des services de tiers. MalakInfo ne contrôle pas les sites ou services externes ni leurs pratiques en matière de confidentialité. Leur utilisation est régie par leurs propres conditions.
             </p>
             <p className="text-muted-foreground">
-              L'inclusion de ces liens ne constitue pas une approbation par Malakinfo.com du contenu de ces sites.
+              La lecture de la radio ou l’affichage de certains outils intégrés peut dépendre de prestataires externes et de leur disponibilité.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">
+              Scores, marchés et calculatrice
+            </h2>
+            <p className="text-muted-foreground">
+              Les scores, classements et statistiques sportives, ainsi que les cours des crypto-actifs, des métaux et les taux de change, proviennent de sources de données tierces. Ils peuvent être retardés, incomplets ou indisponibles. La calculatrice fournit une estimation à partir des cours affichés ; elle ne constitue ni un conseil financier ni une offre d’achat ou de vente. Elle ne permet pas de passer d’ordre d’achat ou de vente de crypto-actifs, et MalakInfo ne conserve pas de crypto-actifs pour votre compte. Cette précision ne concerne pas les paiements d’articles premium, de formules de soutien ou de dons traités par Stripe.
+            </p>
+            <p className="text-muted-foreground mt-4">
+              Vérifiez les informations auprès de sources officielles avant de prendre une décision. Les cours et résultats peuvent changer sans préavis.
             </p>
           </section>
 
@@ -159,6 +171,9 @@ export default async function TermsOfUsePage({
               <Link href={`/${locale}/politique-confidentialite`} className="text-primary hover:underline">Politique de confidentialité</Link>
               {' '}et la{' '}
               <Link href={`/${locale}/cookies`} className="text-primary hover:underline">Politique de cookies</Link>.
+            </p>
+            <p className="text-muted-foreground mt-4">
+              Des publicités peuvent être proposées sur certaines pages par Google AdSense lorsque vos choix de consentement autorisent les catégories correspondantes. Les modalités sont détaillées dans la politique de confidentialité et la politique de cookies.
             </p>
           </section>
 

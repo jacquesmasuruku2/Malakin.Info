@@ -72,13 +72,13 @@ export default async function PrivacyPolicyPage({
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Données collectées</h2>
             <h3 className="font-heading text-xl font-semibold text-foreground mb-3">Données de navigation</h3>
             <p className="text-muted-foreground">
-              Nous collectons automatiquement certaines informations lorsque vous naviguez sur le site :
+              Certaines informations sont collectées automatiquement par le site ou par les prestataires tiers selon les fonctions que vous utilisez :
             </p>
             <ul className="list-disc pl-6 text-muted-foreground space-y-2">
               <li>Adresse IP</li>
               <li>Type de navigateur et version</li>
               <li>Système d’exploitation</li>
-              <li>Pages visitées et temps passé</li>
+              <li>Données de consultation, comme les pages visitées et le temps passé, lorsque la mesure d’audience est autorisée</li>
               <li>Site de provenance</li>
               <li>Identifiants de cookies, balises web et identifiants similaires</li>
               <li>Informations techniques et interactions analysées par Google reCAPTCHA lors de l’utilisation d’un formulaire protégé (contact, compte ou newsletter)</li>
@@ -92,7 +92,9 @@ export default async function PrivacyPolicyPage({
               <li>Contenu des messages, commentaires et candidatures</li>
               <li>Adresse e-mail, nom facultatif et thèmes choisis lors d’une inscription à la newsletter</li>
               <li>Données liées aux candidatures d’emploi (profil, messages échangés avec le recruteur via votre espace compte)</li>
+              <li>Informations nécessaires au suivi des achats d’articles premium, des formules de soutien et des dons (par exemple l’article ou la formule, le montant, la devise et les coordonnées fournies)</li>
               <li>Préférences de notifications stockées localement sur votre appareil (activation ou refus des alertes de publication)</li>
+              <li>Préférences enregistrées dans le navigateur, comme le thème, la langue, la devise d’affichage, les catégories suivies, les matchs favoris et l’état du lecteur radio</li>
             </ul>
           </section>
 
@@ -105,6 +107,7 @@ export default async function PrivacyPolicyPage({
               <li>Gérer les comptes utilisateurs</li>
               <li>Informer des nouvelles publications via des alertes sur le site et, si vous l’autorisez, des notifications du navigateur</li>
               <li>Gérer les offres d’emploi, les candidatures et les échanges avec les recruteurs</li>
+              <li>Gérer les achats d’articles premium, les formules de soutien et les dons, et en suivre le paiement</li>
               <li>Mesurer l’audience et la performance des contenus</li>
               <li>Afficher des publicités, y compris personnalisées, uniquement si vous avez accepté la catégorie correspondante</li>
               <li>Protéger les formulaires de contact, de connexion, d’inscription et d’abonnement à la newsletter contre les envois automatisés et les abus</li>
@@ -130,10 +133,25 @@ export default async function PrivacyPolicyPage({
           </section>
 
           <section>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-4">
+              Marchés, sport et contenus audio
+            </h2>
+            <p className="text-muted-foreground">
+              Pour afficher les cours des crypto-actifs et des métaux, les taux de change, les résultats sportifs et les classements, MalakInfo utilise des fournisseurs de données, notamment CoinGecko, Binance, des services de taux de change et ESPN. Certains graphiques intégrés peuvent être fournis par TradingView. Lorsque votre navigateur se connecte directement à un service externe, celui-ci peut recevoir des données techniques de connexion, comme l’adresse IP et des informations sur le navigateur.
+            </p>
+            <p className="text-muted-foreground mt-4">
+              La calculatrice utilise le montant, la crypto et la devise choisis pour afficher une estimation ; elle ne transmet pas d’ordre d’achat ou de vente. Le lecteur radio demande le flux audio au service de diffusion actif, qui peut être relayé par notre serveur. Les cours, résultats et flux peuvent être retardés ou indisponibles.
+            </p>
+            <p className="text-muted-foreground mt-4">
+              Les préférences d’interface (thème, langue, devise d’affichage, catégories suivies, matchs favoris et état du lecteur) peuvent être conservées dans le stockage local ou de session du navigateur. Vous pouvez les supprimer en effaçant les données de navigation.
+            </p>
+          </section>
+
+          <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Base légale</h2>
             <ul className="list-disc pl-6 text-muted-foreground space-y-2">
               <li>Votre consentement (inscription à la newsletter, notifications du navigateur et cookies analytiques ou publicitaires après acceptation de leurs catégories)</li>
-              <li>L’exécution d’un contrat (compte utilisateur, candidatures à une offre d’emploi, dons, partenariats)</li>
+              <li>L’exécution d’un service ou d’un contrat (compte utilisateur, candidatures, achats d’articles premium, formules de soutien et dons)</li>
               <li>Le respect d’une obligation légale</li>
               <li>Notre intérêt légitime (sécurité, amélioration du service, journalisme, information sur les nouvelles publications via l’interface du site)</li>
             </ul>
@@ -145,8 +163,10 @@ export default async function PrivacyPolicyPage({
             <ul className="list-disc pl-6 text-muted-foreground space-y-2">
               <li>L’équipe éditoriale et technique de {SITE_NAME}</li>
               <li>{HOSTING_PROVIDER.name} pour l’hébergement du site</li>
+              <li>Stripe, pour le traitement des paiements d’articles premium, de formules de soutien et de dons ; Stripe applique ses propres règles de confidentialité lors du paiement</li>
               <li>Google reCAPTCHA, lorsqu’un formulaire protégé (contact, compte ou newsletter) est affiché ou envoyé, pour l’analyse de risque et la vérification anti-robot</li>
-              <li>Google (Analytics, Tag Manager, AdSense) uniquement après acceptation des catégories de cookies correspondantes</li>
+              <li>Google (Analytics, Tag Manager, AdSense) lorsque vos préférences de consentement autorisent les catégories correspondantes</li>
+              <li>Les fournisseurs de données sportives, de cours financiers, de graphiques et de diffusion audio nécessaires aux fonctions consultées</li>
               <li>Telegram, pour transmettre à l’équipe une notification d’inscription à la newsletter contenant l’adresse e-mail de l’abonné</li>
               <li>Nos prestataires d’email, dans la limite nécessaire à l’envoi des messages</li>
             </ul>
@@ -156,17 +176,16 @@ export default async function PrivacyPolicyPage({
           <section>
             <h2 className="font-heading text-2xl font-bold text-foreground mb-4">Publicité et Google AdSense</h2>
             <p className="text-muted-foreground">
-              Des prestataires tiers, y compris Google, peuvent utiliser des cookies pour diffuser des annonces en fonction des visites antérieures de l’utilisateur sur ce site ou sur d’autres sites. Ces cookies ne sont activés qu’après acceptation de la catégorie publicitaire dans vos préférences.
+              Certaines pages peuvent comporter des annonces fournies par Google AdSense. Lorsque vos préférences autorisent les catégories publicitaires ou de personnalisation correspondantes, Google et ses partenaires peuvent utiliser des cookies ou des identifiants pour diffuser et mesurer des annonces, personnalisées ou non, selon les réglages disponibles. Si ces catégories ne sont pas autorisées, les scripts AdSense ne sont pas chargés par le site.
             </p>
             <p className="text-muted-foreground">
-              L’utilisation de cookies publicitaires par Google permet à Google et à ses partenaires de diffuser des annonces aux utilisateurs en fonction de leur visite sur nos sites et/ou d’autres sites sur Internet.
-            </p>
-            <p className="text-muted-foreground">
-              Les utilisateurs peuvent désactiver la publicité personnalisée en consultant les{' '}
+              Les choix enregistrés peuvent être modifiés à tout moment avec le bouton de gestion des cookies. Les paramètres de publicité personnalisée de Google sont également accessibles depuis les{' '}
               <a href={GOOGLE_ADS_SETTINGS_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                 Paramètres des annonces
-              </a>
-              . Ils peuvent également se désinscrire de certains cookies publicitaires tiers via{' '}
+              </a>.
+            </p>
+            <p className="text-muted-foreground">
+              Vous pouvez également vous opposer à certains cookies publicitaires tiers via{' '}
               <a href={ABOUTADS_OPTOUT_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                 aboutads.info
               </a>
@@ -199,6 +218,13 @@ export default async function PrivacyPolicyPage({
             <p className="text-muted-foreground">
               Les formulaires de contact, de connexion, d’inscription et d’abonnement à la newsletter utilisent Google reCAPTCHA v2 afin de détecter les soumissions automatisées et de limiter les abus. Lorsque le widget est chargé, Google peut traiter des informations techniques et d’interaction, telles que l’adresse IP, des données relatives au navigateur ou à l’appareil et le cookie de sécurité <code>_GRECAPTCHA</code>, pour produire une analyse de risque. Le jeton généré est vérifié côté serveur auprès de Google. Cette protection est utilisée pour la sécurité des formulaires, indépendamment des cookies analytiques et publicitaires facultatifs.
             </p>
+            <h3 className="font-heading text-xl font-semibold text-foreground mb-3 mt-6">Stripe</h3>
+            <p className="text-muted-foreground">
+              Les paiements sont effectués sur la page de paiement de Stripe pour les achats premium, les formules de soutien et les dons. MalakInfo reçoit les informations nécessaires au suivi de la transaction ; les données de paiement sont traitées selon les règles de Stripe. Consultez la{' '}
+              <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                politique de confidentialité de Stripe
+              </a>.
+            </p>
             <p className="text-muted-foreground">
               Pour en savoir plus, consultez la{' '}
               <a href={GOOGLE_PRIVACY_POLICY_URL} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">règle de confidentialité de Google</a>
@@ -216,6 +242,7 @@ export default async function PrivacyPolicyPage({
               <li>Newsletter : jusqu’à désabonnement</li>
               <li>Compte utilisateur : jusqu’à suppression du compte</li>
               <li>Candidatures et messages liés aux offres d’emploi : durée nécessaire au traitement, puis archivage ou suppression selon nos besoins légitimes</li>
+              <li>Informations de paiement et de don : durée nécessaire au suivi de la transaction et au respect des obligations légales, comptables ou de règlement des litiges</li>
               <li>Préférences de notifications : jusqu’à suppression locale ou révocation de la permission navigateur</li>
               <li>Données analytiques : 26 mois</li>
             </ul>
