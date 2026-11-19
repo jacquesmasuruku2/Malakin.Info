@@ -170,25 +170,22 @@ export default function ServicesModal() {
             <Link
               href={`/${locale}`}
               onClick={closeServices}
-              className="flex min-h-[58px] items-center justify-center gap-2 border-r border-border px-3 text-sm font-black uppercase text-foreground transition-colors hover:bg-muted"
+              className="flex min-h-[58px] min-w-0 items-center justify-start gap-1.5 border-r border-border py-2 pl-5 pr-2 text-xs font-black uppercase leading-tight text-foreground transition-colors hover:bg-muted sm:gap-2 sm:pr-3 sm:text-sm"
             >
-              <Home className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <Home className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" aria-hidden="true" />
               {t.home}
             </Link>
             <Link
               href={`/${locale}/matches-en-direct`}
               onClick={closeServices}
-              className="flex min-h-[58px] items-center justify-center gap-2 px-3 text-sm font-black uppercase text-foreground transition-colors hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+              className="flex min-h-[58px] min-w-0 items-center justify-start gap-1.5 px-2 text-xs font-black uppercase leading-tight text-foreground transition-colors hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary sm:gap-2 sm:px-3 sm:text-sm"
             >
-              <Trophy className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <Trophy className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" aria-hidden="true" />
               <span>{locale === 'en' ? 'Live matches' : 'Match en direct'}</span>
             </Link>
           </div>
 
-          <section aria-labelledby="mobile-news-heading" className="border-b border-border px-5 py-4">
-            <h2 id="mobile-news-heading" className="mb-3 text-base font-black uppercase tracking-[0.12em] text-foreground">
-              {t.news}
-            </h2>
+          <section aria-label={t.news} className="border-b border-border px-5 py-2">
             <div className="grid grid-cols-2 gap-x-4 gap-y-1">
               {newsMenuItems.map((item) => (
                 <Link
@@ -236,25 +233,27 @@ export default function ServicesModal() {
                 <FaInstagram className="h-5 w-5" aria-hidden="true" />
               </a>
             </div>
-            <Link
-              href={`/${locale}/emploi`}
-              onClick={closeServices}
-              className="flex min-h-12 items-center gap-3 px-5 py-2.5 text-[15px] font-semibold text-foreground transition-colors hover:bg-muted hover:text-primary"
-            >
-              <Briefcase className="h-5 w-5" aria-hidden="true" />
-              {t.employment}
-            </Link>
+            <div className="grid grid-cols-2">
+              <Link
+                href={`/${locale}/emploi`}
+                onClick={closeServices}
+                className="flex min-h-12 items-center gap-2 border-r border-border px-3 py-2.5 text-[15px] font-semibold text-foreground transition-colors hover:bg-muted hover:text-primary"
+              >
+                <Briefcase className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {t.employment}
+              </Link>
+              <Link
+                href={`/${locale}/marches`}
+                onClick={closeServices}
+                className="flex min-h-12 items-center gap-2 px-3 py-2.5 text-[15px] font-semibold text-foreground transition-colors hover:bg-muted hover:text-primary"
+              >
+                <TrendingUp className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {t.markets}
+              </Link>
+            </div>
           </section>
 
           <section aria-label={t.services} className="grid grid-cols-2 gap-x-4 gap-y-1 px-5 py-3">
-            <Link
-              href={`/${locale}/marches`}
-              onClick={closeServices}
-              className="flex min-h-11 items-center gap-2 py-2 text-sm font-semibold text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              <TrendingUp className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>{t.markets}</span>
-            </Link>
             {otherSections.map((item) => (
               <Link
                 key={item.href}
