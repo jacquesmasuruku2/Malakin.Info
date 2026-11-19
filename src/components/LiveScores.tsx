@@ -61,6 +61,11 @@ type FollowedFootballTeam = {
   name: string;
   logo: string | null;
 };
+type TeamFavoriteTarget = {
+  id: number | null;
+  name: string;
+  logo: string | null;
+};
 function createMatchShareKey(
   match: LiveScoreMatch | undefined,
   fixtureId: number,
@@ -1542,6 +1547,8 @@ export default function LiveScores({
   const [teamFavoriteActionId, setTeamFavoriteActionId] = useState<string | null>(null);
   const [teamFavoriteError, setTeamFavoriteError] = useState<string | null>(null);
   const [teamFavoriteNotice, setTeamFavoriteNotice] = useState<string | null>(null);
+  const [teamNotificationPrompt, setTeamNotificationPrompt] =
+    useState<TeamFavoriteTarget | null>(null);
   const currentUserId = user?.id ? String(user.id) : null;
   const followedTeams =
     currentUserId && followedTeamsOwnerId === currentUserId ? savedFollowedTeams : [];
@@ -1725,6 +1732,7 @@ export default function LiveScores({
     view,
   ]);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const teamNotificationDialogRef = useRef<HTMLDialogElement>(null);
   const selectedMatch = matches.find((match) => match.fixture.id === selectedFixtureId);
   const homeLineup = selectedMatch
     ? lineups.find(
@@ -2027,6 +2035,16 @@ export default function LiveScores({
   }, [selectedFixtureId]);
 
   useEffect(() => {
+    const dialog = teamNotificationDialogRef.current;
+    if (!teamNotificationPrompt || !dialog || dialog.open) return;
+
+    dialog.showModal();
+    return () => {
+      if (dialog.open) dialog.close();
+    };
+  }, [teamNotificationPrompt]);
+
+  useEffect(() => {
     if (selectedFixtureId === null) return;
 
     const controller = new AbortController();
@@ -2235,11 +2253,10 @@ export default function LiveScores({
     favoriteSubscribers.forEach((subscriber) => subscriber());
   }
 
-  async function toggleTeamFavorite(team: {
-    id: number | null;
-    name: string;
-    logo: string | null;
-  }) {
+  async function toggleTeamFavorite(
+    team: TeamFavoriteTarget,
+    requestNotifications: boolean,
+  ) {
     if (!user?.id || team.id === null) return;
 
     const espnTeamId = String(team.id);
@@ -2247,9 +2264,9 @@ export default function LiveScores({
     setTeamFavoriteActionId(espnTeamId);
     setTeamFavoriteError(null);
     setTeamFavoriteNotice(null);
-    const notificationSetup = isFollowed
+    const notificationSetup = isFollowed || !requestNotifications
       ? null
-      : enableFootballMatchNotifications().then(
+      : enableFootballMatchNotifications(english).then(
           () => null,
           (error: unknown) =>
             error instanceof Error
@@ -2260,6 +2277,7 @@ export default function LiveScores({
         );
 
     try {
+      const notificationError = notificationSetup ? await notificationSetup : null;
       const response = await authFetch(
         isFollowed
           ? `/api/user/match-teams?teamId=${encodeURIComponent(espnTeamId)}`
@@ -2293,19 +2311,16 @@ export default function LiveScores({
           : [{ espnTeamId, name: team.name, logo: team.logo }, ...current],
       );
       setFollowedTeamsOwnerId(String(user.id));
-      if (notificationSetup) {
-        const notificationError = await notificationSetup;
-        if (notificationError) {
-          console.warn(
-            'The team was followed, but match reminders could not be enabled:',
-            notificationError,
-          );
-          setTeamFavoriteNotice(
-            english
-              ? `${team.name} is followed, but match reminders could not be enabled: ${notificationError}`
-              : `${team.name} est suivie, mais les rappels de matches n’ont pas pu être activés : ${notificationError}`,
-          );
-        }
+      if (notificationError) {
+        console.warn(
+          'The team was followed, but match reminders could not be enabled:',
+          notificationError,
+        );
+        setTeamFavoriteNotice(
+          english
+            ? `${team.name} is followed, but match reminders could not be enabled: ${notificationError}`
+            : `${team.name} est suivie, mais les rappels de matches n’ont pas pu être activés : ${notificationError}`,
+        );
       }
     } catch (error) {
       console.error('Unable to update a followed football team:', error);
@@ -2321,11 +2336,7 @@ export default function LiveScores({
     }
   }
 
-  function handleTeamFavoriteClick(team: {
-    id: number | null;
-    name: string;
-    logo: string | null;
-  }) {
+  function handleTeamFavoriteClick(team: TeamFavoriteTarget) {
     if (!accountReady) return;
     if (!user?.id) {
       const currentPath = pathname || `/${locale || 'fr'}/matches-en-direct`;
@@ -2335,7 +2346,29 @@ export default function LiveScores({
       return;
     }
 
-    void toggleTeamFavorite(team);
+    const isFollowed = followedTeams.some(
+      (followedTeam) => followedTeam.espnTeamId === String(team.id),
+    );
+    if (isFollowed) {
+      void toggleTeamFavorite(team, false);
+      return;
+    }
+
+    if ('Notification' in window && Notification.permission === 'granted') {
+      void toggleTeamFavorite(team, true);
+      return;
+    }
+
+    setTeamNotificationPrompt(team);
+  }
+
+  function respondToTeamNotificationPrompt(requestNotifications: boolean) {
+    const team = teamNotificationPrompt;
+    if (!team) return;
+
+    teamNotificationDialogRef.current?.close();
+    setTeamNotificationPrompt(null);
+    void toggleTeamFavorite(team, requestNotifications);
   }
 
   return (
@@ -3050,6 +3083,58 @@ export default function LiveScores({
           </p>
         )}
       </div>
+
+      {teamNotificationPrompt && (
+        <dialog
+          ref={teamNotificationDialogRef}
+          aria-labelledby="team-notification-title"
+          aria-describedby="team-notification-description"
+          onCancel={(event) => {
+            event.preventDefault();
+            respondToTeamNotificationPrompt(false);
+          }}
+          className="fixed inset-0 m-0 flex h-dvh max-h-dvh w-full max-w-full items-center justify-center border-0 bg-transparent p-4 text-foreground backdrop:bg-slate-950/55"
+        >
+          <section className="w-full max-w-md rounded-2xl border border-border bg-background p-5 shadow-2xl sm:p-6">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">
+              {english ? 'Match reminders' : 'Rappels de matches'}
+            </p>
+            <h2
+              id="team-notification-title"
+              className="mt-2 text-xl font-bold text-foreground"
+            >
+              {english
+                ? `Would you like to receive match notifications for ${teamNotificationPrompt.name}?`
+                : `Voulez-vous recevoir les notifications des matches pour ${teamNotificationPrompt.name} ?`}
+            </h2>
+            <p
+              id="team-notification-description"
+              className="mt-3 text-sm leading-6 text-muted-foreground"
+            >
+              {english
+                ? 'You will get a reminder about 30 minutes before kickoff. Your browser may then ask you to allow notifications.'
+                : 'Vous recevrez un rappel environ 30 minutes avant le coup d’envoi. Votre navigateur pourra ensuite vous demander l’autorisation.'}
+            </p>
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                autoFocus
+                onClick={() => respondToTeamNotificationPrompt(false)}
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                {english ? 'No, continue without notifications' : 'Non, continuer sans notifications'}
+              </button>
+              <button
+                type="button"
+                onClick={() => respondToTeamNotificationPrompt(true)}
+                className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                {english ? 'Yes, notify me' : 'Oui, recevoir les rappels'}
+              </button>
+            </div>
+          </section>
+        </dialog>
+      )}
 
       {selectedFixtureId !== null && (
         <dialog

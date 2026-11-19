@@ -34,7 +34,7 @@ export default async function InfosPratiquesPage({
   articles = await applyArticleLocales(articles, locale);
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb]">
+    <div className="min-h-screen bg-muted">
       <section className="bg-[#081c3d] text-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
           <Link
@@ -65,15 +65,16 @@ export default async function InfosPratiquesPage({
         </div>
       </section>
 
-      <section className="hidden bg-[#0b3b8b] md:block">
+      <section className="hidden border-t border-white/10 bg-[#081c3d] md:block">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-4 py-8 text-center sm:px-6 lg:px-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/80">Radio</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-secondary">Radio</p>
           <h2 className="font-heading text-2xl font-black text-white sm:text-3xl">
             {isFrench ? 'Flux radio en direct' : 'Live radio stream'}
           </h2>
           <RadioOnAirWidget
             name="Radio MalakInfo"
             onlineLabel={isFrench ? 'en ligne' : 'on air'}
+            onDarkBackground
           />
           <p className="max-w-xl text-sm leading-6 text-white/85">
             {isFrench

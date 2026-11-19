@@ -17,23 +17,46 @@ function decodeVapidPublicKey(value: string): ArrayBuffer {
   return bytes.buffer;
 }
 
-export async function enableFootballMatchNotifications(): Promise<void> {
+export async function enableFootballMatchNotifications(english = false): Promise<void> {
   if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-    throw new Error('Ce navigateur ne prend pas en charge les notifications Push.');
+    throw new Error(
+      english
+        ? 'This browser does not support Push notifications.'
+        : 'Ce navigateur ne prend pas en charge les notifications Push.',
+    );
   }
   if (!window.isSecureContext) {
-    throw new Error('Les notifications Push nécessitent une connexion HTTPS.');
+    throw new Error(
+      english
+        ? 'Push notifications require a secure HTTPS connection.'
+        : 'Les notifications Push nécessitent une connexion HTTPS.',
+    );
   }
   if (!VAPID_PUBLIC_KEY) {
-    throw new Error('La clé publique VAPID du site n’est pas configurée.');
+    throw new Error(
+      english
+        ? 'The site Push notification key is not configured.'
+        : 'La clé publique VAPID du site n’est pas configurée.',
+    );
   }
 
   const permission =
     Notification.permission === 'default'
       ? await Notification.requestPermission()
       : Notification.permission;
+  if (permission === 'denied') {
+    throw new Error(
+      english
+        ? 'Push notifications are blocked in this browser. Allow them in the site settings, then try again.'
+        : 'Les notifications Push sont bloquées dans ce navigateur. Autorisez-les dans les paramètres du site, puis réessayez.',
+    );
+  }
   if (permission !== 'granted') {
-    throw new Error('Autorisez les notifications du navigateur pour recevoir les rappels de matches.');
+    throw new Error(
+      english
+        ? 'Allow browser notifications to receive match reminders.'
+        : 'Autorisez les notifications du navigateur pour recevoir les rappels de matches.',
+    );
   }
 
   const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
