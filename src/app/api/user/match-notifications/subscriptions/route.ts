@@ -52,6 +52,29 @@ function parseSubscription(value: unknown) {
   return { endpoint: value.endpoint, p256dh, auth };
 }
 
+export async function GET(request: NextRequest) {
+  try {
+    const userId = await resolveCurrentUserId(request);
+    if (!userId) {
+      return NextResponse.json({ error: 'Connexion requise.' }, { status: 401 });
+    }
+
+    const endpoint = request.headers.get('x-push-endpoint');
+    if (!endpoint || endpoint.length > 4096) {
+      return NextResponse.json({ error: 'Abonnement Push invalide.' }, { status: 400 });
+    }
+
+    const subscription = await prisma.webPushSubscription.findUnique({
+      where: { endpoint },
+      select: { userId: true },
+    });
+    return NextResponse.json({ registered: subscription?.userId === userId });
+  } catch (error) {
+    console.error('Unable to check Web Push subscription:', error);
+    return NextResponse.json({ error: 'Impossible de vérifier les notifications sur cet appareil.' }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const userId = await resolveCurrentUserId(request);

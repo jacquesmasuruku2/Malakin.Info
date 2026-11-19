@@ -23,7 +23,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { authFetch } from '@/lib/client-auth';
-import { enableFootballMatchNotifications } from '@/lib/match-notification-client';
+import { enableFootballMatchNotifications } from '@/lib/web-push-client';
 import { useAccountUser } from '@/lib/use-account-user';
 import type {
   ESPNScoreboardMatch,
