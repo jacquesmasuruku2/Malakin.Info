@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Bell, X } from 'lucide-react';
+import { isArticlePathname } from '@/lib/article-url';
 import {
   canNotifyFollowedCategory,
   fetchCategorySuggestion,
@@ -16,6 +17,11 @@ import { useConsentNotificationDelay } from '@/hooks/useConsentNotificationDelay
 
 export default function FollowedCategoryNotifier() {
   const pathname = usePathname();
+  return <FollowedCategoryNotifierForPath key={pathname} pathname={pathname} />;
+}
+
+function FollowedCategoryNotifierForPath({ pathname }: { pathname: string }) {
+  const isReadingArticle = isArticlePathname(pathname);
   const locale = pathname.split('/')[1] || 'fr';
   const notificationsReady = useConsentNotificationDelay();
   const [suggestion, setSuggestion] = useState<SuggestedArticle | null>(null);
@@ -23,7 +29,7 @@ export default function FollowedCategoryNotifier() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!notificationsReady) return;
+    if (isReadingArticle || !notificationsReady) return;
 
     let cancelled = false;
 
@@ -51,9 +57,9 @@ export default function FollowedCategoryNotifier() {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [locale, notificationsReady, pathname]);
+  }, [isReadingArticle, locale, notificationsReady, pathname]);
 
-  if (!visible || !suggestion) return null;
+  if (isReadingArticle || !visible || !suggestion) return null;
 
   return (
     <div

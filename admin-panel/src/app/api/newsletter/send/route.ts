@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { isSmtpConfigured, sendNewsletterEmail } from '@/lib/email';
+import { isSmtpConfigured, sendConfiguredEmail } from '@/lib/email';
 import { replaceDataImagesInHtml } from '@/lib/r2';
 
 export const maxDuration = 300;
@@ -120,7 +120,7 @@ async function sendLocally(body: Body) {
         );
 
         try {
-          await sendNewsletterEmail({
+          await sendConfiguredEmail({
             to: subscriber.email,
             subject,
             html: personalizedHtml,

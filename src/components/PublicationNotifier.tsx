@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Bell, BellRing, Sparkles, X } from 'lucide-react';
+import { isArticlePathname } from '@/lib/article-url';
 import {
   canShowNotificationPrompt,
   dismissNotificationPrompt,
@@ -25,7 +26,12 @@ type Mode = 'prompt' | 'publication' | null;
 
 export default function PublicationNotifier() {
   const pathname = usePathname();
+  return <PublicationNotifierForPath key={pathname} pathname={pathname} />;
+}
+
+function PublicationNotifierForPath({ pathname }: { pathname: string }) {
   const router = useRouter();
+  const isReadingArticle = isArticlePathname(pathname);
   const locale = pathname.split('/')[1] || 'fr';
   const isFrench = locale === 'fr';
   const notificationsReady = useConsentNotificationDelay();
@@ -36,20 +42,24 @@ export default function PublicationNotifier() {
   const [enabling, setEnabling] = useState(false);
 
   useEffect(() => {
-    if (!notificationsReady) return;
+    if (isReadingArticle || !notificationsReady) return;
 
     let cancelled = false;
+    let serviceWorkerContainer: ServiceWorkerContainer | null = null;
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      const url = event.data?.url;
+      if (event.data?.type === 'NOTIFICATION_CLICK' && typeof url === 'string') {
+        router.push(url);
+      }
+    };
 
     const boot = async () => {
       await registerNotificationServiceWorker();
 
+      if (cancelled) return;
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.addEventListener('message', (event) => {
-          const url = event.data?.url;
-          if (event.data?.type === 'NOTIFICATION_CLICK' && typeof url === 'string') {
-            router.push(url);
-          }
-        });
+        serviceWorkerContainer = navigator.serviceWorker;
+        serviceWorkerContainer.addEventListener('message', handleServiceWorkerMessage);
       }
 
       const lastSeen = getLastSeenPublicationAt();
@@ -91,8 +101,9 @@ export default function PublicationNotifier() {
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
+      serviceWorkerContainer?.removeEventListener('message', handleServiceWorkerMessage);
     };
-  }, [locale, notificationsReady, router]);
+  }, [isReadingArticle, locale, notificationsReady, router]);
 
   const close = () => setMode(null);
 
@@ -125,7 +136,7 @@ export default function PublicationNotifier() {
     }
   };
 
-  if (!mode) return null;
+  if (isReadingArticle || !mode) return null;
 
   return (
     <div

@@ -25,7 +25,7 @@ export function isSmtpConfigured() {
   return Boolean(host && user && pass && from);
 }
 
-export async function sendNewsletterEmail({
+export async function sendConfiguredEmail({
   to,
   subject,
   html,
