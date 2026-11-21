@@ -1,3 +1,5 @@
+import { getArticleUrl } from '@/lib/article-url';
+
 export type FollowedCategory = {
   id: string;
   title: string;
@@ -45,6 +47,7 @@ export type SuggestedArticle = {
   excerpt: string | null;
   mainImageUrl: string | null;
   categoryTitle: string | null;
+  publishedAt: string | Date;
 };
 
 export async function fetchCategorySuggestion(categoryId: string, excludeId?: string) {
@@ -67,7 +70,7 @@ export function showCategoryNotification(
     return false;
   }
 
-  const url = `/${locale}/${article.slug}`;
+  const url = getArticleUrl(locale, article.slug, article.publishedAt);
   const notification = new Notification(
     locale === 'fr' ? `À lire aussi · ${categoryTitle}` : `More in ${categoryTitle}`,
     {

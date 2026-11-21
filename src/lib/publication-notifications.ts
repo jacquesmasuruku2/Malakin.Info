@@ -1,3 +1,5 @@
+import { getArticleUrl } from '@/lib/article-url';
+
 export type PublicationNotice = {
   id: string;
   kind: 'article' | 'job';
@@ -99,7 +101,7 @@ export async function requestBrowserNotificationPermission() {
 
 export function publicationHref(locale: string, item: PublicationNotice) {
   if (item.kind === 'job') return `/${locale}/emploi/${item.slug}`;
-  return `/${locale}/${item.slug}`;
+  return getArticleUrl(locale, item.slug, item.publishedAt);
 }
 
 export async function showBrowserPublicationNotification(

@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { withRetry } from '@/lib/database';
 import { getArchiveYears, isValidArchiveYear, yearRange } from '@/lib/archives';
 import { applyArticleLocales } from '@/lib/translation';
+import { getArticleUrl } from '@/lib/article-url';
 
 export const revalidate = 60;
 
@@ -117,7 +118,7 @@ export default async function ArchiveYearPage({
             {publishedArticles.map((article) => (
               <li key={article.id}>
                 <Link
-                  href={`/${locale}/${article.slug}`}
+                  href={getArticleUrl(locale, article.slug, article.publishedAt)}
                   className="group flex flex-col gap-4 border border-border rounded-xl overflow-hidden bg-card sm:flex-row hover:border-primary/40 transition-colors"
                 >
                   <div className="h-40 w-full shrink-0 bg-muted sm:h-auto sm:w-48">

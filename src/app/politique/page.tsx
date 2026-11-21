@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import ArticleListingGrid from '@/components/ArticleListingGrid';
+import { getArticleUrl } from '@/lib/article-url';
 
 export const revalidate = 60;
 
@@ -36,7 +37,11 @@ export default async function PolitiquePage() {
             Aucun article politique disponible pour le moment.
           </div>
         ) : (
-          <ArticleListingGrid articles={articles} locale="fr" hrefFor={(item) => `/${item.slug}`} />
+          <ArticleListingGrid
+            articles={articles}
+            locale="fr"
+            hrefFor={(item) => getArticleUrl('fr', item.slug, item.publishedAt)}
+          />
         )}
       </div>
     </div>

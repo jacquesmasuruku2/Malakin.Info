@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import AuthorBio from '@/components/AuthorBio';
 import { plainTextFromBio } from '@/lib/author-bio';
 import { prisma } from '@/lib/prisma';
+import { getArticleUrl } from '@/lib/article-url';
 
 export const revalidate = 60;
 
@@ -124,7 +125,7 @@ export default async function ContributorProfilePage({
               {author.articles.map((article) => (
                 <li key={article.id}>
                   <Link
-                    href={`/${locale}/${article.slug}`}
+                    href={getArticleUrl(locale, article.slug, article.publishedAt)}
                     className="group flex flex-col gap-4 border border-border rounded-xl overflow-hidden bg-card sm:flex-row hover:border-primary/40 transition-colors"
                   >
                     <div className="h-40 w-full shrink-0 bg-muted sm:h-auto sm:w-48">

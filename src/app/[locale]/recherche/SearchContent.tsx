@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Search, Calendar, Clock, ArrowRight, User, Film, Folder, Play } from 'lucide-react';
+import { getArticleUrl } from '@/lib/article-url';
 
 type SearchResultType = 'article' | 'author' | 'media' | 'live' | 'category';
 
@@ -64,8 +66,8 @@ export default function SearchContent() {
           data.map((item) => ({
             ...item,
             path:
-              item.type === 'article'
-                ? `/${locale}/${item.slug}`
+              item.type === 'article' && item.slug
+                ? getArticleUrl(locale, item.slug, item.date)
                 : item.path.startsWith('/')
                   ? `/${locale}${item.path}`
                   : `/${locale}/${item.path}`,
@@ -289,13 +291,13 @@ export default function SearchContent() {
                       </span>
                     )}
                   </div>
-                  <a
+                  <Link
                     href={result.path}
                     className="inline-flex items-center gap-2 self-start rounded-full bg-[#0b3b8b] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#082a63]"
                   >
                     Voir
                     <ArrowRight className="h-4 w-4" />
-                  </a>
+                  </Link>
                 </div>
               </article>
             ))}

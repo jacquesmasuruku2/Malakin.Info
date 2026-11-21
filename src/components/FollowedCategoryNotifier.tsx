@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { Bell, X } from 'lucide-react';
-import { isArticlePathname } from '@/lib/article-url';
+import { getArticleUrl, isArticlePathname } from '@/lib/article-url';
 import {
   canNotifyFollowedCategory,
   fetchCategorySuggestion,
@@ -98,8 +99,8 @@ function FollowedCategoryNotifierForPath({ pathname }: { pathname: string }) {
           </button>
         </div>
 
-        <a
-          href={`/${locale}/${suggestion.slug}`}
+        <Link
+          href={getArticleUrl(locale, suggestion.slug, suggestion.publishedAt)}
           className="block px-4 pb-4"
           onClick={() => setVisible(false)}
         >
@@ -112,7 +113,7 @@ function FollowedCategoryNotifierForPath({ pathname }: { pathname: string }) {
           <span className="mt-3 inline-flex rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-primary-foreground">
             {pickCopy(locale, copies.readThisArticle)}
           </span>
-        </a>
+        </Link>
       </article>
     </div>
   );

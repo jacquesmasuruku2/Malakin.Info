@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Bookmark, BookmarkCheck, Bell } from 'lucide-react';
 import { authFetch } from '@/lib/client-auth';
+import { getArticleUrl } from '@/lib/article-url';
 import {
   fetchCategorySuggestion,
   followCategory,
@@ -142,8 +144,8 @@ export default function FavoriteButton({
       </button>
 
       {suggestion && (
-        <a
-          href={`/${locale}/${suggestion.slug}`}
+        <Link
+          href={getArticleUrl(locale, suggestion.slug, suggestion.publishedAt)}
           className="mt-4 flex max-w-xl gap-3 rounded-xl border border-border bg-card p-3 transition hover:border-primary/30"
         >
           {suggestion.mainImageUrl && (
@@ -163,7 +165,7 @@ export default function FavoriteButton({
               <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{suggestion.excerpt}</p>
             )}
           </div>
-        </a>
+        </Link>
       )}
     </div>
   );

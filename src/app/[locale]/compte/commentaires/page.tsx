@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { MessageSquare, Calendar, ExternalLink, User, Pencil, Save, X, Trash2 } from 'lucide-react';
 import { authFetch } from '@/lib/client-auth';
 import { useAccountUser } from '@/lib/use-account-user';
+import { getArticleUrl } from '@/lib/article-url';
 
 interface UserComment {
   id: string;
@@ -13,6 +15,7 @@ interface UserComment {
   article?: {
     title?: string;
     slug?: string;
+    publishedAt?: string;
   } | null;
 }
 
@@ -216,14 +219,14 @@ export default function CommentsPage() {
                       <Trash2 className="h-3.5 w-3.5" />
                       {deletingCommentId === comment.id ? 'Suppression...' : 'Supprimer'}
                     </button>
-                    <a
-                      href={`/${locale}/${comment.article?.slug}`}
+                    {comment.article?.slug && <Link
+                      href={getArticleUrl(locale, comment.article.slug, comment.article.publishedAt)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary hover:text-primary/80"
                     >
                       <ExternalLink className="w-5 h-5" />
-                    </a>
+                    </Link>}
                   </div>
                 </div>
 

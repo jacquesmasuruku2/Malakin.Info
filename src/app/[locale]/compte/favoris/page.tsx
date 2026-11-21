@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { Bookmark, Calendar, ExternalLink, User } from 'lucide-react';
 import { authFetch } from '@/lib/client-auth';
 import { useAccountUser } from '@/lib/use-account-user';
+import { getArticleUrl } from '@/lib/article-url';
 
 export default function FavoritesPage() {
   const { user: currentUser, ready } = useAccountUser();
@@ -138,15 +140,17 @@ export default function FavoritesPage() {
                             year: 'numeric',
                           })}
                         </p>
-                        <a
-                          href={`/${locale}/${favorite.article?.slug}`}
+                        {favorite.article?.slug && (
+                          <Link
+                          href={getArticleUrl(locale, favorite.article.slug, favorite.article.publishedAt)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-medium"
                         >
                           Voir l'article
                           <ExternalLink className="w-4 h-4" />
-                        </a>
+                          </Link>
+                        )}
                       </div>
                     </div>
                   ))}

@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
         slug: true,
         excerpt: true,
         mainImageUrl: true,
+        publishedAt: true,
         category: {
           select: { title: true },
         },
@@ -44,6 +45,7 @@ export async function GET(request: NextRequest) {
         excerpt: picked.excerpt,
         mainImageUrl: picked.mainImageUrl,
         categoryTitle: picked.category?.title ?? null,
+        publishedAt: picked.publishedAt,
       },
     });
   } catch (error) {

@@ -7,6 +7,7 @@ import { getArticleTags, prepareArticleHtml, normalizeArticleHtmlContent } from 
 import type { Metadata } from 'next';
 import { getLocalizedArticleMetadata } from '@/lib/article-metadata';
 import ArticleLanguageLinks from '@/components/ArticleLanguageLinks';
+import { getArticleUrl } from '@/lib/article-url';
 
 export async function generateMetadata({
   params,
@@ -33,7 +34,7 @@ export default async function SanteArticlePage({ params }: { params: Promise<{ l
   }
 
   if (article.category?.slug !== 'sante') {
-    redirect(`/${locale}/${article.category?.slug || 'actualites'}/${slug}`);
+    redirect(getArticleUrl(locale, slug, article.publishedAt));
   }
 
   const translatedArticle = await getArticleTranslation(article.id, locale);

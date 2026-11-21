@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Bell, BellRing, Sparkles, X } from 'lucide-react';
 import { isArticlePathname } from '@/lib/article-url';
 import {
@@ -248,7 +249,7 @@ function PublicationNotifierForPath({ pathname }: { pathname: string }) {
               </>
             ) : item ? (
               <>
-                <a
+                <Link
                   href={publicationHref(locale, item)}
                   onClick={close}
                   className="inline-flex items-center gap-2 bg-[#d4af37] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#081c3d] transition hover:bg-white"
@@ -260,7 +261,7 @@ function PublicationNotifierForPath({ pathname }: { pathname: string }) {
                     : isFrench
                       ? 'Lire l’article'
                       : 'Read article'}
-                </a>
+                </Link>
                 {!getNotificationsEnabled() && canShowNotificationPrompt() ? (
                   <button
                     type="button"

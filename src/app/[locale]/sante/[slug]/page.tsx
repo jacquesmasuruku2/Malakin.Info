@@ -23,6 +23,7 @@ import { withRetry } from '@/lib/database';
 import CategoryArticlesSidebar from '@/components/CategoryArticlesSidebar';
 import ArticleDateMeta from '@/components/ArticleDateMeta';
 import ArticleLanguageLinks from '@/components/ArticleLanguageLinks';
+import { getArticleUrl } from '@/lib/article-url';
 import { getLocalizedArticleMetadata } from '@/lib/article-metadata';
 import { applyArticleLocales } from '@/lib/translation';
 
@@ -121,7 +122,7 @@ export default async function ArticlePage({
       id: item.article.id,
       title: item.article.title,
       imageUrl: item.article.mainImageUrl || '',
-      targetUrl: `/${locale}/${item.article.category?.slug || 'actualites'}/${item.article.slug}`,
+      targetUrl: getArticleUrl(locale, item.article.slug, item.article.publishedAt),
       sponsorName: item.categoryBadge || 'Sponsor',
       categoryBadge: item.categoryBadge || 'Publicité',
     }));
@@ -149,7 +150,7 @@ export default async function ArticlePage({
       id: item.article.id,
       title: item.article.title,
       imageUrl: item.article.mainImageUrl || '',
-      targetUrl: `/${locale}/${item.article.category?.slug || 'actualites'}/${item.article.slug}`,
+      targetUrl: getArticleUrl(locale, item.article.slug, item.article.publishedAt),
       sponsorName: item.categoryBadge || 'Sponsor',
       categoryBadge: item.categoryBadge || 'Publicité',
     }));
@@ -200,7 +201,7 @@ export default async function ArticlePage({
               <div className="sticky top-24">
                 <ShareButtons
                   title={displayTitle}
-                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${slug}`}
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}${getArticleUrl(locale, slug, article.publishedAt)}`}
                   locale={locale}
                   orientation="vertical"
                 />
@@ -247,7 +248,7 @@ export default async function ArticlePage({
               <div className="xl:hidden">
                 <ShareButtons
                   title={displayTitle}
-                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}/${locale}/${slug}`}
+                  url={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://malakinfo.com'}${getArticleUrl(locale, slug, article.publishedAt)}`}
                   locale={locale}
                 />
               </div>

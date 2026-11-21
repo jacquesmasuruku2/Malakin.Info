@@ -8,6 +8,7 @@ import { articleListingSelect } from '@/lib/article-listing';
 import type { Metadata } from 'next';
 import { plainTextFromBio } from '@/lib/author-bio';
 import { SITE_URL } from '@/lib/site-legal';
+import { getArticleUrl } from '@/lib/article-url';
 
 export const revalidate = 60;
 
@@ -135,7 +136,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ locale:
               >
                 <div className="flex items-start gap-4">
                   {article.mainImageUrl && (
-                    <Link href={`/${locale}/${article.category.slug}/${article.slug}`} className="flex-shrink-0">
+                    <Link href={getArticleUrl(locale, article.slug, article.publishedAt)} className="flex-shrink-0">
                       <img
                         src={article.mainImageUrl}
                         alt={article.mainImageAlt || article.title}
@@ -155,7 +156,7 @@ export default async function AuthorPage({ params }: { params: Promise<{ locale:
                       )}
                     </div>
                     <h3 className="font-heading text-xl font-semibold text-foreground mb-2 hover:text-primary transition-colors">
-                      <Link href={`/${locale}/${article.category.slug}/${article.slug}`}>
+                      <Link href={getArticleUrl(locale, article.slug, article.publishedAt)}>
                         {article.title}
                       </Link>
                     </h3>

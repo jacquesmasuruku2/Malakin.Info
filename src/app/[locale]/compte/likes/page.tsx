@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { Heart, Calendar, ExternalLink, User } from 'lucide-react';
 import { authFetch } from '@/lib/client-auth';
 import { useAccountUser } from '@/lib/use-account-user';
+import { getArticleUrl } from '@/lib/article-url';
 
 export default function LikesPage() {
   const { user: currentUser, ready } = useAccountUser();
@@ -126,15 +128,15 @@ export default function LikesPage() {
                       year: 'numeric',
                     })}
                   </p>
-                  <a
-                    href={`/${locale}/${like.article?.slug}`}
+                  {like.article?.slug && <Link
+                    href={getArticleUrl(locale, like.article.slug, like.article.publishedAt)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-medium"
                   >
                     Voir l'article
                     <ExternalLink className="w-4 h-4" />
-                  </a>
+                  </Link>}
                 </div>
               </div>
             ))}
