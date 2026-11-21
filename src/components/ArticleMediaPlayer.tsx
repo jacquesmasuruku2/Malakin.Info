@@ -120,7 +120,10 @@ export default function ArticleMediaPlayer({
   };
 
   return (
-    <figure className="article-media-player article-audio-card">
+    <figure
+      className="article-media-player article-audio-card"
+      style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
+    >
       <audio
         ref={audioRef}
         src={src}
@@ -143,30 +146,36 @@ export default function ArticleMediaPlayer({
         }}
         onError={() => setHasError(true)}
       />
-      <button
-        type="button"
-        className="article-audio-play"
-        onClick={togglePlayback}
-        aria-label={isPlaying ? 'Mettre en pause' : `Lire ${title}`}
-        title={isPlaying ? 'Mettre en pause' : 'Lire'}
-      >
-        {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
-      </button>
-      <div className="article-audio-time">{formatTime(duration)}</div>
-      <div className="article-audio-content">
-        <p className="article-audio-title">{title}</p>
-        <p className="article-audio-source">{author || 'MALAKINFO · AUDIO'}</p>
-        <input
-          className="article-audio-progress"
-          type="range"
-          min={0}
-          max={duration ?? 0}
-          step={0.1}
-          value={duration ? Math.min(currentTime, duration) : 0}
-          onChange={(event) => seekTo(event.target.value)}
-          disabled={!duration || hasError}
-          aria-label="Position dans l’audio"
-        />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', width: '100%' }}>
+        <button
+          type="button"
+          className="article-audio-play"
+          style={{ flex: '0 0 2.5rem' }}
+          onClick={togglePlayback}
+          aria-label={isPlaying ? 'Mettre en pause' : `Lire ${title}`}
+          title={isPlaying ? 'Mettre en pause' : 'Lire'}
+        >
+          {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
+        </button>
+        <div className="article-audio-content" style={{ flex: '1 1 auto' }}>
+          <p className="article-audio-title">{title}</p>
+          <p className="article-audio-source">{author || 'MALAKINFO · AUDIO'}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.45rem' }}>
+            <input
+              className="article-audio-progress"
+              type="range"
+              min={0}
+              max={duration ?? 0}
+              step={0.1}
+              value={duration ? Math.min(currentTime, duration) : 0}
+              onChange={(event) => seekTo(event.target.value)}
+              disabled={!duration || hasError}
+              aria-label="Position dans l’audio"
+              style={{ margin: 0 }}
+            />
+            <span className="article-audio-time" style={{ flex: '0 0 auto' }}>{formatTime(duration)}</span>
+          </div>
+        </div>
       </div>
       {hasError && <p className="article-media-error">Impossible de lire cet audio.</p>}
       {isDockVisible && (
