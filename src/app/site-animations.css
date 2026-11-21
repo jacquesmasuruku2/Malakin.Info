@@ -41,6 +41,18 @@
   }
 }
 
+@keyframes article-loading-clock-hand {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.article-loading-clock-hand {
+  transform-box: view-box;
+  transform-origin: 24px 24px;
+  animation: article-loading-clock-hand 1.1s linear infinite;
+}
+
 .article-tag-chip {
   position: relative;
   overflow: hidden;
