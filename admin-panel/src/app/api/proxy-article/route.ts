@@ -14,7 +14,7 @@ class ProxyArticleError extends Error {
   }
 }
 
-const blockedAddresses = new BlockList();
+const blockedIpv4Addresses = new BlockList();
 [
   '0.0.0.0/8',
   '10.0.0.0/8',
@@ -32,8 +32,9 @@ const blockedAddresses = new BlockList();
   '240.0.0.0/4',
 ].forEach((subnet) => {
   const [address, prefix] = subnet.split('/');
-  blockedAddresses.addSubnet(address, Number(prefix), 'ipv4');
+  blockedIpv4Addresses.addSubnet(address, Number(prefix), 'ipv4');
 });
+const blockedIpv6Addresses = new BlockList();
 [
   '::/128',
   '::1/128',
@@ -46,13 +47,13 @@ const blockedAddresses = new BlockList();
   'ff00::/8',
 ].forEach((subnet) => {
   const [address, prefix] = subnet.split('/');
-  blockedAddresses.addSubnet(address, Number(prefix), 'ipv6');
+  blockedIpv6Addresses.addSubnet(address, Number(prefix), 'ipv6');
 });
 
 function isPublicAddress(address: string, family: number): boolean {
-  if (blockedAddresses.check(address, family === 4 ? 'ipv4' : 'ipv6')) return false;
-  if (family === 6) return blockedAddresses.check(address, 'ipv6') === false
-    && isGlobalIpv6(address);
+  if (family === 4) return !blockedIpv4Addresses.check(address, 'ipv4');
+  if (blockedIpv6Addresses.check(address, 'ipv6')) return false;
+  if (family === 6) return isGlobalIpv6(address);
   return true;
 }
 
